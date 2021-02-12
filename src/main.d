@@ -515,6 +515,7 @@ int main(string[] args)
         writeln(e.msg);        
         writeln(usage);
         writeln("  wind -h for help");
+        return -1;
     }
     
     if (info.helpWanted)
