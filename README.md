@@ -18,5 +18,5 @@ Build and run were tested on Windows, but the code is not platform dependent, it
 
 - [The C++ Windows SDK projection](https://github.com/microsoft/cppwin32)
 - [The C++/WinRT language projection](https://github.com/microsoft/cppwinrt)
-- [C#/Win32 P/Invoke Source Generator(https://github.com/microsoft/cswin32)
+- [C#/Win32 P/Invoke Source Generator](https://github.com/microsoft/cswin32)
 - [Rust for Windows](https://github.com/microsoft/windows-rs)
