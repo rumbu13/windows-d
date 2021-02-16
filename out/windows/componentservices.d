@@ -1,598 +1,727 @@
 module windows.componentservices;
 
-public import system;
-public import windows.automation;
-public import windows.com;
-public import windows.systemservices;
-public import windows.winsock;
-public import windows.windowsprogramming;
+public import windows.core;
+public import windows.automation : BSTR, IDispatch, SAFEARRAY, VARIANT;
+public import windows.com : APTTYPE, EOC_ChangeType, HRESULT, IClassFactory, IMoniker, IUnknown;
+public import windows.systemservices : BOOL, HANDLE;
+public import windows.winsock : BLOB;
+public import windows.windowsprogramming : FILETIME;
 
 extern(Windows):
 
-@DllImport("OLE32.dll")
-HRESULT CoGetDefaultContext(APTTYPE aptType, const(Guid)* riid, void** ppv);
 
-@DllImport("comsvcs.dll")
-HRESULT CoCreateActivity(IUnknown pIUnknown, const(Guid)* riid, void** ppObj);
+// Enums
 
-@DllImport("comsvcs.dll")
-HRESULT CoEnterServiceDomain(IUnknown pConfigObject);
 
-@DllImport("comsvcs.dll")
-void CoLeaveServiceDomain(IUnknown pUnkStatus);
-
-@DllImport("comsvcs.dll")
-HRESULT GetManagedExtensions(uint* dwExts);
-
-@DllImport("comsvcs.dll")
-void* SafeRef(const(Guid)* rid, IUnknown pUnk);
-
-@DllImport("comsvcs.dll")
-HRESULT RecycleSurrogate(int lReasonCode);
-
-@DllImport("comsvcs.dll")
-HRESULT MTSCreateActivity(const(Guid)* riid, void** ppobj);
-
-@DllImport("MTxDM.dll")
-HRESULT GetDispenserManager(IDispenserManager* param0);
-
-const GUID CLSID_SecurityIdentity = {0xECABB0A5, 0x7F19, 0x11D2, [0x97, 0x8E, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]};
-@GUID(0xECABB0A5, 0x7F19, 0x11D2, [0x97, 0x8E, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]);
-struct SecurityIdentity;
-
-const GUID CLSID_SecurityCallers = {0xECABB0A6, 0x7F19, 0x11D2, [0x97, 0x8E, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]};
-@GUID(0xECABB0A6, 0x7F19, 0x11D2, [0x97, 0x8E, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]);
-struct SecurityCallers;
-
-const GUID CLSID_SecurityCallContext = {0xECABB0A7, 0x7F19, 0x11D2, [0x97, 0x8E, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]};
-@GUID(0xECABB0A7, 0x7F19, 0x11D2, [0x97, 0x8E, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]);
-struct SecurityCallContext;
-
-const GUID CLSID_GetSecurityCallContextAppObject = {0xECABB0A8, 0x7F19, 0x11D2, [0x97, 0x8E, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]};
-@GUID(0xECABB0A8, 0x7F19, 0x11D2, [0x97, 0x8E, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]);
-struct GetSecurityCallContextAppObject;
-
-const GUID CLSID_Dummy30040732 = {0xECABB0A9, 0x7F19, 0x11D2, [0x97, 0x8E, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]};
-@GUID(0xECABB0A9, 0x7F19, 0x11D2, [0x97, 0x8E, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]);
-struct Dummy30040732;
-
-const GUID CLSID_TransactionContext = {0x7999FC25, 0xD3C6, 0x11CF, [0xAC, 0xAB, 0x00, 0xA0, 0x24, 0xA5, 0x5A, 0xEF]};
-@GUID(0x7999FC25, 0xD3C6, 0x11CF, [0xAC, 0xAB, 0x00, 0xA0, 0x24, 0xA5, 0x5A, 0xEF]);
-struct TransactionContext;
-
-const GUID CLSID_TransactionContextEx = {0x5CB66670, 0xD3D4, 0x11CF, [0xAC, 0xAB, 0x00, 0xA0, 0x24, 0xA5, 0x5A, 0xEF]};
-@GUID(0x5CB66670, 0xD3D4, 0x11CF, [0xAC, 0xAB, 0x00, 0xA0, 0x24, 0xA5, 0x5A, 0xEF]);
-struct TransactionContextEx;
-
-const GUID CLSID_ByotServerEx = {0xECABB0AA, 0x7F19, 0x11D2, [0x97, 0x8E, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]};
-@GUID(0xECABB0AA, 0x7F19, 0x11D2, [0x97, 0x8E, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]);
-struct ByotServerEx;
-
-const GUID CLSID_CServiceConfig = {0xECABB0C8, 0x7F19, 0x11D2, [0x97, 0x8E, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]};
-@GUID(0xECABB0C8, 0x7F19, 0x11D2, [0x97, 0x8E, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]);
-struct CServiceConfig;
-
-const GUID CLSID_ServicePool = {0xECABB0C9, 0x7F19, 0x11D2, [0x97, 0x8E, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]};
-@GUID(0xECABB0C9, 0x7F19, 0x11D2, [0x97, 0x8E, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]);
-struct ServicePool;
-
-const GUID CLSID_ServicePoolConfig = {0xECABB0CA, 0x7F19, 0x11D2, [0x97, 0x8E, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]};
-@GUID(0xECABB0CA, 0x7F19, 0x11D2, [0x97, 0x8E, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]);
-struct ServicePoolConfig;
-
-const GUID CLSID_SharedProperty = {0x2A005C05, 0xA5DE, 0x11CF, [0x9E, 0x66, 0x00, 0xAA, 0x00, 0xA3, 0xF4, 0x64]};
-@GUID(0x2A005C05, 0xA5DE, 0x11CF, [0x9E, 0x66, 0x00, 0xAA, 0x00, 0xA3, 0xF4, 0x64]);
-struct SharedProperty;
-
-const GUID CLSID_SharedPropertyGroup = {0x2A005C0B, 0xA5DE, 0x11CF, [0x9E, 0x66, 0x00, 0xAA, 0x00, 0xA3, 0xF4, 0x64]};
-@GUID(0x2A005C0B, 0xA5DE, 0x11CF, [0x9E, 0x66, 0x00, 0xAA, 0x00, 0xA3, 0xF4, 0x64]);
-struct SharedPropertyGroup;
-
-const GUID CLSID_SharedPropertyGroupManager = {0x2A005C11, 0xA5DE, 0x11CF, [0x9E, 0x66, 0x00, 0xAA, 0x00, 0xA3, 0xF4, 0x64]};
-@GUID(0x2A005C11, 0xA5DE, 0x11CF, [0x9E, 0x66, 0x00, 0xAA, 0x00, 0xA3, 0xF4, 0x64]);
-struct SharedPropertyGroupManager;
-
-const GUID CLSID_COMEvents = {0xECABB0AB, 0x7F19, 0x11D2, [0x97, 0x8E, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]};
-@GUID(0xECABB0AB, 0x7F19, 0x11D2, [0x97, 0x8E, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]);
-struct COMEvents;
-
-const GUID CLSID_CoMTSLocator = {0xECABB0AC, 0x7F19, 0x11D2, [0x97, 0x8E, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]};
-@GUID(0xECABB0AC, 0x7F19, 0x11D2, [0x97, 0x8E, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]);
-struct CoMTSLocator;
-
-const GUID CLSID_MtsGrp = {0x4B2E958D, 0x0393, 0x11D1, [0xB1, 0xAB, 0x00, 0xAA, 0x00, 0xBA, 0x32, 0x58]};
-@GUID(0x4B2E958D, 0x0393, 0x11D1, [0xB1, 0xAB, 0x00, 0xAA, 0x00, 0xBA, 0x32, 0x58]);
-struct MtsGrp;
-
-const GUID CLSID_ComServiceEvents = {0xECABB0C3, 0x7F19, 0x11D2, [0x97, 0x8E, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]};
-@GUID(0xECABB0C3, 0x7F19, 0x11D2, [0x97, 0x8E, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]);
-struct ComServiceEvents;
-
-const GUID CLSID_ComSystemAppEventData = {0xECABB0C6, 0x7F19, 0x11D2, [0x97, 0x8E, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]};
-@GUID(0xECABB0C6, 0x7F19, 0x11D2, [0x97, 0x8E, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]);
-struct ComSystemAppEventData;
-
-const GUID CLSID_CRMClerk = {0xECABB0BD, 0x7F19, 0x11D2, [0x97, 0x8E, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]};
-@GUID(0xECABB0BD, 0x7F19, 0x11D2, [0x97, 0x8E, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]);
-struct CRMClerk;
-
-const GUID CLSID_CRMRecoveryClerk = {0xECABB0BE, 0x7F19, 0x11D2, [0x97, 0x8E, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]};
-@GUID(0xECABB0BE, 0x7F19, 0x11D2, [0x97, 0x8E, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]);
-struct CRMRecoveryClerk;
-
-const GUID CLSID_LBEvents = {0xECABB0C1, 0x7F19, 0x11D2, [0x97, 0x8E, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]};
-@GUID(0xECABB0C1, 0x7F19, 0x11D2, [0x97, 0x8E, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]);
-struct LBEvents;
-
-const GUID CLSID_MessageMover = {0xECABB0BF, 0x7F19, 0x11D2, [0x97, 0x8E, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]};
-@GUID(0xECABB0BF, 0x7F19, 0x11D2, [0x97, 0x8E, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]);
-struct MessageMover;
-
-const GUID CLSID_DispenserManager = {0xECABB0C0, 0x7F19, 0x11D2, [0x97, 0x8E, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]};
-@GUID(0xECABB0C0, 0x7F19, 0x11D2, [0x97, 0x8E, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]);
-struct DispenserManager;
-
-const GUID CLSID_PoolMgr = {0xECABAFB5, 0x7F19, 0x11D2, [0x97, 0x8E, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]};
-@GUID(0xECABAFB5, 0x7F19, 0x11D2, [0x97, 0x8E, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]);
-struct PoolMgr;
-
-const GUID CLSID_EventServer = {0xECABAFBC, 0x7F19, 0x11D2, [0x97, 0x8E, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]};
-@GUID(0xECABAFBC, 0x7F19, 0x11D2, [0x97, 0x8E, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]);
-struct EventServer;
-
-const GUID CLSID_TrackerServer = {0xECABAFB9, 0x7F19, 0x11D2, [0x97, 0x8E, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]};
-@GUID(0xECABAFB9, 0x7F19, 0x11D2, [0x97, 0x8E, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]);
-struct TrackerServer;
-
-const GUID CLSID_AppDomainHelper = {0xEF24F689, 0x14F8, 0x4D92, [0xB4, 0xAF, 0xD7, 0xB1, 0xF0, 0xE7, 0x0F, 0xD4]};
-@GUID(0xEF24F689, 0x14F8, 0x4D92, [0xB4, 0xAF, 0xD7, 0xB1, 0xF0, 0xE7, 0x0F, 0xD4]);
-struct AppDomainHelper;
-
-const GUID CLSID_ClrAssemblyLocator = {0x458AA3B5, 0x265A, 0x4B75, [0xBC, 0x05, 0x9B, 0xEA, 0x46, 0x30, 0xCF, 0x18]};
-@GUID(0x458AA3B5, 0x265A, 0x4B75, [0xBC, 0x05, 0x9B, 0xEA, 0x46, 0x30, 0xCF, 0x18]);
-struct ClrAssemblyLocator;
-
-const GUID CLSID_COMAdminCatalog = {0xF618C514, 0xDFB8, 0x11D1, [0xA2, 0xCF, 0x00, 0x80, 0x5F, 0xC7, 0x92, 0x35]};
-@GUID(0xF618C514, 0xDFB8, 0x11D1, [0xA2, 0xCF, 0x00, 0x80, 0x5F, 0xC7, 0x92, 0x35]);
-struct COMAdminCatalog;
-
-const GUID CLSID_COMAdminCatalogObject = {0xF618C515, 0xDFB8, 0x11D1, [0xA2, 0xCF, 0x00, 0x80, 0x5F, 0xC7, 0x92, 0x35]};
-@GUID(0xF618C515, 0xDFB8, 0x11D1, [0xA2, 0xCF, 0x00, 0x80, 0x5F, 0xC7, 0x92, 0x35]);
-struct COMAdminCatalogObject;
-
-const GUID CLSID_COMAdminCatalogCollection = {0xF618C516, 0xDFB8, 0x11D1, [0xA2, 0xCF, 0x00, 0x80, 0x5F, 0xC7, 0x92, 0x35]};
-@GUID(0xF618C516, 0xDFB8, 0x11D1, [0xA2, 0xCF, 0x00, 0x80, 0x5F, 0xC7, 0x92, 0x35]);
-struct COMAdminCatalogCollection;
-
-const GUID IID_ICOMAdminCatalog = {0xDD662187, 0xDFC2, 0x11D1, [0xA2, 0xCF, 0x00, 0x80, 0x5F, 0xC7, 0x92, 0x35]};
-@GUID(0xDD662187, 0xDFC2, 0x11D1, [0xA2, 0xCF, 0x00, 0x80, 0x5F, 0xC7, 0x92, 0x35]);
-interface ICOMAdminCatalog : IDispatch
+enum COMAdminInUse : int
 {
-    HRESULT GetCollection(BSTR bstrCollName, IDispatch* ppCatalogCollection);
-    HRESULT Connect(BSTR bstrCatalogServerName, IDispatch* ppCatalogCollection);
-    HRESULT get_MajorVersion(int* plMajorVersion);
-    HRESULT get_MinorVersion(int* plMinorVersion);
-    HRESULT GetCollectionByQuery(BSTR bstrCollName, SAFEARRAY** ppsaVarQuery, IDispatch* ppCatalogCollection);
-    HRESULT ImportComponent(BSTR bstrApplIDOrName, BSTR bstrCLSIDOrProgID);
-    HRESULT InstallComponent(BSTR bstrApplIDOrName, BSTR bstrDLL, BSTR bstrTLB, BSTR bstrPSDLL);
-    HRESULT ShutdownApplication(BSTR bstrApplIDOrName);
-    HRESULT ExportApplication(BSTR bstrApplIDOrName, BSTR bstrApplicationFile, int lOptions);
-    HRESULT InstallApplication(BSTR bstrApplicationFile, BSTR bstrDestinationDirectory, int lOptions, BSTR bstrUserId, BSTR bstrPassword, BSTR bstrRSN);
-    HRESULT StopRouter();
-    HRESULT RefreshRouter();
-    HRESULT StartRouter();
-    HRESULT Reserved1();
-    HRESULT Reserved2();
-    HRESULT InstallMultipleComponents(BSTR bstrApplIDOrName, SAFEARRAY** ppsaVarFileNames, SAFEARRAY** ppsaVarCLSIDs);
-    HRESULT GetMultipleComponentsInfo(BSTR bstrApplIdOrName, SAFEARRAY** ppsaVarFileNames, SAFEARRAY** ppsaVarCLSIDs, SAFEARRAY** ppsaVarClassNames, SAFEARRAY** ppsaVarFileFlags, SAFEARRAY** ppsaVarComponentFlags);
-    HRESULT RefreshComponents();
-    HRESULT BackupREGDB(BSTR bstrBackupFilePath);
-    HRESULT RestoreREGDB(BSTR bstrBackupFilePath);
-    HRESULT QueryApplicationFile(BSTR bstrApplicationFile, BSTR* pbstrApplicationName, BSTR* pbstrApplicationDescription, short* pbHasUsers, short* pbIsProxy, SAFEARRAY** ppsaVarFileNames);
-    HRESULT StartApplication(BSTR bstrApplIdOrName);
-    HRESULT ServiceCheck(int lService, int* plStatus);
-    HRESULT InstallMultipleEventClasses(BSTR bstrApplIdOrName, SAFEARRAY** ppsaVarFileNames, SAFEARRAY** ppsaVarCLSIDS);
-    HRESULT InstallEventClass(BSTR bstrApplIdOrName, BSTR bstrDLL, BSTR bstrTLB, BSTR bstrPSDLL);
-    HRESULT GetEventClassesForIID(BSTR bstrIID, SAFEARRAY** ppsaVarCLSIDs, SAFEARRAY** ppsaVarProgIDs, SAFEARRAY** ppsaVarDescriptions);
+    COMAdminNotInUse                 = 0x00000000,
+    COMAdminInUseByCatalog           = 0x00000001,
+    COMAdminInUseByRegistryUnknown   = 0x00000002,
+    COMAdminInUseByRegistryProxyStub = 0x00000003,
+    COMAdminInUseByRegistryTypeLib   = 0x00000004,
+    COMAdminInUseByRegistryClsid     = 0x00000005,
 }
 
-enum COMAdminInUse
+enum COMAdminComponentType : int
 {
-    COMAdminNotInUse = 0,
-    COMAdminInUseByCatalog = 1,
-    COMAdminInUseByRegistryUnknown = 2,
-    COMAdminInUseByRegistryProxyStub = 3,
-    COMAdminInUseByRegistryTypeLib = 4,
-    COMAdminInUseByRegistryClsid = 5,
+    COMAdmin32BitComponent = 0x00000001,
+    COMAdmin64BitComponent = 0x00000002,
 }
 
-const GUID IID_ICOMAdminCatalog2 = {0x790C6E0B, 0x9194, 0x4CC9, [0x94, 0x26, 0xA4, 0x8A, 0x63, 0x18, 0x56, 0x96]};
-@GUID(0x790C6E0B, 0x9194, 0x4CC9, [0x94, 0x26, 0xA4, 0x8A, 0x63, 0x18, 0x56, 0x96]);
-interface ICOMAdminCatalog2 : ICOMAdminCatalog
+enum COMAdminApplicationInstallOptions : int
 {
-    HRESULT GetCollectionByQuery2(BSTR bstrCollectionName, VARIANT* pVarQueryStrings, IDispatch* ppCatalogCollection);
-    HRESULT GetApplicationInstanceIDFromProcessID(int lProcessID, BSTR* pbstrApplicationInstanceID);
-    HRESULT ShutdownApplicationInstances(VARIANT* pVarApplicationInstanceID);
-    HRESULT PauseApplicationInstances(VARIANT* pVarApplicationInstanceID);
-    HRESULT ResumeApplicationInstances(VARIANT* pVarApplicationInstanceID);
-    HRESULT RecycleApplicationInstances(VARIANT* pVarApplicationInstanceID, int lReasonCode);
-    HRESULT AreApplicationInstancesPaused(VARIANT* pVarApplicationInstanceID, short* pVarBoolPaused);
-    HRESULT DumpApplicationInstance(BSTR bstrApplicationInstanceID, BSTR bstrDirectory, int lMaxImages, BSTR* pbstrDumpFile);
-    HRESULT get_IsApplicationInstanceDumpSupported(short* pVarBoolDumpSupported);
-    HRESULT CreateServiceForApplication(BSTR bstrApplicationIDOrName, BSTR bstrServiceName, BSTR bstrStartType, BSTR bstrErrorControl, BSTR bstrDependencies, BSTR bstrRunAs, BSTR bstrPassword, short bDesktopOk);
-    HRESULT DeleteServiceForApplication(BSTR bstrApplicationIDOrName);
-    HRESULT GetPartitionID(BSTR bstrApplicationIDOrName, BSTR* pbstrPartitionID);
-    HRESULT GetPartitionName(BSTR bstrApplicationIDOrName, BSTR* pbstrPartitionName);
-    HRESULT put_CurrentPartition(BSTR bstrPartitionIDOrName);
-    HRESULT get_CurrentPartitionID(BSTR* pbstrPartitionID);
-    HRESULT get_CurrentPartitionName(BSTR* pbstrPartitionName);
-    HRESULT get_GlobalPartitionID(BSTR* pbstrGlobalPartitionID);
-    HRESULT FlushPartitionCache();
-    HRESULT CopyApplications(BSTR bstrSourcePartitionIDOrName, VARIANT* pVarApplicationID, BSTR bstrDestinationPartitionIDOrName);
-    HRESULT CopyComponents(BSTR bstrSourceApplicationIDOrName, VARIANT* pVarCLSIDOrProgID, BSTR bstrDestinationApplicationIDOrName);
-    HRESULT MoveComponents(BSTR bstrSourceApplicationIDOrName, VARIANT* pVarCLSIDOrProgID, BSTR bstrDestinationApplicationIDOrName);
-    HRESULT AliasComponent(BSTR bstrSrcApplicationIDOrName, BSTR bstrCLSIDOrProgID, BSTR bstrDestApplicationIDOrName, BSTR bstrNewProgId, BSTR bstrNewClsid);
-    HRESULT IsSafeToDelete(BSTR bstrDllName, COMAdminInUse* pCOMAdminInUse);
-    HRESULT ImportUnconfiguredComponents(BSTR bstrApplicationIDOrName, VARIANT* pVarCLSIDOrProgID, VARIANT* pVarComponentType);
-    HRESULT PromoteUnconfiguredComponents(BSTR bstrApplicationIDOrName, VARIANT* pVarCLSIDOrProgID, VARIANT* pVarComponentType);
-    HRESULT ImportComponents(BSTR bstrApplicationIDOrName, VARIANT* pVarCLSIDOrProgID, VARIANT* pVarComponentType);
-    HRESULT get_Is64BitCatalogServer(short* pbIs64Bit);
-    HRESULT ExportPartition(BSTR bstrPartitionIDOrName, BSTR bstrPartitionFileName, int lOptions);
-    HRESULT InstallPartition(BSTR bstrFileName, BSTR bstrDestDirectory, int lOptions, BSTR bstrUserID, BSTR bstrPassword, BSTR bstrRSN);
-    HRESULT QueryApplicationFile2(BSTR bstrApplicationFile, IDispatch* ppFilesForImport);
-    HRESULT GetComponentVersionCount(BSTR bstrCLSIDOrProgID, int* plVersionCount);
+    COMAdminInstallNoUsers               = 0x00000000,
+    COMAdminInstallUsers                 = 0x00000001,
+    COMAdminInstallForceOverwriteOfFiles = 0x00000002,
 }
 
-const GUID IID_ICatalogObject = {0x6EB22871, 0x8A19, 0x11D0, [0x81, 0xB6, 0x00, 0xA0, 0xC9, 0x23, 0x1C, 0x29]};
-@GUID(0x6EB22871, 0x8A19, 0x11D0, [0x81, 0xB6, 0x00, 0xA0, 0xC9, 0x23, 0x1C, 0x29]);
-interface ICatalogObject : IDispatch
+enum COMAdminApplicationExportOptions : int
 {
-    HRESULT get_Value(BSTR bstrPropName, VARIANT* pvarRetVal);
-    HRESULT put_Value(BSTR bstrPropName, VARIANT val);
-    HRESULT get_Key(VARIANT* pvarRetVal);
-    HRESULT get_Name(VARIANT* pvarRetVal);
-    HRESULT IsPropertyReadOnly(BSTR bstrPropName, short* pbRetVal);
-    HRESULT get_Valid(short* pbRetVal);
-    HRESULT IsPropertyWriteOnly(BSTR bstrPropName, short* pbRetVal);
+    COMAdminExportNoUsers               = 0x00000000,
+    COMAdminExportUsers                 = 0x00000001,
+    COMAdminExportApplicationProxy      = 0x00000002,
+    COMAdminExportForceOverwriteOfFiles = 0x00000004,
+    COMAdminExportIn10Format            = 0x00000010,
 }
 
-const GUID IID_ICatalogCollection = {0x6EB22872, 0x8A19, 0x11D0, [0x81, 0xB6, 0x00, 0xA0, 0xC9, 0x23, 0x1C, 0x29]};
-@GUID(0x6EB22872, 0x8A19, 0x11D0, [0x81, 0xB6, 0x00, 0xA0, 0xC9, 0x23, 0x1C, 0x29]);
-interface ICatalogCollection : IDispatch
+enum COMAdminThreadingModels : int
 {
-    HRESULT get__NewEnum(IUnknown* ppEnumVariant);
-    HRESULT get_Item(int lIndex, IDispatch* ppCatalogObject);
-    HRESULT get_Count(int* plObjectCount);
-    HRESULT Remove(int lIndex);
-    HRESULT Add(IDispatch* ppCatalogObject);
-    HRESULT Populate();
-    HRESULT SaveChanges(int* pcChanges);
-    HRESULT GetCollection(BSTR bstrCollName, VARIANT varObjectKey, IDispatch* ppCatalogCollection);
-    HRESULT get_Name(VARIANT* pVarNamel);
-    HRESULT get_AddEnabled(short* pVarBool);
-    HRESULT get_RemoveEnabled(short* pVarBool);
-    HRESULT GetUtilInterface(IDispatch* ppIDispatch);
-    HRESULT get_DataStoreMajorVersion(int* plMajorVersion);
-    HRESULT get_DataStoreMinorVersion(int* plMinorVersionl);
-    HRESULT PopulateByKey(SAFEARRAY* psaKeys);
-    HRESULT PopulateByQuery(BSTR bstrQueryString, int lQueryType);
+    COMAdminThreadingModelApartment    = 0x00000000,
+    COMAdminThreadingModelFree         = 0x00000001,
+    COMAdminThreadingModelMain         = 0x00000002,
+    COMAdminThreadingModelBoth         = 0x00000003,
+    COMAdminThreadingModelNeutral      = 0x00000004,
+    COMAdminThreadingModelNotSpecified = 0x00000005,
 }
 
-enum COMAdminComponentType
+enum COMAdminTransactionOptions : int
 {
-    COMAdmin32BitComponent = 1,
-    COMAdmin64BitComponent = 2,
+    COMAdminTransactionIgnored     = 0x00000000,
+    COMAdminTransactionNone        = 0x00000001,
+    COMAdminTransactionSupported   = 0x00000002,
+    COMAdminTransactionRequired    = 0x00000003,
+    COMAdminTransactionRequiresNew = 0x00000004,
 }
 
-enum COMAdminApplicationInstallOptions
+enum COMAdminTxIsolationLevelOptions : int
 {
-    COMAdminInstallNoUsers = 0,
-    COMAdminInstallUsers = 1,
-    COMAdminInstallForceOverwriteOfFiles = 2,
+    COMAdminTxIsolationLevelAny             = 0x00000000,
+    COMAdminTxIsolationLevelReadUnCommitted = 0x00000001,
+    COMAdminTxIsolationLevelReadCommitted   = 0x00000002,
+    COMAdminTxIsolationLevelRepeatableRead  = 0x00000003,
+    COMAdminTxIsolationLevelSerializable    = 0x00000004,
 }
 
-enum COMAdminApplicationExportOptions
+enum COMAdminSynchronizationOptions : int
 {
-    COMAdminExportNoUsers = 0,
-    COMAdminExportUsers = 1,
-    COMAdminExportApplicationProxy = 2,
-    COMAdminExportForceOverwriteOfFiles = 4,
-    COMAdminExportIn10Format = 16,
+    COMAdminSynchronizationIgnored     = 0x00000000,
+    COMAdminSynchronizationNone        = 0x00000001,
+    COMAdminSynchronizationSupported   = 0x00000002,
+    COMAdminSynchronizationRequired    = 0x00000003,
+    COMAdminSynchronizationRequiresNew = 0x00000004,
 }
 
-enum COMAdminThreadingModels
+enum COMAdminActivationOptions : int
 {
-    COMAdminThreadingModelApartment = 0,
-    COMAdminThreadingModelFree = 1,
-    COMAdminThreadingModelMain = 2,
-    COMAdminThreadingModelBoth = 3,
-    COMAdminThreadingModelNeutral = 4,
-    COMAdminThreadingModelNotSpecified = 5,
+    COMAdminActivationInproc = 0x00000000,
+    COMAdminActivationLocal  = 0x00000001,
 }
 
-enum COMAdminTransactionOptions
+enum COMAdminAccessChecksLevelOptions : int
 {
-    COMAdminTransactionIgnored = 0,
-    COMAdminTransactionNone = 1,
-    COMAdminTransactionSupported = 2,
-    COMAdminTransactionRequired = 3,
-    COMAdminTransactionRequiresNew = 4,
+    COMAdminAccessChecksApplicationLevel          = 0x00000000,
+    COMAdminAccessChecksApplicationComponentLevel = 0x00000001,
 }
 
-enum COMAdminTxIsolationLevelOptions
+enum COMAdminAuthenticationLevelOptions : int
 {
-    COMAdminTxIsolationLevelAny = 0,
-    COMAdminTxIsolationLevelReadUnCommitted = 1,
-    COMAdminTxIsolationLevelReadCommitted = 2,
-    COMAdminTxIsolationLevelRepeatableRead = 3,
-    COMAdminTxIsolationLevelSerializable = 4,
+    COMAdminAuthenticationDefault   = 0x00000000,
+    COMAdminAuthenticationNone      = 0x00000001,
+    COMAdminAuthenticationConnect   = 0x00000002,
+    COMAdminAuthenticationCall      = 0x00000003,
+    COMAdminAuthenticationPacket    = 0x00000004,
+    COMAdminAuthenticationIntegrity = 0x00000005,
+    COMAdminAuthenticationPrivacy   = 0x00000006,
 }
 
-enum COMAdminSynchronizationOptions
+enum COMAdminImpersonationLevelOptions : int
 {
-    COMAdminSynchronizationIgnored = 0,
-    COMAdminSynchronizationNone = 1,
-    COMAdminSynchronizationSupported = 2,
-    COMAdminSynchronizationRequired = 3,
-    COMAdminSynchronizationRequiresNew = 4,
+    COMAdminImpersonationAnonymous   = 0x00000001,
+    COMAdminImpersonationIdentify    = 0x00000002,
+    COMAdminImpersonationImpersonate = 0x00000003,
+    COMAdminImpersonationDelegate    = 0x00000004,
 }
 
-enum COMAdminActivationOptions
+enum COMAdminAuthenticationCapabilitiesOptions : int
 {
-    COMAdminActivationInproc = 0,
-    COMAdminActivationLocal = 1,
+    COMAdminAuthenticationCapabilitiesNone            = 0x00000000,
+    COMAdminAuthenticationCapabilitiesSecureReference = 0x00000002,
+    COMAdminAuthenticationCapabilitiesStaticCloaking  = 0x00000020,
+    COMAdminAuthenticationCapabilitiesDynamicCloaking = 0x00000040,
 }
 
-enum COMAdminAccessChecksLevelOptions
+enum : int
 {
-    COMAdminAccessChecksApplicationLevel = 0,
-    COMAdminAccessChecksApplicationComponentLevel = 1,
+    COMAdminOSNotInitialized                  = 0x00000000,
+    COMAdminOSWindows3_1                      = 0x00000001,
+    COMAdminOSWindows9x                       = 0x00000002,
+    COMAdminOSWindows2000                     = 0x00000003,
+    COMAdminOSWindows2000AdvancedServer       = 0x00000004,
+    COMAdminOSWindows2000Unknown              = 0x00000005,
+    COMAdminOSUnknown                         = 0x00000006,
+    COMAdminOSWindowsXPPersonal               = 0x0000000b,
+    COMAdminOSWindowsXPProfessional           = 0x0000000c,
+    COMAdminOSWindowsNETStandardServer        = 0x0000000d,
+    COMAdminOSWindowsNETEnterpriseServer      = 0x0000000e,
+    COMAdminOSWindowsNETDatacenterServer      = 0x0000000f,
+    COMAdminOSWindowsNETWebServer             = 0x00000010,
+    COMAdminOSWindowsLonghornPersonal         = 0x00000011,
+    COMAdminOSWindowsLonghornProfessional     = 0x00000012,
+    COMAdminOSWindowsLonghornStandardServer   = 0x00000013,
+    COMAdminOSWindowsLonghornEnterpriseServer = 0x00000014,
+    COMAdminOSWindowsLonghornDatacenterServer = 0x00000015,
+    COMAdminOSWindowsLonghornWebServer        = 0x00000016,
+    COMAdminOSWindows7Personal                = 0x00000017,
+    COMAdminOSWindows7Professional            = 0x00000018,
+    COMAdminOSWindows7StandardServer          = 0x00000019,
+    COMAdminOSWindows7EnterpriseServer        = 0x0000001a,
+    COMAdminOSWindows7DatacenterServer        = 0x0000001b,
+    COMAdminOSWindows7WebServer               = 0x0000001c,
+    COMAdminOSWindows8Personal                = 0x0000001d,
+    COMAdminOSWindows8Professional            = 0x0000001e,
+    COMAdminOSWindows8StandardServer          = 0x0000001f,
+    COMAdminOSWindows8EnterpriseServer        = 0x00000020,
+    COMAdminOSWindows8DatacenterServer        = 0x00000021,
+    COMAdminOSWindows8WebServer               = 0x00000022,
+    COMAdminOSWindowsBluePersonal             = 0x00000023,
+    COMAdminOSWindowsBlueProfessional         = 0x00000024,
+    COMAdminOSWindowsBlueStandardServer       = 0x00000025,
+    COMAdminOSWindowsBlueEnterpriseServer     = 0x00000026,
+    COMAdminOSWindowsBlueDatacenterServer     = 0x00000027,
+    COMAdminOSWindowsBlueWebServer            = 0x00000028,
+}
+alias COMAdminOS = int;
+
+enum COMAdminServiceOptions : int
+{
+    COMAdminServiceLoadBalanceRouter = 0x00000001,
 }
 
-enum COMAdminAuthenticationLevelOptions
+enum COMAdminServiceStatusOptions : int
 {
-    COMAdminAuthenticationDefault = 0,
-    COMAdminAuthenticationNone = 1,
-    COMAdminAuthenticationConnect = 2,
-    COMAdminAuthenticationCall = 3,
-    COMAdminAuthenticationPacket = 4,
-    COMAdminAuthenticationIntegrity = 5,
-    COMAdminAuthenticationPrivacy = 6,
+    COMAdminServiceStopped         = 0x00000000,
+    COMAdminServiceStartPending    = 0x00000001,
+    COMAdminServiceStopPending     = 0x00000002,
+    COMAdminServiceRunning         = 0x00000003,
+    COMAdminServiceContinuePending = 0x00000004,
+    COMAdminServicePausePending    = 0x00000005,
+    COMAdminServicePaused          = 0x00000006,
+    COMAdminServiceUnknownState    = 0x00000007,
 }
 
-enum COMAdminImpersonationLevelOptions
+enum COMAdminQCMessageAuthenticateOptions : int
 {
-    COMAdminImpersonationAnonymous = 1,
-    COMAdminImpersonationIdentify = 2,
-    COMAdminImpersonationImpersonate = 3,
-    COMAdminImpersonationDelegate = 4,
+    COMAdminQCMessageAuthenticateSecureApps = 0x00000000,
+    COMAdminQCMessageAuthenticateOff        = 0x00000001,
+    COMAdminQCMessageAuthenticateOn         = 0x00000002,
 }
 
-enum COMAdminAuthenticationCapabilitiesOptions
+enum COMAdminFileFlags : int
 {
-    COMAdminAuthenticationCapabilitiesNone = 0,
-    COMAdminAuthenticationCapabilitiesSecureReference = 2,
-    COMAdminAuthenticationCapabilitiesStaticCloaking = 32,
-    COMAdminAuthenticationCapabilitiesDynamicCloaking = 64,
+    COMAdminFileFlagLoadable          = 0x00000001,
+    COMAdminFileFlagCOM               = 0x00000002,
+    COMAdminFileFlagContainsPS        = 0x00000004,
+    COMAdminFileFlagContainsComp      = 0x00000008,
+    COMAdminFileFlagContainsTLB       = 0x00000010,
+    COMAdminFileFlagSelfReg           = 0x00000020,
+    COMAdminFileFlagSelfUnReg         = 0x00000040,
+    COMAdminFileFlagUnloadableDLL     = 0x00000080,
+    COMAdminFileFlagDoesNotExist      = 0x00000100,
+    COMAdminFileFlagAlreadyInstalled  = 0x00000200,
+    COMAdminFileFlagBadTLB            = 0x00000400,
+    COMAdminFileFlagGetClassObjFailed = 0x00000800,
+    COMAdminFileFlagClassNotAvailable = 0x00001000,
+    COMAdminFileFlagRegistrar         = 0x00002000,
+    COMAdminFileFlagNoRegistrar       = 0x00004000,
+    COMAdminFileFlagDLLRegsvrFailed   = 0x00008000,
+    COMAdminFileFlagRegTLBFailed      = 0x00010000,
+    COMAdminFileFlagRegistrarFailed   = 0x00020000,
+    COMAdminFileFlagError             = 0x00040000,
 }
 
-enum COMAdminOS
+enum COMAdminComponentFlags : int
 {
-    COMAdminOSNotInitialized = 0,
-    COMAdminOSWindows3_1 = 1,
-    COMAdminOSWindows9x = 2,
-    COMAdminOSWindows2000 = 3,
-    COMAdminOSWindows2000AdvancedServer = 4,
-    COMAdminOSWindows2000Unknown = 5,
-    COMAdminOSUnknown = 6,
-    COMAdminOSWindowsXPPersonal = 11,
-    COMAdminOSWindowsXPProfessional = 12,
-    COMAdminOSWindowsNETStandardServer = 13,
-    COMAdminOSWindowsNETEnterpriseServer = 14,
-    COMAdminOSWindowsNETDatacenterServer = 15,
-    COMAdminOSWindowsNETWebServer = 16,
-    COMAdminOSWindowsLonghornPersonal = 17,
-    COMAdminOSWindowsLonghornProfessional = 18,
-    COMAdminOSWindowsLonghornStandardServer = 19,
-    COMAdminOSWindowsLonghornEnterpriseServer = 20,
-    COMAdminOSWindowsLonghornDatacenterServer = 21,
-    COMAdminOSWindowsLonghornWebServer = 22,
-    COMAdminOSWindows7Personal = 23,
-    COMAdminOSWindows7Professional = 24,
-    COMAdminOSWindows7StandardServer = 25,
-    COMAdminOSWindows7EnterpriseServer = 26,
-    COMAdminOSWindows7DatacenterServer = 27,
-    COMAdminOSWindows7WebServer = 28,
-    COMAdminOSWindows8Personal = 29,
-    COMAdminOSWindows8Professional = 30,
-    COMAdminOSWindows8StandardServer = 31,
-    COMAdminOSWindows8EnterpriseServer = 32,
-    COMAdminOSWindows8DatacenterServer = 33,
-    COMAdminOSWindows8WebServer = 34,
-    COMAdminOSWindowsBluePersonal = 35,
-    COMAdminOSWindowsBlueProfessional = 36,
-    COMAdminOSWindowsBlueStandardServer = 37,
-    COMAdminOSWindowsBlueEnterpriseServer = 38,
-    COMAdminOSWindowsBlueDatacenterServer = 39,
-    COMAdminOSWindowsBlueWebServer = 40,
+    COMAdminCompFlagTypeInfoFound          = 0x00000001,
+    COMAdminCompFlagCOMPlusPropertiesFound = 0x00000002,
+    COMAdminCompFlagProxyFound             = 0x00000004,
+    COMAdminCompFlagInterfacesFound        = 0x00000008,
+    COMAdminCompFlagAlreadyInstalled       = 0x00000010,
+    COMAdminCompFlagNotInApplication       = 0x00000020,
 }
 
-enum COMAdminServiceOptions
+enum COMAdminErrorCodes : int
 {
-    COMAdminServiceLoadBalanceRouter = 1,
+    COMAdminErrObjectErrors                  = 0x80110401,
+    COMAdminErrObjectInvalid                 = 0x80110402,
+    COMAdminErrKeyMissing                    = 0x80110403,
+    COMAdminErrAlreadyInstalled              = 0x80110404,
+    COMAdminErrAppFileWriteFail              = 0x80110407,
+    COMAdminErrAppFileReadFail               = 0x80110408,
+    COMAdminErrAppFileVersion                = 0x80110409,
+    COMAdminErrBadPath                       = 0x8011040a,
+    COMAdminErrApplicationExists             = 0x8011040b,
+    COMAdminErrRoleExists                    = 0x8011040c,
+    COMAdminErrCantCopyFile                  = 0x8011040d,
+    COMAdminErrNoUser                        = 0x8011040f,
+    COMAdminErrInvalidUserids                = 0x80110410,
+    COMAdminErrNoRegistryCLSID               = 0x80110411,
+    COMAdminErrBadRegistryProgID             = 0x80110412,
+    COMAdminErrAuthenticationLevel           = 0x80110413,
+    COMAdminErrUserPasswdNotValid            = 0x80110414,
+    COMAdminErrCLSIDOrIIDMismatch            = 0x80110418,
+    COMAdminErrRemoteInterface               = 0x80110419,
+    COMAdminErrDllRegisterServer             = 0x8011041a,
+    COMAdminErrNoServerShare                 = 0x8011041b,
+    COMAdminErrDllLoadFailed                 = 0x8011041d,
+    COMAdminErrBadRegistryLibID              = 0x8011041e,
+    COMAdminErrAppDirNotFound                = 0x8011041f,
+    COMAdminErrRegistrarFailed               = 0x80110423,
+    COMAdminErrCompFileDoesNotExist          = 0x80110424,
+    COMAdminErrCompFileLoadDLLFail           = 0x80110425,
+    COMAdminErrCompFileGetClassObj           = 0x80110426,
+    COMAdminErrCompFileClassNotAvail         = 0x80110427,
+    COMAdminErrCompFileBadTLB                = 0x80110428,
+    COMAdminErrCompFileNotInstallable        = 0x80110429,
+    COMAdminErrNotChangeable                 = 0x8011042a,
+    COMAdminErrNotDeletable                  = 0x8011042b,
+    COMAdminErrSession                       = 0x8011042c,
+    COMAdminErrCompMoveLocked                = 0x8011042d,
+    COMAdminErrCompMoveBadDest               = 0x8011042e,
+    COMAdminErrRegisterTLB                   = 0x80110430,
+    COMAdminErrSystemApp                     = 0x80110433,
+    COMAdminErrCompFileNoRegistrar           = 0x80110434,
+    COMAdminErrCoReqCompInstalled            = 0x80110435,
+    COMAdminErrServiceNotInstalled           = 0x80110436,
+    COMAdminErrPropertySaveFailed            = 0x80110437,
+    COMAdminErrObjectExists                  = 0x80110438,
+    COMAdminErrComponentExists               = 0x80110439,
+    COMAdminErrRegFileCorrupt                = 0x8011043b,
+    COMAdminErrPropertyOverflow              = 0x8011043c,
+    COMAdminErrNotInRegistry                 = 0x8011043e,
+    COMAdminErrObjectNotPoolable             = 0x8011043f,
+    COMAdminErrApplidMatchesClsid            = 0x80110446,
+    COMAdminErrRoleDoesNotExist              = 0x80110447,
+    COMAdminErrStartAppNeedsComponents       = 0x80110448,
+    COMAdminErrRequiresDifferentPlatform     = 0x80110449,
+    COMAdminErrQueuingServiceNotAvailable    = 0x80110602,
+    COMAdminErrObjectParentMissing           = 0x80110808,
+    COMAdminErrObjectDoesNotExist            = 0x80110809,
+    COMAdminErrCanNotExportAppProxy          = 0x8011044a,
+    COMAdminErrCanNotStartApp                = 0x8011044b,
+    COMAdminErrCanNotExportSystemApp         = 0x8011044c,
+    COMAdminErrCanNotSubscribeToComponent    = 0x8011044d,
+    COMAdminErrAppNotRunning                 = 0x8011080a,
+    COMAdminErrEventClassCannotBeSubscriber  = 0x8011044e,
+    COMAdminErrLibAppProxyIncompatible       = 0x8011044f,
+    COMAdminErrBasePartitionOnly             = 0x80110450,
+    COMAdminErrDuplicatePartitionName        = 0x80110457,
+    COMAdminErrPartitionInUse                = 0x80110459,
+    COMAdminErrImportedComponentsNotAllowed  = 0x8011045b,
+    COMAdminErrRegdbNotInitialized           = 0x80110472,
+    COMAdminErrRegdbNotOpen                  = 0x80110473,
+    COMAdminErrRegdbSystemErr                = 0x80110474,
+    COMAdminErrRegdbAlreadyRunning           = 0x80110475,
+    COMAdminErrMigVersionNotSupported        = 0x80110480,
+    COMAdminErrMigSchemaNotFound             = 0x80110481,
+    COMAdminErrCatBitnessMismatch            = 0x80110482,
+    COMAdminErrCatUnacceptableBitness        = 0x80110483,
+    COMAdminErrCatWrongAppBitnessBitness     = 0x80110484,
+    COMAdminErrCatPauseResumeNotSupported    = 0x80110485,
+    COMAdminErrCatServerFault                = 0x80110486,
+    COMAdminErrCantRecycleLibraryApps        = 0x8011080f,
+    COMAdminErrCantRecycleServiceApps        = 0x80110811,
+    COMAdminErrProcessAlreadyRecycled        = 0x80110812,
+    COMAdminErrPausedProcessMayNotBeRecycled = 0x80110813,
+    COMAdminErrInvalidPartition              = 0x8011080b,
+    COMAdminErrPartitionMsiOnly              = 0x80110819,
+    COMAdminErrStartAppDisabled              = 0x80110451,
+    COMAdminErrCompMoveSource                = 0x8011081c,
+    COMAdminErrCompMoveDest                  = 0x8011081d,
+    COMAdminErrCompMovePrivate               = 0x8011081e,
+    COMAdminErrCannotCopyEventClass          = 0x80110820,
 }
 
-enum COMAdminServiceStatusOptions
+enum : int
 {
-    COMAdminServiceStopped = 0,
-    COMAdminServiceStartPending = 1,
-    COMAdminServiceStopPending = 2,
-    COMAdminServiceRunning = 3,
-    COMAdminServiceContinuePending = 4,
-    COMAdminServicePausePending = 5,
-    COMAdminServicePaused = 6,
-    COMAdminServiceUnknownState = 7,
+    MAX_TRAN_DESC = 0x00000028,
+}
+alias TX_MISC_CONSTANTS = int;
+
+enum : int
+{
+    ISOLATIONLEVEL_UNSPECIFIED     = 0xffffffff,
+    ISOLATIONLEVEL_CHAOS           = 0x00000010,
+    ISOLATIONLEVEL_READUNCOMMITTED = 0x00000100,
+    ISOLATIONLEVEL_BROWSE          = 0x00000100,
+    ISOLATIONLEVEL_CURSORSTABILITY = 0x00001000,
+    ISOLATIONLEVEL_READCOMMITTED   = 0x00001000,
+    ISOLATIONLEVEL_REPEATABLEREAD  = 0x00010000,
+    ISOLATIONLEVEL_SERIALIZABLE    = 0x00100000,
+    ISOLATIONLEVEL_ISOLATED        = 0x00100000,
+}
+alias ISOLATIONLEVEL = int;
+
+enum : int
+{
+    ISOFLAG_RETAIN_COMMIT_DC = 0x00000001,
+    ISOFLAG_RETAIN_COMMIT    = 0x00000002,
+    ISOFLAG_RETAIN_COMMIT_NO = 0x00000003,
+    ISOFLAG_RETAIN_ABORT_DC  = 0x00000004,
+    ISOFLAG_RETAIN_ABORT     = 0x00000008,
+    ISOFLAG_RETAIN_ABORT_NO  = 0x0000000c,
+    ISOFLAG_RETAIN_DONTCARE  = 0x00000005,
+    ISOFLAG_RETAIN_BOTH      = 0x0000000a,
+    ISOFLAG_RETAIN_NONE      = 0x0000000f,
+    ISOFLAG_OPTIMISTIC       = 0x00000010,
+    ISOFLAG_READONLY         = 0x00000020,
+}
+alias ISOFLAG = int;
+
+enum : int
+{
+    XACTTC_NONE           = 0x00000000,
+    XACTTC_SYNC_PHASEONE  = 0x00000001,
+    XACTTC_SYNC_PHASETWO  = 0x00000002,
+    XACTTC_SYNC           = 0x00000002,
+    XACTTC_ASYNC_PHASEONE = 0x00000004,
+    XACTTC_ASYNC          = 0x00000004,
+}
+alias XACTTC = int;
+
+enum : int
+{
+    XACTRM_OPTIMISTICLASTWINS = 0x00000001,
+    XACTRM_NOREADONLYPREPARES = 0x00000002,
+}
+alias XACTRM = int;
+
+enum : int
+{
+    XACTCONST_TIMEOUTINFINITE = 0x00000000,
+}
+alias XACTCONST = int;
+
+enum : int
+{
+    XACTHEURISTIC_ABORT  = 0x00000001,
+    XACTHEURISTIC_COMMIT = 0x00000002,
+    XACTHEURISTIC_DAMAGE = 0x00000003,
+    XACTHEURISTIC_DANGER = 0x00000004,
+}
+alias XACTHEURISTIC = int;
+
+enum : int
+{
+    XACTSTAT_NONE             = 0x00000000,
+    XACTSTAT_OPENNORMAL       = 0x00000001,
+    XACTSTAT_OPENREFUSED      = 0x00000002,
+    XACTSTAT_PREPARING        = 0x00000004,
+    XACTSTAT_PREPARED         = 0x00000008,
+    XACTSTAT_PREPARERETAINING = 0x00000010,
+    XACTSTAT_PREPARERETAINED  = 0x00000020,
+    XACTSTAT_COMMITTING       = 0x00000040,
+    XACTSTAT_COMMITRETAINING  = 0x00000080,
+    XACTSTAT_ABORTING         = 0x00000100,
+    XACTSTAT_ABORTED          = 0x00000200,
+    XACTSTAT_COMMITTED        = 0x00000400,
+    XACTSTAT_HEURISTIC_ABORT  = 0x00000800,
+    XACTSTAT_HEURISTIC_COMMIT = 0x00001000,
+    XACTSTAT_HEURISTIC_DAMAGE = 0x00002000,
+    XACTSTAT_HEURISTIC_DANGER = 0x00004000,
+    XACTSTAT_FORCED_ABORT     = 0x00008000,
+    XACTSTAT_FORCED_COMMIT    = 0x00010000,
+    XACTSTAT_INDOUBT          = 0x00020000,
+    XACTSTAT_CLOSED           = 0x00040000,
+    XACTSTAT_OPEN             = 0x00000003,
+    XACTSTAT_NOTPREPARED      = 0x0007ffc3,
+    XACTSTAT_ALL              = 0x0007ffff,
+}
+alias XACTSTAT = int;
+
+enum : int
+{
+    NO_AUTHENTICATION_REQUIRED       = 0x00000000,
+    INCOMING_AUTHENTICATION_REQUIRED = 0x00000001,
+    MUTUAL_AUTHENTICATION_REQUIRED   = 0x00000002,
+}
+alias AUTHENTICATION_LEVEL = int;
+
+enum : int
+{
+    XACT_E_CONNECTION_REQUEST_DENIED = 0x8004d100,
+    XACT_E_TOOMANY_ENLISTMENTS       = 0x8004d101,
+    XACT_E_DUPLICATE_GUID            = 0x8004d102,
+    XACT_E_NOTSINGLEPHASE            = 0x8004d103,
+    XACT_E_RECOVERYALREADYDONE       = 0x8004d104,
+    XACT_E_PROTOCOL                  = 0x8004d105,
+    XACT_E_RM_FAILURE                = 0x8004d106,
+    XACT_E_RECOVERY_FAILED           = 0x8004d107,
+    XACT_E_LU_NOT_FOUND              = 0x8004d108,
+    XACT_E_DUPLICATE_LU              = 0x8004d109,
+    XACT_E_LU_NOT_CONNECTED          = 0x8004d10a,
+    XACT_E_DUPLICATE_TRANSID         = 0x8004d10b,
+    XACT_E_LU_BUSY                   = 0x8004d10c,
+    XACT_E_LU_NO_RECOVERY_PROCESS    = 0x8004d10d,
+    XACT_E_LU_DOWN                   = 0x8004d10e,
+    XACT_E_LU_RECOVERING             = 0x8004d10f,
+    XACT_E_LU_RECOVERY_MISMATCH      = 0x8004d110,
+    XACT_E_RM_UNAVAILABLE            = 0x8004d111,
+    XACT_E_LRMRECOVERYALREADYDONE    = 0x8004d112,
+    XACT_E_NOLASTRESOURCEINTERFACE   = 0x8004d113,
+    XACT_S_NONOTIFY                  = 0x0004d100,
+    XACT_OK_NONOTIFY                 = 0x0004d101,
+    dwUSER_MS_SQLSERVER              = 0x0000ffff,
+}
+alias XACT_DTC_CONSTANTS = int;
+
+enum : int
+{
+    DTCINITIATEDRECOVERYWORK_CHECKLUSTATUS = 0x00000001,
+    DTCINITIATEDRECOVERYWORK_TRANS         = 0x00000002,
+    DTCINITIATEDRECOVERYWORK_TMDOWN        = 0x00000003,
+}
+alias _DtcLu_LocalRecovery_Work = int;
+
+enum : int
+{
+    DTCLUXLN_COLD = 0x00000001,
+    DTCLUXLN_WARM = 0x00000002,
+}
+alias _DtcLu_Xln = int;
+
+enum : int
+{
+    DTCLUXLNCONFIRMATION_CONFIRM          = 0x00000001,
+    DTCLUXLNCONFIRMATION_LOGNAMEMISMATCH  = 0x00000002,
+    DTCLUXLNCONFIRMATION_COLDWARMMISMATCH = 0x00000003,
+    DTCLUXLNCONFIRMATION_OBSOLETE         = 0x00000004,
+}
+alias _DtcLu_Xln_Confirmation = int;
+
+enum : int
+{
+    DTCLUXLNRESPONSE_OK_SENDOURXLNBACK   = 0x00000001,
+    DTCLUXLNRESPONSE_OK_SENDCONFIRMATION = 0x00000002,
+    DTCLUXLNRESPONSE_LOGNAMEMISMATCH     = 0x00000003,
+    DTCLUXLNRESPONSE_COLDWARMMISMATCH    = 0x00000004,
+}
+alias _DtcLu_Xln_Response = int;
+
+enum : int
+{
+    DTCLUXLNERROR_PROTOCOL         = 0x00000001,
+    DTCLUXLNERROR_LOGNAMEMISMATCH  = 0x00000002,
+    DTCLUXLNERROR_COLDWARMMISMATCH = 0x00000003,
+}
+alias _DtcLu_Xln_Error = int;
+
+enum : int
+{
+    DTCLUCOMPARESTATE_COMMITTED          = 0x00000001,
+    DTCLUCOMPARESTATE_HEURISTICCOMMITTED = 0x00000002,
+    DTCLUCOMPARESTATE_HEURISTICMIXED     = 0x00000003,
+    DTCLUCOMPARESTATE_HEURISTICRESET     = 0x00000004,
+    DTCLUCOMPARESTATE_INDOUBT            = 0x00000005,
+    DTCLUCOMPARESTATE_RESET              = 0x00000006,
+}
+alias _DtcLu_CompareState = int;
+
+enum : int
+{
+    DTCLUCOMPARESTATESCONFIRMATION_CONFIRM  = 0x00000001,
+    DTCLUCOMPARESTATESCONFIRMATION_PROTOCOL = 0x00000002,
+}
+alias _DtcLu_CompareStates_Confirmation = int;
+
+enum : int
+{
+    DTCLUCOMPARESTATESERROR_PROTOCOL = 0x00000001,
+}
+alias _DtcLu_CompareStates_Error = int;
+
+enum : int
+{
+    DTCLUCOMPARESTATESRESPONSE_OK       = 0x00000001,
+    DTCLUCOMPARESTATESRESPONSE_PROTOCOL = 0x00000002,
+}
+alias _DtcLu_CompareStates_Response = int;
+
+enum : int
+{
+    TRKCOLL_PROCESSES    = 0x00000000,
+    TRKCOLL_APPLICATIONS = 0x00000001,
+    TRKCOLL_COMPONENTS   = 0x00000002,
+}
+alias TRACKING_COLL_TYPE = int;
+
+enum : int
+{
+    DUMPTYPE_FULL = 0x00000000,
+    DUMPTYPE_MINI = 0x00000001,
+    DUMPTYPE_NONE = 0x00000002,
+}
+alias DUMPTYPE = int;
+
+enum : int
+{
+    APPTYPE_UNKNOWN = 0xffffffff,
+    APPTYPE_SERVER  = 0x00000001,
+    APPTYPE_LIBRARY = 0x00000000,
+    APPTYPE_SWC     = 0x00000002,
+}
+alias COMPLUS_APPTYPE = int;
+
+enum GetAppTrackerDataFlags : int
+{
+    GATD_INCLUDE_PROCESS_EXE_NAME = 0x00000001,
+    GATD_INCLUDE_LIBRARY_APPS     = 0x00000002,
+    GATD_INCLUDE_SWC              = 0x00000004,
+    GATD_INCLUDE_CLASS_NAME       = 0x00000008,
+    GATD_INCLUDE_APPLICATION_NAME = 0x00000010,
 }
 
-enum COMAdminQCMessageAuthenticateOptions
+enum TransactionVote : int
 {
-    COMAdminQCMessageAuthenticateSecureApps = 0,
-    COMAdminQCMessageAuthenticateOff = 1,
-    COMAdminQCMessageAuthenticateOn = 2,
+    TxCommit = 0x00000000,
+    TxAbort  = 0x00000001,
 }
 
-enum COMAdminFileFlags
+enum CrmTransactionState : int
 {
-    COMAdminFileFlagLoadable = 1,
-    COMAdminFileFlagCOM = 2,
-    COMAdminFileFlagContainsPS = 4,
-    COMAdminFileFlagContainsComp = 8,
-    COMAdminFileFlagContainsTLB = 16,
-    COMAdminFileFlagSelfReg = 32,
-    COMAdminFileFlagSelfUnReg = 64,
-    COMAdminFileFlagUnloadableDLL = 128,
-    COMAdminFileFlagDoesNotExist = 256,
-    COMAdminFileFlagAlreadyInstalled = 512,
-    COMAdminFileFlagBadTLB = 1024,
-    COMAdminFileFlagGetClassObjFailed = 2048,
-    COMAdminFileFlagClassNotAvailable = 4096,
-    COMAdminFileFlagRegistrar = 8192,
-    COMAdminFileFlagNoRegistrar = 16384,
-    COMAdminFileFlagDLLRegsvrFailed = 32768,
-    COMAdminFileFlagRegTLBFailed = 65536,
-    COMAdminFileFlagRegistrarFailed = 131072,
-    COMAdminFileFlagError = 262144,
+    TxState_Active    = 0x00000000,
+    TxState_Committed = 0x00000001,
+    TxState_Aborted   = 0x00000002,
+    TxState_Indoubt   = 0x00000003,
 }
 
-enum COMAdminComponentFlags
+enum : int
 {
-    COMAdminCompFlagTypeInfoFound = 1,
-    COMAdminCompFlagCOMPlusPropertiesFound = 2,
-    COMAdminCompFlagProxyFound = 4,
-    COMAdminCompFlagInterfacesFound = 8,
-    COMAdminCompFlagAlreadyInstalled = 16,
-    COMAdminCompFlagNotInApplication = 32,
+    CSC_Inherit = 0x00000000,
+    CSC_Ignore  = 0x00000001,
 }
+alias CSC_InheritanceConfig = int;
 
-enum COMAdminErrorCodes
+enum : int
 {
-    COMAdminErrObjectErrors = -2146368511,
-    COMAdminErrObjectInvalid = -2146368510,
-    COMAdminErrKeyMissing = -2146368509,
-    COMAdminErrAlreadyInstalled = -2146368508,
-    COMAdminErrAppFileWriteFail = -2146368505,
-    COMAdminErrAppFileReadFail = -2146368504,
-    COMAdminErrAppFileVersion = -2146368503,
-    COMAdminErrBadPath = -2146368502,
-    COMAdminErrApplicationExists = -2146368501,
-    COMAdminErrRoleExists = -2146368500,
-    COMAdminErrCantCopyFile = -2146368499,
-    COMAdminErrNoUser = -2146368497,
-    COMAdminErrInvalidUserids = -2146368496,
-    COMAdminErrNoRegistryCLSID = -2146368495,
-    COMAdminErrBadRegistryProgID = -2146368494,
-    COMAdminErrAuthenticationLevel = -2146368493,
-    COMAdminErrUserPasswdNotValid = -2146368492,
-    COMAdminErrCLSIDOrIIDMismatch = -2146368488,
-    COMAdminErrRemoteInterface = -2146368487,
-    COMAdminErrDllRegisterServer = -2146368486,
-    COMAdminErrNoServerShare = -2146368485,
-    COMAdminErrDllLoadFailed = -2146368483,
-    COMAdminErrBadRegistryLibID = -2146368482,
-    COMAdminErrAppDirNotFound = -2146368481,
-    COMAdminErrRegistrarFailed = -2146368477,
-    COMAdminErrCompFileDoesNotExist = -2146368476,
-    COMAdminErrCompFileLoadDLLFail = -2146368475,
-    COMAdminErrCompFileGetClassObj = -2146368474,
-    COMAdminErrCompFileClassNotAvail = -2146368473,
-    COMAdminErrCompFileBadTLB = -2146368472,
-    COMAdminErrCompFileNotInstallable = -2146368471,
-    COMAdminErrNotChangeable = -2146368470,
-    COMAdminErrNotDeletable = -2146368469,
-    COMAdminErrSession = -2146368468,
-    COMAdminErrCompMoveLocked = -2146368467,
-    COMAdminErrCompMoveBadDest = -2146368466,
-    COMAdminErrRegisterTLB = -2146368464,
-    COMAdminErrSystemApp = -2146368461,
-    COMAdminErrCompFileNoRegistrar = -2146368460,
-    COMAdminErrCoReqCompInstalled = -2146368459,
-    COMAdminErrServiceNotInstalled = -2146368458,
-    COMAdminErrPropertySaveFailed = -2146368457,
-    COMAdminErrObjectExists = -2146368456,
-    COMAdminErrComponentExists = -2146368455,
-    COMAdminErrRegFileCorrupt = -2146368453,
-    COMAdminErrPropertyOverflow = -2146368452,
-    COMAdminErrNotInRegistry = -2146368450,
-    COMAdminErrObjectNotPoolable = -2146368449,
-    COMAdminErrApplidMatchesClsid = -2146368442,
-    COMAdminErrRoleDoesNotExist = -2146368441,
-    COMAdminErrStartAppNeedsComponents = -2146368440,
-    COMAdminErrRequiresDifferentPlatform = -2146368439,
-    COMAdminErrQueuingServiceNotAvailable = -2146367998,
-    COMAdminErrObjectParentMissing = -2146367480,
-    COMAdminErrObjectDoesNotExist = -2146367479,
-    COMAdminErrCanNotExportAppProxy = -2146368438,
-    COMAdminErrCanNotStartApp = -2146368437,
-    COMAdminErrCanNotExportSystemApp = -2146368436,
-    COMAdminErrCanNotSubscribeToComponent = -2146368435,
-    COMAdminErrAppNotRunning = -2146367478,
-    COMAdminErrEventClassCannotBeSubscriber = -2146368434,
-    COMAdminErrLibAppProxyIncompatible = -2146368433,
-    COMAdminErrBasePartitionOnly = -2146368432,
-    COMAdminErrDuplicatePartitionName = -2146368425,
-    COMAdminErrPartitionInUse = -2146368423,
-    COMAdminErrImportedComponentsNotAllowed = -2146368421,
-    COMAdminErrRegdbNotInitialized = -2146368398,
-    COMAdminErrRegdbNotOpen = -2146368397,
-    COMAdminErrRegdbSystemErr = -2146368396,
-    COMAdminErrRegdbAlreadyRunning = -2146368395,
-    COMAdminErrMigVersionNotSupported = -2146368384,
-    COMAdminErrMigSchemaNotFound = -2146368383,
-    COMAdminErrCatBitnessMismatch = -2146368382,
-    COMAdminErrCatUnacceptableBitness = -2146368381,
-    COMAdminErrCatWrongAppBitnessBitness = -2146368380,
-    COMAdminErrCatPauseResumeNotSupported = -2146368379,
-    COMAdminErrCatServerFault = -2146368378,
-    COMAdminErrCantRecycleLibraryApps = -2146367473,
-    COMAdminErrCantRecycleServiceApps = -2146367471,
-    COMAdminErrProcessAlreadyRecycled = -2146367470,
-    COMAdminErrPausedProcessMayNotBeRecycled = -2146367469,
-    COMAdminErrInvalidPartition = -2146367477,
-    COMAdminErrPartitionMsiOnly = -2146367463,
-    COMAdminErrStartAppDisabled = -2146368431,
-    COMAdminErrCompMoveSource = -2146367460,
-    COMAdminErrCompMoveDest = -2146367459,
-    COMAdminErrCompMovePrivate = -2146367458,
-    COMAdminErrCannotCopyEventClass = -2146367456,
+    CSC_ThreadPoolNone    = 0x00000000,
+    CSC_ThreadPoolInherit = 0x00000001,
+    CSC_STAThreadPool     = 0x00000002,
+    CSC_MTAThreadPool     = 0x00000003,
 }
+alias CSC_ThreadPool = int;
+
+enum : int
+{
+    CSC_NoBinding        = 0x00000000,
+    CSC_BindToPoolThread = 0x00000001,
+}
+alias CSC_Binding = int;
+
+enum : int
+{
+    CSC_NoTransaction                = 0x00000000,
+    CSC_IfContainerIsTransactional   = 0x00000001,
+    CSC_CreateTransactionIfNecessary = 0x00000002,
+    CSC_NewTransaction               = 0x00000003,
+}
+alias CSC_TransactionConfig = int;
+
+enum : int
+{
+    CSC_NoSynchronization             = 0x00000000,
+    CSC_IfContainerIsSynchronized     = 0x00000001,
+    CSC_NewSynchronizationIfNecessary = 0x00000002,
+    CSC_NewSynchronization            = 0x00000003,
+}
+alias CSC_SynchronizationConfig = int;
+
+enum : int
+{
+    CSC_DontUseTracker = 0x00000000,
+    CSC_UseTracker     = 0x00000001,
+}
+alias CSC_TrackerConfig = int;
+
+enum : int
+{
+    CSC_NoPartition      = 0x00000000,
+    CSC_InheritPartition = 0x00000001,
+    CSC_NewPartition     = 0x00000002,
+}
+alias CSC_PartitionConfig = int;
+
+enum : int
+{
+    CSC_NoIISIntrinsics      = 0x00000000,
+    CSC_InheritIISIntrinsics = 0x00000001,
+}
+alias CSC_IISIntrinsicsConfig = int;
+
+enum : int
+{
+    CSC_NoCOMTIIntrinsics      = 0x00000000,
+    CSC_InheritCOMTIIntrinsics = 0x00000001,
+}
+alias CSC_COMTIIntrinsicsConfig = int;
+
+enum : int
+{
+    CSC_NoSxs      = 0x00000000,
+    CSC_InheritSxs = 0x00000001,
+    CSC_NewSxs     = 0x00000002,
+}
+alias CSC_SxsConfig = int;
+
+enum : int
+{
+    mtsErrCtxAborted                   = 0x8004e002,
+    mtsErrCtxAborting                  = 0x8004e003,
+    mtsErrCtxNoContext                 = 0x8004e004,
+    mtsErrCtxNotRegistered             = 0x8004e005,
+    mtsErrCtxSynchTimeout              = 0x8004e006,
+    mtsErrCtxOldReference              = 0x8004e007,
+    mtsErrCtxRoleNotFound              = 0x8004e00c,
+    mtsErrCtxNoSecurity                = 0x8004e00d,
+    mtsErrCtxWrongThread               = 0x8004e00e,
+    mtsErrCtxTMNotAvailable            = 0x8004e00f,
+    comQCErrApplicationNotQueued       = 0x80110600,
+    comQCErrNoQueueableInterfaces      = 0x80110601,
+    comQCErrQueuingServiceNotAvailable = 0x80110602,
+    comQCErrQueueTransactMismatch      = 0x80110603,
+    comqcErrRecorderMarshalled         = 0x80110604,
+    comqcErrOutParam                   = 0x80110605,
+    comqcErrRecorderNotTrusted         = 0x80110606,
+    comqcErrPSLoad                     = 0x80110607,
+    comqcErrMarshaledObjSameTxn        = 0x80110608,
+    comqcErrInvalidMessage             = 0x80110650,
+    comqcErrMsmqSidUnavailable         = 0x80110651,
+    comqcErrWrongMsgExtension          = 0x80110652,
+    comqcErrMsmqServiceUnavailable     = 0x80110653,
+    comqcErrMsgNotAuthenticated        = 0x80110654,
+    comqcErrMsmqConnectorUsed          = 0x80110655,
+    comqcErrBadMarshaledObject         = 0x80110656,
+}
+alias __MIDL___MIDL_itf_autosvcs_0001_0150_0001 = int;
+
+enum : int
+{
+    LockSetGet = 0x00000000,
+    LockMethod = 0x00000001,
+}
+alias __MIDL___MIDL_itf_autosvcs_0001_0159_0001 = int;
+
+enum : int
+{
+    Standard = 0x00000000,
+    Process  = 0x00000001,
+}
+alias __MIDL___MIDL_itf_autosvcs_0001_0159_0002 = int;
+
+enum : int
+{
+    CRMFLAG_FORGETTARGET          = 0x00000001,
+    CRMFLAG_WRITTENDURINGPREPARE  = 0x00000002,
+    CRMFLAG_WRITTENDURINGCOMMIT   = 0x00000004,
+    CRMFLAG_WRITTENDURINGABORT    = 0x00000008,
+    CRMFLAG_WRITTENDURINGRECOVERY = 0x00000010,
+    CRMFLAG_WRITTENDURINGREPLAY   = 0x00000020,
+    CRMFLAG_REPLAYINPROGRESS      = 0x00000040,
+}
+alias CRMFLAGS = int;
+
+enum : int
+{
+    CRMREGFLAG_PREPAREPHASE         = 0x00000001,
+    CRMREGFLAG_COMMITPHASE          = 0x00000002,
+    CRMREGFLAG_ABORTPHASE           = 0x00000004,
+    CRMREGFLAG_ALLPHASES            = 0x00000007,
+    CRMREGFLAG_FAILIFINDOUBTSREMAIN = 0x00000010,
+}
+alias CRMREGFLAGS = int;
+
+// Structs
+
 
 struct BOID
 {
-    ubyte rgb;
-}
-
-enum TX_MISC_CONSTANTS
-{
-    MAX_TRAN_DESC = 40,
-}
-
-enum ISOLATIONLEVEL
-{
-    ISOLATIONLEVEL_UNSPECIFIED = -1,
-    ISOLATIONLEVEL_CHAOS = 16,
-    ISOLATIONLEVEL_READUNCOMMITTED = 256,
-    ISOLATIONLEVEL_BROWSE = 256,
-    ISOLATIONLEVEL_CURSORSTABILITY = 4096,
-    ISOLATIONLEVEL_READCOMMITTED = 4096,
-    ISOLATIONLEVEL_REPEATABLEREAD = 65536,
-    ISOLATIONLEVEL_SERIALIZABLE = 1048576,
-    ISOLATIONLEVEL_ISOLATED = 1048576,
+    ubyte[16] rgb;
 }
 
 struct XACTTRANSINFO
 {
     BOID uow;
-    int isoLevel;
+    int  isoLevel;
     uint isoFlags;
     uint grfTCSupported;
     uint grfRMSupported;
@@ -602,548 +731,45 @@ struct XACTTRANSINFO
 
 struct XACTSTATS
 {
-    uint cOpen;
-    uint cCommitting;
-    uint cCommitted;
-    uint cAborting;
-    uint cAborted;
-    uint cInDoubt;
-    uint cHeuristicDecision;
+    uint     cOpen;
+    uint     cCommitting;
+    uint     cCommitted;
+    uint     cAborting;
+    uint     cAborted;
+    uint     cInDoubt;
+    uint     cHeuristicDecision;
     FILETIME timeTransactionsUp;
-}
-
-enum ISOFLAG
-{
-    ISOFLAG_RETAIN_COMMIT_DC = 1,
-    ISOFLAG_RETAIN_COMMIT = 2,
-    ISOFLAG_RETAIN_COMMIT_NO = 3,
-    ISOFLAG_RETAIN_ABORT_DC = 4,
-    ISOFLAG_RETAIN_ABORT = 8,
-    ISOFLAG_RETAIN_ABORT_NO = 12,
-    ISOFLAG_RETAIN_DONTCARE = 5,
-    ISOFLAG_RETAIN_BOTH = 10,
-    ISOFLAG_RETAIN_NONE = 15,
-    ISOFLAG_OPTIMISTIC = 16,
-    ISOFLAG_READONLY = 32,
-}
-
-enum XACTTC
-{
-    XACTTC_NONE = 0,
-    XACTTC_SYNC_PHASEONE = 1,
-    XACTTC_SYNC_PHASETWO = 2,
-    XACTTC_SYNC = 2,
-    XACTTC_ASYNC_PHASEONE = 4,
-    XACTTC_ASYNC = 4,
-}
-
-enum XACTRM
-{
-    XACTRM_OPTIMISTICLASTWINS = 1,
-    XACTRM_NOREADONLYPREPARES = 2,
-}
-
-enum XACTCONST
-{
-    XACTCONST_TIMEOUTINFINITE = 0,
-}
-
-enum XACTHEURISTIC
-{
-    XACTHEURISTIC_ABORT = 1,
-    XACTHEURISTIC_COMMIT = 2,
-    XACTHEURISTIC_DAMAGE = 3,
-    XACTHEURISTIC_DANGER = 4,
-}
-
-enum XACTSTAT
-{
-    XACTSTAT_NONE = 0,
-    XACTSTAT_OPENNORMAL = 1,
-    XACTSTAT_OPENREFUSED = 2,
-    XACTSTAT_PREPARING = 4,
-    XACTSTAT_PREPARED = 8,
-    XACTSTAT_PREPARERETAINING = 16,
-    XACTSTAT_PREPARERETAINED = 32,
-    XACTSTAT_COMMITTING = 64,
-    XACTSTAT_COMMITRETAINING = 128,
-    XACTSTAT_ABORTING = 256,
-    XACTSTAT_ABORTED = 512,
-    XACTSTAT_COMMITTED = 1024,
-    XACTSTAT_HEURISTIC_ABORT = 2048,
-    XACTSTAT_HEURISTIC_COMMIT = 4096,
-    XACTSTAT_HEURISTIC_DAMAGE = 8192,
-    XACTSTAT_HEURISTIC_DANGER = 16384,
-    XACTSTAT_FORCED_ABORT = 32768,
-    XACTSTAT_FORCED_COMMIT = 65536,
-    XACTSTAT_INDOUBT = 131072,
-    XACTSTAT_CLOSED = 262144,
-    XACTSTAT_OPEN = 3,
-    XACTSTAT_NOTPREPARED = 524227,
-    XACTSTAT_ALL = 524287,
 }
 
 struct XACTOPT
 {
-    uint ulTimeout;
-    byte szDescription;
-}
-
-const GUID IID_ITransaction = {0x0FB15084, 0xAF41, 0x11CE, [0xBD, 0x2B, 0x20, 0x4C, 0x4F, 0x4F, 0x50, 0x20]};
-@GUID(0x0FB15084, 0xAF41, 0x11CE, [0xBD, 0x2B, 0x20, 0x4C, 0x4F, 0x4F, 0x50, 0x20]);
-interface ITransaction : IUnknown
-{
-    HRESULT Commit(BOOL fRetaining, uint grfTC, uint grfRM);
-    HRESULT Abort(BOID* pboidReason, BOOL fRetaining, BOOL fAsync);
-    HRESULT GetTransactionInfo(XACTTRANSINFO* pinfo);
-}
-
-const GUID IID_ITransactionCloner = {0x02656950, 0x2152, 0x11D0, [0x94, 0x4C, 0x00, 0xA0, 0xC9, 0x05, 0x41, 0x6E]};
-@GUID(0x02656950, 0x2152, 0x11D0, [0x94, 0x4C, 0x00, 0xA0, 0xC9, 0x05, 0x41, 0x6E]);
-interface ITransactionCloner : ITransaction
-{
-    HRESULT CloneWithCommitDisabled(ITransaction* ppITransaction);
-}
-
-const GUID IID_ITransaction2 = {0x34021548, 0x0065, 0x11D3, [0xBA, 0xC1, 0x00, 0xC0, 0x4F, 0x79, 0x7B, 0xE2]};
-@GUID(0x34021548, 0x0065, 0x11D3, [0xBA, 0xC1, 0x00, 0xC0, 0x4F, 0x79, 0x7B, 0xE2]);
-interface ITransaction2 : ITransactionCloner
-{
-    HRESULT GetTransactionInfo2(XACTTRANSINFO* pinfo);
-}
-
-const GUID IID_ITransactionDispenser = {0x3A6AD9E1, 0x23B9, 0x11CF, [0xAD, 0x60, 0x00, 0xAA, 0x00, 0xA7, 0x4C, 0xCD]};
-@GUID(0x3A6AD9E1, 0x23B9, 0x11CF, [0xAD, 0x60, 0x00, 0xAA, 0x00, 0xA7, 0x4C, 0xCD]);
-interface ITransactionDispenser : IUnknown
-{
-    HRESULT GetOptionsObject(ITransactionOptions* ppOptions);
-    HRESULT BeginTransaction(IUnknown punkOuter, int isoLevel, uint isoFlags, ITransactionOptions pOptions, ITransaction* ppTransaction);
-}
-
-const GUID IID_ITransactionOptions = {0x3A6AD9E0, 0x23B9, 0x11CF, [0xAD, 0x60, 0x00, 0xAA, 0x00, 0xA7, 0x4C, 0xCD]};
-@GUID(0x3A6AD9E0, 0x23B9, 0x11CF, [0xAD, 0x60, 0x00, 0xAA, 0x00, 0xA7, 0x4C, 0xCD]);
-interface ITransactionOptions : IUnknown
-{
-    HRESULT SetOptions(XACTOPT* pOptions);
-    HRESULT GetOptions(XACTOPT* pOptions);
-}
-
-const GUID IID_ITransactionOutcomeEvents = {0x3A6AD9E2, 0x23B9, 0x11CF, [0xAD, 0x60, 0x00, 0xAA, 0x00, 0xA7, 0x4C, 0xCD]};
-@GUID(0x3A6AD9E2, 0x23B9, 0x11CF, [0xAD, 0x60, 0x00, 0xAA, 0x00, 0xA7, 0x4C, 0xCD]);
-interface ITransactionOutcomeEvents : IUnknown
-{
-    HRESULT Committed(BOOL fRetaining, BOID* pNewUOW, HRESULT hr);
-    HRESULT Aborted(BOID* pboidReason, BOOL fRetaining, BOID* pNewUOW, HRESULT hr);
-    HRESULT HeuristicDecision(uint dwDecision, BOID* pboidReason, HRESULT hr);
-    HRESULT Indoubt();
-}
-
-const GUID IID_ITmNodeName = {0x30274F88, 0x6EE4, 0x474E, [0x9B, 0x95, 0x78, 0x07, 0xBC, 0x9E, 0xF8, 0xCF]};
-@GUID(0x30274F88, 0x6EE4, 0x474E, [0x9B, 0x95, 0x78, 0x07, 0xBC, 0x9E, 0xF8, 0xCF]);
-interface ITmNodeName : IUnknown
-{
-    HRESULT GetNodeNameSize(uint* pcbNodeNameSize);
-    HRESULT GetNodeName(uint cbNodeNameBufferSize, const(wchar)* pNodeNameBuffer);
-}
-
-const GUID IID_IKernelTransaction = {0x79427A2B, 0xF895, 0x40E0, [0xBE, 0x79, 0xB5, 0x7D, 0xC8, 0x2E, 0xD2, 0x31]};
-@GUID(0x79427A2B, 0xF895, 0x40E0, [0xBE, 0x79, 0xB5, 0x7D, 0xC8, 0x2E, 0xD2, 0x31]);
-interface IKernelTransaction : IUnknown
-{
-    HRESULT GetHandle(HANDLE* pHandle);
-}
-
-const GUID IID_ITransactionResourceAsync = {0x69E971F0, 0x23CE, 0x11CF, [0xAD, 0x60, 0x00, 0xAA, 0x00, 0xA7, 0x4C, 0xCD]};
-@GUID(0x69E971F0, 0x23CE, 0x11CF, [0xAD, 0x60, 0x00, 0xAA, 0x00, 0xA7, 0x4C, 0xCD]);
-interface ITransactionResourceAsync : IUnknown
-{
-    HRESULT PrepareRequest(BOOL fRetaining, uint grfRM, BOOL fWantMoniker, BOOL fSinglePhase);
-    HRESULT CommitRequest(uint grfRM, BOID* pNewUOW);
-    HRESULT AbortRequest(BOID* pboidReason, BOOL fRetaining, BOID* pNewUOW);
-    HRESULT TMDown();
-}
-
-const GUID IID_ITransactionLastResourceAsync = {0xC82BD532, 0x5B30, 0x11D3, [0x8A, 0x91, 0x00, 0xC0, 0x4F, 0x79, 0xEB, 0x6D]};
-@GUID(0xC82BD532, 0x5B30, 0x11D3, [0x8A, 0x91, 0x00, 0xC0, 0x4F, 0x79, 0xEB, 0x6D]);
-interface ITransactionLastResourceAsync : IUnknown
-{
-    HRESULT DelegateCommit(uint grfRM);
-    HRESULT ForgetRequest(BOID* pNewUOW);
-}
-
-const GUID IID_ITransactionResource = {0xEE5FF7B3, 0x4572, 0x11D0, [0x94, 0x52, 0x00, 0xA0, 0xC9, 0x05, 0x41, 0x6E]};
-@GUID(0xEE5FF7B3, 0x4572, 0x11D0, [0x94, 0x52, 0x00, 0xA0, 0xC9, 0x05, 0x41, 0x6E]);
-interface ITransactionResource : IUnknown
-{
-    HRESULT PrepareRequest(BOOL fRetaining, uint grfRM, BOOL fWantMoniker, BOOL fSinglePhase);
-    HRESULT CommitRequest(uint grfRM, BOID* pNewUOW);
-    HRESULT AbortRequest(BOID* pboidReason, BOOL fRetaining, BOID* pNewUOW);
-    HRESULT TMDown();
-}
-
-const GUID IID_ITransactionEnlistmentAsync = {0x0FB15081, 0xAF41, 0x11CE, [0xBD, 0x2B, 0x20, 0x4C, 0x4F, 0x4F, 0x50, 0x20]};
-@GUID(0x0FB15081, 0xAF41, 0x11CE, [0xBD, 0x2B, 0x20, 0x4C, 0x4F, 0x4F, 0x50, 0x20]);
-interface ITransactionEnlistmentAsync : IUnknown
-{
-    HRESULT PrepareRequestDone(HRESULT hr, IMoniker pmk, BOID* pboidReason);
-    HRESULT CommitRequestDone(HRESULT hr);
-    HRESULT AbortRequestDone(HRESULT hr);
-}
-
-const GUID IID_ITransactionLastEnlistmentAsync = {0xC82BD533, 0x5B30, 0x11D3, [0x8A, 0x91, 0x00, 0xC0, 0x4F, 0x79, 0xEB, 0x6D]};
-@GUID(0xC82BD533, 0x5B30, 0x11D3, [0x8A, 0x91, 0x00, 0xC0, 0x4F, 0x79, 0xEB, 0x6D]);
-interface ITransactionLastEnlistmentAsync : IUnknown
-{
-    HRESULT TransactionOutcome(XACTSTAT XactStat, BOID* pboidReason);
-}
-
-const GUID IID_ITransactionExportFactory = {0xE1CF9B53, 0x8745, 0x11CE, [0xA9, 0xBA, 0x00, 0xAA, 0x00, 0x6C, 0x37, 0x06]};
-@GUID(0xE1CF9B53, 0x8745, 0x11CE, [0xA9, 0xBA, 0x00, 0xAA, 0x00, 0x6C, 0x37, 0x06]);
-interface ITransactionExportFactory : IUnknown
-{
-    HRESULT GetRemoteClassId(Guid* pclsid);
-    HRESULT Create(uint cbWhereabouts, char* rgbWhereabouts, ITransactionExport* ppExport);
-}
-
-const GUID IID_ITransactionImportWhereabouts = {0x0141FDA4, 0x8FC0, 0x11CE, [0xBD, 0x18, 0x20, 0x4C, 0x4F, 0x4F, 0x50, 0x20]};
-@GUID(0x0141FDA4, 0x8FC0, 0x11CE, [0xBD, 0x18, 0x20, 0x4C, 0x4F, 0x4F, 0x50, 0x20]);
-interface ITransactionImportWhereabouts : IUnknown
-{
-    HRESULT GetWhereaboutsSize(uint* pcbWhereabouts);
-    HRESULT GetWhereabouts(uint cbWhereabouts, ubyte* rgbWhereabouts, uint* pcbUsed);
-}
-
-const GUID IID_ITransactionExport = {0x0141FDA5, 0x8FC0, 0x11CE, [0xBD, 0x18, 0x20, 0x4C, 0x4F, 0x4F, 0x50, 0x20]};
-@GUID(0x0141FDA5, 0x8FC0, 0x11CE, [0xBD, 0x18, 0x20, 0x4C, 0x4F, 0x4F, 0x50, 0x20]);
-interface ITransactionExport : IUnknown
-{
-    HRESULT Export(IUnknown punkTransaction, uint* pcbTransactionCookie);
-    HRESULT GetTransactionCookie(IUnknown punkTransaction, uint cbTransactionCookie, ubyte* rgbTransactionCookie, uint* pcbUsed);
-}
-
-const GUID IID_ITransactionImport = {0xE1CF9B5A, 0x8745, 0x11CE, [0xA9, 0xBA, 0x00, 0xAA, 0x00, 0x6C, 0x37, 0x06]};
-@GUID(0xE1CF9B5A, 0x8745, 0x11CE, [0xA9, 0xBA, 0x00, 0xAA, 0x00, 0x6C, 0x37, 0x06]);
-interface ITransactionImport : IUnknown
-{
-    HRESULT Import(uint cbTransactionCookie, char* rgbTransactionCookie, Guid* piid, void** ppvTransaction);
-}
-
-const GUID IID_ITipTransaction = {0x17CF72D0, 0xBAC5, 0x11D1, [0xB1, 0xBF, 0x00, 0xC0, 0x4F, 0xC2, 0xF3, 0xEF]};
-@GUID(0x17CF72D0, 0xBAC5, 0x11D1, [0xB1, 0xBF, 0x00, 0xC0, 0x4F, 0xC2, 0xF3, 0xEF]);
-interface ITipTransaction : IUnknown
-{
-    HRESULT Push(byte* i_pszRemoteTmUrl, byte** o_ppszRemoteTxUrl);
-    HRESULT GetTransactionUrl(byte** o_ppszLocalTxUrl);
-}
-
-const GUID IID_ITipHelper = {0x17CF72D1, 0xBAC5, 0x11D1, [0xB1, 0xBF, 0x00, 0xC0, 0x4F, 0xC2, 0xF3, 0xEF]};
-@GUID(0x17CF72D1, 0xBAC5, 0x11D1, [0xB1, 0xBF, 0x00, 0xC0, 0x4F, 0xC2, 0xF3, 0xEF]);
-interface ITipHelper : IUnknown
-{
-    HRESULT Pull(byte* i_pszTxUrl, ITransaction* o_ppITransaction);
-    HRESULT PullAsync(byte* i_pszTxUrl, ITipPullSink i_pTipPullSink, ITransaction* o_ppITransaction);
-    HRESULT GetLocalTmUrl(byte** o_ppszLocalTmUrl);
-}
-
-const GUID IID_ITipPullSink = {0x17CF72D2, 0xBAC5, 0x11D1, [0xB1, 0xBF, 0x00, 0xC0, 0x4F, 0xC2, 0xF3, 0xEF]};
-@GUID(0x17CF72D2, 0xBAC5, 0x11D1, [0xB1, 0xBF, 0x00, 0xC0, 0x4F, 0xC2, 0xF3, 0xEF]);
-interface ITipPullSink : IUnknown
-{
-    HRESULT PullComplete(HRESULT i_hrPull);
-}
-
-const GUID IID_IDtcNetworkAccessConfig = {0x9797C15D, 0xA428, 0x4291, [0x87, 0xB6, 0x09, 0x95, 0x03, 0x1A, 0x67, 0x8D]};
-@GUID(0x9797C15D, 0xA428, 0x4291, [0x87, 0xB6, 0x09, 0x95, 0x03, 0x1A, 0x67, 0x8D]);
-interface IDtcNetworkAccessConfig : IUnknown
-{
-    HRESULT GetAnyNetworkAccess(int* pbAnyNetworkAccess);
-    HRESULT SetAnyNetworkAccess(BOOL bAnyNetworkAccess);
-    HRESULT GetNetworkAdministrationAccess(int* pbNetworkAdministrationAccess);
-    HRESULT SetNetworkAdministrationAccess(BOOL bNetworkAdministrationAccess);
-    HRESULT GetNetworkTransactionAccess(int* pbNetworkTransactionAccess);
-    HRESULT SetNetworkTransactionAccess(BOOL bNetworkTransactionAccess);
-    HRESULT GetNetworkClientAccess(int* pbNetworkClientAccess);
-    HRESULT SetNetworkClientAccess(BOOL bNetworkClientAccess);
-    HRESULT GetNetworkTIPAccess(int* pbNetworkTIPAccess);
-    HRESULT SetNetworkTIPAccess(BOOL bNetworkTIPAccess);
-    HRESULT GetXAAccess(int* pbXAAccess);
-    HRESULT SetXAAccess(BOOL bXAAccess);
-    HRESULT RestartDtcService();
-}
-
-enum AUTHENTICATION_LEVEL
-{
-    NO_AUTHENTICATION_REQUIRED = 0,
-    INCOMING_AUTHENTICATION_REQUIRED = 1,
-    MUTUAL_AUTHENTICATION_REQUIRED = 2,
-}
-
-const GUID IID_IDtcNetworkAccessConfig2 = {0xA7AA013B, 0xEB7D, 0x4F42, [0xB4, 0x1C, 0xB2, 0xDE, 0xC0, 0x9A, 0xE0, 0x34]};
-@GUID(0xA7AA013B, 0xEB7D, 0x4F42, [0xB4, 0x1C, 0xB2, 0xDE, 0xC0, 0x9A, 0xE0, 0x34]);
-interface IDtcNetworkAccessConfig2 : IDtcNetworkAccessConfig
-{
-    HRESULT GetNetworkInboundAccess(int* pbInbound);
-    HRESULT GetNetworkOutboundAccess(int* pbOutbound);
-    HRESULT SetNetworkInboundAccess(BOOL bInbound);
-    HRESULT SetNetworkOutboundAccess(BOOL bOutbound);
-    HRESULT GetAuthenticationLevel(AUTHENTICATION_LEVEL* pAuthLevel);
-    HRESULT SetAuthenticationLevel(AUTHENTICATION_LEVEL AuthLevel);
-}
-
-const GUID IID_IDtcNetworkAccessConfig3 = {0x76E4B4F3, 0x2CA5, 0x466B, [0x89, 0xD5, 0xFD, 0x21, 0x8E, 0xE7, 0x5B, 0x49]};
-@GUID(0x76E4B4F3, 0x2CA5, 0x466B, [0x89, 0xD5, 0xFD, 0x21, 0x8E, 0xE7, 0x5B, 0x49]);
-interface IDtcNetworkAccessConfig3 : IDtcNetworkAccessConfig2
-{
-    HRESULT GetLUAccess(int* pbLUAccess);
-    HRESULT SetLUAccess(BOOL bLUAccess);
-}
-
-enum XACT_DTC_CONSTANTS
-{
-    XACT_E_CONNECTION_REQUEST_DENIED = -2147168000,
-    XACT_E_TOOMANY_ENLISTMENTS = -2147167999,
-    XACT_E_DUPLICATE_GUID = -2147167998,
-    XACT_E_NOTSINGLEPHASE = -2147167997,
-    XACT_E_RECOVERYALREADYDONE = -2147167996,
-    XACT_E_PROTOCOL = -2147167995,
-    XACT_E_RM_FAILURE = -2147167994,
-    XACT_E_RECOVERY_FAILED = -2147167993,
-    XACT_E_LU_NOT_FOUND = -2147167992,
-    XACT_E_DUPLICATE_LU = -2147167991,
-    XACT_E_LU_NOT_CONNECTED = -2147167990,
-    XACT_E_DUPLICATE_TRANSID = -2147167989,
-    XACT_E_LU_BUSY = -2147167988,
-    XACT_E_LU_NO_RECOVERY_PROCESS = -2147167987,
-    XACT_E_LU_DOWN = -2147167986,
-    XACT_E_LU_RECOVERING = -2147167985,
-    XACT_E_LU_RECOVERY_MISMATCH = -2147167984,
-    XACT_E_RM_UNAVAILABLE = -2147167983,
-    XACT_E_LRMRECOVERYALREADYDONE = -2147167982,
-    XACT_E_NOLASTRESOURCEINTERFACE = -2147167981,
-    XACT_S_NONOTIFY = 315648,
-    XACT_OK_NONOTIFY = 315649,
-    dwUSER_MS_SQLSERVER = 65535,
+    uint     ulTimeout;
+    byte[40] szDescription;
 }
 
 struct xid_t
 {
-    int formatID;
-    int gtrid_length;
-    int bqual_length;
-    byte data;
+    int       formatID;
+    int       gtrid_length;
+    int       bqual_length;
+    byte[128] data;
 }
 
 struct xa_switch_t
 {
-    byte name;
-    int flags;
-    int version;
-    int xa_open_entry;
-    int xa_close_entry;
-    int xa_start_entry;
-    int xa_end_entry;
-    int xa_rollback_entry;
-    int xa_prepare_entry;
-    int xa_commit_entry;
-    int xa_recover_entry;
-    int xa_forget_entry;
-    int xa_complete_entry;
-}
-
-const GUID IID_IXATransLookup = {0xF3B1F131, 0xEEDA, 0x11CE, [0xAE, 0xD4, 0x00, 0xAA, 0x00, 0x51, 0xE2, 0xC4]};
-@GUID(0xF3B1F131, 0xEEDA, 0x11CE, [0xAE, 0xD4, 0x00, 0xAA, 0x00, 0x51, 0xE2, 0xC4]);
-interface IXATransLookup : IUnknown
-{
-    HRESULT Lookup(ITransaction* ppTransaction);
-}
-
-const GUID IID_IXATransLookup2 = {0xBF193C85, 0x0D1A, 0x4290, [0xB8, 0x8F, 0xD2, 0xCB, 0x88, 0x73, 0xD1, 0xE7]};
-@GUID(0xBF193C85, 0x0D1A, 0x4290, [0xB8, 0x8F, 0xD2, 0xCB, 0x88, 0x73, 0xD1, 0xE7]);
-interface IXATransLookup2 : IUnknown
-{
-    HRESULT Lookup(xid_t* pXID, ITransaction* ppTransaction);
-}
-
-const GUID IID_IResourceManagerSink = {0x0D563181, 0xDEFB, 0x11CE, [0xAE, 0xD1, 0x00, 0xAA, 0x00, 0x51, 0xE2, 0xC4]};
-@GUID(0x0D563181, 0xDEFB, 0x11CE, [0xAE, 0xD1, 0x00, 0xAA, 0x00, 0x51, 0xE2, 0xC4]);
-interface IResourceManagerSink : IUnknown
-{
-    HRESULT TMDown();
-}
-
-const GUID IID_IResourceManager = {0x13741D21, 0x87EB, 0x11CE, [0x80, 0x81, 0x00, 0x80, 0xC7, 0x58, 0x52, 0x7E]};
-@GUID(0x13741D21, 0x87EB, 0x11CE, [0x80, 0x81, 0x00, 0x80, 0xC7, 0x58, 0x52, 0x7E]);
-interface IResourceManager : IUnknown
-{
-    HRESULT Enlist(ITransaction pTransaction, ITransactionResourceAsync pRes, BOID* pUOW, int* pisoLevel, ITransactionEnlistmentAsync* ppEnlist);
-    HRESULT Reenlist(char* pPrepInfo, uint cbPrepInfo, uint lTimeout, XACTSTAT* pXactStat);
-    HRESULT ReenlistmentComplete();
-    HRESULT GetDistributedTransactionManager(const(Guid)* iid, void** ppvObject);
-}
-
-const GUID IID_ILastResourceManager = {0x4D964AD4, 0x5B33, 0x11D3, [0x8A, 0x91, 0x00, 0xC0, 0x4F, 0x79, 0xEB, 0x6D]};
-@GUID(0x4D964AD4, 0x5B33, 0x11D3, [0x8A, 0x91, 0x00, 0xC0, 0x4F, 0x79, 0xEB, 0x6D]);
-interface ILastResourceManager : IUnknown
-{
-    HRESULT TransactionCommitted(char* pPrepInfo, uint cbPrepInfo);
-    HRESULT RecoveryDone();
-}
-
-const GUID IID_IResourceManager2 = {0xD136C69A, 0xF749, 0x11D1, [0x8F, 0x47, 0x00, 0xC0, 0x4F, 0x8E, 0xE5, 0x7D]};
-@GUID(0xD136C69A, 0xF749, 0x11D1, [0x8F, 0x47, 0x00, 0xC0, 0x4F, 0x8E, 0xE5, 0x7D]);
-interface IResourceManager2 : IResourceManager
-{
-    HRESULT Enlist2(ITransaction pTransaction, ITransactionResourceAsync pResAsync, BOID* pUOW, int* pisoLevel, xid_t* pXid, ITransactionEnlistmentAsync* ppEnlist);
-    HRESULT Reenlist2(xid_t* pXid, uint dwTimeout, XACTSTAT* pXactStat);
-}
-
-const GUID IID_IResourceManagerRejoinable = {0x6F6DE620, 0xB5DF, 0x4F3E, [0x9C, 0xFA, 0xC8, 0xAE, 0xBD, 0x05, 0x17, 0x2B]};
-@GUID(0x6F6DE620, 0xB5DF, 0x4F3E, [0x9C, 0xFA, 0xC8, 0xAE, 0xBD, 0x05, 0x17, 0x2B]);
-interface IResourceManagerRejoinable : IResourceManager2
-{
-    HRESULT Rejoin(char* pPrepInfo, uint cbPrepInfo, uint lTimeout, XACTSTAT* pXactStat);
-}
-
-const GUID IID_IXAConfig = {0xC8A6E3A1, 0x9A8C, 0x11CF, [0xA3, 0x08, 0x00, 0xA0, 0xC9, 0x05, 0x41, 0x6E]};
-@GUID(0xC8A6E3A1, 0x9A8C, 0x11CF, [0xA3, 0x08, 0x00, 0xA0, 0xC9, 0x05, 0x41, 0x6E]);
-interface IXAConfig : IUnknown
-{
-    HRESULT Initialize(Guid clsidHelperDll);
-    HRESULT Terminate();
-}
-
-const GUID IID_IRMHelper = {0xE793F6D1, 0xF53D, 0x11CF, [0xA6, 0x0D, 0x00, 0xA0, 0xC9, 0x05, 0x41, 0x6E]};
-@GUID(0xE793F6D1, 0xF53D, 0x11CF, [0xA6, 0x0D, 0x00, 0xA0, 0xC9, 0x05, 0x41, 0x6E]);
-interface IRMHelper : IUnknown
-{
-    HRESULT RMCount(uint dwcTotalNumberOfRMs);
-    HRESULT RMInfo(xa_switch_t* pXa_Switch, BOOL fCDeclCallingConv, byte* pszOpenString, byte* pszCloseString, Guid guidRMRecovery);
-}
-
-const GUID IID_IXAObtainRMInfo = {0xE793F6D2, 0xF53D, 0x11CF, [0xA6, 0x0D, 0x00, 0xA0, 0xC9, 0x05, 0x41, 0x6E]};
-@GUID(0xE793F6D2, 0xF53D, 0x11CF, [0xA6, 0x0D, 0x00, 0xA0, 0xC9, 0x05, 0x41, 0x6E]);
-interface IXAObtainRMInfo : IUnknown
-{
-    HRESULT ObtainRMInfo(IRMHelper pIRMHelper);
-}
-
-const GUID IID_IResourceManagerFactory = {0x13741D20, 0x87EB, 0x11CE, [0x80, 0x81, 0x00, 0x80, 0xC7, 0x58, 0x52, 0x7E]};
-@GUID(0x13741D20, 0x87EB, 0x11CE, [0x80, 0x81, 0x00, 0x80, 0xC7, 0x58, 0x52, 0x7E]);
-interface IResourceManagerFactory : IUnknown
-{
-    HRESULT Create(Guid* pguidRM, byte* pszRMName, IResourceManagerSink pIResMgrSink, IResourceManager* ppResMgr);
-}
-
-const GUID IID_IResourceManagerFactory2 = {0x6B369C21, 0xFBD2, 0x11D1, [0x8F, 0x47, 0x00, 0xC0, 0x4F, 0x8E, 0xE5, 0x7D]};
-@GUID(0x6B369C21, 0xFBD2, 0x11D1, [0x8F, 0x47, 0x00, 0xC0, 0x4F, 0x8E, 0xE5, 0x7D]);
-interface IResourceManagerFactory2 : IResourceManagerFactory
-{
-    HRESULT CreateEx(Guid* pguidRM, byte* pszRMName, IResourceManagerSink pIResMgrSink, const(Guid)* riidRequested, void** ppvResMgr);
-}
-
-const GUID IID_IPrepareInfo = {0x80C7BFD0, 0x87EE, 0x11CE, [0x80, 0x81, 0x00, 0x80, 0xC7, 0x58, 0x52, 0x7E]};
-@GUID(0x80C7BFD0, 0x87EE, 0x11CE, [0x80, 0x81, 0x00, 0x80, 0xC7, 0x58, 0x52, 0x7E]);
-interface IPrepareInfo : IUnknown
-{
-    HRESULT GetPrepareInfoSize(uint* pcbPrepInfo);
-    HRESULT GetPrepareInfo(ubyte* pPrepInfo);
-}
-
-const GUID IID_IPrepareInfo2 = {0x5FAB2547, 0x9779, 0x11D1, [0xB8, 0x86, 0x00, 0xC0, 0x4F, 0xB9, 0x61, 0x8A]};
-@GUID(0x5FAB2547, 0x9779, 0x11D1, [0xB8, 0x86, 0x00, 0xC0, 0x4F, 0xB9, 0x61, 0x8A]);
-interface IPrepareInfo2 : IUnknown
-{
-    HRESULT GetPrepareInfoSize(uint* pcbPrepInfo);
-    HRESULT GetPrepareInfo(uint cbPrepareInfo, char* pPrepInfo);
-}
-
-const GUID IID_IGetDispenser = {0xC23CC370, 0x87EF, 0x11CE, [0x80, 0x81, 0x00, 0x80, 0xC7, 0x58, 0x52, 0x7E]};
-@GUID(0xC23CC370, 0x87EF, 0x11CE, [0x80, 0x81, 0x00, 0x80, 0xC7, 0x58, 0x52, 0x7E]);
-interface IGetDispenser : IUnknown
-{
-    HRESULT GetDispenser(const(Guid)* iid, void** ppvObject);
-}
-
-const GUID IID_ITransactionVoterBallotAsync2 = {0x5433376C, 0x414D, 0x11D3, [0xB2, 0x06, 0x00, 0xC0, 0x4F, 0xC2, 0xF3, 0xEF]};
-@GUID(0x5433376C, 0x414D, 0x11D3, [0xB2, 0x06, 0x00, 0xC0, 0x4F, 0xC2, 0xF3, 0xEF]);
-interface ITransactionVoterBallotAsync2 : IUnknown
-{
-    HRESULT VoteRequestDone(HRESULT hr, BOID* pboidReason);
-}
-
-const GUID IID_ITransactionVoterNotifyAsync2 = {0x5433376B, 0x414D, 0x11D3, [0xB2, 0x06, 0x00, 0xC0, 0x4F, 0xC2, 0xF3, 0xEF]};
-@GUID(0x5433376B, 0x414D, 0x11D3, [0xB2, 0x06, 0x00, 0xC0, 0x4F, 0xC2, 0xF3, 0xEF]);
-interface ITransactionVoterNotifyAsync2 : ITransactionOutcomeEvents
-{
-    HRESULT VoteRequest();
-}
-
-const GUID IID_ITransactionVoterFactory2 = {0x5433376A, 0x414D, 0x11D3, [0xB2, 0x06, 0x00, 0xC0, 0x4F, 0xC2, 0xF3, 0xEF]};
-@GUID(0x5433376A, 0x414D, 0x11D3, [0xB2, 0x06, 0x00, 0xC0, 0x4F, 0xC2, 0xF3, 0xEF]);
-interface ITransactionVoterFactory2 : IUnknown
-{
-    HRESULT Create(ITransaction pTransaction, ITransactionVoterNotifyAsync2 pVoterNotify, ITransactionVoterBallotAsync2* ppVoterBallot);
-}
-
-const GUID IID_ITransactionPhase0EnlistmentAsync = {0x82DC88E1, 0xA954, 0x11D1, [0x8F, 0x88, 0x00, 0x60, 0x08, 0x95, 0xE7, 0xD5]};
-@GUID(0x82DC88E1, 0xA954, 0x11D1, [0x8F, 0x88, 0x00, 0x60, 0x08, 0x95, 0xE7, 0xD5]);
-interface ITransactionPhase0EnlistmentAsync : IUnknown
-{
-    HRESULT Enable();
-    HRESULT WaitForEnlistment();
-    HRESULT Phase0Done();
-    HRESULT Unenlist();
-    HRESULT GetTransaction(ITransaction* ppITransaction);
-}
-
-const GUID IID_ITransactionPhase0NotifyAsync = {0xEF081809, 0x0C76, 0x11D2, [0x87, 0xA6, 0x00, 0xC0, 0x4F, 0x99, 0x0F, 0x34]};
-@GUID(0xEF081809, 0x0C76, 0x11D2, [0x87, 0xA6, 0x00, 0xC0, 0x4F, 0x99, 0x0F, 0x34]);
-interface ITransactionPhase0NotifyAsync : IUnknown
-{
-    HRESULT Phase0Request(BOOL fAbortingHint);
-    HRESULT EnlistCompleted(HRESULT status);
-}
-
-const GUID IID_ITransactionPhase0Factory = {0x82DC88E0, 0xA954, 0x11D1, [0x8F, 0x88, 0x00, 0x60, 0x08, 0x95, 0xE7, 0xD5]};
-@GUID(0x82DC88E0, 0xA954, 0x11D1, [0x8F, 0x88, 0x00, 0x60, 0x08, 0x95, 0xE7, 0xD5]);
-interface ITransactionPhase0Factory : IUnknown
-{
-    HRESULT Create(ITransactionPhase0NotifyAsync pPhase0Notify, ITransactionPhase0EnlistmentAsync* ppPhase0Enlistment);
-}
-
-const GUID IID_ITransactionTransmitter = {0x59313E01, 0xB36C, 0x11CF, [0xA5, 0x39, 0x00, 0xAA, 0x00, 0x68, 0x87, 0xC3]};
-@GUID(0x59313E01, 0xB36C, 0x11CF, [0xA5, 0x39, 0x00, 0xAA, 0x00, 0x68, 0x87, 0xC3]);
-interface ITransactionTransmitter : IUnknown
-{
-    HRESULT Set(ITransaction pTransaction);
-    HRESULT GetPropagationTokenSize(uint* pcbToken);
-    HRESULT MarshalPropagationToken(uint cbToken, char* rgbToken, uint* pcbUsed);
-    HRESULT UnmarshalReturnToken(uint cbReturnToken, char* rgbReturnToken);
-    HRESULT Reset();
-}
-
-const GUID IID_ITransactionTransmitterFactory = {0x59313E00, 0xB36C, 0x11CF, [0xA5, 0x39, 0x00, 0xAA, 0x00, 0x68, 0x87, 0xC3]};
-@GUID(0x59313E00, 0xB36C, 0x11CF, [0xA5, 0x39, 0x00, 0xAA, 0x00, 0x68, 0x87, 0xC3]);
-interface ITransactionTransmitterFactory : IUnknown
-{
-    HRESULT Create(ITransactionTransmitter* ppTransmitter);
-}
-
-const GUID IID_ITransactionReceiver = {0x59313E03, 0xB36C, 0x11CF, [0xA5, 0x39, 0x00, 0xAA, 0x00, 0x68, 0x87, 0xC3]};
-@GUID(0x59313E03, 0xB36C, 0x11CF, [0xA5, 0x39, 0x00, 0xAA, 0x00, 0x68, 0x87, 0xC3]);
-interface ITransactionReceiver : IUnknown
-{
-    HRESULT UnmarshalPropagationToken(uint cbToken, char* rgbToken, ITransaction* ppTransaction);
-    HRESULT GetReturnTokenSize(uint* pcbReturnToken);
-    HRESULT MarshalReturnToken(uint cbReturnToken, char* rgbReturnToken, uint* pcbUsed);
-    HRESULT Reset();
-}
-
-const GUID IID_ITransactionReceiverFactory = {0x59313E02, 0xB36C, 0x11CF, [0xA5, 0x39, 0x00, 0xAA, 0x00, 0x68, 0x87, 0xC3]};
-@GUID(0x59313E02, 0xB36C, 0x11CF, [0xA5, 0x39, 0x00, 0xAA, 0x00, 0x68, 0x87, 0xC3]);
-interface ITransactionReceiverFactory : IUnknown
-{
-    HRESULT Create(ITransactionReceiver* ppReceiver);
+    byte[32]  name;
+    int       flags;
+    int       version_;
+    ptrdiff_t xa_open_entry;
+    ptrdiff_t xa_close_entry;
+    ptrdiff_t xa_start_entry;
+    ptrdiff_t xa_end_entry;
+    ptrdiff_t xa_rollback_entry;
+    ptrdiff_t xa_prepare_entry;
+    ptrdiff_t xa_commit_entry;
+    ptrdiff_t xa_recover_entry;
+    ptrdiff_t xa_forget_entry;
+    ptrdiff_t xa_complete_entry;
 }
 
 struct _ProxyConfigParams
@@ -1151,741 +777,34 @@ struct _ProxyConfigParams
     ushort wcThreadsMax;
 }
 
-const GUID IID_IDtcLuConfigure = {0x4131E760, 0x1AEA, 0x11D0, [0x94, 0x4B, 0x00, 0xA0, 0xC9, 0x05, 0x41, 0x6E]};
-@GUID(0x4131E760, 0x1AEA, 0x11D0, [0x94, 0x4B, 0x00, 0xA0, 0xC9, 0x05, 0x41, 0x6E]);
-interface IDtcLuConfigure : IUnknown
-{
-    HRESULT Add(char* pucLuPair, uint cbLuPair);
-    HRESULT Delete(char* pucLuPair, uint cbLuPair);
-}
-
-const GUID IID_IDtcLuRecovery = {0xAC2B8AD2, 0xD6F0, 0x11D0, [0xB3, 0x86, 0x00, 0xA0, 0xC9, 0x08, 0x33, 0x65]};
-@GUID(0xAC2B8AD2, 0xD6F0, 0x11D0, [0xB3, 0x86, 0x00, 0xA0, 0xC9, 0x08, 0x33, 0x65]);
-interface IDtcLuRecovery : IUnknown
-{
-}
-
-const GUID IID_IDtcLuRecoveryFactory = {0x4131E762, 0x1AEA, 0x11D0, [0x94, 0x4B, 0x00, 0xA0, 0xC9, 0x05, 0x41, 0x6E]};
-@GUID(0x4131E762, 0x1AEA, 0x11D0, [0x94, 0x4B, 0x00, 0xA0, 0xC9, 0x05, 0x41, 0x6E]);
-interface IDtcLuRecoveryFactory : IUnknown
-{
-    HRESULT Create(char* pucLuPair, uint cbLuPair, IDtcLuRecovery* ppRecovery);
-}
-
-enum _DtcLu_LocalRecovery_Work
-{
-    DTCINITIATEDRECOVERYWORK_CHECKLUSTATUS = 1,
-    DTCINITIATEDRECOVERYWORK_TRANS = 2,
-    DTCINITIATEDRECOVERYWORK_TMDOWN = 3,
-}
-
-enum _DtcLu_Xln
-{
-    DTCLUXLN_COLD = 1,
-    DTCLUXLN_WARM = 2,
-}
-
-enum _DtcLu_Xln_Confirmation
-{
-    DTCLUXLNCONFIRMATION_CONFIRM = 1,
-    DTCLUXLNCONFIRMATION_LOGNAMEMISMATCH = 2,
-    DTCLUXLNCONFIRMATION_COLDWARMMISMATCH = 3,
-    DTCLUXLNCONFIRMATION_OBSOLETE = 4,
-}
-
-enum _DtcLu_Xln_Response
-{
-    DTCLUXLNRESPONSE_OK_SENDOURXLNBACK = 1,
-    DTCLUXLNRESPONSE_OK_SENDCONFIRMATION = 2,
-    DTCLUXLNRESPONSE_LOGNAMEMISMATCH = 3,
-    DTCLUXLNRESPONSE_COLDWARMMISMATCH = 4,
-}
-
-enum _DtcLu_Xln_Error
-{
-    DTCLUXLNERROR_PROTOCOL = 1,
-    DTCLUXLNERROR_LOGNAMEMISMATCH = 2,
-    DTCLUXLNERROR_COLDWARMMISMATCH = 3,
-}
-
-enum _DtcLu_CompareState
-{
-    DTCLUCOMPARESTATE_COMMITTED = 1,
-    DTCLUCOMPARESTATE_HEURISTICCOMMITTED = 2,
-    DTCLUCOMPARESTATE_HEURISTICMIXED = 3,
-    DTCLUCOMPARESTATE_HEURISTICRESET = 4,
-    DTCLUCOMPARESTATE_INDOUBT = 5,
-    DTCLUCOMPARESTATE_RESET = 6,
-}
-
-enum _DtcLu_CompareStates_Confirmation
-{
-    DTCLUCOMPARESTATESCONFIRMATION_CONFIRM = 1,
-    DTCLUCOMPARESTATESCONFIRMATION_PROTOCOL = 2,
-}
-
-enum _DtcLu_CompareStates_Error
-{
-    DTCLUCOMPARESTATESERROR_PROTOCOL = 1,
-}
-
-enum _DtcLu_CompareStates_Response
-{
-    DTCLUCOMPARESTATESRESPONSE_OK = 1,
-    DTCLUCOMPARESTATESRESPONSE_PROTOCOL = 2,
-}
-
-const GUID IID_IDtcLuRecoveryInitiatedByDtcTransWork = {0x4131E765, 0x1AEA, 0x11D0, [0x94, 0x4B, 0x00, 0xA0, 0xC9, 0x05, 0x41, 0x6E]};
-@GUID(0x4131E765, 0x1AEA, 0x11D0, [0x94, 0x4B, 0x00, 0xA0, 0xC9, 0x05, 0x41, 0x6E]);
-interface IDtcLuRecoveryInitiatedByDtcTransWork : IUnknown
-{
-    HRESULT GetLogNameSizes(uint* pcbOurLogName, uint* pcbRemoteLogName);
-    HRESULT GetOurXln(_DtcLu_Xln* pXln, ubyte* pOurLogName, ubyte* pRemoteLogName, uint* pdwProtocol);
-    HRESULT HandleConfirmationFromOurXln(_DtcLu_Xln_Confirmation Confirmation);
-    HRESULT HandleTheirXlnResponse(_DtcLu_Xln Xln, ubyte* pRemoteLogName, uint cbRemoteLogName, uint dwProtocol, _DtcLu_Xln_Confirmation* pConfirmation);
-    HRESULT HandleErrorFromOurXln(_DtcLu_Xln_Error Error);
-    HRESULT CheckForCompareStates(int* fCompareStates);
-    HRESULT GetOurTransIdSize(uint* pcbOurTransId);
-    HRESULT GetOurCompareStates(ubyte* pOurTransId, _DtcLu_CompareState* pCompareState);
-    HRESULT HandleTheirCompareStatesResponse(_DtcLu_CompareState CompareState, _DtcLu_CompareStates_Confirmation* pConfirmation);
-    HRESULT HandleErrorFromOurCompareStates(_DtcLu_CompareStates_Error Error);
-    HRESULT ConversationLost();
-    HRESULT GetRecoverySeqNum(int* plRecoverySeqNum);
-    HRESULT ObsoleteRecoverySeqNum(int lNewRecoverySeqNum);
-}
-
-const GUID IID_IDtcLuRecoveryInitiatedByDtcStatusWork = {0x4131E766, 0x1AEA, 0x11D0, [0x94, 0x4B, 0x00, 0xA0, 0xC9, 0x05, 0x41, 0x6E]};
-@GUID(0x4131E766, 0x1AEA, 0x11D0, [0x94, 0x4B, 0x00, 0xA0, 0xC9, 0x05, 0x41, 0x6E]);
-interface IDtcLuRecoveryInitiatedByDtcStatusWork : IUnknown
-{
-    HRESULT HandleCheckLuStatus(int lRecoverySeqNum);
-}
-
-const GUID IID_IDtcLuRecoveryInitiatedByDtc = {0x4131E764, 0x1AEA, 0x11D0, [0x94, 0x4B, 0x00, 0xA0, 0xC9, 0x05, 0x41, 0x6E]};
-@GUID(0x4131E764, 0x1AEA, 0x11D0, [0x94, 0x4B, 0x00, 0xA0, 0xC9, 0x05, 0x41, 0x6E]);
-interface IDtcLuRecoveryInitiatedByDtc : IUnknown
-{
-    HRESULT GetWork(_DtcLu_LocalRecovery_Work* pWork, void** ppv);
-}
-
-const GUID IID_IDtcLuRecoveryInitiatedByLuWork = {0xAC2B8AD1, 0xD6F0, 0x11D0, [0xB3, 0x86, 0x00, 0xA0, 0xC9, 0x08, 0x33, 0x65]};
-@GUID(0xAC2B8AD1, 0xD6F0, 0x11D0, [0xB3, 0x86, 0x00, 0xA0, 0xC9, 0x08, 0x33, 0x65]);
-interface IDtcLuRecoveryInitiatedByLuWork : IUnknown
-{
-    HRESULT HandleTheirXln(int lRecoverySeqNum, _DtcLu_Xln Xln, ubyte* pRemoteLogName, uint cbRemoteLogName, ubyte* pOurLogName, uint cbOurLogName, uint dwProtocol, _DtcLu_Xln_Response* pResponse);
-    HRESULT GetOurLogNameSize(uint* pcbOurLogName);
-    HRESULT GetOurXln(_DtcLu_Xln* pXln, ubyte* pOurLogName, uint* pdwProtocol);
-    HRESULT HandleConfirmationOfOurXln(_DtcLu_Xln_Confirmation Confirmation);
-    HRESULT HandleTheirCompareStates(ubyte* pRemoteTransId, uint cbRemoteTransId, _DtcLu_CompareState CompareState, _DtcLu_CompareStates_Response* pResponse, _DtcLu_CompareState* pCompareState);
-    HRESULT HandleConfirmationOfOurCompareStates(_DtcLu_CompareStates_Confirmation Confirmation);
-    HRESULT HandleErrorFromOurCompareStates(_DtcLu_CompareStates_Error Error);
-    HRESULT ConversationLost();
-}
-
-const GUID IID_IDtcLuRecoveryInitiatedByLu = {0x4131E768, 0x1AEA, 0x11D0, [0x94, 0x4B, 0x00, 0xA0, 0xC9, 0x05, 0x41, 0x6E]};
-@GUID(0x4131E768, 0x1AEA, 0x11D0, [0x94, 0x4B, 0x00, 0xA0, 0xC9, 0x05, 0x41, 0x6E]);
-interface IDtcLuRecoveryInitiatedByLu : IUnknown
-{
-    HRESULT GetObjectToHandleWorkFromLu(IDtcLuRecoveryInitiatedByLuWork* ppWork);
-}
-
-const GUID IID_IDtcLuRmEnlistment = {0x4131E769, 0x1AEA, 0x11D0, [0x94, 0x4B, 0x00, 0xA0, 0xC9, 0x05, 0x41, 0x6E]};
-@GUID(0x4131E769, 0x1AEA, 0x11D0, [0x94, 0x4B, 0x00, 0xA0, 0xC9, 0x05, 0x41, 0x6E]);
-interface IDtcLuRmEnlistment : IUnknown
-{
-    HRESULT Unplug(BOOL fConversationLost);
-    HRESULT BackedOut();
-    HRESULT BackOut();
-    HRESULT Committed();
-    HRESULT Forget();
-    HRESULT RequestCommit();
-}
-
-const GUID IID_IDtcLuRmEnlistmentSink = {0x4131E770, 0x1AEA, 0x11D0, [0x94, 0x4B, 0x00, 0xA0, 0xC9, 0x05, 0x41, 0x6E]};
-@GUID(0x4131E770, 0x1AEA, 0x11D0, [0x94, 0x4B, 0x00, 0xA0, 0xC9, 0x05, 0x41, 0x6E]);
-interface IDtcLuRmEnlistmentSink : IUnknown
-{
-    HRESULT AckUnplug();
-    HRESULT TmDown();
-    HRESULT SessionLost();
-    HRESULT BackedOut();
-    HRESULT BackOut();
-    HRESULT Committed();
-    HRESULT Forget();
-    HRESULT Prepare();
-    HRESULT RequestCommit();
-}
-
-const GUID IID_IDtcLuRmEnlistmentFactory = {0x4131E771, 0x1AEA, 0x11D0, [0x94, 0x4B, 0x00, 0xA0, 0xC9, 0x05, 0x41, 0x6E]};
-@GUID(0x4131E771, 0x1AEA, 0x11D0, [0x94, 0x4B, 0x00, 0xA0, 0xC9, 0x05, 0x41, 0x6E]);
-interface IDtcLuRmEnlistmentFactory : IUnknown
-{
-    HRESULT Create(ubyte* pucLuPair, uint cbLuPair, ITransaction pITransaction, ubyte* pTransId, uint cbTransId, IDtcLuRmEnlistmentSink pRmEnlistmentSink, IDtcLuRmEnlistment* ppRmEnlistment);
-}
-
-const GUID IID_IDtcLuSubordinateDtc = {0x4131E773, 0x1AEA, 0x11D0, [0x94, 0x4B, 0x00, 0xA0, 0xC9, 0x05, 0x41, 0x6E]};
-@GUID(0x4131E773, 0x1AEA, 0x11D0, [0x94, 0x4B, 0x00, 0xA0, 0xC9, 0x05, 0x41, 0x6E]);
-interface IDtcLuSubordinateDtc : IUnknown
-{
-    HRESULT Unplug(BOOL fConversationLost);
-    HRESULT BackedOut();
-    HRESULT BackOut();
-    HRESULT Committed();
-    HRESULT Forget();
-    HRESULT Prepare();
-    HRESULT RequestCommit();
-}
-
-const GUID IID_IDtcLuSubordinateDtcSink = {0x4131E774, 0x1AEA, 0x11D0, [0x94, 0x4B, 0x00, 0xA0, 0xC9, 0x05, 0x41, 0x6E]};
-@GUID(0x4131E774, 0x1AEA, 0x11D0, [0x94, 0x4B, 0x00, 0xA0, 0xC9, 0x05, 0x41, 0x6E]);
-interface IDtcLuSubordinateDtcSink : IUnknown
-{
-    HRESULT AckUnplug();
-    HRESULT TmDown();
-    HRESULT SessionLost();
-    HRESULT BackedOut();
-    HRESULT BackOut();
-    HRESULT Committed();
-    HRESULT Forget();
-    HRESULT RequestCommit();
-}
-
-const GUID IID_IDtcLuSubordinateDtcFactory = {0x4131E775, 0x1AEA, 0x11D0, [0x94, 0x4B, 0x00, 0xA0, 0xC9, 0x05, 0x41, 0x6E]};
-@GUID(0x4131E775, 0x1AEA, 0x11D0, [0x94, 0x4B, 0x00, 0xA0, 0xC9, 0x05, 0x41, 0x6E]);
-interface IDtcLuSubordinateDtcFactory : IUnknown
-{
-    HRESULT Create(ubyte* pucLuPair, uint cbLuPair, IUnknown punkTransactionOuter, int isoLevel, uint isoFlags, ITransactionOptions pOptions, ITransaction* ppTransaction, ubyte* pTransId, uint cbTransId, IDtcLuSubordinateDtcSink pSubordinateDtcSink, IDtcLuSubordinateDtc* ppSubordinateDtc);
-}
-
-const GUID IID_ISecurityIdentityColl = {0xCAFC823C, 0xB441, 0x11D1, [0xB8, 0x2B, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]};
-@GUID(0xCAFC823C, 0xB441, 0x11D1, [0xB8, 0x2B, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]);
-interface ISecurityIdentityColl : IDispatch
-{
-    HRESULT get_Count(int* plCount);
-    HRESULT get_Item(BSTR name, VARIANT* pItem);
-    HRESULT get__NewEnum(IUnknown* ppEnum);
-}
-
-const GUID IID_ISecurityCallersColl = {0xCAFC823D, 0xB441, 0x11D1, [0xB8, 0x2B, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]};
-@GUID(0xCAFC823D, 0xB441, 0x11D1, [0xB8, 0x2B, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]);
-interface ISecurityCallersColl : IDispatch
-{
-    HRESULT get_Count(int* plCount);
-    HRESULT get_Item(int lIndex, ISecurityIdentityColl* pObj);
-    HRESULT get__NewEnum(IUnknown* ppEnum);
-}
-
-const GUID IID_ISecurityCallContext = {0xCAFC823E, 0xB441, 0x11D1, [0xB8, 0x2B, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]};
-@GUID(0xCAFC823E, 0xB441, 0x11D1, [0xB8, 0x2B, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]);
-interface ISecurityCallContext : IDispatch
-{
-    HRESULT get_Count(int* plCount);
-    HRESULT get_Item(BSTR name, VARIANT* pItem);
-    HRESULT get__NewEnum(IUnknown* ppEnum);
-    HRESULT IsCallerInRole(BSTR bstrRole, short* pfInRole);
-    HRESULT IsSecurityEnabled(short* pfIsEnabled);
-    HRESULT IsUserInRole(VARIANT* pUser, BSTR bstrRole, short* pfInRole);
-}
-
-const GUID IID_IGetSecurityCallContext = {0xCAFC823F, 0xB441, 0x11D1, [0xB8, 0x2B, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]};
-@GUID(0xCAFC823F, 0xB441, 0x11D1, [0xB8, 0x2B, 0x00, 0x00, 0xF8, 0x75, 0x7E, 0x2A]);
-interface IGetSecurityCallContext : IDispatch
-{
-    HRESULT GetSecurityCallContext(ISecurityCallContext* ppObject);
-}
-
-const GUID IID_SecurityProperty = {0xE74A7215, 0x014D, 0x11D1, [0xA6, 0x3C, 0x00, 0xA0, 0xC9, 0x11, 0xB4, 0xE0]};
-@GUID(0xE74A7215, 0x014D, 0x11D1, [0xA6, 0x3C, 0x00, 0xA0, 0xC9, 0x11, 0xB4, 0xE0]);
-interface SecurityProperty : IDispatch
-{
-    HRESULT GetDirectCallerName(BSTR* bstrUserName);
-    HRESULT GetDirectCreatorName(BSTR* bstrUserName);
-    HRESULT GetOriginalCallerName(BSTR* bstrUserName);
-    HRESULT GetOriginalCreatorName(BSTR* bstrUserName);
-}
-
-const GUID IID_ContextInfo = {0x19A5A02C, 0x0AC8, 0x11D2, [0xB2, 0x86, 0x00, 0xC0, 0x4F, 0x8E, 0xF9, 0x34]};
-@GUID(0x19A5A02C, 0x0AC8, 0x11D2, [0xB2, 0x86, 0x00, 0xC0, 0x4F, 0x8E, 0xF9, 0x34]);
-interface ContextInfo : IDispatch
-{
-    HRESULT IsInTransaction(short* pbIsInTx);
-    HRESULT GetTransaction(IUnknown* ppTx);
-    HRESULT GetTransactionId(BSTR* pbstrTxId);
-    HRESULT GetActivityId(BSTR* pbstrActivityId);
-    HRESULT GetContextId(BSTR* pbstrCtxId);
-}
-
-const GUID IID_ContextInfo2 = {0xC99D6E75, 0x2375, 0x11D4, [0x83, 0x31, 0x00, 0xC0, 0x4F, 0x60, 0x55, 0x88]};
-@GUID(0xC99D6E75, 0x2375, 0x11D4, [0x83, 0x31, 0x00, 0xC0, 0x4F, 0x60, 0x55, 0x88]);
-interface ContextInfo2 : ContextInfo
-{
-    HRESULT GetPartitionId(BSTR* __MIDL__ContextInfo20000);
-    HRESULT GetApplicationId(BSTR* __MIDL__ContextInfo20001);
-    HRESULT GetApplicationInstanceId(BSTR* __MIDL__ContextInfo20002);
-}
-
-const GUID IID_ObjectContext = {0x74C08646, 0xCEDB, 0x11CF, [0x8B, 0x49, 0x00, 0xAA, 0x00, 0xB8, 0xA7, 0x90]};
-@GUID(0x74C08646, 0xCEDB, 0x11CF, [0x8B, 0x49, 0x00, 0xAA, 0x00, 0xB8, 0xA7, 0x90]);
-interface ObjectContext : IDispatch
-{
-    HRESULT CreateInstance(BSTR bstrProgID, VARIANT* pObject);
-    HRESULT SetComplete();
-    HRESULT SetAbort();
-    HRESULT EnableCommit();
-    HRESULT DisableCommit();
-    HRESULT IsInTransaction(short* pbIsInTx);
-    HRESULT IsSecurityEnabled(short* pbIsEnabled);
-    HRESULT IsCallerInRole(BSTR bstrRole, short* pbInRole);
-    HRESULT get_Count(int* plCount);
-    HRESULT get_Item(BSTR name, VARIANT* pItem);
-    HRESULT get__NewEnum(IUnknown* ppEnum);
-    HRESULT get_Security(SecurityProperty* ppSecurityProperty);
-    HRESULT get_ContextInfo(ContextInfo* ppContextInfo);
-}
-
-const GUID IID_ITransactionContextEx = {0x7999FC22, 0xD3C6, 0x11CF, [0xAC, 0xAB, 0x00, 0xA0, 0x24, 0xA5, 0x5A, 0xEF]};
-@GUID(0x7999FC22, 0xD3C6, 0x11CF, [0xAC, 0xAB, 0x00, 0xA0, 0x24, 0xA5, 0x5A, 0xEF]);
-interface ITransactionContextEx : IUnknown
-{
-    HRESULT CreateInstance(const(Guid)* rclsid, const(Guid)* riid, void** pObject);
-    HRESULT Commit();
-    HRESULT Abort();
-}
-
-const GUID IID_ITransactionContext = {0x7999FC21, 0xD3C6, 0x11CF, [0xAC, 0xAB, 0x00, 0xA0, 0x24, 0xA5, 0x5A, 0xEF]};
-@GUID(0x7999FC21, 0xD3C6, 0x11CF, [0xAC, 0xAB, 0x00, 0xA0, 0x24, 0xA5, 0x5A, 0xEF]);
-interface ITransactionContext : IDispatch
-{
-    HRESULT CreateInstance(BSTR pszProgId, VARIANT* pObject);
-    HRESULT Commit();
-    HRESULT Abort();
-}
-
-const GUID IID_ICreateWithTransactionEx = {0x455ACF57, 0x5345, 0x11D2, [0x99, 0xCF, 0x00, 0xC0, 0x4F, 0x79, 0x7B, 0xC9]};
-@GUID(0x455ACF57, 0x5345, 0x11D2, [0x99, 0xCF, 0x00, 0xC0, 0x4F, 0x79, 0x7B, 0xC9]);
-interface ICreateWithTransactionEx : IUnknown
-{
-    HRESULT CreateInstance(ITransaction pTransaction, const(Guid)* rclsid, const(Guid)* riid, void** pObject);
-}
-
-const GUID IID_ICreateWithLocalTransaction = {0x227AC7A8, 0x8423, 0x42CE, [0xB7, 0xCF, 0x03, 0x06, 0x1E, 0xC9, 0xAA, 0xA3]};
-@GUID(0x227AC7A8, 0x8423, 0x42CE, [0xB7, 0xCF, 0x03, 0x06, 0x1E, 0xC9, 0xAA, 0xA3]);
-interface ICreateWithLocalTransaction : IUnknown
-{
-    HRESULT CreateInstanceWithSysTx(IUnknown pTransaction, const(Guid)* rclsid, const(Guid)* riid, void** pObject);
-}
-
-const GUID IID_ICreateWithTipTransactionEx = {0x455ACF59, 0x5345, 0x11D2, [0x99, 0xCF, 0x00, 0xC0, 0x4F, 0x79, 0x7B, 0xC9]};
-@GUID(0x455ACF59, 0x5345, 0x11D2, [0x99, 0xCF, 0x00, 0xC0, 0x4F, 0x79, 0x7B, 0xC9]);
-interface ICreateWithTipTransactionEx : IUnknown
-{
-    HRESULT CreateInstance(BSTR bstrTipUrl, const(Guid)* rclsid, const(Guid)* riid, void** pObject);
-}
-
 struct COMSVCSEVENTINFO
 {
-    uint cbSize;
-    uint dwPid;
-    long lTime;
-    int lMicroTime;
-    long perfCount;
-    Guid guidApp;
+    uint    cbSize;
+    uint    dwPid;
+    long    lTime;
+    int     lMicroTime;
+    long    perfCount;
+    GUID    guidApp;
     ushort* sMachineName;
-}
-
-const GUID IID_IComLTxEvents = {0x605CF82C, 0x578E, 0x4298, [0x97, 0x5D, 0x82, 0xBA, 0xBC, 0xD9, 0xE0, 0x53]};
-@GUID(0x605CF82C, 0x578E, 0x4298, [0x97, 0x5D, 0x82, 0xBA, 0xBC, 0xD9, 0xE0, 0x53]);
-interface IComLTxEvents : IUnknown
-{
-    HRESULT OnLtxTransactionStart(COMSVCSEVENTINFO* pInfo, Guid guidLtx, Guid tsid, BOOL fRoot, int nIsolationLevel);
-    HRESULT OnLtxTransactionPrepare(COMSVCSEVENTINFO* pInfo, Guid guidLtx, BOOL fVote);
-    HRESULT OnLtxTransactionAbort(COMSVCSEVENTINFO* pInfo, Guid guidLtx);
-    HRESULT OnLtxTransactionCommit(COMSVCSEVENTINFO* pInfo, Guid guidLtx);
-    HRESULT OnLtxTransactionPromote(COMSVCSEVENTINFO* pInfo, Guid guidLtx, Guid txnId);
-}
-
-const GUID IID_IComUserEvent = {0x683130A4, 0x2E50, 0x11D2, [0x98, 0xA5, 0x00, 0xC0, 0x4F, 0x8E, 0xE1, 0xC4]};
-@GUID(0x683130A4, 0x2E50, 0x11D2, [0x98, 0xA5, 0x00, 0xC0, 0x4F, 0x8E, 0xE1, 0xC4]);
-interface IComUserEvent : IUnknown
-{
-    HRESULT OnUserEvent(COMSVCSEVENTINFO* pInfo, VARIANT* pvarEvent);
-}
-
-const GUID IID_IComThreadEvents = {0x683130A5, 0x2E50, 0x11D2, [0x98, 0xA5, 0x00, 0xC0, 0x4F, 0x8E, 0xE1, 0xC4]};
-@GUID(0x683130A5, 0x2E50, 0x11D2, [0x98, 0xA5, 0x00, 0xC0, 0x4F, 0x8E, 0xE1, 0xC4]);
-interface IComThreadEvents : IUnknown
-{
-    HRESULT OnThreadStart(COMSVCSEVENTINFO* pInfo, ulong ThreadID, uint dwThread, uint dwTheadCnt);
-    HRESULT OnThreadTerminate(COMSVCSEVENTINFO* pInfo, ulong ThreadID, uint dwThread, uint dwTheadCnt);
-    HRESULT OnThreadBindToApartment(COMSVCSEVENTINFO* pInfo, ulong ThreadID, ulong AptID, uint dwActCnt, uint dwLowCnt);
-    HRESULT OnThreadUnBind(COMSVCSEVENTINFO* pInfo, ulong ThreadID, ulong AptID, uint dwActCnt);
-    HRESULT OnThreadWorkEnque(COMSVCSEVENTINFO* pInfo, ulong ThreadID, ulong MsgWorkID, uint QueueLen);
-    HRESULT OnThreadWorkPrivate(COMSVCSEVENTINFO* pInfo, ulong ThreadID, ulong MsgWorkID);
-    HRESULT OnThreadWorkPublic(COMSVCSEVENTINFO* pInfo, ulong ThreadID, ulong MsgWorkID, uint QueueLen);
-    HRESULT OnThreadWorkRedirect(COMSVCSEVENTINFO* pInfo, ulong ThreadID, ulong MsgWorkID, uint QueueLen, ulong ThreadNum);
-    HRESULT OnThreadWorkReject(COMSVCSEVENTINFO* pInfo, ulong ThreadID, ulong MsgWorkID, uint QueueLen);
-    HRESULT OnThreadAssignApartment(COMSVCSEVENTINFO* pInfo, const(Guid)* guidActivity, ulong AptID);
-    HRESULT OnThreadUnassignApartment(COMSVCSEVENTINFO* pInfo, ulong AptID);
-}
-
-const GUID IID_IComAppEvents = {0x683130A6, 0x2E50, 0x11D2, [0x98, 0xA5, 0x00, 0xC0, 0x4F, 0x8E, 0xE1, 0xC4]};
-@GUID(0x683130A6, 0x2E50, 0x11D2, [0x98, 0xA5, 0x00, 0xC0, 0x4F, 0x8E, 0xE1, 0xC4]);
-interface IComAppEvents : IUnknown
-{
-    HRESULT OnAppActivation(COMSVCSEVENTINFO* pInfo, Guid guidApp);
-    HRESULT OnAppShutdown(COMSVCSEVENTINFO* pInfo, Guid guidApp);
-    HRESULT OnAppForceShutdown(COMSVCSEVENTINFO* pInfo, Guid guidApp);
-}
-
-const GUID IID_IComInstanceEvents = {0x683130A7, 0x2E50, 0x11D2, [0x98, 0xA5, 0x00, 0xC0, 0x4F, 0x8E, 0xE1, 0xC4]};
-@GUID(0x683130A7, 0x2E50, 0x11D2, [0x98, 0xA5, 0x00, 0xC0, 0x4F, 0x8E, 0xE1, 0xC4]);
-interface IComInstanceEvents : IUnknown
-{
-    HRESULT OnObjectCreate(COMSVCSEVENTINFO* pInfo, const(Guid)* guidActivity, const(Guid)* clsid, const(Guid)* tsid, ulong CtxtID, ulong ObjectID);
-    HRESULT OnObjectDestroy(COMSVCSEVENTINFO* pInfo, ulong CtxtID);
-}
-
-const GUID IID_IComTransactionEvents = {0x683130A8, 0x2E50, 0x11D2, [0x98, 0xA5, 0x00, 0xC0, 0x4F, 0x8E, 0xE1, 0xC4]};
-@GUID(0x683130A8, 0x2E50, 0x11D2, [0x98, 0xA5, 0x00, 0xC0, 0x4F, 0x8E, 0xE1, 0xC4]);
-interface IComTransactionEvents : IUnknown
-{
-    HRESULT OnTransactionStart(COMSVCSEVENTINFO* pInfo, const(Guid)* guidTx, const(Guid)* tsid, BOOL fRoot);
-    HRESULT OnTransactionPrepare(COMSVCSEVENTINFO* pInfo, const(Guid)* guidTx, BOOL fVoteYes);
-    HRESULT OnTransactionAbort(COMSVCSEVENTINFO* pInfo, const(Guid)* guidTx);
-    HRESULT OnTransactionCommit(COMSVCSEVENTINFO* pInfo, const(Guid)* guidTx);
-}
-
-const GUID IID_IComMethodEvents = {0x683130A9, 0x2E50, 0x11D2, [0x98, 0xA5, 0x00, 0xC0, 0x4F, 0x8E, 0xE1, 0xC4]};
-@GUID(0x683130A9, 0x2E50, 0x11D2, [0x98, 0xA5, 0x00, 0xC0, 0x4F, 0x8E, 0xE1, 0xC4]);
-interface IComMethodEvents : IUnknown
-{
-    HRESULT OnMethodCall(COMSVCSEVENTINFO* pInfo, ulong oid, const(Guid)* guidCid, const(Guid)* guidRid, uint iMeth);
-    HRESULT OnMethodReturn(COMSVCSEVENTINFO* pInfo, ulong oid, const(Guid)* guidCid, const(Guid)* guidRid, uint iMeth, HRESULT hresult);
-    HRESULT OnMethodException(COMSVCSEVENTINFO* pInfo, ulong oid, const(Guid)* guidCid, const(Guid)* guidRid, uint iMeth);
-}
-
-const GUID IID_IComObjectEvents = {0x683130AA, 0x2E50, 0x11D2, [0x98, 0xA5, 0x00, 0xC0, 0x4F, 0x8E, 0xE1, 0xC4]};
-@GUID(0x683130AA, 0x2E50, 0x11D2, [0x98, 0xA5, 0x00, 0xC0, 0x4F, 0x8E, 0xE1, 0xC4]);
-interface IComObjectEvents : IUnknown
-{
-    HRESULT OnObjectActivate(COMSVCSEVENTINFO* pInfo, ulong CtxtID, ulong ObjectID);
-    HRESULT OnObjectDeactivate(COMSVCSEVENTINFO* pInfo, ulong CtxtID, ulong ObjectID);
-    HRESULT OnDisableCommit(COMSVCSEVENTINFO* pInfo, ulong CtxtID);
-    HRESULT OnEnableCommit(COMSVCSEVENTINFO* pInfo, ulong CtxtID);
-    HRESULT OnSetComplete(COMSVCSEVENTINFO* pInfo, ulong CtxtID);
-    HRESULT OnSetAbort(COMSVCSEVENTINFO* pInfo, ulong CtxtID);
-}
-
-const GUID IID_IComResourceEvents = {0x683130AB, 0x2E50, 0x11D2, [0x98, 0xA5, 0x00, 0xC0, 0x4F, 0x8E, 0xE1, 0xC4]};
-@GUID(0x683130AB, 0x2E50, 0x11D2, [0x98, 0xA5, 0x00, 0xC0, 0x4F, 0x8E, 0xE1, 0xC4]);
-interface IComResourceEvents : IUnknown
-{
-    HRESULT OnResourceCreate(COMSVCSEVENTINFO* pInfo, ulong ObjectID, ushort* pszType, ulong resId, BOOL enlisted);
-    HRESULT OnResourceAllocate(COMSVCSEVENTINFO* pInfo, ulong ObjectID, ushort* pszType, ulong resId, BOOL enlisted, uint NumRated, uint Rating);
-    HRESULT OnResourceRecycle(COMSVCSEVENTINFO* pInfo, ulong ObjectID, ushort* pszType, ulong resId);
-    HRESULT OnResourceDestroy(COMSVCSEVENTINFO* pInfo, ulong ObjectID, HRESULT hr, ushort* pszType, ulong resId);
-    HRESULT OnResourceTrack(COMSVCSEVENTINFO* pInfo, ulong ObjectID, ushort* pszType, ulong resId, BOOL enlisted);
-}
-
-const GUID IID_IComSecurityEvents = {0x683130AC, 0x2E50, 0x11D2, [0x98, 0xA5, 0x00, 0xC0, 0x4F, 0x8E, 0xE1, 0xC4]};
-@GUID(0x683130AC, 0x2E50, 0x11D2, [0x98, 0xA5, 0x00, 0xC0, 0x4F, 0x8E, 0xE1, 0xC4]);
-interface IComSecurityEvents : IUnknown
-{
-    HRESULT OnAuthenticate(COMSVCSEVENTINFO* pInfo, const(Guid)* guidActivity, ulong ObjectID, const(Guid)* guidIID, uint iMeth, uint cbByteOrig, char* pSidOriginalUser, uint cbByteCur, char* pSidCurrentUser, BOOL bCurrentUserInpersonatingInProc);
-    HRESULT OnAuthenticateFail(COMSVCSEVENTINFO* pInfo, const(Guid)* guidActivity, ulong ObjectID, const(Guid)* guidIID, uint iMeth, uint cbByteOrig, char* pSidOriginalUser, uint cbByteCur, char* pSidCurrentUser, BOOL bCurrentUserInpersonatingInProc);
-}
-
-const GUID IID_IComObjectPoolEvents = {0x683130AD, 0x2E50, 0x11D2, [0x98, 0xA5, 0x00, 0xC0, 0x4F, 0x8E, 0xE1, 0xC4]};
-@GUID(0x683130AD, 0x2E50, 0x11D2, [0x98, 0xA5, 0x00, 0xC0, 0x4F, 0x8E, 0xE1, 0xC4]);
-interface IComObjectPoolEvents : IUnknown
-{
-    HRESULT OnObjPoolPutObject(COMSVCSEVENTINFO* pInfo, const(Guid)* guidObject, int nReason, uint dwAvailable, ulong oid);
-    HRESULT OnObjPoolGetObject(COMSVCSEVENTINFO* pInfo, const(Guid)* guidActivity, const(Guid)* guidObject, uint dwAvailable, ulong oid);
-    HRESULT OnObjPoolRecycleToTx(COMSVCSEVENTINFO* pInfo, const(Guid)* guidActivity, const(Guid)* guidObject, const(Guid)* guidTx, ulong objid);
-    HRESULT OnObjPoolGetFromTx(COMSVCSEVENTINFO* pInfo, const(Guid)* guidActivity, const(Guid)* guidObject, const(Guid)* guidTx, ulong objid);
-}
-
-const GUID IID_IComObjectPoolEvents2 = {0x683130AE, 0x2E50, 0x11D2, [0x98, 0xA5, 0x00, 0xC0, 0x4F, 0x8E, 0xE1, 0xC4]};
-@GUID(0x683130AE, 0x2E50, 0x11D2, [0x98, 0xA5, 0x00, 0xC0, 0x4F, 0x8E, 0xE1, 0xC4]);
-interface IComObjectPoolEvents2 : IUnknown
-{
-    HRESULT OnObjPoolCreateObject(COMSVCSEVENTINFO* pInfo, const(Guid)* guidObject, uint dwObjsCreated, ulong oid);
-    HRESULT OnObjPoolDestroyObject(COMSVCSEVENTINFO* pInfo, const(Guid)* guidObject, uint dwObjsCreated, ulong oid);
-    HRESULT OnObjPoolCreateDecision(COMSVCSEVENTINFO* pInfo, uint dwThreadsWaiting, uint dwAvail, uint dwCreated, uint dwMin, uint dwMax);
-    HRESULT OnObjPoolTimeout(COMSVCSEVENTINFO* pInfo, const(Guid)* guidObject, const(Guid)* guidActivity, uint dwTimeout);
-    HRESULT OnObjPoolCreatePool(COMSVCSEVENTINFO* pInfo, const(Guid)* guidObject, uint dwMin, uint dwMax, uint dwTimeout);
-}
-
-const GUID IID_IComObjectConstructionEvents = {0x683130AF, 0x2E50, 0x11D2, [0x98, 0xA5, 0x00, 0xC0, 0x4F, 0x8E, 0xE1, 0xC4]};
-@GUID(0x683130AF, 0x2E50, 0x11D2, [0x98, 0xA5, 0x00, 0xC0, 0x4F, 0x8E, 0xE1, 0xC4]);
-interface IComObjectConstructionEvents : IUnknown
-{
-    HRESULT OnObjectConstruct(COMSVCSEVENTINFO* pInfo, const(Guid)* guidObject, ushort* sConstructString, ulong oid);
-}
-
-const GUID IID_IComActivityEvents = {0x683130B0, 0x2E50, 0x11D2, [0x98, 0xA5, 0x00, 0xC0, 0x4F, 0x8E, 0xE1, 0xC4]};
-@GUID(0x683130B0, 0x2E50, 0x11D2, [0x98, 0xA5, 0x00, 0xC0, 0x4F, 0x8E, 0xE1, 0xC4]);
-interface IComActivityEvents : IUnknown
-{
-    HRESULT OnActivityCreate(COMSVCSEVENTINFO* pInfo, const(Guid)* guidActivity);
-    HRESULT OnActivityDestroy(COMSVCSEVENTINFO* pInfo, const(Guid)* guidActivity);
-    HRESULT OnActivityEnter(COMSVCSEVENTINFO* pInfo, const(Guid)* guidCurrent, const(Guid)* guidEntered, uint dwThread);
-    HRESULT OnActivityTimeout(COMSVCSEVENTINFO* pInfo, const(Guid)* guidCurrent, const(Guid)* guidEntered, uint dwThread, uint dwTimeout);
-    HRESULT OnActivityReenter(COMSVCSEVENTINFO* pInfo, const(Guid)* guidCurrent, uint dwThread, uint dwCallDepth);
-    HRESULT OnActivityLeave(COMSVCSEVENTINFO* pInfo, const(Guid)* guidCurrent, const(Guid)* guidLeft);
-    HRESULT OnActivityLeaveSame(COMSVCSEVENTINFO* pInfo, const(Guid)* guidCurrent, uint dwCallDepth);
-}
-
-const GUID IID_IComIdentityEvents = {0x683130B1, 0x2E50, 0x11D2, [0x98, 0xA5, 0x00, 0xC0, 0x4F, 0x8E, 0xE1, 0xC4]};
-@GUID(0x683130B1, 0x2E50, 0x11D2, [0x98, 0xA5, 0x00, 0xC0, 0x4F, 0x8E, 0xE1, 0xC4]);
-interface IComIdentityEvents : IUnknown
-{
-    HRESULT OnIISRequestInfo(COMSVCSEVENTINFO* pInfo, ulong ObjId, ushort* pszClientIP, ushort* pszServerIP, ushort* pszURL);
-}
-
-const GUID IID_IComQCEvents = {0x683130B2, 0x2E50, 0x11D2, [0x98, 0xA5, 0x00, 0xC0, 0x4F, 0x8E, 0xE1, 0xC4]};
-@GUID(0x683130B2, 0x2E50, 0x11D2, [0x98, 0xA5, 0x00, 0xC0, 0x4F, 0x8E, 0xE1, 0xC4]);
-interface IComQCEvents : IUnknown
-{
-    HRESULT OnQCRecord(COMSVCSEVENTINFO* pInfo, ulong objid, char* szQueue, const(Guid)* guidMsgId, const(Guid)* guidWorkFlowId, HRESULT msmqhr);
-    HRESULT OnQCQueueOpen(COMSVCSEVENTINFO* pInfo, char* szQueue, ulong QueueID, HRESULT hr);
-    HRESULT OnQCReceive(COMSVCSEVENTINFO* pInfo, ulong QueueID, const(Guid)* guidMsgId, const(Guid)* guidWorkFlowId, HRESULT hr);
-    HRESULT OnQCReceiveFail(COMSVCSEVENTINFO* pInfo, ulong QueueID, HRESULT msmqhr);
-    HRESULT OnQCMoveToReTryQueue(COMSVCSEVENTINFO* pInfo, const(Guid)* guidMsgId, const(Guid)* guidWorkFlowId, uint RetryIndex);
-    HRESULT OnQCMoveToDeadQueue(COMSVCSEVENTINFO* pInfo, const(Guid)* guidMsgId, const(Guid)* guidWorkFlowId);
-    HRESULT OnQCPlayback(COMSVCSEVENTINFO* pInfo, ulong objid, const(Guid)* guidMsgId, const(Guid)* guidWorkFlowId, HRESULT hr);
-}
-
-const GUID IID_IComExceptionEvents = {0x683130B3, 0x2E50, 0x11D2, [0x98, 0xA5, 0x00, 0xC0, 0x4F, 0x8E, 0xE1, 0xC4]};
-@GUID(0x683130B3, 0x2E50, 0x11D2, [0x98, 0xA5, 0x00, 0xC0, 0x4F, 0x8E, 0xE1, 0xC4]);
-interface IComExceptionEvents : IUnknown
-{
-    HRESULT OnExceptionUser(COMSVCSEVENTINFO* pInfo, uint code, ulong address, ushort* pszStackTrace);
-}
-
-const GUID IID_ILBEvents = {0x683130B4, 0x2E50, 0x11D2, [0x98, 0xA5, 0x00, 0xC0, 0x4F, 0x8E, 0xE1, 0xC4]};
-@GUID(0x683130B4, 0x2E50, 0x11D2, [0x98, 0xA5, 0x00, 0xC0, 0x4F, 0x8E, 0xE1, 0xC4]);
-interface ILBEvents : IUnknown
-{
-    HRESULT TargetUp(BSTR bstrServerName, BSTR bstrClsidEng);
-    HRESULT TargetDown(BSTR bstrServerName, BSTR bstrClsidEng);
-    HRESULT EngineDefined(BSTR bstrPropName, VARIANT* varPropValue, BSTR bstrClsidEng);
-}
-
-const GUID IID_IComCRMEvents = {0x683130B5, 0x2E50, 0x11D2, [0x98, 0xA5, 0x00, 0xC0, 0x4F, 0x8E, 0xE1, 0xC4]};
-@GUID(0x683130B5, 0x2E50, 0x11D2, [0x98, 0xA5, 0x00, 0xC0, 0x4F, 0x8E, 0xE1, 0xC4]);
-interface IComCRMEvents : IUnknown
-{
-    HRESULT OnCRMRecoveryStart(COMSVCSEVENTINFO* pInfo, Guid guidApp);
-    HRESULT OnCRMRecoveryDone(COMSVCSEVENTINFO* pInfo, Guid guidApp);
-    HRESULT OnCRMCheckpoint(COMSVCSEVENTINFO* pInfo, Guid guidApp);
-    HRESULT OnCRMBegin(COMSVCSEVENTINFO* pInfo, Guid guidClerkCLSID, Guid guidActivity, Guid guidTx, char* szProgIdCompensator, char* szDescription);
-    HRESULT OnCRMPrepare(COMSVCSEVENTINFO* pInfo, Guid guidClerkCLSID);
-    HRESULT OnCRMCommit(COMSVCSEVENTINFO* pInfo, Guid guidClerkCLSID);
-    HRESULT OnCRMAbort(COMSVCSEVENTINFO* pInfo, Guid guidClerkCLSID);
-    HRESULT OnCRMIndoubt(COMSVCSEVENTINFO* pInfo, Guid guidClerkCLSID);
-    HRESULT OnCRMDone(COMSVCSEVENTINFO* pInfo, Guid guidClerkCLSID);
-    HRESULT OnCRMRelease(COMSVCSEVENTINFO* pInfo, Guid guidClerkCLSID);
-    HRESULT OnCRMAnalyze(COMSVCSEVENTINFO* pInfo, Guid guidClerkCLSID, uint dwCrmRecordType, uint dwRecordSize);
-    HRESULT OnCRMWrite(COMSVCSEVENTINFO* pInfo, Guid guidClerkCLSID, BOOL fVariants, uint dwRecordSize);
-    HRESULT OnCRMForget(COMSVCSEVENTINFO* pInfo, Guid guidClerkCLSID);
-    HRESULT OnCRMForce(COMSVCSEVENTINFO* pInfo, Guid guidClerkCLSID);
-    HRESULT OnCRMDeliver(COMSVCSEVENTINFO* pInfo, Guid guidClerkCLSID, BOOL fVariants, uint dwRecordSize);
-}
-
-const GUID IID_IComMethod2Events = {0xFB388AAA, 0x567D, 0x4024, [0xAF, 0x8E, 0x6E, 0x93, 0xEE, 0x74, 0x85, 0x73]};
-@GUID(0xFB388AAA, 0x567D, 0x4024, [0xAF, 0x8E, 0x6E, 0x93, 0xEE, 0x74, 0x85, 0x73]);
-interface IComMethod2Events : IUnknown
-{
-    HRESULT OnMethodCall2(COMSVCSEVENTINFO* pInfo, ulong oid, const(Guid)* guidCid, const(Guid)* guidRid, uint dwThread, uint iMeth);
-    HRESULT OnMethodReturn2(COMSVCSEVENTINFO* pInfo, ulong oid, const(Guid)* guidCid, const(Guid)* guidRid, uint dwThread, uint iMeth, HRESULT hresult);
-    HRESULT OnMethodException2(COMSVCSEVENTINFO* pInfo, ulong oid, const(Guid)* guidCid, const(Guid)* guidRid, uint dwThread, uint iMeth);
-}
-
-const GUID IID_IComTrackingInfoEvents = {0x4E6CDCC9, 0xFB25, 0x4FD5, [0x9C, 0xC5, 0xC9, 0xF4, 0xB6, 0x55, 0x9C, 0xEC]};
-@GUID(0x4E6CDCC9, 0xFB25, 0x4FD5, [0x9C, 0xC5, 0xC9, 0xF4, 0xB6, 0x55, 0x9C, 0xEC]);
-interface IComTrackingInfoEvents : IUnknown
-{
-    HRESULT OnNewTrackingInfo(IUnknown pToplevelCollection);
-}
-
-enum TRACKING_COLL_TYPE
-{
-    TRKCOLL_PROCESSES = 0,
-    TRKCOLL_APPLICATIONS = 1,
-    TRKCOLL_COMPONENTS = 2,
-}
-
-const GUID IID_IComTrackingInfoCollection = {0xC266C677, 0xC9AD, 0x49AB, [0x9F, 0xD9, 0xD9, 0x66, 0x10, 0x78, 0x58, 0x8A]};
-@GUID(0xC266C677, 0xC9AD, 0x49AB, [0x9F, 0xD9, 0xD9, 0x66, 0x10, 0x78, 0x58, 0x8A]);
-interface IComTrackingInfoCollection : IUnknown
-{
-    HRESULT Type(TRACKING_COLL_TYPE* pType);
-    HRESULT Count(uint* pCount);
-    HRESULT Item(uint ulIndex, const(Guid)* riid, void** ppv);
-}
-
-const GUID IID_IComTrackingInfoObject = {0x116E42C5, 0xD8B1, 0x47BF, [0xAB, 0x1E, 0xC8, 0x95, 0xED, 0x3E, 0x23, 0x72]};
-@GUID(0x116E42C5, 0xD8B1, 0x47BF, [0xAB, 0x1E, 0xC8, 0x95, 0xED, 0x3E, 0x23, 0x72]);
-interface IComTrackingInfoObject : IUnknown
-{
-    HRESULT GetValue(ushort* szPropertyName, VARIANT* pvarOut);
-}
-
-const GUID IID_IComTrackingInfoProperties = {0x789B42BE, 0x6F6B, 0x443A, [0x89, 0x8E, 0x67, 0xAB, 0xF3, 0x90, 0xAA, 0x14]};
-@GUID(0x789B42BE, 0x6F6B, 0x443A, [0x89, 0x8E, 0x67, 0xAB, 0xF3, 0x90, 0xAA, 0x14]);
-interface IComTrackingInfoProperties : IUnknown
-{
-    HRESULT PropCount(uint* pCount);
-    HRESULT GetPropName(uint ulIndex, ushort** ppszPropName);
-}
-
-const GUID IID_IComApp2Events = {0x1290BC1A, 0xB219, 0x418D, [0xB0, 0x78, 0x59, 0x34, 0xDE, 0xD0, 0x82, 0x42]};
-@GUID(0x1290BC1A, 0xB219, 0x418D, [0xB0, 0x78, 0x59, 0x34, 0xDE, 0xD0, 0x82, 0x42]);
-interface IComApp2Events : IUnknown
-{
-    HRESULT OnAppActivation2(COMSVCSEVENTINFO* pInfo, Guid guidApp, Guid guidProcess);
-    HRESULT OnAppShutdown2(COMSVCSEVENTINFO* pInfo, Guid guidApp);
-    HRESULT OnAppForceShutdown2(COMSVCSEVENTINFO* pInfo, Guid guidApp);
-    HRESULT OnAppPaused2(COMSVCSEVENTINFO* pInfo, Guid guidApp, BOOL bPaused);
-    HRESULT OnAppRecycle2(COMSVCSEVENTINFO* pInfo, Guid guidApp, Guid guidProcess, int lReason);
-}
-
-const GUID IID_IComTransaction2Events = {0xA136F62A, 0x2F94, 0x4288, [0x86, 0xE0, 0xD8, 0xA1, 0xFA, 0x4C, 0x02, 0x99]};
-@GUID(0xA136F62A, 0x2F94, 0x4288, [0x86, 0xE0, 0xD8, 0xA1, 0xFA, 0x4C, 0x02, 0x99]);
-interface IComTransaction2Events : IUnknown
-{
-    HRESULT OnTransactionStart2(COMSVCSEVENTINFO* pInfo, const(Guid)* guidTx, const(Guid)* tsid, BOOL fRoot, int nIsolationLevel);
-    HRESULT OnTransactionPrepare2(COMSVCSEVENTINFO* pInfo, const(Guid)* guidTx, BOOL fVoteYes);
-    HRESULT OnTransactionAbort2(COMSVCSEVENTINFO* pInfo, const(Guid)* guidTx);
-    HRESULT OnTransactionCommit2(COMSVCSEVENTINFO* pInfo, const(Guid)* guidTx);
-}
-
-const GUID IID_IComInstance2Events = {0x20E3BF07, 0xB506, 0x4AD5, [0xA5, 0x0C, 0xD2, 0xCA, 0x5B, 0x9C, 0x15, 0x8E]};
-@GUID(0x20E3BF07, 0xB506, 0x4AD5, [0xA5, 0x0C, 0xD2, 0xCA, 0x5B, 0x9C, 0x15, 0x8E]);
-interface IComInstance2Events : IUnknown
-{
-    HRESULT OnObjectCreate2(COMSVCSEVENTINFO* pInfo, const(Guid)* guidActivity, const(Guid)* clsid, const(Guid)* tsid, ulong CtxtID, ulong ObjectID, const(Guid)* guidPartition);
-    HRESULT OnObjectDestroy2(COMSVCSEVENTINFO* pInfo, ulong CtxtID);
-}
-
-const GUID IID_IComObjectPool2Events = {0x65BF6534, 0x85EA, 0x4F64, [0x8C, 0xF4, 0x3D, 0x97, 0x4B, 0x2A, 0xB1, 0xCF]};
-@GUID(0x65BF6534, 0x85EA, 0x4F64, [0x8C, 0xF4, 0x3D, 0x97, 0x4B, 0x2A, 0xB1, 0xCF]);
-interface IComObjectPool2Events : IUnknown
-{
-    HRESULT OnObjPoolPutObject2(COMSVCSEVENTINFO* pInfo, const(Guid)* guidObject, int nReason, uint dwAvailable, ulong oid);
-    HRESULT OnObjPoolGetObject2(COMSVCSEVENTINFO* pInfo, const(Guid)* guidActivity, const(Guid)* guidObject, uint dwAvailable, ulong oid, const(Guid)* guidPartition);
-    HRESULT OnObjPoolRecycleToTx2(COMSVCSEVENTINFO* pInfo, const(Guid)* guidActivity, const(Guid)* guidObject, const(Guid)* guidTx, ulong objid);
-    HRESULT OnObjPoolGetFromTx2(COMSVCSEVENTINFO* pInfo, const(Guid)* guidActivity, const(Guid)* guidObject, const(Guid)* guidTx, ulong objid, const(Guid)* guidPartition);
-}
-
-const GUID IID_IComObjectConstruction2Events = {0x4B5A7827, 0x8DF2, 0x45C0, [0x8F, 0x6F, 0x57, 0xEA, 0x1F, 0x85, 0x6A, 0x9F]};
-@GUID(0x4B5A7827, 0x8DF2, 0x45C0, [0x8F, 0x6F, 0x57, 0xEA, 0x1F, 0x85, 0x6A, 0x9F]);
-interface IComObjectConstruction2Events : IUnknown
-{
-    HRESULT OnObjectConstruct2(COMSVCSEVENTINFO* pInfo, const(Guid)* guidObject, ushort* sConstructString, ulong oid, const(Guid)* guidPartition);
-}
-
-const GUID IID_ISystemAppEventData = {0xD6D48A3C, 0xD5C5, 0x49E7, [0x8C, 0x74, 0x99, 0xE4, 0x88, 0x9E, 0xD5, 0x2F]};
-@GUID(0xD6D48A3C, 0xD5C5, 0x49E7, [0x8C, 0x74, 0x99, 0xE4, 0x88, 0x9E, 0xD5, 0x2F]);
-interface ISystemAppEventData : IUnknown
-{
-    HRESULT Startup();
-    HRESULT OnDataChanged(uint dwPID, uint dwMask, uint dwNumberSinks, BSTR bstrDwMethodMask, uint dwReason, ulong u64TraceHandle);
-}
-
-const GUID IID_IMtsEvents = {0xBACEDF4D, 0x74AB, 0x11D0, [0xB1, 0x62, 0x00, 0xAA, 0x00, 0xBA, 0x32, 0x58]};
-@GUID(0xBACEDF4D, 0x74AB, 0x11D0, [0xB1, 0x62, 0x00, 0xAA, 0x00, 0xBA, 0x32, 0x58]);
-interface IMtsEvents : IDispatch
-{
-    HRESULT get_PackageName(BSTR* pVal);
-    HRESULT get_PackageGuid(BSTR* pVal);
-    HRESULT PostEvent(VARIANT* vEvent);
-    HRESULT get_FireEvents(short* pVal);
-    HRESULT GetProcessID(int* id);
-}
-
-const GUID IID_IMtsEventInfo = {0xD56C3DC1, 0x8482, 0x11D0, [0xB1, 0x70, 0x00, 0xAA, 0x00, 0xBA, 0x32, 0x58]};
-@GUID(0xD56C3DC1, 0x8482, 0x11D0, [0xB1, 0x70, 0x00, 0xAA, 0x00, 0xBA, 0x32, 0x58]);
-interface IMtsEventInfo : IDispatch
-{
-    HRESULT get_Names(IUnknown* pUnk);
-    HRESULT get_DisplayName(BSTR* sDisplayName);
-    HRESULT get_EventID(BSTR* sGuidEventID);
-    HRESULT get_Count(int* lCount);
-    HRESULT get_Value(BSTR sKey, VARIANT* pVal);
-}
-
-const GUID IID_IMTSLocator = {0xD19B8BFD, 0x7F88, 0x11D0, [0xB1, 0x6E, 0x00, 0xAA, 0x00, 0xBA, 0x32, 0x58]};
-@GUID(0xD19B8BFD, 0x7F88, 0x11D0, [0xB1, 0x6E, 0x00, 0xAA, 0x00, 0xBA, 0x32, 0x58]);
-interface IMTSLocator : IDispatch
-{
-    HRESULT GetEventDispatcher(IUnknown* pUnk);
-}
-
-const GUID IID_IMtsGrp = {0x4B2E958C, 0x0393, 0x11D1, [0xB1, 0xAB, 0x00, 0xAA, 0x00, 0xBA, 0x32, 0x58]};
-@GUID(0x4B2E958C, 0x0393, 0x11D1, [0xB1, 0xAB, 0x00, 0xAA, 0x00, 0xBA, 0x32, 0x58]);
-interface IMtsGrp : IDispatch
-{
-    HRESULT get_Count(int* pVal);
-    HRESULT Item(int lIndex, IUnknown* ppUnkDispatcher);
-    HRESULT Refresh();
-}
-
-const GUID IID_IMessageMover = {0x588A085A, 0xB795, 0x11D1, [0x80, 0x54, 0x00, 0xC0, 0x4F, 0xC3, 0x40, 0xEE]};
-@GUID(0x588A085A, 0xB795, 0x11D1, [0x80, 0x54, 0x00, 0xC0, 0x4F, 0xC3, 0x40, 0xEE]);
-interface IMessageMover : IDispatch
-{
-    HRESULT get_SourcePath(BSTR* pVal);
-    HRESULT put_SourcePath(BSTR newVal);
-    HRESULT get_DestPath(BSTR* pVal);
-    HRESULT put_DestPath(BSTR newVal);
-    HRESULT get_CommitBatchSize(int* pVal);
-    HRESULT put_CommitBatchSize(int newVal);
-    HRESULT MoveMessages(int* plMessagesMoved);
-}
-
-const GUID IID_IEventServerTrace = {0x9A9F12B8, 0x80AF, 0x47AB, [0xA5, 0x79, 0x35, 0xEA, 0x57, 0x72, 0x53, 0x70]};
-@GUID(0x9A9F12B8, 0x80AF, 0x47AB, [0xA5, 0x79, 0x35, 0xEA, 0x57, 0x72, 0x53, 0x70]);
-interface IEventServerTrace : IDispatch
-{
-    HRESULT StartTraceGuid(BSTR bstrguidEvent, BSTR bstrguidFilter, int lPidFilter);
-    HRESULT StopTraceGuid(BSTR bstrguidEvent, BSTR bstrguidFilter, int lPidFilter);
-    HRESULT EnumTraceGuid(int* plCntGuids, BSTR* pbstrGuidList);
 }
 
 struct RECYCLE_INFO
 {
-    Guid guidCombaseProcessIdentifier;
+    GUID guidCombaseProcessIdentifier;
     long ProcessStartTime;
     uint dwRecycleLifetimeLimit;
     uint dwRecycleMemoryLimit;
     uint dwRecycleExpirationTimeout;
 }
 
-enum DUMPTYPE
-{
-    DUMPTYPE_FULL = 0,
-    DUMPTYPE_MINI = 1,
-    DUMPTYPE_NONE = 2,
-}
-
 struct HANG_INFO
 {
-    BOOL fAppHangMonitorEnabled;
-    BOOL fTerminateOnHang;
+    BOOL     fAppHangMonitorEnabled;
+    BOOL     fTerminateOnHang;
     DUMPTYPE DumpType;
-    uint dwHangTimeout;
-    uint dwDumpCount;
-    uint dwInfoMsgCount;
-}
-
-enum COMPLUS_APPTYPE
-{
-    APPTYPE_UNKNOWN = -1,
-    APPTYPE_SERVER = 1,
-    APPTYPE_LIBRARY = 0,
-    APPTYPE_SWC = 2,
+    uint     dwHangTimeout;
+    uint     dwDumpCount;
+    uint     dwInfoMsgCount;
 }
 
 struct CAppStatistics
@@ -1898,15 +817,15 @@ struct CAppStatistics
 
 struct CAppData
 {
-    uint m_idApp;
-    ushort m_szAppGuid;
-    uint m_dwAppProcessId;
+    uint           m_idApp;
+    ushort[40]     m_szAppGuid;
+    uint           m_dwAppProcessId;
     CAppStatistics m_AppStatistics;
 }
 
 struct CCLSIDData
 {
-    Guid m_clsid;
+    GUID m_clsid;
     uint m_cReferences;
     uint m_cBound;
     uint m_cPooled;
@@ -1918,41 +837,32 @@ struct CCLSIDData
 
 struct CCLSIDData2
 {
-    Guid m_clsid;
-    Guid m_appid;
-    Guid m_partid;
-    ushort* m_pwszAppName;
-    ushort* m_pwszCtxName;
+    GUID            m_clsid;
+    GUID            m_appid;
+    GUID            m_partid;
+    ushort*         m_pwszAppName;
+    ushort*         m_pwszCtxName;
     COMPLUS_APPTYPE m_eAppType;
-    uint m_cReferences;
-    uint m_cBound;
-    uint m_cPooled;
-    uint m_cInCall;
-    uint m_dwRespTime;
-    uint m_cCallsCompleted;
-    uint m_cCallsFailed;
-}
-
-enum GetAppTrackerDataFlags
-{
-    GATD_INCLUDE_PROCESS_EXE_NAME = 1,
-    GATD_INCLUDE_LIBRARY_APPS = 2,
-    GATD_INCLUDE_SWC = 4,
-    GATD_INCLUDE_CLASS_NAME = 8,
-    GATD_INCLUDE_APPLICATION_NAME = 16,
+    uint            m_cReferences;
+    uint            m_cBound;
+    uint            m_cPooled;
+    uint            m_cInCall;
+    uint            m_dwRespTime;
+    uint            m_cCallsCompleted;
+    uint            m_cCallsFailed;
 }
 
 struct ApplicationProcessSummary
 {
-    Guid PartitionIdPrimaryApplication;
-    Guid ApplicationIdPrimaryApplication;
-    Guid ApplicationInstanceId;
-    uint ProcessId;
+    GUID            PartitionIdPrimaryApplication;
+    GUID            ApplicationIdPrimaryApplication;
+    GUID            ApplicationInstanceId;
+    uint            ProcessId;
     COMPLUS_APPTYPE Type;
-    const(wchar)* ProcessExeName;
-    BOOL IsService;
-    BOOL IsPaused;
-    BOOL IsRecycled;
+    const(wchar)*   ProcessExeName;
+    BOOL            IsService;
+    BOOL            IsPaused;
+    BOOL            IsRecycled;
 }
 
 struct ApplicationProcessStatistics
@@ -1969,39 +879,39 @@ struct ApplicationProcessStatistics
 
 struct ApplicationProcessRecycleInfo
 {
-    BOOL IsRecyclable;
-    BOOL IsRecycled;
+    BOOL     IsRecyclable;
+    BOOL     IsRecycled;
     FILETIME TimeRecycled;
     FILETIME TimeToTerminate;
-    int RecycleReasonCode;
-    BOOL IsPendingRecycle;
-    BOOL HasAutomaticLifetimeRecycling;
+    int      RecycleReasonCode;
+    BOOL     IsPendingRecycle;
+    BOOL     HasAutomaticLifetimeRecycling;
     FILETIME TimeForAutomaticRecycling;
-    uint MemoryLimitInKB;
-    uint MemoryUsageInKBLastCheck;
-    uint ActivationLimit;
-    uint NumActivationsLastReported;
-    uint CallLimit;
-    uint NumCallsLastReported;
+    uint     MemoryLimitInKB;
+    uint     MemoryUsageInKBLastCheck;
+    uint     ActivationLimit;
+    uint     NumActivationsLastReported;
+    uint     CallLimit;
+    uint     NumCallsLastReported;
 }
 
 struct ApplicationSummary
 {
-    Guid ApplicationInstanceId;
-    Guid PartitionId;
-    Guid ApplicationId;
+    GUID            ApplicationInstanceId;
+    GUID            PartitionId;
+    GUID            ApplicationId;
     COMPLUS_APPTYPE Type;
-    const(wchar)* ApplicationName;
-    uint NumTrackedComponents;
-    uint NumComponentInstances;
+    const(wchar)*   ApplicationName;
+    uint            NumTrackedComponents;
+    uint            NumComponentInstances;
 }
 
 struct ComponentSummary
 {
-    Guid ApplicationInstanceId;
-    Guid PartitionId;
-    Guid ApplicationId;
-    Guid Clsid;
+    GUID          ApplicationInstanceId;
+    GUID          PartitionId;
+    GUID          ApplicationId;
+    GUID          Clsid;
     const(wchar)* ClassName;
     const(wchar)* ApplicationName;
 }
@@ -2030,106 +940,1352 @@ struct ComponentHangMonitorInfo
     uint AvgCallThresholdInMs;
 }
 
-const GUID IID_IGetAppTrackerData = {0x507C3AC8, 0x3E12, 0x4CB0, [0x93, 0x66, 0x65, 0x3D, 0x3E, 0x05, 0x06, 0x38]};
-@GUID(0x507C3AC8, 0x3E12, 0x4CB0, [0x93, 0x66, 0x65, 0x3D, 0x3E, 0x05, 0x06, 0x38]);
+struct CrmLogRecordRead
+{
+    uint dwCrmFlags;
+    uint dwSequenceNumber;
+    BLOB blobUserData;
+}
+
+struct COMEVENTSYSCHANGEINFO
+{
+    uint           cbSize;
+    EOC_ChangeType changeType;
+    BSTR           objectId;
+    BSTR           partitionId;
+    BSTR           applicationId;
+    GUID[10]       reserved;
+}
+
+// Functions
+
+@DllImport("OLE32")
+HRESULT CoGetDefaultContext(APTTYPE aptType, const(GUID)* riid, void** ppv);
+
+@DllImport("comsvcs")
+HRESULT CoCreateActivity(IUnknown pIUnknown, const(GUID)* riid, void** ppObj);
+
+@DllImport("comsvcs")
+HRESULT CoEnterServiceDomain(IUnknown pConfigObject);
+
+@DllImport("comsvcs")
+void CoLeaveServiceDomain(IUnknown pUnkStatus);
+
+@DllImport("comsvcs")
+HRESULT GetManagedExtensions(uint* dwExts);
+
+@DllImport("comsvcs")
+void* SafeRef(const(GUID)* rid, IUnknown pUnk);
+
+@DllImport("comsvcs")
+HRESULT RecycleSurrogate(int lReasonCode);
+
+@DllImport("comsvcs")
+HRESULT MTSCreateActivity(const(GUID)* riid, void** ppobj);
+
+@DllImport("MTxDM")
+HRESULT GetDispenserManager(IDispenserManager* param0);
+
+
+// Interfaces
+
+@GUID("ECABB0A5-7F19-11D2-978E-0000F8757E2A")
+struct SecurityIdentity;
+
+@GUID("ECABB0A6-7F19-11D2-978E-0000F8757E2A")
+struct SecurityCallers;
+
+@GUID("ECABB0A7-7F19-11D2-978E-0000F8757E2A")
+struct SecurityCallContext;
+
+@GUID("ECABB0A8-7F19-11D2-978E-0000F8757E2A")
+struct GetSecurityCallContextAppObject;
+
+@GUID("ECABB0A9-7F19-11D2-978E-0000F8757E2A")
+struct Dummy30040732;
+
+@GUID("7999FC25-D3C6-11CF-ACAB-00A024A55AEF")
+struct TransactionContext;
+
+@GUID("5CB66670-D3D4-11CF-ACAB-00A024A55AEF")
+struct TransactionContextEx;
+
+@GUID("ECABB0AA-7F19-11D2-978E-0000F8757E2A")
+struct ByotServerEx;
+
+@GUID("ECABB0C8-7F19-11D2-978E-0000F8757E2A")
+struct CServiceConfig;
+
+@GUID("ECABB0C9-7F19-11D2-978E-0000F8757E2A")
+struct ServicePool;
+
+@GUID("ECABB0CA-7F19-11D2-978E-0000F8757E2A")
+struct ServicePoolConfig;
+
+@GUID("2A005C05-A5DE-11CF-9E66-00AA00A3F464")
+struct SharedProperty;
+
+@GUID("2A005C0B-A5DE-11CF-9E66-00AA00A3F464")
+struct SharedPropertyGroup;
+
+@GUID("2A005C11-A5DE-11CF-9E66-00AA00A3F464")
+struct SharedPropertyGroupManager;
+
+@GUID("ECABB0AB-7F19-11D2-978E-0000F8757E2A")
+struct COMEvents;
+
+@GUID("ECABB0AC-7F19-11D2-978E-0000F8757E2A")
+struct CoMTSLocator;
+
+@GUID("4B2E958D-0393-11D1-B1AB-00AA00BA3258")
+struct MtsGrp;
+
+@GUID("ECABB0C3-7F19-11D2-978E-0000F8757E2A")
+struct ComServiceEvents;
+
+@GUID("ECABB0C6-7F19-11D2-978E-0000F8757E2A")
+struct ComSystemAppEventData;
+
+@GUID("ECABB0BD-7F19-11D2-978E-0000F8757E2A")
+struct CRMClerk;
+
+@GUID("ECABB0BE-7F19-11D2-978E-0000F8757E2A")
+struct CRMRecoveryClerk;
+
+@GUID("ECABB0C1-7F19-11D2-978E-0000F8757E2A")
+struct LBEvents;
+
+@GUID("ECABB0BF-7F19-11D2-978E-0000F8757E2A")
+struct MessageMover;
+
+@GUID("ECABB0C0-7F19-11D2-978E-0000F8757E2A")
+struct DispenserManager;
+
+@GUID("ECABAFB5-7F19-11D2-978E-0000F8757E2A")
+struct PoolMgr;
+
+@GUID("ECABAFBC-7F19-11D2-978E-0000F8757E2A")
+struct EventServer;
+
+@GUID("ECABAFB9-7F19-11D2-978E-0000F8757E2A")
+struct TrackerServer;
+
+@GUID("EF24F689-14F8-4D92-B4AF-D7B1F0E70FD4")
+struct AppDomainHelper;
+
+@GUID("458AA3B5-265A-4B75-BC05-9BEA4630CF18")
+struct ClrAssemblyLocator;
+
+@GUID("F618C514-DFB8-11D1-A2CF-00805FC79235")
+struct COMAdminCatalog;
+
+@GUID("F618C515-DFB8-11D1-A2CF-00805FC79235")
+struct COMAdminCatalogObject;
+
+@GUID("F618C516-DFB8-11D1-A2CF-00805FC79235")
+struct COMAdminCatalogCollection;
+
+@GUID("4E14FBA2-2E22-11D1-9964-00C04FBBB345")
+struct CEventSystem;
+
+@GUID("AB944620-79C6-11D1-88F9-0080C7D771BF")
+struct CEventPublisher;
+
+@GUID("CDBEC9C0-7A68-11D1-88F9-0080C7D771BF")
+struct CEventClass;
+
+@GUID("7542E960-79C7-11D1-88F9-0080C7D771BF")
+struct CEventSubscription;
+
+@GUID("D0565000-9DF4-11D1-A281-00C04FCA0AA7")
+struct EventObjectChange;
+
+@GUID("BB07BACD-CD56-4E63-A8FF-CBF0355FB9F4")
+struct EventObjectChange2;
+
+@GUID("DD662187-DFC2-11D1-A2CF-00805FC79235")
+interface ICOMAdminCatalog : IDispatch
+{
+    HRESULT GetCollection(BSTR bstrCollName, IDispatch* ppCatalogCollection);
+    HRESULT Connect(BSTR bstrCatalogServerName, IDispatch* ppCatalogCollection);
+    HRESULT get_MajorVersion(int* plMajorVersion);
+    HRESULT get_MinorVersion(int* plMinorVersion);
+    HRESULT GetCollectionByQuery(BSTR bstrCollName, SAFEARRAY** ppsaVarQuery, IDispatch* ppCatalogCollection);
+    HRESULT ImportComponent(BSTR bstrApplIDOrName, BSTR bstrCLSIDOrProgID);
+    HRESULT InstallComponent(BSTR bstrApplIDOrName, BSTR bstrDLL, BSTR bstrTLB, BSTR bstrPSDLL);
+    HRESULT ShutdownApplication(BSTR bstrApplIDOrName);
+    HRESULT ExportApplication(BSTR bstrApplIDOrName, BSTR bstrApplicationFile, int lOptions);
+    HRESULT InstallApplication(BSTR bstrApplicationFile, BSTR bstrDestinationDirectory, int lOptions, 
+                               BSTR bstrUserId, BSTR bstrPassword, BSTR bstrRSN);
+    HRESULT StopRouter();
+    HRESULT RefreshRouter();
+    HRESULT StartRouter();
+    HRESULT Reserved1();
+    HRESULT Reserved2();
+    HRESULT InstallMultipleComponents(BSTR bstrApplIDOrName, SAFEARRAY** ppsaVarFileNames, 
+                                      SAFEARRAY** ppsaVarCLSIDs);
+    HRESULT GetMultipleComponentsInfo(BSTR bstrApplIdOrName, SAFEARRAY** ppsaVarFileNames, 
+                                      SAFEARRAY** ppsaVarCLSIDs, SAFEARRAY** ppsaVarClassNames, 
+                                      SAFEARRAY** ppsaVarFileFlags, SAFEARRAY** ppsaVarComponentFlags);
+    HRESULT RefreshComponents();
+    HRESULT BackupREGDB(BSTR bstrBackupFilePath);
+    HRESULT RestoreREGDB(BSTR bstrBackupFilePath);
+    HRESULT QueryApplicationFile(BSTR bstrApplicationFile, BSTR* pbstrApplicationName, 
+                                 BSTR* pbstrApplicationDescription, short* pbHasUsers, short* pbIsProxy, 
+                                 SAFEARRAY** ppsaVarFileNames);
+    HRESULT StartApplication(BSTR bstrApplIdOrName);
+    HRESULT ServiceCheck(int lService, int* plStatus);
+    HRESULT InstallMultipleEventClasses(BSTR bstrApplIdOrName, SAFEARRAY** ppsaVarFileNames, 
+                                        SAFEARRAY** ppsaVarCLSIDS);
+    HRESULT InstallEventClass(BSTR bstrApplIdOrName, BSTR bstrDLL, BSTR bstrTLB, BSTR bstrPSDLL);
+    HRESULT GetEventClassesForIID(BSTR bstrIID, SAFEARRAY** ppsaVarCLSIDs, SAFEARRAY** ppsaVarProgIDs, 
+                                  SAFEARRAY** ppsaVarDescriptions);
+}
+
+@GUID("790C6E0B-9194-4CC9-9426-A48A63185696")
+interface ICOMAdminCatalog2 : ICOMAdminCatalog
+{
+    HRESULT GetCollectionByQuery2(BSTR bstrCollectionName, VARIANT* pVarQueryStrings, 
+                                  IDispatch* ppCatalogCollection);
+    HRESULT GetApplicationInstanceIDFromProcessID(int lProcessID, BSTR* pbstrApplicationInstanceID);
+    HRESULT ShutdownApplicationInstances(VARIANT* pVarApplicationInstanceID);
+    HRESULT PauseApplicationInstances(VARIANT* pVarApplicationInstanceID);
+    HRESULT ResumeApplicationInstances(VARIANT* pVarApplicationInstanceID);
+    HRESULT RecycleApplicationInstances(VARIANT* pVarApplicationInstanceID, int lReasonCode);
+    HRESULT AreApplicationInstancesPaused(VARIANT* pVarApplicationInstanceID, short* pVarBoolPaused);
+    HRESULT DumpApplicationInstance(BSTR bstrApplicationInstanceID, BSTR bstrDirectory, int lMaxImages, 
+                                    BSTR* pbstrDumpFile);
+    HRESULT get_IsApplicationInstanceDumpSupported(short* pVarBoolDumpSupported);
+    HRESULT CreateServiceForApplication(BSTR bstrApplicationIDOrName, BSTR bstrServiceName, BSTR bstrStartType, 
+                                        BSTR bstrErrorControl, BSTR bstrDependencies, BSTR bstrRunAs, 
+                                        BSTR bstrPassword, short bDesktopOk);
+    HRESULT DeleteServiceForApplication(BSTR bstrApplicationIDOrName);
+    HRESULT GetPartitionID(BSTR bstrApplicationIDOrName, BSTR* pbstrPartitionID);
+    HRESULT GetPartitionName(BSTR bstrApplicationIDOrName, BSTR* pbstrPartitionName);
+    HRESULT put_CurrentPartition(BSTR bstrPartitionIDOrName);
+    HRESULT get_CurrentPartitionID(BSTR* pbstrPartitionID);
+    HRESULT get_CurrentPartitionName(BSTR* pbstrPartitionName);
+    HRESULT get_GlobalPartitionID(BSTR* pbstrGlobalPartitionID);
+    HRESULT FlushPartitionCache();
+    HRESULT CopyApplications(BSTR bstrSourcePartitionIDOrName, VARIANT* pVarApplicationID, 
+                             BSTR bstrDestinationPartitionIDOrName);
+    HRESULT CopyComponents(BSTR bstrSourceApplicationIDOrName, VARIANT* pVarCLSIDOrProgID, 
+                           BSTR bstrDestinationApplicationIDOrName);
+    HRESULT MoveComponents(BSTR bstrSourceApplicationIDOrName, VARIANT* pVarCLSIDOrProgID, 
+                           BSTR bstrDestinationApplicationIDOrName);
+    HRESULT AliasComponent(BSTR bstrSrcApplicationIDOrName, BSTR bstrCLSIDOrProgID, 
+                           BSTR bstrDestApplicationIDOrName, BSTR bstrNewProgId, BSTR bstrNewClsid);
+    HRESULT IsSafeToDelete(BSTR bstrDllName, COMAdminInUse* pCOMAdminInUse);
+    HRESULT ImportUnconfiguredComponents(BSTR bstrApplicationIDOrName, VARIANT* pVarCLSIDOrProgID, 
+                                         VARIANT* pVarComponentType);
+    HRESULT PromoteUnconfiguredComponents(BSTR bstrApplicationIDOrName, VARIANT* pVarCLSIDOrProgID, 
+                                          VARIANT* pVarComponentType);
+    HRESULT ImportComponents(BSTR bstrApplicationIDOrName, VARIANT* pVarCLSIDOrProgID, VARIANT* pVarComponentType);
+    HRESULT get_Is64BitCatalogServer(short* pbIs64Bit);
+    HRESULT ExportPartition(BSTR bstrPartitionIDOrName, BSTR bstrPartitionFileName, int lOptions);
+    HRESULT InstallPartition(BSTR bstrFileName, BSTR bstrDestDirectory, int lOptions, BSTR bstrUserID, 
+                             BSTR bstrPassword, BSTR bstrRSN);
+    HRESULT QueryApplicationFile2(BSTR bstrApplicationFile, IDispatch* ppFilesForImport);
+    HRESULT GetComponentVersionCount(BSTR bstrCLSIDOrProgID, int* plVersionCount);
+}
+
+@GUID("6EB22871-8A19-11D0-81B6-00A0C9231C29")
+interface ICatalogObject : IDispatch
+{
+    HRESULT get_Value(BSTR bstrPropName, VARIANT* pvarRetVal);
+    HRESULT put_Value(BSTR bstrPropName, VARIANT val);
+    HRESULT get_Key(VARIANT* pvarRetVal);
+    HRESULT get_Name(VARIANT* pvarRetVal);
+    HRESULT IsPropertyReadOnly(BSTR bstrPropName, short* pbRetVal);
+    HRESULT get_Valid(short* pbRetVal);
+    HRESULT IsPropertyWriteOnly(BSTR bstrPropName, short* pbRetVal);
+}
+
+@GUID("6EB22872-8A19-11D0-81B6-00A0C9231C29")
+interface ICatalogCollection : IDispatch
+{
+    HRESULT get__NewEnum(IUnknown* ppEnumVariant);
+    HRESULT get_Item(int lIndex, IDispatch* ppCatalogObject);
+    HRESULT get_Count(int* plObjectCount);
+    HRESULT Remove(int lIndex);
+    HRESULT Add(IDispatch* ppCatalogObject);
+    HRESULT Populate();
+    HRESULT SaveChanges(int* pcChanges);
+    HRESULT GetCollection(BSTR bstrCollName, VARIANT varObjectKey, IDispatch* ppCatalogCollection);
+    HRESULT get_Name(VARIANT* pVarNamel);
+    HRESULT get_AddEnabled(short* pVarBool);
+    HRESULT get_RemoveEnabled(short* pVarBool);
+    HRESULT GetUtilInterface(IDispatch* ppIDispatch);
+    HRESULT get_DataStoreMajorVersion(int* plMajorVersion);
+    HRESULT get_DataStoreMinorVersion(int* plMinorVersionl);
+    HRESULT PopulateByKey(SAFEARRAY* psaKeys);
+    HRESULT PopulateByQuery(BSTR bstrQueryString, int lQueryType);
+}
+
+@GUID("0FB15084-AF41-11CE-BD2B-204C4F4F5020")
+interface ITransaction : IUnknown
+{
+    HRESULT Commit(BOOL fRetaining, uint grfTC, uint grfRM);
+    HRESULT Abort(BOID* pboidReason, BOOL fRetaining, BOOL fAsync);
+    HRESULT GetTransactionInfo(XACTTRANSINFO* pinfo);
+}
+
+@GUID("02656950-2152-11D0-944C-00A0C905416E")
+interface ITransactionCloner : ITransaction
+{
+    HRESULT CloneWithCommitDisabled(ITransaction* ppITransaction);
+}
+
+@GUID("34021548-0065-11D3-BAC1-00C04F797BE2")
+interface ITransaction2 : ITransactionCloner
+{
+    HRESULT GetTransactionInfo2(XACTTRANSINFO* pinfo);
+}
+
+@GUID("3A6AD9E1-23B9-11CF-AD60-00AA00A74CCD")
+interface ITransactionDispenser : IUnknown
+{
+    HRESULT GetOptionsObject(ITransactionOptions* ppOptions);
+    HRESULT BeginTransaction(IUnknown punkOuter, int isoLevel, uint isoFlags, ITransactionOptions pOptions, 
+                             ITransaction* ppTransaction);
+}
+
+@GUID("3A6AD9E0-23B9-11CF-AD60-00AA00A74CCD")
+interface ITransactionOptions : IUnknown
+{
+    HRESULT SetOptions(XACTOPT* pOptions);
+    HRESULT GetOptions(XACTOPT* pOptions);
+}
+
+@GUID("3A6AD9E2-23B9-11CF-AD60-00AA00A74CCD")
+interface ITransactionOutcomeEvents : IUnknown
+{
+    HRESULT Committed(BOOL fRetaining, BOID* pNewUOW, HRESULT hr);
+    HRESULT Aborted(BOID* pboidReason, BOOL fRetaining, BOID* pNewUOW, HRESULT hr);
+    HRESULT HeuristicDecision(uint dwDecision, BOID* pboidReason, HRESULT hr);
+    HRESULT Indoubt();
+}
+
+@GUID("30274F88-6EE4-474E-9B95-7807BC9EF8CF")
+interface ITmNodeName : IUnknown
+{
+    HRESULT GetNodeNameSize(uint* pcbNodeNameSize);
+    HRESULT GetNodeName(uint cbNodeNameBufferSize, const(wchar)* pNodeNameBuffer);
+}
+
+@GUID("79427A2B-F895-40E0-BE79-B57DC82ED231")
+interface IKernelTransaction : IUnknown
+{
+    HRESULT GetHandle(HANDLE* pHandle);
+}
+
+@GUID("69E971F0-23CE-11CF-AD60-00AA00A74CCD")
+interface ITransactionResourceAsync : IUnknown
+{
+    HRESULT PrepareRequest(BOOL fRetaining, uint grfRM, BOOL fWantMoniker, BOOL fSinglePhase);
+    HRESULT CommitRequest(uint grfRM, BOID* pNewUOW);
+    HRESULT AbortRequest(BOID* pboidReason, BOOL fRetaining, BOID* pNewUOW);
+    HRESULT TMDown();
+}
+
+@GUID("C82BD532-5B30-11D3-8A91-00C04F79EB6D")
+interface ITransactionLastResourceAsync : IUnknown
+{
+    HRESULT DelegateCommit(uint grfRM);
+    HRESULT ForgetRequest(BOID* pNewUOW);
+}
+
+@GUID("EE5FF7B3-4572-11D0-9452-00A0C905416E")
+interface ITransactionResource : IUnknown
+{
+    HRESULT PrepareRequest(BOOL fRetaining, uint grfRM, BOOL fWantMoniker, BOOL fSinglePhase);
+    HRESULT CommitRequest(uint grfRM, BOID* pNewUOW);
+    HRESULT AbortRequest(BOID* pboidReason, BOOL fRetaining, BOID* pNewUOW);
+    HRESULT TMDown();
+}
+
+@GUID("0FB15081-AF41-11CE-BD2B-204C4F4F5020")
+interface ITransactionEnlistmentAsync : IUnknown
+{
+    HRESULT PrepareRequestDone(HRESULT hr, IMoniker pmk, BOID* pboidReason);
+    HRESULT CommitRequestDone(HRESULT hr);
+    HRESULT AbortRequestDone(HRESULT hr);
+}
+
+@GUID("C82BD533-5B30-11D3-8A91-00C04F79EB6D")
+interface ITransactionLastEnlistmentAsync : IUnknown
+{
+    HRESULT TransactionOutcome(XACTSTAT XactStat, BOID* pboidReason);
+}
+
+@GUID("E1CF9B53-8745-11CE-A9BA-00AA006C3706")
+interface ITransactionExportFactory : IUnknown
+{
+    HRESULT GetRemoteClassId(GUID* pclsid);
+    HRESULT Create(uint cbWhereabouts, char* rgbWhereabouts, ITransactionExport* ppExport);
+}
+
+@GUID("0141FDA4-8FC0-11CE-BD18-204C4F4F5020")
+interface ITransactionImportWhereabouts : IUnknown
+{
+    HRESULT GetWhereaboutsSize(uint* pcbWhereabouts);
+    HRESULT GetWhereabouts(uint cbWhereabouts, ubyte* rgbWhereabouts, uint* pcbUsed);
+}
+
+@GUID("0141FDA5-8FC0-11CE-BD18-204C4F4F5020")
+interface ITransactionExport : IUnknown
+{
+    HRESULT Export(IUnknown punkTransaction, uint* pcbTransactionCookie);
+    HRESULT GetTransactionCookie(IUnknown punkTransaction, uint cbTransactionCookie, ubyte* rgbTransactionCookie, 
+                                 uint* pcbUsed);
+}
+
+@GUID("E1CF9B5A-8745-11CE-A9BA-00AA006C3706")
+interface ITransactionImport : IUnknown
+{
+    HRESULT Import(uint cbTransactionCookie, char* rgbTransactionCookie, GUID* piid, void** ppvTransaction);
+}
+
+@GUID("17CF72D0-BAC5-11D1-B1BF-00C04FC2F3EF")
+interface ITipTransaction : IUnknown
+{
+    HRESULT Push(byte* i_pszRemoteTmUrl, byte** o_ppszRemoteTxUrl);
+    HRESULT GetTransactionUrl(byte** o_ppszLocalTxUrl);
+}
+
+@GUID("17CF72D1-BAC5-11D1-B1BF-00C04FC2F3EF")
+interface ITipHelper : IUnknown
+{
+    HRESULT Pull(byte* i_pszTxUrl, ITransaction* o_ppITransaction);
+    HRESULT PullAsync(byte* i_pszTxUrl, ITipPullSink i_pTipPullSink, ITransaction* o_ppITransaction);
+    HRESULT GetLocalTmUrl(byte** o_ppszLocalTmUrl);
+}
+
+@GUID("17CF72D2-BAC5-11D1-B1BF-00C04FC2F3EF")
+interface ITipPullSink : IUnknown
+{
+    HRESULT PullComplete(HRESULT i_hrPull);
+}
+
+@GUID("9797C15D-A428-4291-87B6-0995031A678D")
+interface IDtcNetworkAccessConfig : IUnknown
+{
+    HRESULT GetAnyNetworkAccess(int* pbAnyNetworkAccess);
+    HRESULT SetAnyNetworkAccess(BOOL bAnyNetworkAccess);
+    HRESULT GetNetworkAdministrationAccess(int* pbNetworkAdministrationAccess);
+    HRESULT SetNetworkAdministrationAccess(BOOL bNetworkAdministrationAccess);
+    HRESULT GetNetworkTransactionAccess(int* pbNetworkTransactionAccess);
+    HRESULT SetNetworkTransactionAccess(BOOL bNetworkTransactionAccess);
+    HRESULT GetNetworkClientAccess(int* pbNetworkClientAccess);
+    HRESULT SetNetworkClientAccess(BOOL bNetworkClientAccess);
+    HRESULT GetNetworkTIPAccess(int* pbNetworkTIPAccess);
+    HRESULT SetNetworkTIPAccess(BOOL bNetworkTIPAccess);
+    HRESULT GetXAAccess(int* pbXAAccess);
+    HRESULT SetXAAccess(BOOL bXAAccess);
+    HRESULT RestartDtcService();
+}
+
+@GUID("A7AA013B-EB7D-4F42-B41C-B2DEC09AE034")
+interface IDtcNetworkAccessConfig2 : IDtcNetworkAccessConfig
+{
+    HRESULT GetNetworkInboundAccess(int* pbInbound);
+    HRESULT GetNetworkOutboundAccess(int* pbOutbound);
+    HRESULT SetNetworkInboundAccess(BOOL bInbound);
+    HRESULT SetNetworkOutboundAccess(BOOL bOutbound);
+    HRESULT GetAuthenticationLevel(AUTHENTICATION_LEVEL* pAuthLevel);
+    HRESULT SetAuthenticationLevel(AUTHENTICATION_LEVEL AuthLevel);
+}
+
+@GUID("76E4B4F3-2CA5-466B-89D5-FD218EE75B49")
+interface IDtcNetworkAccessConfig3 : IDtcNetworkAccessConfig2
+{
+    HRESULT GetLUAccess(int* pbLUAccess);
+    HRESULT SetLUAccess(BOOL bLUAccess);
+}
+
+@GUID("F3B1F131-EEDA-11CE-AED4-00AA0051E2C4")
+interface IXATransLookup : IUnknown
+{
+    HRESULT Lookup(ITransaction* ppTransaction);
+}
+
+@GUID("BF193C85-0D1A-4290-B88F-D2CB8873D1E7")
+interface IXATransLookup2 : IUnknown
+{
+    HRESULT Lookup(xid_t* pXID, ITransaction* ppTransaction);
+}
+
+@GUID("0D563181-DEFB-11CE-AED1-00AA0051E2C4")
+interface IResourceManagerSink : IUnknown
+{
+    HRESULT TMDown();
+}
+
+@GUID("13741D21-87EB-11CE-8081-0080C758527E")
+interface IResourceManager : IUnknown
+{
+    HRESULT Enlist(ITransaction pTransaction, ITransactionResourceAsync pRes, BOID* pUOW, int* pisoLevel, 
+                   ITransactionEnlistmentAsync* ppEnlist);
+    HRESULT Reenlist(char* pPrepInfo, uint cbPrepInfo, uint lTimeout, XACTSTAT* pXactStat);
+    HRESULT ReenlistmentComplete();
+    HRESULT GetDistributedTransactionManager(const(GUID)* iid, void** ppvObject);
+}
+
+@GUID("4D964AD4-5B33-11D3-8A91-00C04F79EB6D")
+interface ILastResourceManager : IUnknown
+{
+    HRESULT TransactionCommitted(char* pPrepInfo, uint cbPrepInfo);
+    HRESULT RecoveryDone();
+}
+
+@GUID("D136C69A-F749-11D1-8F47-00C04F8EE57D")
+interface IResourceManager2 : IResourceManager
+{
+    HRESULT Enlist2(ITransaction pTransaction, ITransactionResourceAsync pResAsync, BOID* pUOW, int* pisoLevel, 
+                    xid_t* pXid, ITransactionEnlistmentAsync* ppEnlist);
+    HRESULT Reenlist2(xid_t* pXid, uint dwTimeout, XACTSTAT* pXactStat);
+}
+
+@GUID("6F6DE620-B5DF-4F3E-9CFA-C8AEBD05172B")
+interface IResourceManagerRejoinable : IResourceManager2
+{
+    HRESULT Rejoin(char* pPrepInfo, uint cbPrepInfo, uint lTimeout, XACTSTAT* pXactStat);
+}
+
+@GUID("C8A6E3A1-9A8C-11CF-A308-00A0C905416E")
+interface IXAConfig : IUnknown
+{
+    HRESULT Initialize(GUID clsidHelperDll);
+    HRESULT Terminate();
+}
+
+@GUID("E793F6D1-F53D-11CF-A60D-00A0C905416E")
+interface IRMHelper : IUnknown
+{
+    HRESULT RMCount(uint dwcTotalNumberOfRMs);
+    HRESULT RMInfo(xa_switch_t* pXa_Switch, BOOL fCDeclCallingConv, byte* pszOpenString, byte* pszCloseString, 
+                   GUID guidRMRecovery);
+}
+
+@GUID("E793F6D2-F53D-11CF-A60D-00A0C905416E")
+interface IXAObtainRMInfo : IUnknown
+{
+    HRESULT ObtainRMInfo(IRMHelper pIRMHelper);
+}
+
+@GUID("13741D20-87EB-11CE-8081-0080C758527E")
+interface IResourceManagerFactory : IUnknown
+{
+    HRESULT Create(GUID* pguidRM, byte* pszRMName, IResourceManagerSink pIResMgrSink, IResourceManager* ppResMgr);
+}
+
+@GUID("6B369C21-FBD2-11D1-8F47-00C04F8EE57D")
+interface IResourceManagerFactory2 : IResourceManagerFactory
+{
+    HRESULT CreateEx(GUID* pguidRM, byte* pszRMName, IResourceManagerSink pIResMgrSink, const(GUID)* riidRequested, 
+                     void** ppvResMgr);
+}
+
+@GUID("80C7BFD0-87EE-11CE-8081-0080C758527E")
+interface IPrepareInfo : IUnknown
+{
+    HRESULT GetPrepareInfoSize(uint* pcbPrepInfo);
+    HRESULT GetPrepareInfo(ubyte* pPrepInfo);
+}
+
+@GUID("5FAB2547-9779-11D1-B886-00C04FB9618A")
+interface IPrepareInfo2 : IUnknown
+{
+    HRESULT GetPrepareInfoSize(uint* pcbPrepInfo);
+    HRESULT GetPrepareInfo(uint cbPrepareInfo, char* pPrepInfo);
+}
+
+@GUID("C23CC370-87EF-11CE-8081-0080C758527E")
+interface IGetDispenser : IUnknown
+{
+    HRESULT GetDispenser(const(GUID)* iid, void** ppvObject);
+}
+
+@GUID("5433376C-414D-11D3-B206-00C04FC2F3EF")
+interface ITransactionVoterBallotAsync2 : IUnknown
+{
+    HRESULT VoteRequestDone(HRESULT hr, BOID* pboidReason);
+}
+
+@GUID("5433376B-414D-11D3-B206-00C04FC2F3EF")
+interface ITransactionVoterNotifyAsync2 : ITransactionOutcomeEvents
+{
+    HRESULT VoteRequest();
+}
+
+@GUID("5433376A-414D-11D3-B206-00C04FC2F3EF")
+interface ITransactionVoterFactory2 : IUnknown
+{
+    HRESULT Create(ITransaction pTransaction, ITransactionVoterNotifyAsync2 pVoterNotify, 
+                   ITransactionVoterBallotAsync2* ppVoterBallot);
+}
+
+@GUID("82DC88E1-A954-11D1-8F88-00600895E7D5")
+interface ITransactionPhase0EnlistmentAsync : IUnknown
+{
+    HRESULT Enable();
+    HRESULT WaitForEnlistment();
+    HRESULT Phase0Done();
+    HRESULT Unenlist();
+    HRESULT GetTransaction(ITransaction* ppITransaction);
+}
+
+@GUID("EF081809-0C76-11D2-87A6-00C04F990F34")
+interface ITransactionPhase0NotifyAsync : IUnknown
+{
+    HRESULT Phase0Request(BOOL fAbortingHint);
+    HRESULT EnlistCompleted(HRESULT status);
+}
+
+@GUID("82DC88E0-A954-11D1-8F88-00600895E7D5")
+interface ITransactionPhase0Factory : IUnknown
+{
+    HRESULT Create(ITransactionPhase0NotifyAsync pPhase0Notify, 
+                   ITransactionPhase0EnlistmentAsync* ppPhase0Enlistment);
+}
+
+@GUID("59313E01-B36C-11CF-A539-00AA006887C3")
+interface ITransactionTransmitter : IUnknown
+{
+    HRESULT Set(ITransaction pTransaction);
+    HRESULT GetPropagationTokenSize(uint* pcbToken);
+    HRESULT MarshalPropagationToken(uint cbToken, char* rgbToken, uint* pcbUsed);
+    HRESULT UnmarshalReturnToken(uint cbReturnToken, char* rgbReturnToken);
+    HRESULT Reset();
+}
+
+@GUID("59313E00-B36C-11CF-A539-00AA006887C3")
+interface ITransactionTransmitterFactory : IUnknown
+{
+    HRESULT Create(ITransactionTransmitter* ppTransmitter);
+}
+
+@GUID("59313E03-B36C-11CF-A539-00AA006887C3")
+interface ITransactionReceiver : IUnknown
+{
+    HRESULT UnmarshalPropagationToken(uint cbToken, char* rgbToken, ITransaction* ppTransaction);
+    HRESULT GetReturnTokenSize(uint* pcbReturnToken);
+    HRESULT MarshalReturnToken(uint cbReturnToken, char* rgbReturnToken, uint* pcbUsed);
+    HRESULT Reset();
+}
+
+@GUID("59313E02-B36C-11CF-A539-00AA006887C3")
+interface ITransactionReceiverFactory : IUnknown
+{
+    HRESULT Create(ITransactionReceiver* ppReceiver);
+}
+
+@GUID("4131E760-1AEA-11D0-944B-00A0C905416E")
+interface IDtcLuConfigure : IUnknown
+{
+    HRESULT Add(char* pucLuPair, uint cbLuPair);
+    HRESULT Delete(char* pucLuPair, uint cbLuPair);
+}
+
+@GUID("AC2B8AD2-D6F0-11D0-B386-00A0C9083365")
+interface IDtcLuRecovery : IUnknown
+{
+}
+
+@GUID("4131E762-1AEA-11D0-944B-00A0C905416E")
+interface IDtcLuRecoveryFactory : IUnknown
+{
+    HRESULT Create(char* pucLuPair, uint cbLuPair, IDtcLuRecovery* ppRecovery);
+}
+
+@GUID("4131E765-1AEA-11D0-944B-00A0C905416E")
+interface IDtcLuRecoveryInitiatedByDtcTransWork : IUnknown
+{
+    HRESULT GetLogNameSizes(uint* pcbOurLogName, uint* pcbRemoteLogName);
+    HRESULT GetOurXln(_DtcLu_Xln* pXln, ubyte* pOurLogName, ubyte* pRemoteLogName, uint* pdwProtocol);
+    HRESULT HandleConfirmationFromOurXln(_DtcLu_Xln_Confirmation Confirmation);
+    HRESULT HandleTheirXlnResponse(_DtcLu_Xln Xln, ubyte* pRemoteLogName, uint cbRemoteLogName, uint dwProtocol, 
+                                   _DtcLu_Xln_Confirmation* pConfirmation);
+    HRESULT HandleErrorFromOurXln(_DtcLu_Xln_Error Error);
+    HRESULT CheckForCompareStates(int* fCompareStates);
+    HRESULT GetOurTransIdSize(uint* pcbOurTransId);
+    HRESULT GetOurCompareStates(ubyte* pOurTransId, _DtcLu_CompareState* pCompareState);
+    HRESULT HandleTheirCompareStatesResponse(_DtcLu_CompareState CompareState, 
+                                             _DtcLu_CompareStates_Confirmation* pConfirmation);
+    HRESULT HandleErrorFromOurCompareStates(_DtcLu_CompareStates_Error Error);
+    HRESULT ConversationLost();
+    HRESULT GetRecoverySeqNum(int* plRecoverySeqNum);
+    HRESULT ObsoleteRecoverySeqNum(int lNewRecoverySeqNum);
+}
+
+@GUID("4131E766-1AEA-11D0-944B-00A0C905416E")
+interface IDtcLuRecoveryInitiatedByDtcStatusWork : IUnknown
+{
+    HRESULT HandleCheckLuStatus(int lRecoverySeqNum);
+}
+
+@GUID("4131E764-1AEA-11D0-944B-00A0C905416E")
+interface IDtcLuRecoveryInitiatedByDtc : IUnknown
+{
+    HRESULT GetWork(_DtcLu_LocalRecovery_Work* pWork, void** ppv);
+}
+
+@GUID("AC2B8AD1-D6F0-11D0-B386-00A0C9083365")
+interface IDtcLuRecoveryInitiatedByLuWork : IUnknown
+{
+    HRESULT HandleTheirXln(int lRecoverySeqNum, _DtcLu_Xln Xln, ubyte* pRemoteLogName, uint cbRemoteLogName, 
+                           ubyte* pOurLogName, uint cbOurLogName, uint dwProtocol, _DtcLu_Xln_Response* pResponse);
+    HRESULT GetOurLogNameSize(uint* pcbOurLogName);
+    HRESULT GetOurXln(_DtcLu_Xln* pXln, ubyte* pOurLogName, uint* pdwProtocol);
+    HRESULT HandleConfirmationOfOurXln(_DtcLu_Xln_Confirmation Confirmation);
+    HRESULT HandleTheirCompareStates(ubyte* pRemoteTransId, uint cbRemoteTransId, _DtcLu_CompareState CompareState, 
+                                     _DtcLu_CompareStates_Response* pResponse, _DtcLu_CompareState* pCompareState);
+    HRESULT HandleConfirmationOfOurCompareStates(_DtcLu_CompareStates_Confirmation Confirmation);
+    HRESULT HandleErrorFromOurCompareStates(_DtcLu_CompareStates_Error Error);
+    HRESULT ConversationLost();
+}
+
+@GUID("4131E768-1AEA-11D0-944B-00A0C905416E")
+interface IDtcLuRecoveryInitiatedByLu : IUnknown
+{
+    HRESULT GetObjectToHandleWorkFromLu(IDtcLuRecoveryInitiatedByLuWork* ppWork);
+}
+
+@GUID("4131E769-1AEA-11D0-944B-00A0C905416E")
+interface IDtcLuRmEnlistment : IUnknown
+{
+    HRESULT Unplug(BOOL fConversationLost);
+    HRESULT BackedOut();
+    HRESULT BackOut();
+    HRESULT Committed();
+    HRESULT Forget();
+    HRESULT RequestCommit();
+}
+
+@GUID("4131E770-1AEA-11D0-944B-00A0C905416E")
+interface IDtcLuRmEnlistmentSink : IUnknown
+{
+    HRESULT AckUnplug();
+    HRESULT TmDown();
+    HRESULT SessionLost();
+    HRESULT BackedOut();
+    HRESULT BackOut();
+    HRESULT Committed();
+    HRESULT Forget();
+    HRESULT Prepare();
+    HRESULT RequestCommit();
+}
+
+@GUID("4131E771-1AEA-11D0-944B-00A0C905416E")
+interface IDtcLuRmEnlistmentFactory : IUnknown
+{
+    HRESULT Create(ubyte* pucLuPair, uint cbLuPair, ITransaction pITransaction, ubyte* pTransId, uint cbTransId, 
+                   IDtcLuRmEnlistmentSink pRmEnlistmentSink, IDtcLuRmEnlistment* ppRmEnlistment);
+}
+
+@GUID("4131E773-1AEA-11D0-944B-00A0C905416E")
+interface IDtcLuSubordinateDtc : IUnknown
+{
+    HRESULT Unplug(BOOL fConversationLost);
+    HRESULT BackedOut();
+    HRESULT BackOut();
+    HRESULT Committed();
+    HRESULT Forget();
+    HRESULT Prepare();
+    HRESULT RequestCommit();
+}
+
+@GUID("4131E774-1AEA-11D0-944B-00A0C905416E")
+interface IDtcLuSubordinateDtcSink : IUnknown
+{
+    HRESULT AckUnplug();
+    HRESULT TmDown();
+    HRESULT SessionLost();
+    HRESULT BackedOut();
+    HRESULT BackOut();
+    HRESULT Committed();
+    HRESULT Forget();
+    HRESULT RequestCommit();
+}
+
+@GUID("4131E775-1AEA-11D0-944B-00A0C905416E")
+interface IDtcLuSubordinateDtcFactory : IUnknown
+{
+    HRESULT Create(ubyte* pucLuPair, uint cbLuPair, IUnknown punkTransactionOuter, int isoLevel, uint isoFlags, 
+                   ITransactionOptions pOptions, ITransaction* ppTransaction, ubyte* pTransId, uint cbTransId, 
+                   IDtcLuSubordinateDtcSink pSubordinateDtcSink, IDtcLuSubordinateDtc* ppSubordinateDtc);
+}
+
+@GUID("CAFC823C-B441-11D1-B82B-0000F8757E2A")
+interface ISecurityIdentityColl : IDispatch
+{
+    HRESULT get_Count(int* plCount);
+    HRESULT get_Item(BSTR name, VARIANT* pItem);
+    HRESULT get__NewEnum(IUnknown* ppEnum);
+}
+
+@GUID("CAFC823D-B441-11D1-B82B-0000F8757E2A")
+interface ISecurityCallersColl : IDispatch
+{
+    HRESULT get_Count(int* plCount);
+    HRESULT get_Item(int lIndex, ISecurityIdentityColl* pObj);
+    HRESULT get__NewEnum(IUnknown* ppEnum);
+}
+
+@GUID("CAFC823E-B441-11D1-B82B-0000F8757E2A")
+interface ISecurityCallContext : IDispatch
+{
+    HRESULT get_Count(int* plCount);
+    HRESULT get_Item(BSTR name, VARIANT* pItem);
+    HRESULT get__NewEnum(IUnknown* ppEnum);
+    HRESULT IsCallerInRole(BSTR bstrRole, short* pfInRole);
+    HRESULT IsSecurityEnabled(short* pfIsEnabled);
+    HRESULT IsUserInRole(VARIANT* pUser, BSTR bstrRole, short* pfInRole);
+}
+
+@GUID("CAFC823F-B441-11D1-B82B-0000F8757E2A")
+interface IGetSecurityCallContext : IDispatch
+{
+    HRESULT GetSecurityCallContext(ISecurityCallContext* ppObject);
+}
+
+@GUID("E74A7215-014D-11D1-A63C-00A0C911B4E0")
+interface SecurityProperty : IDispatch
+{
+    HRESULT GetDirectCallerName(BSTR* bstrUserName);
+    HRESULT GetDirectCreatorName(BSTR* bstrUserName);
+    HRESULT GetOriginalCallerName(BSTR* bstrUserName);
+    HRESULT GetOriginalCreatorName(BSTR* bstrUserName);
+}
+
+@GUID("19A5A02C-0AC8-11D2-B286-00C04F8EF934")
+interface ContextInfo : IDispatch
+{
+    HRESULT IsInTransaction(short* pbIsInTx);
+    HRESULT GetTransaction(IUnknown* ppTx);
+    HRESULT GetTransactionId(BSTR* pbstrTxId);
+    HRESULT GetActivityId(BSTR* pbstrActivityId);
+    HRESULT GetContextId(BSTR* pbstrCtxId);
+}
+
+@GUID("C99D6E75-2375-11D4-8331-00C04F605588")
+interface ContextInfo2 : ContextInfo
+{
+    HRESULT GetPartitionId(BSTR* __MIDL__ContextInfo20000);
+    HRESULT GetApplicationId(BSTR* __MIDL__ContextInfo20001);
+    HRESULT GetApplicationInstanceId(BSTR* __MIDL__ContextInfo20002);
+}
+
+@GUID("74C08646-CEDB-11CF-8B49-00AA00B8A790")
+interface ObjectContext : IDispatch
+{
+    HRESULT CreateInstance(BSTR bstrProgID, VARIANT* pObject);
+    HRESULT SetComplete();
+    HRESULT SetAbort();
+    HRESULT EnableCommit();
+    HRESULT DisableCommit();
+    HRESULT IsInTransaction(short* pbIsInTx);
+    HRESULT IsSecurityEnabled(short* pbIsEnabled);
+    HRESULT IsCallerInRole(BSTR bstrRole, short* pbInRole);
+    HRESULT get_Count(int* plCount);
+    HRESULT get_Item(BSTR name, VARIANT* pItem);
+    HRESULT get__NewEnum(IUnknown* ppEnum);
+    HRESULT get_Security(SecurityProperty* ppSecurityProperty);
+    HRESULT get_ContextInfo(ContextInfo* ppContextInfo);
+}
+
+@GUID("7999FC22-D3C6-11CF-ACAB-00A024A55AEF")
+interface ITransactionContextEx : IUnknown
+{
+    HRESULT CreateInstance(const(GUID)* rclsid, const(GUID)* riid, void** pObject);
+    HRESULT Commit();
+    HRESULT Abort();
+}
+
+@GUID("7999FC21-D3C6-11CF-ACAB-00A024A55AEF")
+interface ITransactionContext : IDispatch
+{
+    HRESULT CreateInstance(BSTR pszProgId, VARIANT* pObject);
+    HRESULT Commit();
+    HRESULT Abort();
+}
+
+@GUID("455ACF57-5345-11D2-99CF-00C04F797BC9")
+interface ICreateWithTransactionEx : IUnknown
+{
+    HRESULT CreateInstance(ITransaction pTransaction, const(GUID)* rclsid, const(GUID)* riid, void** pObject);
+}
+
+@GUID("227AC7A8-8423-42CE-B7CF-03061EC9AAA3")
+interface ICreateWithLocalTransaction : IUnknown
+{
+    HRESULT CreateInstanceWithSysTx(IUnknown pTransaction, const(GUID)* rclsid, const(GUID)* riid, void** pObject);
+}
+
+@GUID("455ACF59-5345-11D2-99CF-00C04F797BC9")
+interface ICreateWithTipTransactionEx : IUnknown
+{
+    HRESULT CreateInstance(BSTR bstrTipUrl, const(GUID)* rclsid, const(GUID)* riid, void** pObject);
+}
+
+@GUID("605CF82C-578E-4298-975D-82BABCD9E053")
+interface IComLTxEvents : IUnknown
+{
+    HRESULT OnLtxTransactionStart(COMSVCSEVENTINFO* pInfo, GUID guidLtx, GUID tsid, BOOL fRoot, 
+                                  int nIsolationLevel);
+    HRESULT OnLtxTransactionPrepare(COMSVCSEVENTINFO* pInfo, GUID guidLtx, BOOL fVote);
+    HRESULT OnLtxTransactionAbort(COMSVCSEVENTINFO* pInfo, GUID guidLtx);
+    HRESULT OnLtxTransactionCommit(COMSVCSEVENTINFO* pInfo, GUID guidLtx);
+    HRESULT OnLtxTransactionPromote(COMSVCSEVENTINFO* pInfo, GUID guidLtx, GUID txnId);
+}
+
+@GUID("683130A4-2E50-11D2-98A5-00C04F8EE1C4")
+interface IComUserEvent : IUnknown
+{
+    HRESULT OnUserEvent(COMSVCSEVENTINFO* pInfo, VARIANT* pvarEvent);
+}
+
+@GUID("683130A5-2E50-11D2-98A5-00C04F8EE1C4")
+interface IComThreadEvents : IUnknown
+{
+    HRESULT OnThreadStart(COMSVCSEVENTINFO* pInfo, ulong ThreadID, uint dwThread, uint dwTheadCnt);
+    HRESULT OnThreadTerminate(COMSVCSEVENTINFO* pInfo, ulong ThreadID, uint dwThread, uint dwTheadCnt);
+    HRESULT OnThreadBindToApartment(COMSVCSEVENTINFO* pInfo, ulong ThreadID, ulong AptID, uint dwActCnt, 
+                                    uint dwLowCnt);
+    HRESULT OnThreadUnBind(COMSVCSEVENTINFO* pInfo, ulong ThreadID, ulong AptID, uint dwActCnt);
+    HRESULT OnThreadWorkEnque(COMSVCSEVENTINFO* pInfo, ulong ThreadID, ulong MsgWorkID, uint QueueLen);
+    HRESULT OnThreadWorkPrivate(COMSVCSEVENTINFO* pInfo, ulong ThreadID, ulong MsgWorkID);
+    HRESULT OnThreadWorkPublic(COMSVCSEVENTINFO* pInfo, ulong ThreadID, ulong MsgWorkID, uint QueueLen);
+    HRESULT OnThreadWorkRedirect(COMSVCSEVENTINFO* pInfo, ulong ThreadID, ulong MsgWorkID, uint QueueLen, 
+                                 ulong ThreadNum);
+    HRESULT OnThreadWorkReject(COMSVCSEVENTINFO* pInfo, ulong ThreadID, ulong MsgWorkID, uint QueueLen);
+    HRESULT OnThreadAssignApartment(COMSVCSEVENTINFO* pInfo, const(GUID)* guidActivity, ulong AptID);
+    HRESULT OnThreadUnassignApartment(COMSVCSEVENTINFO* pInfo, ulong AptID);
+}
+
+@GUID("683130A6-2E50-11D2-98A5-00C04F8EE1C4")
+interface IComAppEvents : IUnknown
+{
+    HRESULT OnAppActivation(COMSVCSEVENTINFO* pInfo, GUID guidApp);
+    HRESULT OnAppShutdown(COMSVCSEVENTINFO* pInfo, GUID guidApp);
+    HRESULT OnAppForceShutdown(COMSVCSEVENTINFO* pInfo, GUID guidApp);
+}
+
+@GUID("683130A7-2E50-11D2-98A5-00C04F8EE1C4")
+interface IComInstanceEvents : IUnknown
+{
+    HRESULT OnObjectCreate(COMSVCSEVENTINFO* pInfo, const(GUID)* guidActivity, const(GUID)* clsid, 
+                           const(GUID)* tsid, ulong CtxtID, ulong ObjectID);
+    HRESULT OnObjectDestroy(COMSVCSEVENTINFO* pInfo, ulong CtxtID);
+}
+
+@GUID("683130A8-2E50-11D2-98A5-00C04F8EE1C4")
+interface IComTransactionEvents : IUnknown
+{
+    HRESULT OnTransactionStart(COMSVCSEVENTINFO* pInfo, const(GUID)* guidTx, const(GUID)* tsid, BOOL fRoot);
+    HRESULT OnTransactionPrepare(COMSVCSEVENTINFO* pInfo, const(GUID)* guidTx, BOOL fVoteYes);
+    HRESULT OnTransactionAbort(COMSVCSEVENTINFO* pInfo, const(GUID)* guidTx);
+    HRESULT OnTransactionCommit(COMSVCSEVENTINFO* pInfo, const(GUID)* guidTx);
+}
+
+@GUID("683130A9-2E50-11D2-98A5-00C04F8EE1C4")
+interface IComMethodEvents : IUnknown
+{
+    HRESULT OnMethodCall(COMSVCSEVENTINFO* pInfo, ulong oid, const(GUID)* guidCid, const(GUID)* guidRid, 
+                         uint iMeth);
+    HRESULT OnMethodReturn(COMSVCSEVENTINFO* pInfo, ulong oid, const(GUID)* guidCid, const(GUID)* guidRid, 
+                           uint iMeth, HRESULT hresult);
+    HRESULT OnMethodException(COMSVCSEVENTINFO* pInfo, ulong oid, const(GUID)* guidCid, const(GUID)* guidRid, 
+                              uint iMeth);
+}
+
+@GUID("683130AA-2E50-11D2-98A5-00C04F8EE1C4")
+interface IComObjectEvents : IUnknown
+{
+    HRESULT OnObjectActivate(COMSVCSEVENTINFO* pInfo, ulong CtxtID, ulong ObjectID);
+    HRESULT OnObjectDeactivate(COMSVCSEVENTINFO* pInfo, ulong CtxtID, ulong ObjectID);
+    HRESULT OnDisableCommit(COMSVCSEVENTINFO* pInfo, ulong CtxtID);
+    HRESULT OnEnableCommit(COMSVCSEVENTINFO* pInfo, ulong CtxtID);
+    HRESULT OnSetComplete(COMSVCSEVENTINFO* pInfo, ulong CtxtID);
+    HRESULT OnSetAbort(COMSVCSEVENTINFO* pInfo, ulong CtxtID);
+}
+
+@GUID("683130AB-2E50-11D2-98A5-00C04F8EE1C4")
+interface IComResourceEvents : IUnknown
+{
+    HRESULT OnResourceCreate(COMSVCSEVENTINFO* pInfo, ulong ObjectID, ushort* pszType, ulong resId, BOOL enlisted);
+    HRESULT OnResourceAllocate(COMSVCSEVENTINFO* pInfo, ulong ObjectID, ushort* pszType, ulong resId, 
+                               BOOL enlisted, uint NumRated, uint Rating);
+    HRESULT OnResourceRecycle(COMSVCSEVENTINFO* pInfo, ulong ObjectID, ushort* pszType, ulong resId);
+    HRESULT OnResourceDestroy(COMSVCSEVENTINFO* pInfo, ulong ObjectID, HRESULT hr, ushort* pszType, ulong resId);
+    HRESULT OnResourceTrack(COMSVCSEVENTINFO* pInfo, ulong ObjectID, ushort* pszType, ulong resId, BOOL enlisted);
+}
+
+@GUID("683130AC-2E50-11D2-98A5-00C04F8EE1C4")
+interface IComSecurityEvents : IUnknown
+{
+    HRESULT OnAuthenticate(COMSVCSEVENTINFO* pInfo, const(GUID)* guidActivity, ulong ObjectID, 
+                           const(GUID)* guidIID, uint iMeth, uint cbByteOrig, char* pSidOriginalUser, uint cbByteCur, 
+                           char* pSidCurrentUser, BOOL bCurrentUserInpersonatingInProc);
+    HRESULT OnAuthenticateFail(COMSVCSEVENTINFO* pInfo, const(GUID)* guidActivity, ulong ObjectID, 
+                               const(GUID)* guidIID, uint iMeth, uint cbByteOrig, char* pSidOriginalUser, 
+                               uint cbByteCur, char* pSidCurrentUser, BOOL bCurrentUserInpersonatingInProc);
+}
+
+@GUID("683130AD-2E50-11D2-98A5-00C04F8EE1C4")
+interface IComObjectPoolEvents : IUnknown
+{
+    HRESULT OnObjPoolPutObject(COMSVCSEVENTINFO* pInfo, const(GUID)* guidObject, int nReason, uint dwAvailable, 
+                               ulong oid);
+    HRESULT OnObjPoolGetObject(COMSVCSEVENTINFO* pInfo, const(GUID)* guidActivity, const(GUID)* guidObject, 
+                               uint dwAvailable, ulong oid);
+    HRESULT OnObjPoolRecycleToTx(COMSVCSEVENTINFO* pInfo, const(GUID)* guidActivity, const(GUID)* guidObject, 
+                                 const(GUID)* guidTx, ulong objid);
+    HRESULT OnObjPoolGetFromTx(COMSVCSEVENTINFO* pInfo, const(GUID)* guidActivity, const(GUID)* guidObject, 
+                               const(GUID)* guidTx, ulong objid);
+}
+
+@GUID("683130AE-2E50-11D2-98A5-00C04F8EE1C4")
+interface IComObjectPoolEvents2 : IUnknown
+{
+    HRESULT OnObjPoolCreateObject(COMSVCSEVENTINFO* pInfo, const(GUID)* guidObject, uint dwObjsCreated, ulong oid);
+    HRESULT OnObjPoolDestroyObject(COMSVCSEVENTINFO* pInfo, const(GUID)* guidObject, uint dwObjsCreated, ulong oid);
+    HRESULT OnObjPoolCreateDecision(COMSVCSEVENTINFO* pInfo, uint dwThreadsWaiting, uint dwAvail, uint dwCreated, 
+                                    uint dwMin, uint dwMax);
+    HRESULT OnObjPoolTimeout(COMSVCSEVENTINFO* pInfo, const(GUID)* guidObject, const(GUID)* guidActivity, 
+                             uint dwTimeout);
+    HRESULT OnObjPoolCreatePool(COMSVCSEVENTINFO* pInfo, const(GUID)* guidObject, uint dwMin, uint dwMax, 
+                                uint dwTimeout);
+}
+
+@GUID("683130AF-2E50-11D2-98A5-00C04F8EE1C4")
+interface IComObjectConstructionEvents : IUnknown
+{
+    HRESULT OnObjectConstruct(COMSVCSEVENTINFO* pInfo, const(GUID)* guidObject, ushort* sConstructString, 
+                              ulong oid);
+}
+
+@GUID("683130B0-2E50-11D2-98A5-00C04F8EE1C4")
+interface IComActivityEvents : IUnknown
+{
+    HRESULT OnActivityCreate(COMSVCSEVENTINFO* pInfo, const(GUID)* guidActivity);
+    HRESULT OnActivityDestroy(COMSVCSEVENTINFO* pInfo, const(GUID)* guidActivity);
+    HRESULT OnActivityEnter(COMSVCSEVENTINFO* pInfo, const(GUID)* guidCurrent, const(GUID)* guidEntered, 
+                            uint dwThread);
+    HRESULT OnActivityTimeout(COMSVCSEVENTINFO* pInfo, const(GUID)* guidCurrent, const(GUID)* guidEntered, 
+                              uint dwThread, uint dwTimeout);
+    HRESULT OnActivityReenter(COMSVCSEVENTINFO* pInfo, const(GUID)* guidCurrent, uint dwThread, uint dwCallDepth);
+    HRESULT OnActivityLeave(COMSVCSEVENTINFO* pInfo, const(GUID)* guidCurrent, const(GUID)* guidLeft);
+    HRESULT OnActivityLeaveSame(COMSVCSEVENTINFO* pInfo, const(GUID)* guidCurrent, uint dwCallDepth);
+}
+
+@GUID("683130B1-2E50-11D2-98A5-00C04F8EE1C4")
+interface IComIdentityEvents : IUnknown
+{
+    HRESULT OnIISRequestInfo(COMSVCSEVENTINFO* pInfo, ulong ObjId, ushort* pszClientIP, ushort* pszServerIP, 
+                             ushort* pszURL);
+}
+
+@GUID("683130B2-2E50-11D2-98A5-00C04F8EE1C4")
+interface IComQCEvents : IUnknown
+{
+    HRESULT OnQCRecord(COMSVCSEVENTINFO* pInfo, ulong objid, char* szQueue, const(GUID)* guidMsgId, 
+                       const(GUID)* guidWorkFlowId, HRESULT msmqhr);
+    HRESULT OnQCQueueOpen(COMSVCSEVENTINFO* pInfo, char* szQueue, ulong QueueID, HRESULT hr);
+    HRESULT OnQCReceive(COMSVCSEVENTINFO* pInfo, ulong QueueID, const(GUID)* guidMsgId, 
+                        const(GUID)* guidWorkFlowId, HRESULT hr);
+    HRESULT OnQCReceiveFail(COMSVCSEVENTINFO* pInfo, ulong QueueID, HRESULT msmqhr);
+    HRESULT OnQCMoveToReTryQueue(COMSVCSEVENTINFO* pInfo, const(GUID)* guidMsgId, const(GUID)* guidWorkFlowId, 
+                                 uint RetryIndex);
+    HRESULT OnQCMoveToDeadQueue(COMSVCSEVENTINFO* pInfo, const(GUID)* guidMsgId, const(GUID)* guidWorkFlowId);
+    HRESULT OnQCPlayback(COMSVCSEVENTINFO* pInfo, ulong objid, const(GUID)* guidMsgId, const(GUID)* guidWorkFlowId, 
+                         HRESULT hr);
+}
+
+@GUID("683130B3-2E50-11D2-98A5-00C04F8EE1C4")
+interface IComExceptionEvents : IUnknown
+{
+    HRESULT OnExceptionUser(COMSVCSEVENTINFO* pInfo, uint code, ulong address, ushort* pszStackTrace);
+}
+
+@GUID("683130B4-2E50-11D2-98A5-00C04F8EE1C4")
+interface ILBEvents : IUnknown
+{
+    HRESULT TargetUp(BSTR bstrServerName, BSTR bstrClsidEng);
+    HRESULT TargetDown(BSTR bstrServerName, BSTR bstrClsidEng);
+    HRESULT EngineDefined(BSTR bstrPropName, VARIANT* varPropValue, BSTR bstrClsidEng);
+}
+
+@GUID("683130B5-2E50-11D2-98A5-00C04F8EE1C4")
+interface IComCRMEvents : IUnknown
+{
+    HRESULT OnCRMRecoveryStart(COMSVCSEVENTINFO* pInfo, GUID guidApp);
+    HRESULT OnCRMRecoveryDone(COMSVCSEVENTINFO* pInfo, GUID guidApp);
+    HRESULT OnCRMCheckpoint(COMSVCSEVENTINFO* pInfo, GUID guidApp);
+    HRESULT OnCRMBegin(COMSVCSEVENTINFO* pInfo, GUID guidClerkCLSID, GUID guidActivity, GUID guidTx, 
+                       char* szProgIdCompensator, char* szDescription);
+    HRESULT OnCRMPrepare(COMSVCSEVENTINFO* pInfo, GUID guidClerkCLSID);
+    HRESULT OnCRMCommit(COMSVCSEVENTINFO* pInfo, GUID guidClerkCLSID);
+    HRESULT OnCRMAbort(COMSVCSEVENTINFO* pInfo, GUID guidClerkCLSID);
+    HRESULT OnCRMIndoubt(COMSVCSEVENTINFO* pInfo, GUID guidClerkCLSID);
+    HRESULT OnCRMDone(COMSVCSEVENTINFO* pInfo, GUID guidClerkCLSID);
+    HRESULT OnCRMRelease(COMSVCSEVENTINFO* pInfo, GUID guidClerkCLSID);
+    HRESULT OnCRMAnalyze(COMSVCSEVENTINFO* pInfo, GUID guidClerkCLSID, uint dwCrmRecordType, uint dwRecordSize);
+    HRESULT OnCRMWrite(COMSVCSEVENTINFO* pInfo, GUID guidClerkCLSID, BOOL fVariants, uint dwRecordSize);
+    HRESULT OnCRMForget(COMSVCSEVENTINFO* pInfo, GUID guidClerkCLSID);
+    HRESULT OnCRMForce(COMSVCSEVENTINFO* pInfo, GUID guidClerkCLSID);
+    HRESULT OnCRMDeliver(COMSVCSEVENTINFO* pInfo, GUID guidClerkCLSID, BOOL fVariants, uint dwRecordSize);
+}
+
+@GUID("FB388AAA-567D-4024-AF8E-6E93EE748573")
+interface IComMethod2Events : IUnknown
+{
+    HRESULT OnMethodCall2(COMSVCSEVENTINFO* pInfo, ulong oid, const(GUID)* guidCid, const(GUID)* guidRid, 
+                          uint dwThread, uint iMeth);
+    HRESULT OnMethodReturn2(COMSVCSEVENTINFO* pInfo, ulong oid, const(GUID)* guidCid, const(GUID)* guidRid, 
+                            uint dwThread, uint iMeth, HRESULT hresult);
+    HRESULT OnMethodException2(COMSVCSEVENTINFO* pInfo, ulong oid, const(GUID)* guidCid, const(GUID)* guidRid, 
+                               uint dwThread, uint iMeth);
+}
+
+@GUID("4E6CDCC9-FB25-4FD5-9CC5-C9F4B6559CEC")
+interface IComTrackingInfoEvents : IUnknown
+{
+    HRESULT OnNewTrackingInfo(IUnknown pToplevelCollection);
+}
+
+@GUID("C266C677-C9AD-49AB-9FD9-D9661078588A")
+interface IComTrackingInfoCollection : IUnknown
+{
+    HRESULT Type(TRACKING_COLL_TYPE* pType);
+    HRESULT Count(uint* pCount);
+    HRESULT Item(uint ulIndex, const(GUID)* riid, void** ppv);
+}
+
+@GUID("116E42C5-D8B1-47BF-AB1E-C895ED3E2372")
+interface IComTrackingInfoObject : IUnknown
+{
+    HRESULT GetValue(ushort* szPropertyName, VARIANT* pvarOut);
+}
+
+@GUID("789B42BE-6F6B-443A-898E-67ABF390AA14")
+interface IComTrackingInfoProperties : IUnknown
+{
+    HRESULT PropCount(uint* pCount);
+    HRESULT GetPropName(uint ulIndex, ushort** ppszPropName);
+}
+
+@GUID("1290BC1A-B219-418D-B078-5934DED08242")
+interface IComApp2Events : IUnknown
+{
+    HRESULT OnAppActivation2(COMSVCSEVENTINFO* pInfo, GUID guidApp, GUID guidProcess);
+    HRESULT OnAppShutdown2(COMSVCSEVENTINFO* pInfo, GUID guidApp);
+    HRESULT OnAppForceShutdown2(COMSVCSEVENTINFO* pInfo, GUID guidApp);
+    HRESULT OnAppPaused2(COMSVCSEVENTINFO* pInfo, GUID guidApp, BOOL bPaused);
+    HRESULT OnAppRecycle2(COMSVCSEVENTINFO* pInfo, GUID guidApp, GUID guidProcess, int lReason);
+}
+
+@GUID("A136F62A-2F94-4288-86E0-D8A1FA4C0299")
+interface IComTransaction2Events : IUnknown
+{
+    HRESULT OnTransactionStart2(COMSVCSEVENTINFO* pInfo, const(GUID)* guidTx, const(GUID)* tsid, BOOL fRoot, 
+                                int nIsolationLevel);
+    HRESULT OnTransactionPrepare2(COMSVCSEVENTINFO* pInfo, const(GUID)* guidTx, BOOL fVoteYes);
+    HRESULT OnTransactionAbort2(COMSVCSEVENTINFO* pInfo, const(GUID)* guidTx);
+    HRESULT OnTransactionCommit2(COMSVCSEVENTINFO* pInfo, const(GUID)* guidTx);
+}
+
+@GUID("20E3BF07-B506-4AD5-A50C-D2CA5B9C158E")
+interface IComInstance2Events : IUnknown
+{
+    HRESULT OnObjectCreate2(COMSVCSEVENTINFO* pInfo, const(GUID)* guidActivity, const(GUID)* clsid, 
+                            const(GUID)* tsid, ulong CtxtID, ulong ObjectID, const(GUID)* guidPartition);
+    HRESULT OnObjectDestroy2(COMSVCSEVENTINFO* pInfo, ulong CtxtID);
+}
+
+@GUID("65BF6534-85EA-4F64-8CF4-3D974B2AB1CF")
+interface IComObjectPool2Events : IUnknown
+{
+    HRESULT OnObjPoolPutObject2(COMSVCSEVENTINFO* pInfo, const(GUID)* guidObject, int nReason, uint dwAvailable, 
+                                ulong oid);
+    HRESULT OnObjPoolGetObject2(COMSVCSEVENTINFO* pInfo, const(GUID)* guidActivity, const(GUID)* guidObject, 
+                                uint dwAvailable, ulong oid, const(GUID)* guidPartition);
+    HRESULT OnObjPoolRecycleToTx2(COMSVCSEVENTINFO* pInfo, const(GUID)* guidActivity, const(GUID)* guidObject, 
+                                  const(GUID)* guidTx, ulong objid);
+    HRESULT OnObjPoolGetFromTx2(COMSVCSEVENTINFO* pInfo, const(GUID)* guidActivity, const(GUID)* guidObject, 
+                                const(GUID)* guidTx, ulong objid, const(GUID)* guidPartition);
+}
+
+@GUID("4B5A7827-8DF2-45C0-8F6F-57EA1F856A9F")
+interface IComObjectConstruction2Events : IUnknown
+{
+    HRESULT OnObjectConstruct2(COMSVCSEVENTINFO* pInfo, const(GUID)* guidObject, ushort* sConstructString, 
+                               ulong oid, const(GUID)* guidPartition);
+}
+
+@GUID("D6D48A3C-D5C5-49E7-8C74-99E4889ED52F")
+interface ISystemAppEventData : IUnknown
+{
+    HRESULT Startup();
+    HRESULT OnDataChanged(uint dwPID, uint dwMask, uint dwNumberSinks, BSTR bstrDwMethodMask, uint dwReason, 
+                          ulong u64TraceHandle);
+}
+
+@GUID("BACEDF4D-74AB-11D0-B162-00AA00BA3258")
+interface IMtsEvents : IDispatch
+{
+    HRESULT get_PackageName(BSTR* pVal);
+    HRESULT get_PackageGuid(BSTR* pVal);
+    HRESULT PostEvent(VARIANT* vEvent);
+    HRESULT get_FireEvents(short* pVal);
+    HRESULT GetProcessID(int* id);
+}
+
+@GUID("D56C3DC1-8482-11D0-B170-00AA00BA3258")
+interface IMtsEventInfo : IDispatch
+{
+    HRESULT get_Names(IUnknown* pUnk);
+    HRESULT get_DisplayName(BSTR* sDisplayName);
+    HRESULT get_EventID(BSTR* sGuidEventID);
+    HRESULT get_Count(int* lCount);
+    HRESULT get_Value(BSTR sKey, VARIANT* pVal);
+}
+
+@GUID("D19B8BFD-7F88-11D0-B16E-00AA00BA3258")
+interface IMTSLocator : IDispatch
+{
+    HRESULT GetEventDispatcher(IUnknown* pUnk);
+}
+
+@GUID("4B2E958C-0393-11D1-B1AB-00AA00BA3258")
+interface IMtsGrp : IDispatch
+{
+    HRESULT get_Count(int* pVal);
+    HRESULT Item(int lIndex, IUnknown* ppUnkDispatcher);
+    HRESULT Refresh();
+}
+
+@GUID("588A085A-B795-11D1-8054-00C04FC340EE")
+interface IMessageMover : IDispatch
+{
+    HRESULT get_SourcePath(BSTR* pVal);
+    HRESULT put_SourcePath(BSTR newVal);
+    HRESULT get_DestPath(BSTR* pVal);
+    HRESULT put_DestPath(BSTR newVal);
+    HRESULT get_CommitBatchSize(int* pVal);
+    HRESULT put_CommitBatchSize(int newVal);
+    HRESULT MoveMessages(int* plMessagesMoved);
+}
+
+@GUID("9A9F12B8-80AF-47AB-A579-35EA57725370")
+interface IEventServerTrace : IDispatch
+{
+    HRESULT StartTraceGuid(BSTR bstrguidEvent, BSTR bstrguidFilter, int lPidFilter);
+    HRESULT StopTraceGuid(BSTR bstrguidEvent, BSTR bstrguidFilter, int lPidFilter);
+    HRESULT EnumTraceGuid(int* plCntGuids, BSTR* pbstrGuidList);
+}
+
+@GUID("507C3AC8-3E12-4CB0-9366-653D3E050638")
 interface IGetAppTrackerData : IUnknown
 {
-    HRESULT GetApplicationProcesses(const(Guid)* PartitionId, const(Guid)* ApplicationId, uint Flags, uint* NumApplicationProcesses, char* ApplicationProcesses);
-    HRESULT GetApplicationProcessDetails(const(Guid)* ApplicationInstanceId, uint ProcessId, uint Flags, ApplicationProcessSummary* Summary, ApplicationProcessStatistics* Statistics, ApplicationProcessRecycleInfo* RecycleInfo, int* AnyComponentsHangMonitored);
-    HRESULT GetApplicationsInProcess(const(Guid)* ApplicationInstanceId, uint ProcessId, const(Guid)* PartitionId, uint Flags, uint* NumApplicationsInProcess, char* Applications);
-    HRESULT GetComponentsInProcess(const(Guid)* ApplicationInstanceId, uint ProcessId, const(Guid)* PartitionId, const(Guid)* ApplicationId, uint Flags, uint* NumComponentsInProcess, char* Components);
-    HRESULT GetComponentDetails(const(Guid)* ApplicationInstanceId, uint ProcessId, const(Guid)* Clsid, uint Flags, ComponentSummary* Summary, ComponentStatistics* Statistics, ComponentHangMonitorInfo* HangMonitorInfo);
+    HRESULT GetApplicationProcesses(const(GUID)* PartitionId, const(GUID)* ApplicationId, uint Flags, 
+                                    uint* NumApplicationProcesses, char* ApplicationProcesses);
+    HRESULT GetApplicationProcessDetails(const(GUID)* ApplicationInstanceId, uint ProcessId, uint Flags, 
+                                         ApplicationProcessSummary* Summary, 
+                                         ApplicationProcessStatistics* Statistics, 
+                                         ApplicationProcessRecycleInfo* RecycleInfo, int* AnyComponentsHangMonitored);
+    HRESULT GetApplicationsInProcess(const(GUID)* ApplicationInstanceId, uint ProcessId, const(GUID)* PartitionId, 
+                                     uint Flags, uint* NumApplicationsInProcess, char* Applications);
+    HRESULT GetComponentsInProcess(const(GUID)* ApplicationInstanceId, uint ProcessId, const(GUID)* PartitionId, 
+                                   const(GUID)* ApplicationId, uint Flags, uint* NumComponentsInProcess, 
+                                   char* Components);
+    HRESULT GetComponentDetails(const(GUID)* ApplicationInstanceId, uint ProcessId, const(GUID)* Clsid, uint Flags, 
+                                ComponentSummary* Summary, ComponentStatistics* Statistics, 
+                                ComponentHangMonitorInfo* HangMonitorInfo);
     HRESULT GetTrackerDataAsCollectionObject(IUnknown* TopLevelCollection);
     HRESULT GetSuggestedPollingInterval(uint* PollingIntervalInSeconds);
 }
 
-const GUID IID_IDispenserManager = {0x5CB31E10, 0x2B5F, 0x11CF, [0xBE, 0x10, 0x00, 0xAA, 0x00, 0xA2, 0xFA, 0x25]};
-@GUID(0x5CB31E10, 0x2B5F, 0x11CF, [0xBE, 0x10, 0x00, 0xAA, 0x00, 0xA2, 0xFA, 0x25]);
+@GUID("5CB31E10-2B5F-11CF-BE10-00AA00A2FA25")
 interface IDispenserManager : IUnknown
 {
-    HRESULT RegisterDispenser(IDispenserDriver __MIDL__IDispenserManager0000, ushort* szDispenserName, IHolder* __MIDL__IDispenserManager0001);
-    HRESULT GetContext(uint* __MIDL__IDispenserManager0002, uint* __MIDL__IDispenserManager0003);
+    HRESULT RegisterDispenser(IDispenserDriver __MIDL__IDispenserManager0000, ushort* szDispenserName, 
+                              IHolder* __MIDL__IDispenserManager0001);
+    HRESULT GetContext(size_t* __MIDL__IDispenserManager0002, size_t* __MIDL__IDispenserManager0003);
 }
 
-const GUID IID_IHolder = {0xBF6A1850, 0x2B45, 0x11CF, [0xBE, 0x10, 0x00, 0xAA, 0x00, 0xA2, 0xFA, 0x25]};
-@GUID(0xBF6A1850, 0x2B45, 0x11CF, [0xBE, 0x10, 0x00, 0xAA, 0x00, 0xA2, 0xFA, 0x25]);
+@GUID("BF6A1850-2B45-11CF-BE10-00AA00A2FA25")
 interface IHolder : IUnknown
 {
-    HRESULT AllocResource(const(uint) __MIDL__IHolder0000, uint* __MIDL__IHolder0001);
-    HRESULT FreeResource(const(uint) __MIDL__IHolder0002);
-    HRESULT TrackResource(const(uint) __MIDL__IHolder0003);
+    HRESULT AllocResource(const(size_t) __MIDL__IHolder0000, size_t* __MIDL__IHolder0001);
+    HRESULT FreeResource(const(size_t) __MIDL__IHolder0002);
+    HRESULT TrackResource(const(size_t) __MIDL__IHolder0003);
     HRESULT TrackResourceS(ushort* __MIDL__IHolder0004);
-    HRESULT UntrackResource(const(uint) __MIDL__IHolder0005, const(int) __MIDL__IHolder0006);
+    HRESULT UntrackResource(const(size_t) __MIDL__IHolder0005, const(int) __MIDL__IHolder0006);
     HRESULT UntrackResourceS(ushort* __MIDL__IHolder0007, const(int) __MIDL__IHolder0008);
     HRESULT Close();
-    HRESULT RequestDestroyResource(const(uint) __MIDL__IHolder0009);
+    HRESULT RequestDestroyResource(const(size_t) __MIDL__IHolder0009);
 }
 
-const GUID IID_IDispenserDriver = {0x208B3651, 0x2B48, 0x11CF, [0xBE, 0x10, 0x00, 0xAA, 0x00, 0xA2, 0xFA, 0x25]};
-@GUID(0x208B3651, 0x2B48, 0x11CF, [0xBE, 0x10, 0x00, 0xAA, 0x00, 0xA2, 0xFA, 0x25]);
+@GUID("208B3651-2B48-11CF-BE10-00AA00A2FA25")
 interface IDispenserDriver : IUnknown
 {
-    HRESULT CreateResource(const(uint) ResTypId, uint* pResId, int* pSecsFreeBeforeDestroy);
-    HRESULT RateResource(const(uint) ResTypId, const(uint) ResId, const(int) fRequiresTransactionEnlistment, uint* pRating);
-    HRESULT EnlistResource(const(uint) ResId, const(uint) TransId);
-    HRESULT ResetResource(const(uint) ResId);
-    HRESULT DestroyResource(const(uint) ResId);
+    HRESULT CreateResource(const(size_t) ResTypId, size_t* pResId, int* pSecsFreeBeforeDestroy);
+    HRESULT RateResource(const(size_t) ResTypId, const(size_t) ResId, const(int) fRequiresTransactionEnlistment, 
+                         uint* pRating);
+    HRESULT EnlistResource(const(size_t) ResId, const(size_t) TransId);
+    HRESULT ResetResource(const(size_t) ResId);
+    HRESULT DestroyResource(const(size_t) ResId);
     HRESULT DestroyResourceS(ushort* ResId);
 }
 
-const GUID IID_ITransactionProxy = {0x02558374, 0xDF2E, 0x4DAE, [0xBD, 0x6B, 0x1D, 0x5C, 0x99, 0x4F, 0x9B, 0xDC]};
-@GUID(0x02558374, 0xDF2E, 0x4DAE, [0xBD, 0x6B, 0x1D, 0x5C, 0x99, 0x4F, 0x9B, 0xDC]);
+@GUID("02558374-DF2E-4DAE-BD6B-1D5C994F9BDC")
 interface ITransactionProxy : IUnknown
 {
-    HRESULT Commit(Guid guid);
+    HRESULT Commit(GUID guid);
     HRESULT Abort();
     HRESULT Promote(ITransaction* pTransaction);
     HRESULT CreateVoter(ITransactionVoterNotifyAsync2 pTxAsync, ITransactionVoterBallotAsync2* ppBallot);
     HRESULT GetIsolationLevel(int* __MIDL__ITransactionProxy0000);
-    HRESULT GetIdentifier(Guid* pbstrIdentifier);
+    HRESULT GetIdentifier(GUID* pbstrIdentifier);
     HRESULT IsReusable(int* pfIsReusable);
 }
 
-const GUID IID_IContextSecurityPerimeter = {0xA7549A29, 0xA7C4, 0x42E1, [0x8D, 0xC1, 0x7E, 0x3D, 0x74, 0x8D, 0xC2, 0x4A]};
-@GUID(0xA7549A29, 0xA7C4, 0x42E1, [0x8D, 0xC1, 0x7E, 0x3D, 0x74, 0x8D, 0xC2, 0x4A]);
+@GUID("A7549A29-A7C4-42E1-8DC1-7E3D748DC24A")
 interface IContextSecurityPerimeter : IUnknown
 {
     HRESULT GetPerimeterFlag(int* pFlag);
     HRESULT SetPerimeterFlag(BOOL fFlag);
 }
 
-const GUID IID_ITxProxyHolder = {0x13D86F31, 0x0139, 0x41AF, [0xBC, 0xAD, 0xC7, 0xD5, 0x04, 0x35, 0xFE, 0x9F]};
-@GUID(0x13D86F31, 0x0139, 0x41AF, [0xBC, 0xAD, 0xC7, 0xD5, 0x04, 0x35, 0xFE, 0x9F]);
+@GUID("13D86F31-0139-41AF-BCAD-C7D50435FE9F")
 interface ITxProxyHolder : IUnknown
 {
-    void GetIdentifier(Guid* pGuidLtx);
+    void GetIdentifier(GUID* pGuidLtx);
 }
 
-const GUID IID_IObjectContext = {0x51372AE0, 0xCAE7, 0x11CF, [0xBE, 0x81, 0x00, 0xAA, 0x00, 0xA2, 0xFA, 0x25]};
-@GUID(0x51372AE0, 0xCAE7, 0x11CF, [0xBE, 0x81, 0x00, 0xAA, 0x00, 0xA2, 0xFA, 0x25]);
+@GUID("51372AE0-CAE7-11CF-BE81-00AA00A2FA25")
 interface IObjectContext : IUnknown
 {
-    HRESULT CreateInstance(const(Guid)* rclsid, const(Guid)* riid, void** ppv);
+    HRESULT CreateInstance(const(GUID)* rclsid, const(GUID)* riid, void** ppv);
     HRESULT SetComplete();
     HRESULT SetAbort();
     HRESULT EnableCommit();
     HRESULT DisableCommit();
-    BOOL IsInTransaction();
-    BOOL IsSecurityEnabled();
+    BOOL    IsInTransaction();
+    BOOL    IsSecurityEnabled();
     HRESULT IsCallerInRole(BSTR bstrRole, int* pfIsInRole);
 }
 
-const GUID IID_IObjectControl = {0x51372AEC, 0xCAE7, 0x11CF, [0xBE, 0x81, 0x00, 0xAA, 0x00, 0xA2, 0xFA, 0x25]};
-@GUID(0x51372AEC, 0xCAE7, 0x11CF, [0xBE, 0x81, 0x00, 0xAA, 0x00, 0xA2, 0xFA, 0x25]);
+@GUID("51372AEC-CAE7-11CF-BE81-00AA00A2FA25")
 interface IObjectControl : IUnknown
 {
     HRESULT Activate();
-    void Deactivate();
-    BOOL CanBePooled();
+    void    Deactivate();
+    BOOL    CanBePooled();
 }
 
-const GUID IID_IEnumNames = {0x51372AF2, 0xCAE7, 0x11CF, [0xBE, 0x81, 0x00, 0xAA, 0x00, 0xA2, 0xFA, 0x25]};
-@GUID(0x51372AF2, 0xCAE7, 0x11CF, [0xBE, 0x81, 0x00, 0xAA, 0x00, 0xA2, 0xFA, 0x25]);
+@GUID("51372AF2-CAE7-11CF-BE81-00AA00A2FA25")
 interface IEnumNames : IUnknown
 {
     HRESULT Next(uint celt, BSTR* rgname, uint* pceltFetched);
@@ -2138,8 +2294,7 @@ interface IEnumNames : IUnknown
     HRESULT Clone(IEnumNames* ppenum);
 }
 
-const GUID IID_ISecurityProperty = {0x51372AEA, 0xCAE7, 0x11CF, [0xBE, 0x81, 0x00, 0xAA, 0x00, 0xA2, 0xFA, 0x25]};
-@GUID(0x51372AEA, 0xCAE7, 0x11CF, [0xBE, 0x81, 0x00, 0xAA, 0x00, 0xA2, 0xFA, 0x25]);
+@GUID("51372AEA-CAE7-11CF-BE81-00AA00A2FA25")
 interface ISecurityProperty : IUnknown
 {
     HRESULT GetDirectCreatorSID(void** pSID);
@@ -2149,8 +2304,7 @@ interface ISecurityProperty : IUnknown
     HRESULT ReleaseSID(void* pSID);
 }
 
-const GUID IID_ObjectControl = {0x7DC41850, 0x0C31, 0x11D0, [0x8B, 0x79, 0x00, 0xAA, 0x00, 0xB8, 0xA7, 0x90]};
-@GUID(0x7DC41850, 0x0C31, 0x11D0, [0x8B, 0x79, 0x00, 0xAA, 0x00, 0xB8, 0xA7, 0x90]);
+@GUID("7DC41850-0C31-11D0-8B79-00AA00B8A790")
 interface ObjectControl : IUnknown
 {
     HRESULT Activate();
@@ -2158,16 +2312,14 @@ interface ObjectControl : IUnknown
     HRESULT CanBePooled(short* pbPoolable);
 }
 
-const GUID IID_ISharedProperty = {0x2A005C01, 0xA5DE, 0x11CF, [0x9E, 0x66, 0x00, 0xAA, 0x00, 0xA3, 0xF4, 0x64]};
-@GUID(0x2A005C01, 0xA5DE, 0x11CF, [0x9E, 0x66, 0x00, 0xAA, 0x00, 0xA3, 0xF4, 0x64]);
+@GUID("2A005C01-A5DE-11CF-9E66-00AA00A3F464")
 interface ISharedProperty : IDispatch
 {
     HRESULT get_Value(VARIANT* pVal);
     HRESULT put_Value(VARIANT val);
 }
 
-const GUID IID_ISharedPropertyGroup = {0x2A005C07, 0xA5DE, 0x11CF, [0x9E, 0x66, 0x00, 0xAA, 0x00, 0xA3, 0xF4, 0x64]};
-@GUID(0x2A005C07, 0xA5DE, 0x11CF, [0x9E, 0x66, 0x00, 0xAA, 0x00, 0xA3, 0xF4, 0x64]);
+@GUID("2A005C07-A5DE-11CF-9E66-00AA00A3F464")
 interface ISharedPropertyGroup : IDispatch
 {
     HRESULT CreatePropertyByPosition(int Index, short* fExists, ISharedProperty* ppProp);
@@ -2176,81 +2328,72 @@ interface ISharedPropertyGroup : IDispatch
     HRESULT get_Property(BSTR Name, ISharedProperty* ppProperty);
 }
 
-const GUID IID_ISharedPropertyGroupManager = {0x2A005C0D, 0xA5DE, 0x11CF, [0x9E, 0x66, 0x00, 0xAA, 0x00, 0xA3, 0xF4, 0x64]};
-@GUID(0x2A005C0D, 0xA5DE, 0x11CF, [0x9E, 0x66, 0x00, 0xAA, 0x00, 0xA3, 0xF4, 0x64]);
+@GUID("2A005C0D-A5DE-11CF-9E66-00AA00A3F464")
 interface ISharedPropertyGroupManager : IDispatch
 {
-    HRESULT CreatePropertyGroup(BSTR Name, int* dwIsoMode, int* dwRelMode, short* fExists, ISharedPropertyGroup* ppGroup);
+    HRESULT CreatePropertyGroup(BSTR Name, int* dwIsoMode, int* dwRelMode, short* fExists, 
+                                ISharedPropertyGroup* ppGroup);
     HRESULT get_Group(BSTR Name, ISharedPropertyGroup* ppGroup);
     HRESULT get__NewEnum(IUnknown* retval);
 }
 
-const GUID IID_IObjectConstruct = {0x41C4F8B3, 0x7439, 0x11D2, [0x98, 0xCB, 0x00, 0xC0, 0x4F, 0x8E, 0xE1, 0xC4]};
-@GUID(0x41C4F8B3, 0x7439, 0x11D2, [0x98, 0xCB, 0x00, 0xC0, 0x4F, 0x8E, 0xE1, 0xC4]);
+@GUID("41C4F8B3-7439-11D2-98CB-00C04F8EE1C4")
 interface IObjectConstruct : IUnknown
 {
     HRESULT Construct(IDispatch pCtorObj);
 }
 
-const GUID IID_IObjectConstructString = {0x41C4F8B2, 0x7439, 0x11D2, [0x98, 0xCB, 0x00, 0xC0, 0x4F, 0x8E, 0xE1, 0xC4]};
-@GUID(0x41C4F8B2, 0x7439, 0x11D2, [0x98, 0xCB, 0x00, 0xC0, 0x4F, 0x8E, 0xE1, 0xC4]);
+@GUID("41C4F8B2-7439-11D2-98CB-00C04F8EE1C4")
 interface IObjectConstructString : IDispatch
 {
     HRESULT get_ConstructString(BSTR* pVal);
 }
 
-const GUID IID_IObjectContextActivity = {0x51372AFC, 0xCAE7, 0x11CF, [0xBE, 0x81, 0x00, 0xAA, 0x00, 0xA2, 0xFA, 0x25]};
-@GUID(0x51372AFC, 0xCAE7, 0x11CF, [0xBE, 0x81, 0x00, 0xAA, 0x00, 0xA2, 0xFA, 0x25]);
+@GUID("51372AFC-CAE7-11CF-BE81-00AA00A2FA25")
 interface IObjectContextActivity : IUnknown
 {
-    HRESULT GetActivityId(Guid* pGUID);
+    HRESULT GetActivityId(GUID* pGUID);
 }
 
-const GUID IID_IObjectContextInfo = {0x75B52DDB, 0xE8ED, 0x11D1, [0x93, 0xAD, 0x00, 0xAA, 0x00, 0xBA, 0x32, 0x58]};
-@GUID(0x75B52DDB, 0xE8ED, 0x11D1, [0x93, 0xAD, 0x00, 0xAA, 0x00, 0xBA, 0x32, 0x58]);
+@GUID("75B52DDB-E8ED-11D1-93AD-00AA00BA3258")
 interface IObjectContextInfo : IUnknown
 {
-    BOOL IsInTransaction();
+    BOOL    IsInTransaction();
     HRESULT GetTransaction(IUnknown* pptrans);
-    HRESULT GetTransactionId(Guid* pGuid);
-    HRESULT GetActivityId(Guid* pGUID);
-    HRESULT GetContextId(Guid* pGuid);
+    HRESULT GetTransactionId(GUID* pGuid);
+    HRESULT GetActivityId(GUID* pGUID);
+    HRESULT GetContextId(GUID* pGuid);
 }
 
-const GUID IID_IObjectContextInfo2 = {0x594BE71A, 0x4BC4, 0x438B, [0x91, 0x97, 0xCF, 0xD1, 0x76, 0x24, 0x8B, 0x09]};
-@GUID(0x594BE71A, 0x4BC4, 0x438B, [0x91, 0x97, 0xCF, 0xD1, 0x76, 0x24, 0x8B, 0x09]);
+@GUID("594BE71A-4BC4-438B-9197-CFD176248B09")
 interface IObjectContextInfo2 : IObjectContextInfo
 {
-    HRESULT GetPartitionId(Guid* pGuid);
-    HRESULT GetApplicationId(Guid* pGuid);
-    HRESULT GetApplicationInstanceId(Guid* pGuid);
+    HRESULT GetPartitionId(GUID* pGuid);
+    HRESULT GetApplicationId(GUID* pGuid);
+    HRESULT GetApplicationInstanceId(GUID* pGuid);
 }
 
-const GUID IID_ITransactionStatus = {0x61F589E8, 0x3724, 0x4898, [0xA0, 0xA4, 0x66, 0x4A, 0xE9, 0xE1, 0xD1, 0xB4]};
-@GUID(0x61F589E8, 0x3724, 0x4898, [0xA0, 0xA4, 0x66, 0x4A, 0xE9, 0xE1, 0xD1, 0xB4]);
+@GUID("61F589E8-3724-4898-A0A4-664AE9E1D1B4")
 interface ITransactionStatus : IUnknown
 {
     HRESULT SetTransactionStatus(HRESULT hrStatus);
     HRESULT GetTransactionStatus(int* pHrStatus);
 }
 
-const GUID IID_IObjectContextTip = {0x92FD41CA, 0xBAD9, 0x11D2, [0x9A, 0x2D, 0x00, 0xC0, 0x4F, 0x79, 0x7B, 0xC9]};
-@GUID(0x92FD41CA, 0xBAD9, 0x11D2, [0x9A, 0x2D, 0x00, 0xC0, 0x4F, 0x79, 0x7B, 0xC9]);
+@GUID("92FD41CA-BAD9-11D2-9A2D-00C04F797BC9")
 interface IObjectContextTip : IUnknown
 {
     HRESULT GetTipUrl(BSTR* pTipUrl);
 }
 
-const GUID IID_IPlaybackControl = {0x51372AFD, 0xCAE7, 0x11CF, [0xBE, 0x81, 0x00, 0xAA, 0x00, 0xA2, 0xFA, 0x25]};
-@GUID(0x51372AFD, 0xCAE7, 0x11CF, [0xBE, 0x81, 0x00, 0xAA, 0x00, 0xA2, 0xFA, 0x25]);
+@GUID("51372AFD-CAE7-11CF-BE81-00AA00A2FA25")
 interface IPlaybackControl : IUnknown
 {
     HRESULT FinalClientRetry();
     HRESULT FinalServerRetry();
 }
 
-const GUID IID_IGetContextProperties = {0x51372AF4, 0xCAE7, 0x11CF, [0xBE, 0x81, 0x00, 0xAA, 0x00, 0xA2, 0xFA, 0x25]};
-@GUID(0x51372AF4, 0xCAE7, 0x11CF, [0xBE, 0x81, 0x00, 0xAA, 0x00, 0xA2, 0xFA, 0x25]);
+@GUID("51372AF4-CAE7-11CF-BE81-00AA00A2FA25")
 interface IGetContextProperties : IUnknown
 {
     HRESULT Count(int* plCount);
@@ -2258,14 +2401,7 @@ interface IGetContextProperties : IUnknown
     HRESULT EnumNames(IEnumNames* ppenum);
 }
 
-enum TransactionVote
-{
-    TxCommit = 0,
-    TxAbort = 1,
-}
-
-const GUID IID_IContextState = {0x3C05E54B, 0xA42A, 0x11D2, [0xAF, 0xC4, 0x00, 0xC0, 0x4F, 0x8E, 0xE1, 0xC4]};
-@GUID(0x3C05E54B, 0xA42A, 0x11D2, [0xAF, 0xC4, 0x00, 0xC0, 0x4F, 0x8E, 0xE1, 0xC4]);
+@GUID("3C05E54B-A42A-11D2-AFC4-00C04F8EE1C4")
 interface IContextState : IUnknown
 {
     HRESULT SetDeactivateOnReturn(short bDeactivate);
@@ -2274,37 +2410,34 @@ interface IContextState : IUnknown
     HRESULT GetMyTransactionVote(TransactionVote* ptxVote);
 }
 
-const GUID IID_IPoolManager = {0x0A469861, 0x5A91, 0x43A0, [0x99, 0xB6, 0xD5, 0xE1, 0x79, 0xBB, 0x06, 0x31]};
-@GUID(0x0A469861, 0x5A91, 0x43A0, [0x99, 0xB6, 0xD5, 0xE1, 0x79, 0xBB, 0x06, 0x31]);
+@GUID("0A469861-5A91-43A0-99B6-D5E179BB0631")
 interface IPoolManager : IDispatch
 {
     HRESULT ShutdownPool(BSTR CLSIDOrProgID);
 }
 
-const GUID IID_ISelectCOMLBServer = {0xDCF443F4, 0x3F8A, 0x4872, [0xB9, 0xF0, 0x36, 0x9A, 0x79, 0x6D, 0x12, 0xD6]};
-@GUID(0xDCF443F4, 0x3F8A, 0x4872, [0xB9, 0xF0, 0x36, 0x9A, 0x79, 0x6D, 0x12, 0xD6]);
+@GUID("DCF443F4-3F8A-4872-B9F0-369A796D12D6")
 interface ISelectCOMLBServer : IUnknown
 {
     HRESULT Init();
     HRESULT GetLBServer(IUnknown pUnk);
 }
 
-const GUID IID_ICOMLBArguments = {0x3A0F150F, 0x8EE5, 0x4B94, [0xB4, 0x0E, 0xAE, 0xF2, 0xF9, 0xE4, 0x2E, 0xD2]};
-@GUID(0x3A0F150F, 0x8EE5, 0x4B94, [0xB4, 0x0E, 0xAE, 0xF2, 0xF9, 0xE4, 0x2E, 0xD2]);
+@GUID("3A0F150F-8EE5-4B94-B40E-AEF2F9E42ED2")
 interface ICOMLBArguments : IUnknown
 {
-    HRESULT GetCLSID(Guid* pCLSID);
-    HRESULT SetCLSID(Guid* pCLSID);
+    HRESULT GetCLSID(GUID* pCLSID);
+    HRESULT SetCLSID(GUID* pCLSID);
     HRESULT GetMachineName(uint cchSvr, char* szServerName);
     HRESULT SetMachineName(uint cchSvr, char* szServerName);
 }
 
-const GUID IID_ICrmLogControl = {0xA0E174B3, 0xD26E, 0x11D2, [0x8F, 0x84, 0x00, 0x80, 0x5F, 0xC7, 0xBC, 0xD9]};
-@GUID(0xA0E174B3, 0xD26E, 0x11D2, [0x8F, 0x84, 0x00, 0x80, 0x5F, 0xC7, 0xBC, 0xD9]);
+@GUID("A0E174B3-D26E-11D2-8F84-00805FC7BCD9")
 interface ICrmLogControl : IUnknown
 {
     HRESULT get_TransactionUOW(BSTR* pVal);
-    HRESULT RegisterCompensator(const(wchar)* lpcwstrProgIdCompensator, const(wchar)* lpcwstrDescription, int lCrmRegFlags);
+    HRESULT RegisterCompensator(const(wchar)* lpcwstrProgIdCompensator, const(wchar)* lpcwstrDescription, 
+                                int lCrmRegFlags);
     HRESULT WriteLogRecordVariants(VARIANT* pLogRecord);
     HRESULT ForceLog();
     HRESULT ForgetLogRecord();
@@ -2312,8 +2445,7 @@ interface ICrmLogControl : IUnknown
     HRESULT WriteLogRecord(char* rgBlob, uint cBlob);
 }
 
-const GUID IID_ICrmCompensatorVariants = {0xF0BAF8E4, 0x7804, 0x11D1, [0x82, 0xE9, 0x00, 0xA0, 0xC9, 0x1E, 0xED, 0xE9]};
-@GUID(0xF0BAF8E4, 0x7804, 0x11D1, [0x82, 0xE9, 0x00, 0xA0, 0xC9, 0x1E, 0xED, 0xE9]);
+@GUID("F0BAF8E4-7804-11D1-82E9-00A0C91EEDE9")
 interface ICrmCompensatorVariants : IUnknown
 {
     HRESULT SetLogControlVariants(ICrmLogControl pLogControl);
@@ -2328,15 +2460,7 @@ interface ICrmCompensatorVariants : IUnknown
     HRESULT EndAbortVariants();
 }
 
-struct CrmLogRecordRead
-{
-    uint dwCrmFlags;
-    uint dwSequenceNumber;
-    BLOB blobUserData;
-}
-
-const GUID IID_ICrmCompensator = {0xBBC01830, 0x8D3B, 0x11D1, [0x82, 0xEC, 0x00, 0xA0, 0xC9, 0x1E, 0xED, 0xE9]};
-@GUID(0xBBC01830, 0x8D3B, 0x11D1, [0x82, 0xEC, 0x00, 0xA0, 0xC9, 0x1E, 0xED, 0xE9]);
+@GUID("BBC01830-8D3B-11D1-82EC-00A0C91EEDE9")
 interface ICrmCompensator : IUnknown
 {
     HRESULT SetLogControl(ICrmLogControl pLogControl);
@@ -2351,16 +2475,7 @@ interface ICrmCompensator : IUnknown
     HRESULT EndAbort();
 }
 
-enum CrmTransactionState
-{
-    TxState_Active = 0,
-    TxState_Committed = 1,
-    TxState_Aborted = 2,
-    TxState_Indoubt = 3,
-}
-
-const GUID IID_ICrmMonitorLogRecords = {0x70C8E441, 0xC7ED, 0x11D1, [0x82, 0xFB, 0x00, 0xA0, 0xC9, 0x1E, 0xED, 0xE9]};
-@GUID(0x70C8E441, 0xC7ED, 0x11D1, [0x82, 0xFB, 0x00, 0xA0, 0xC9, 0x1E, 0xED, 0xE9]);
+@GUID("70C8E441-C7ED-11D1-82FB-00A0C91EEDE9")
 interface ICrmMonitorLogRecords : IUnknown
 {
     HRESULT get_Count(int* pVal);
@@ -2370,8 +2485,7 @@ interface ICrmMonitorLogRecords : IUnknown
     HRESULT GetLogRecordVariants(VARIANT IndexNumber, VARIANT* pLogRecord);
 }
 
-const GUID IID_ICrmMonitorClerks = {0x70C8E442, 0xC7ED, 0x11D1, [0x82, 0xFB, 0x00, 0xA0, 0xC9, 0x1E, 0xED, 0xE9]};
-@GUID(0x70C8E442, 0xC7ED, 0x11D1, [0x82, 0xFB, 0x00, 0xA0, 0xC9, 0x1E, 0xED, 0xE9]);
+@GUID("70C8E442-C7ED-11D1-82FB-00A0C91EEDE9")
 interface ICrmMonitorClerks : IDispatch
 {
     HRESULT Item(VARIANT Index, VARIANT* pItem);
@@ -2383,16 +2497,14 @@ interface ICrmMonitorClerks : IDispatch
     HRESULT ActivityId(VARIANT Index, VARIANT* pItem);
 }
 
-const GUID IID_ICrmMonitor = {0x70C8E443, 0xC7ED, 0x11D1, [0x82, 0xFB, 0x00, 0xA0, 0xC9, 0x1E, 0xED, 0xE9]};
-@GUID(0x70C8E443, 0xC7ED, 0x11D1, [0x82, 0xFB, 0x00, 0xA0, 0xC9, 0x1E, 0xED, 0xE9]);
+@GUID("70C8E443-C7ED-11D1-82FB-00A0C91EEDE9")
 interface ICrmMonitor : IUnknown
 {
     HRESULT GetClerks(ICrmMonitorClerks* pClerks);
     HRESULT HoldClerk(VARIANT Index, VARIANT* pItem);
 }
 
-const GUID IID_ICrmFormatLogRecords = {0x9C51D821, 0xC98B, 0x11D1, [0x82, 0xFB, 0x00, 0xA0, 0xC9, 0x1E, 0xED, 0xE9]};
-@GUID(0x9C51D821, 0xC98B, 0x11D1, [0x82, 0xFB, 0x00, 0xA0, 0xC9, 0x1E, 0xED, 0xE9]);
+@GUID("9C51D821-C98B-11D1-82FB-00A0C91EEDE9")
 interface ICrmFormatLogRecords : IUnknown
 {
     HRESULT GetColumnCount(int* plColumnCount);
@@ -2401,90 +2513,19 @@ interface ICrmFormatLogRecords : IUnknown
     HRESULT GetColumnVariants(VARIANT LogRecord, VARIANT* pFormattedLogRecord);
 }
 
-enum CSC_InheritanceConfig
-{
-    CSC_Inherit = 0,
-    CSC_Ignore = 1,
-}
-
-enum CSC_ThreadPool
-{
-    CSC_ThreadPoolNone = 0,
-    CSC_ThreadPoolInherit = 1,
-    CSC_STAThreadPool = 2,
-    CSC_MTAThreadPool = 3,
-}
-
-enum CSC_Binding
-{
-    CSC_NoBinding = 0,
-    CSC_BindToPoolThread = 1,
-}
-
-enum CSC_TransactionConfig
-{
-    CSC_NoTransaction = 0,
-    CSC_IfContainerIsTransactional = 1,
-    CSC_CreateTransactionIfNecessary = 2,
-    CSC_NewTransaction = 3,
-}
-
-enum CSC_SynchronizationConfig
-{
-    CSC_NoSynchronization = 0,
-    CSC_IfContainerIsSynchronized = 1,
-    CSC_NewSynchronizationIfNecessary = 2,
-    CSC_NewSynchronization = 3,
-}
-
-enum CSC_TrackerConfig
-{
-    CSC_DontUseTracker = 0,
-    CSC_UseTracker = 1,
-}
-
-enum CSC_PartitionConfig
-{
-    CSC_NoPartition = 0,
-    CSC_InheritPartition = 1,
-    CSC_NewPartition = 2,
-}
-
-enum CSC_IISIntrinsicsConfig
-{
-    CSC_NoIISIntrinsics = 0,
-    CSC_InheritIISIntrinsics = 1,
-}
-
-enum CSC_COMTIIntrinsicsConfig
-{
-    CSC_NoCOMTIIntrinsics = 0,
-    CSC_InheritCOMTIIntrinsics = 1,
-}
-
-enum CSC_SxsConfig
-{
-    CSC_NoSxs = 0,
-    CSC_InheritSxs = 1,
-    CSC_NewSxs = 2,
-}
-
-const GUID IID_IServiceIISIntrinsicsConfig = {0x1A0CF920, 0xD452, 0x46F4, [0xBC, 0x36, 0x48, 0x11, 0x8D, 0x54, 0xEA, 0x52]};
-@GUID(0x1A0CF920, 0xD452, 0x46F4, [0xBC, 0x36, 0x48, 0x11, 0x8D, 0x54, 0xEA, 0x52]);
+@GUID("1A0CF920-D452-46F4-BC36-48118D54EA52")
 interface IServiceIISIntrinsicsConfig : IUnknown
 {
     HRESULT IISIntrinsicsConfig(CSC_IISIntrinsicsConfig iisIntrinsicsConfig);
 }
 
-const GUID IID_IServiceComTIIntrinsicsConfig = {0x09E6831E, 0x04E1, 0x4ED4, [0x9D, 0x0F, 0xE8, 0xB1, 0x68, 0xBA, 0xFE, 0xAF]};
-@GUID(0x09E6831E, 0x04E1, 0x4ED4, [0x9D, 0x0F, 0xE8, 0xB1, 0x68, 0xBA, 0xFE, 0xAF]);
+@GUID("09E6831E-04E1-4ED4-9D0F-E8B168BAFEAF")
 interface IServiceComTIIntrinsicsConfig : IUnknown
 {
     HRESULT ComTIIntrinsicsConfig(CSC_COMTIIntrinsicsConfig comtiIntrinsicsConfig);
 }
 
-const GUID IID_IServiceSxsConfig = {0xC7CD7379, 0xF3F2, 0x4634, [0x81, 0x1B, 0x70, 0x32, 0x81, 0xD7, 0x3E, 0x08]};
-@GUID(0xC7CD7379, 0xF3F2, 0x4634, [0x81, 0x1B, 0x70, 0x32, 0x81, 0xD7, 0x3E, 0x08]);
+@GUID("C7CD7379-F3F2-4634-811B-703281D73E08")
 interface IServiceSxsConfig : IUnknown
 {
     HRESULT SxsConfig(CSC_SxsConfig scsConfig);
@@ -2492,30 +2533,26 @@ interface IServiceSxsConfig : IUnknown
     HRESULT SxsDirectory(const(wchar)* szSxsDirectory);
 }
 
-const GUID IID_ICheckSxsConfig = {0x0FF5A96F, 0x11FC, 0x47D1, [0xBA, 0xA6, 0x25, 0xDD, 0x34, 0x7E, 0x72, 0x42]};
-@GUID(0x0FF5A96F, 0x11FC, 0x47D1, [0xBA, 0xA6, 0x25, 0xDD, 0x34, 0x7E, 0x72, 0x42]);
+@GUID("0FF5A96F-11FC-47D1-BAA6-25DD347E7242")
 interface ICheckSxsConfig : IUnknown
 {
     HRESULT IsSameSxsConfig(const(wchar)* wszSxsName, const(wchar)* wszSxsDirectory, const(wchar)* wszSxsAppName);
 }
 
-const GUID IID_IServiceInheritanceConfig = {0x92186771, 0xD3B4, 0x4D77, [0xA8, 0xEA, 0xEE, 0x84, 0x2D, 0x58, 0x6F, 0x35]};
-@GUID(0x92186771, 0xD3B4, 0x4D77, [0xA8, 0xEA, 0xEE, 0x84, 0x2D, 0x58, 0x6F, 0x35]);
+@GUID("92186771-D3B4-4D77-A8EA-EE842D586F35")
 interface IServiceInheritanceConfig : IUnknown
 {
     HRESULT ContainingContextTreatment(CSC_InheritanceConfig inheritanceConfig);
 }
 
-const GUID IID_IServiceThreadPoolConfig = {0x186D89BC, 0xF277, 0x4BCC, [0x80, 0xD5, 0x4D, 0xF7, 0xB8, 0x36, 0xEF, 0x4A]};
-@GUID(0x186D89BC, 0xF277, 0x4BCC, [0x80, 0xD5, 0x4D, 0xF7, 0xB8, 0x36, 0xEF, 0x4A]);
+@GUID("186D89BC-F277-4BCC-80D5-4DF7B836EF4A")
 interface IServiceThreadPoolConfig : IUnknown
 {
     HRESULT SelectThreadPool(CSC_ThreadPool threadPool);
     HRESULT SetBindingInfo(CSC_Binding binding);
 }
 
-const GUID IID_IServiceTransactionConfigBase = {0x772B3FBE, 0x6FFD, 0x42FB, [0xB5, 0xF8, 0x8F, 0x9B, 0x26, 0x0F, 0x38, 0x10]};
-@GUID(0x772B3FBE, 0x6FFD, 0x42FB, [0xB5, 0xF8, 0x8F, 0x9B, 0x26, 0x0F, 0x38, 0x10]);
+@GUID("772B3FBE-6FFD-42FB-B5F8-8F9B260F3810")
 interface IServiceTransactionConfigBase : IUnknown
 {
     HRESULT ConfigureTransaction(CSC_TransactionConfig transactionConfig);
@@ -2525,58 +2562,51 @@ interface IServiceTransactionConfigBase : IUnknown
     HRESULT NewTransactionDescription(const(wchar)* szTxDesc);
 }
 
-const GUID IID_IServiceTransactionConfig = {0x59F4C2A3, 0xD3D7, 0x4A31, [0xB6, 0xE4, 0x6A, 0xB3, 0x17, 0x7C, 0x50, 0xB9]};
-@GUID(0x59F4C2A3, 0xD3D7, 0x4A31, [0xB6, 0xE4, 0x6A, 0xB3, 0x17, 0x7C, 0x50, 0xB9]);
+@GUID("59F4C2A3-D3D7-4A31-B6E4-6AB3177C50B9")
 interface IServiceTransactionConfig : IServiceTransactionConfigBase
 {
     HRESULT ConfigureBYOT(ITransaction pITxByot);
 }
 
-const GUID IID_IServiceSysTxnConfig = {0x33CAF1A1, 0xFCB8, 0x472B, [0xB4, 0x5E, 0x96, 0x74, 0x48, 0xDE, 0xD6, 0xD8]};
-@GUID(0x33CAF1A1, 0xFCB8, 0x472B, [0xB4, 0x5E, 0x96, 0x74, 0x48, 0xDE, 0xD6, 0xD8]);
+@GUID("33CAF1A1-FCB8-472B-B45E-967448DED6D8")
 interface IServiceSysTxnConfig : IServiceTransactionConfig
 {
     HRESULT ConfigureBYOTSysTxn(ITransactionProxy pTxProxy);
 }
 
-const GUID IID_IServiceSynchronizationConfig = {0xFD880E81, 0x6DCE, 0x4C58, [0xAF, 0x83, 0xA2, 0x08, 0x84, 0x6C, 0x00, 0x30]};
-@GUID(0xFD880E81, 0x6DCE, 0x4C58, [0xAF, 0x83, 0xA2, 0x08, 0x84, 0x6C, 0x00, 0x30]);
+@GUID("FD880E81-6DCE-4C58-AF83-A208846C0030")
 interface IServiceSynchronizationConfig : IUnknown
 {
     HRESULT ConfigureSynchronization(CSC_SynchronizationConfig synchConfig);
 }
 
-const GUID IID_IServiceTrackerConfig = {0x6C3A3E1D, 0x0BA6, 0x4036, [0xB7, 0x6F, 0xD0, 0x40, 0x4D, 0xB8, 0x16, 0xC9]};
-@GUID(0x6C3A3E1D, 0x0BA6, 0x4036, [0xB7, 0x6F, 0xD0, 0x40, 0x4D, 0xB8, 0x16, 0xC9]);
+@GUID("6C3A3E1D-0BA6-4036-B76F-D0404DB816C9")
 interface IServiceTrackerConfig : IUnknown
 {
-    HRESULT TrackerConfig(CSC_TrackerConfig trackerConfig, const(wchar)* szTrackerAppName, const(wchar)* szTrackerCtxName);
+    HRESULT TrackerConfig(CSC_TrackerConfig trackerConfig, const(wchar)* szTrackerAppName, 
+                          const(wchar)* szTrackerCtxName);
 }
 
-const GUID IID_IServicePartitionConfig = {0x80182D03, 0x5EA4, 0x4831, [0xAE, 0x97, 0x55, 0xBE, 0xFF, 0xC2, 0xE5, 0x90]};
-@GUID(0x80182D03, 0x5EA4, 0x4831, [0xAE, 0x97, 0x55, 0xBE, 0xFF, 0xC2, 0xE5, 0x90]);
+@GUID("80182D03-5EA4-4831-AE97-55BEFFC2E590")
 interface IServicePartitionConfig : IUnknown
 {
     HRESULT PartitionConfig(CSC_PartitionConfig partitionConfig);
-    HRESULT PartitionID(const(Guid)* guidPartitionID);
+    HRESULT PartitionID(const(GUID)* guidPartitionID);
 }
 
-const GUID IID_IServiceCall = {0xBD3E2E12, 0x42DD, 0x40F4, [0xA0, 0x9A, 0x95, 0xA5, 0x0C, 0x58, 0x30, 0x4B]};
-@GUID(0xBD3E2E12, 0x42DD, 0x40F4, [0xA0, 0x9A, 0x95, 0xA5, 0x0C, 0x58, 0x30, 0x4B]);
+@GUID("BD3E2E12-42DD-40F4-A09A-95A50C58304B")
 interface IServiceCall : IUnknown
 {
     HRESULT OnCall();
 }
 
-const GUID IID_IAsyncErrorNotify = {0xFE6777FB, 0xA674, 0x4177, [0x8F, 0x32, 0x6D, 0x70, 0x7E, 0x11, 0x34, 0x84]};
-@GUID(0xFE6777FB, 0xA674, 0x4177, [0x8F, 0x32, 0x6D, 0x70, 0x7E, 0x11, 0x34, 0x84]);
+@GUID("FE6777FB-A674-4177-8F32-6D707E113484")
 interface IAsyncErrorNotify : IUnknown
 {
     HRESULT OnError(HRESULT hr);
 }
 
-const GUID IID_IServiceActivity = {0x67532E0C, 0x9E2F, 0x4450, [0xA3, 0x54, 0x03, 0x56, 0x33, 0x94, 0x4E, 0x17]};
-@GUID(0x67532E0C, 0x9E2F, 0x4450, [0xA3, 0x54, 0x03, 0x56, 0x33, 0x94, 0x4E, 0x17]);
+@GUID("67532E0C-9E2F-4450-A354-035633944E17")
 interface IServiceActivity : IUnknown
 {
     HRESULT SynchronousCall(IServiceCall pIServiceCall);
@@ -2585,8 +2615,7 @@ interface IServiceActivity : IUnknown
     HRESULT UnbindFromThread();
 }
 
-const GUID IID_IThreadPoolKnobs = {0x51372AF7, 0xCAE7, 0x11CF, [0xBE, 0x81, 0x00, 0xAA, 0x00, 0xA2, 0xFA, 0x25]};
-@GUID(0x51372AF7, 0xCAE7, 0x11CF, [0xBE, 0x81, 0x00, 0xAA, 0x00, 0xA2, 0xFA, 0x25]);
+@GUID("51372AF7-CAE7-11CF-BE81-00AA00A2FA25")
 interface IThreadPoolKnobs : IUnknown
 {
     HRESULT GetMaxThreads(int* plcMaxThreads);
@@ -2601,8 +2630,7 @@ interface IThreadPoolKnobs : IUnknown
     HRESULT SetQueueDepth(int lcQueueDepth);
 }
 
-const GUID IID_IComStaThreadPoolKnobs = {0x324B64FA, 0x33B6, 0x11D2, [0x98, 0xB7, 0x00, 0xC0, 0x4F, 0x8E, 0xE1, 0xC4]};
-@GUID(0x324B64FA, 0x33B6, 0x11D2, [0x98, 0xB7, 0x00, 0xC0, 0x4F, 0x8E, 0xE1, 0xC4]);
+@GUID("324B64FA-33B6-11D2-98B7-00C04F8EE1C4")
 interface IComStaThreadPoolKnobs : IUnknown
 {
     HRESULT SetMinThreadCount(uint minThreads);
@@ -2618,8 +2646,7 @@ interface IComStaThreadPoolKnobs : IUnknown
     HRESULT SetQueueDepth(int dwQDepth);
 }
 
-const GUID IID_IComMtaThreadPoolKnobs = {0xF9A76D2E, 0x76A5, 0x43EB, [0xA0, 0xC4, 0x49, 0xBE, 0xC8, 0xE4, 0x84, 0x80]};
-@GUID(0xF9A76D2E, 0x76A5, 0x43EB, [0xA0, 0xC4, 0x49, 0xBE, 0xC8, 0xE4, 0x84, 0x80]);
+@GUID("F9A76D2E-76A5-43EB-A0C4-49BEC8E48480")
 interface IComMtaThreadPoolKnobs : IUnknown
 {
     HRESULT MTASetMaxThreadCount(uint dwMaxThreads);
@@ -2628,8 +2655,7 @@ interface IComMtaThreadPoolKnobs : IUnknown
     HRESULT MTAGetThrottleValue(uint* pdwThrottle);
 }
 
-const GUID IID_IComStaThreadPoolKnobs2 = {0x73707523, 0xFF9A, 0x4974, [0xBF, 0x84, 0x21, 0x08, 0xDC, 0x21, 0x37, 0x40]};
-@GUID(0x73707523, 0xFF9A, 0x4974, [0xBF, 0x84, 0x21, 0x08, 0xDC, 0x21, 0x37, 0x40]);
+@GUID("73707523-FF9A-4974-BF84-2108DC213740")
 interface IComStaThreadPoolKnobs2 : IComStaThreadPoolKnobs
 {
     HRESULT GetMaxCPULoad(uint* pdwLoad);
@@ -2644,16 +2670,14 @@ interface IComStaThreadPoolKnobs2 : IComStaThreadPoolKnobs
     HRESULT SetWaitTimeForThreadCleanup(int dwThreadCleanupWaitTime);
 }
 
-const GUID IID_IProcessInitializer = {0x1113F52D, 0xDC7F, 0x4943, [0xAE, 0xD6, 0x88, 0xD0, 0x40, 0x27, 0xE3, 0x2A]};
-@GUID(0x1113F52D, 0xDC7F, 0x4943, [0xAE, 0xD6, 0x88, 0xD0, 0x40, 0x27, 0xE3, 0x2A]);
+@GUID("1113F52D-DC7F-4943-AED6-88D04027E32A")
 interface IProcessInitializer : IUnknown
 {
     HRESULT Startup(IUnknown punkProcessControl);
     HRESULT Shutdown();
 }
 
-const GUID IID_IServicePoolConfig = {0xA9690656, 0x5BCA, 0x470C, [0x84, 0x51, 0x25, 0x0C, 0x1F, 0x43, 0xA3, 0x3E]};
-@GUID(0xA9690656, 0x5BCA, 0x470C, [0x84, 0x51, 0x25, 0x0C, 0x1F, 0x43, 0xA3, 0x3E]);
+@GUID("A9690656-5BCA-470C-8451-250C1F43A33E")
 interface IServicePoolConfig : IUnknown
 {
     HRESULT put_MaxPoolSize(uint dwMaxPool);
@@ -2668,31 +2692,27 @@ interface IServicePoolConfig : IUnknown
     HRESULT get_ClassFactory(IClassFactory* pFactory);
 }
 
-const GUID IID_IServicePool = {0xB302DF81, 0xEA45, 0x451E, [0x99, 0xA2, 0x09, 0xF9, 0xFD, 0x1B, 0x1E, 0x13]};
-@GUID(0xB302DF81, 0xEA45, 0x451E, [0x99, 0xA2, 0x09, 0xF9, 0xFD, 0x1B, 0x1E, 0x13]);
+@GUID("B302DF81-EA45-451E-99A2-09F9FD1B1E13")
 interface IServicePool : IUnknown
 {
     HRESULT Initialize(IUnknown pPoolConfig);
-    HRESULT GetObjectA(const(Guid)* riid, void** ppv);
+    HRESULT GetObjectA(const(GUID)* riid, void** ppv);
     HRESULT Shutdown();
 }
 
-const GUID IID_IManagedPooledObj = {0xC5DA4BEA, 0x1B42, 0x4437, [0x89, 0x26, 0xB6, 0xA3, 0x88, 0x60, 0xA7, 0x70]};
-@GUID(0xC5DA4BEA, 0x1B42, 0x4437, [0x89, 0x26, 0xB6, 0xA3, 0x88, 0x60, 0xA7, 0x70]);
+@GUID("C5DA4BEA-1B42-4437-8926-B6A38860A770")
 interface IManagedPooledObj : IUnknown
 {
     HRESULT SetHeld(BOOL m_bHeld);
 }
 
-const GUID IID_IManagedPoolAction = {0xDA91B74E, 0x5388, 0x4783, [0x94, 0x9D, 0xC1, 0xCD, 0x5F, 0xB0, 0x05, 0x06]};
-@GUID(0xDA91B74E, 0x5388, 0x4783, [0x94, 0x9D, 0xC1, 0xCD, 0x5F, 0xB0, 0x05, 0x06]);
+@GUID("DA91B74E-5388-4783-949D-C1CD5FB00506")
 interface IManagedPoolAction : IUnknown
 {
     HRESULT LastRelease();
 }
 
-const GUID IID_IManagedObjectInfo = {0x1427C51A, 0x4584, 0x49D8, [0x90, 0xA0, 0xC5, 0x0D, 0x80, 0x86, 0xCB, 0xE9]};
-@GUID(0x1427C51A, 0x4584, 0x49D8, [0x90, 0xA0, 0xC5, 0x0D, 0x80, 0x86, 0xCB, 0xE9]);
+@GUID("1427C51A-4584-49D8-90A0-C50D8086CBE9")
 interface IManagedObjectInfo : IUnknown
 {
     HRESULT GetIUnknown(IUnknown* pUnk);
@@ -2701,54 +2721,48 @@ interface IManagedObjectInfo : IUnknown
     HRESULT SetWrapperStrength(BOOL bStrong);
 }
 
-const GUID IID_IAppDomainHelper = {0xC7B67079, 0x8255, 0x42C6, [0x9E, 0xC0, 0x69, 0x94, 0xA3, 0x54, 0x87, 0x80]};
-@GUID(0xC7B67079, 0x8255, 0x42C6, [0x9E, 0xC0, 0x69, 0x94, 0xA3, 0x54, 0x87, 0x80]);
+@GUID("C7B67079-8255-42C6-9EC0-6994A3548780")
 interface IAppDomainHelper : IDispatch
 {
     HRESULT Initialize(IUnknown pUnkAD, HRESULT***** __MIDL__IAppDomainHelper0000, void* pPool);
     HRESULT DoCallback(IUnknown pUnkAD, HRESULT***** __MIDL__IAppDomainHelper0001, void* pPool);
 }
 
-const GUID IID_IAssemblyLocator = {0x391FFBB9, 0xA8EE, 0x432A, [0xAB, 0xC8, 0xBA, 0xA2, 0x38, 0xDA, 0xB9, 0x0F]};
-@GUID(0x391FFBB9, 0xA8EE, 0x432A, [0xAB, 0xC8, 0xBA, 0xA2, 0x38, 0xDA, 0xB9, 0x0F]);
+@GUID("391FFBB9-A8EE-432A-ABC8-BAA238DAB90F")
 interface IAssemblyLocator : IDispatch
 {
     HRESULT GetModules(BSTR applicationDir, BSTR applicationName, BSTR assemblyName, SAFEARRAY** pModules);
 }
 
-const GUID IID_IManagedActivationEvents = {0xA5F325AF, 0x572F, 0x46DA, [0xB8, 0xAB, 0x82, 0x7C, 0x3D, 0x95, 0xD9, 0x9E]};
-@GUID(0xA5F325AF, 0x572F, 0x46DA, [0xB8, 0xAB, 0x82, 0x7C, 0x3D, 0x95, 0xD9, 0x9E]);
+@GUID("A5F325AF-572F-46DA-B8AB-827C3D95D99E")
 interface IManagedActivationEvents : IUnknown
 {
     HRESULT CreateManagedStub(IManagedObjectInfo pInfo, BOOL fDist);
     HRESULT DestroyManagedStub(IManagedObjectInfo pInfo);
 }
 
-const GUID IID_ISendMethodEvents = {0x2732FD59, 0xB2B4, 0x4D44, [0x87, 0x8C, 0x8B, 0x8F, 0x09, 0x62, 0x60, 0x08]};
-@GUID(0x2732FD59, 0xB2B4, 0x4D44, [0x87, 0x8C, 0x8B, 0x8F, 0x09, 0x62, 0x60, 0x08]);
+@GUID("2732FD59-B2B4-4D44-878C-8B8F09626008")
 interface ISendMethodEvents : IUnknown
 {
-    HRESULT SendMethodCall(const(void)* pIdentity, const(Guid)* riid, uint dwMeth);
-    HRESULT SendMethodReturn(const(void)* pIdentity, const(Guid)* riid, uint dwMeth, HRESULT hrCall, HRESULT hrServer);
+    HRESULT SendMethodCall(const(void)* pIdentity, const(GUID)* riid, uint dwMeth);
+    HRESULT SendMethodReturn(const(void)* pIdentity, const(GUID)* riid, uint dwMeth, HRESULT hrCall, 
+                             HRESULT hrServer);
 }
 
-const GUID IID_ITransactionResourcePool = {0xC5FEB7C1, 0x346A, 0x11D1, [0xB1, 0xCC, 0x00, 0xAA, 0x00, 0xBA, 0x32, 0x58]};
-@GUID(0xC5FEB7C1, 0x346A, 0x11D1, [0xB1, 0xCC, 0x00, 0xAA, 0x00, 0xBA, 0x32, 0x58]);
+@GUID("C5FEB7C1-346A-11D1-B1CC-00AA00BA3258")
 interface ITransactionResourcePool : IUnknown
 {
     HRESULT PutResource(IObjPool pPool, IUnknown pUnk);
     HRESULT GetResource(IObjPool pPool, IUnknown* ppUnk);
 }
 
-const GUID IID_IMTSCall = {0x51372AEF, 0xCAE7, 0x11CF, [0xBE, 0x81, 0x00, 0xAA, 0x00, 0xA2, 0xFA, 0x25]};
-@GUID(0x51372AEF, 0xCAE7, 0x11CF, [0xBE, 0x81, 0x00, 0xAA, 0x00, 0xA2, 0xFA, 0x25]);
+@GUID("51372AEF-CAE7-11CF-BE81-00AA00A2FA25")
 interface IMTSCall : IUnknown
 {
     HRESULT OnCall();
 }
 
-const GUID IID_IContextProperties = {0xD396DA85, 0xBF8F, 0x11D1, [0xBB, 0xAE, 0x00, 0xC0, 0x4F, 0xC2, 0xFA, 0x5F]};
-@GUID(0xD396DA85, 0xBF8F, 0x11D1, [0xBB, 0xAE, 0x00, 0xC0, 0x4F, 0xC2, 0xFA, 0x5F]);
+@GUID("D396DA85-BF8F-11D1-BBAE-00C04FC2FA5F")
 interface IContextProperties : IUnknown
 {
     HRESULT Count(int* plCount);
@@ -2758,8 +2772,7 @@ interface IContextProperties : IUnknown
     HRESULT RemoveProperty(BSTR name);
 }
 
-const GUID IID_IObjPool = {0x7D8805A0, 0x2EA7, 0x11D1, [0xB1, 0xCC, 0x00, 0xAA, 0x00, 0xBA, 0x32, 0x58]};
-@GUID(0x7D8805A0, 0x2EA7, 0x11D1, [0xB1, 0xCC, 0x00, 0xAA, 0x00, 0xBA, 0x32, 0x58]);
+@GUID("7D8805A0-2EA7-11D1-B1CC-00AA00BA3258")
 interface IObjPool : IUnknown
 {
     void Reserved1();
@@ -2771,129 +2784,40 @@ interface IObjPool : IUnknown
     void Reserved6();
 }
 
-const GUID IID_ITransactionProperty = {0x788EA814, 0x87B1, 0x11D1, [0xBB, 0xA6, 0x00, 0xC0, 0x4F, 0xC2, 0xFA, 0x5F]};
-@GUID(0x788EA814, 0x87B1, 0x11D1, [0xBB, 0xA6, 0x00, 0xC0, 0x4F, 0xC2, 0xFA, 0x5F]);
+@GUID("788EA814-87B1-11D1-BBA6-00C04FC2FA5F")
 interface ITransactionProperty : IUnknown
 {
-    void Reserved1();
-    void Reserved2();
-    void Reserved3();
-    void Reserved4();
-    void Reserved5();
-    void Reserved6();
-    void Reserved7();
-    void Reserved8();
-    void Reserved9();
+    void    Reserved1();
+    void    Reserved2();
+    void    Reserved3();
+    void    Reserved4();
+    void    Reserved5();
+    void    Reserved6();
+    void    Reserved7();
+    void    Reserved8();
+    void    Reserved9();
     HRESULT GetTransactionResourcePool(ITransactionResourcePool* ppTxPool);
-    void Reserved10();
-    void Reserved11();
-    void Reserved12();
-    void Reserved13();
-    void Reserved14();
-    void Reserved15();
-    void Reserved16();
-    void Reserved17();
+    void    Reserved10();
+    void    Reserved11();
+    void    Reserved12();
+    void    Reserved13();
+    void    Reserved14();
+    void    Reserved15();
+    void    Reserved16();
+    void    Reserved17();
 }
 
-const GUID IID_IMTSActivity = {0x51372AF0, 0xCAE7, 0x11CF, [0xBE, 0x81, 0x00, 0xAA, 0x00, 0xA2, 0xFA, 0x25]};
-@GUID(0x51372AF0, 0xCAE7, 0x11CF, [0xBE, 0x81, 0x00, 0xAA, 0x00, 0xA2, 0xFA, 0x25]);
+@GUID("51372AF0-CAE7-11CF-BE81-00AA00A2FA25")
 interface IMTSActivity : IUnknown
 {
     HRESULT SynchronousCall(IMTSCall pCall);
     HRESULT AsyncCall(IMTSCall pCall);
-    void Reserved1();
+    void    Reserved1();
     HRESULT BindToCurrentThread();
     HRESULT UnbindFromThread();
 }
 
-enum __MIDL___MIDL_itf_autosvcs_0001_0150_0001
-{
-    mtsErrCtxAborted = -2147164158,
-    mtsErrCtxAborting = -2147164157,
-    mtsErrCtxNoContext = -2147164156,
-    mtsErrCtxNotRegistered = -2147164155,
-    mtsErrCtxSynchTimeout = -2147164154,
-    mtsErrCtxOldReference = -2147164153,
-    mtsErrCtxRoleNotFound = -2147164148,
-    mtsErrCtxNoSecurity = -2147164147,
-    mtsErrCtxWrongThread = -2147164146,
-    mtsErrCtxTMNotAvailable = -2147164145,
-    comQCErrApplicationNotQueued = -2146368000,
-    comQCErrNoQueueableInterfaces = -2146367999,
-    comQCErrQueuingServiceNotAvailable = -2146367998,
-    comQCErrQueueTransactMismatch = -2146367997,
-    comqcErrRecorderMarshalled = -2146367996,
-    comqcErrOutParam = -2146367995,
-    comqcErrRecorderNotTrusted = -2146367994,
-    comqcErrPSLoad = -2146367993,
-    comqcErrMarshaledObjSameTxn = -2146367992,
-    comqcErrInvalidMessage = -2146367920,
-    comqcErrMsmqSidUnavailable = -2146367919,
-    comqcErrWrongMsgExtension = -2146367918,
-    comqcErrMsmqServiceUnavailable = -2146367917,
-    comqcErrMsgNotAuthenticated = -2146367916,
-    comqcErrMsmqConnectorUsed = -2146367915,
-    comqcErrBadMarshaledObject = -2146367914,
-}
-
-enum __MIDL___MIDL_itf_autosvcs_0001_0159_0001
-{
-    LockSetGet = 0,
-    LockMethod = 1,
-}
-
-enum __MIDL___MIDL_itf_autosvcs_0001_0159_0002
-{
-    Standard = 0,
-    Process = 1,
-}
-
-enum CRMFLAGS
-{
-    CRMFLAG_FORGETTARGET = 1,
-    CRMFLAG_WRITTENDURINGPREPARE = 2,
-    CRMFLAG_WRITTENDURINGCOMMIT = 4,
-    CRMFLAG_WRITTENDURINGABORT = 8,
-    CRMFLAG_WRITTENDURINGRECOVERY = 16,
-    CRMFLAG_WRITTENDURINGREPLAY = 32,
-    CRMFLAG_REPLAYINPROGRESS = 64,
-}
-
-enum CRMREGFLAGS
-{
-    CRMREGFLAG_PREPAREPHASE = 1,
-    CRMREGFLAG_COMMITPHASE = 2,
-    CRMREGFLAG_ABORTPHASE = 4,
-    CRMREGFLAG_ALLPHASES = 7,
-    CRMREGFLAG_FAILIFINDOUBTSREMAIN = 16,
-}
-
-const GUID CLSID_CEventSystem = {0x4E14FBA2, 0x2E22, 0x11D1, [0x99, 0x64, 0x00, 0xC0, 0x4F, 0xBB, 0xB3, 0x45]};
-@GUID(0x4E14FBA2, 0x2E22, 0x11D1, [0x99, 0x64, 0x00, 0xC0, 0x4F, 0xBB, 0xB3, 0x45]);
-struct CEventSystem;
-
-const GUID CLSID_CEventPublisher = {0xAB944620, 0x79C6, 0x11D1, [0x88, 0xF9, 0x00, 0x80, 0xC7, 0xD7, 0x71, 0xBF]};
-@GUID(0xAB944620, 0x79C6, 0x11D1, [0x88, 0xF9, 0x00, 0x80, 0xC7, 0xD7, 0x71, 0xBF]);
-struct CEventPublisher;
-
-const GUID CLSID_CEventClass = {0xCDBEC9C0, 0x7A68, 0x11D1, [0x88, 0xF9, 0x00, 0x80, 0xC7, 0xD7, 0x71, 0xBF]};
-@GUID(0xCDBEC9C0, 0x7A68, 0x11D1, [0x88, 0xF9, 0x00, 0x80, 0xC7, 0xD7, 0x71, 0xBF]);
-struct CEventClass;
-
-const GUID CLSID_CEventSubscription = {0x7542E960, 0x79C7, 0x11D1, [0x88, 0xF9, 0x00, 0x80, 0xC7, 0xD7, 0x71, 0xBF]};
-@GUID(0x7542E960, 0x79C7, 0x11D1, [0x88, 0xF9, 0x00, 0x80, 0xC7, 0xD7, 0x71, 0xBF]);
-struct CEventSubscription;
-
-const GUID CLSID_EventObjectChange = {0xD0565000, 0x9DF4, 0x11D1, [0xA2, 0x81, 0x00, 0xC0, 0x4F, 0xCA, 0x0A, 0xA7]};
-@GUID(0xD0565000, 0x9DF4, 0x11D1, [0xA2, 0x81, 0x00, 0xC0, 0x4F, 0xCA, 0x0A, 0xA7]);
-struct EventObjectChange;
-
-const GUID CLSID_EventObjectChange2 = {0xBB07BACD, 0xCD56, 0x4E63, [0xA8, 0xFF, 0xCB, 0xF0, 0x35, 0x5F, 0xB9, 0xF4]};
-@GUID(0xBB07BACD, 0xCD56, 0x4E63, [0xA8, 0xFF, 0xCB, 0xF0, 0x35, 0x5F, 0xB9, 0xF4]);
-struct EventObjectChange2;
-
-const GUID IID_IEventSystem = {0x4E14FB9F, 0x2E22, 0x11D1, [0x99, 0x64, 0x00, 0xC0, 0x4F, 0xBB, 0xB3, 0x45]};
-@GUID(0x4E14FB9F, 0x2E22, 0x11D1, [0x99, 0x64, 0x00, 0xC0, 0x4F, 0xBB, 0xB3, 0x45]);
+@GUID("4E14FB9F-2E22-11D1-9964-00C04FBBB345")
 interface IEventSystem : IDispatch
 {
     HRESULT Query(BSTR progID, BSTR queryCriteria, int* errorIndex, IUnknown* ppInterface);
@@ -2904,8 +2828,7 @@ interface IEventSystem : IDispatch
     HRESULT RemoveS(BSTR progID, BSTR queryCriteria);
 }
 
-const GUID IID_IEventClass = {0xFB2B72A0, 0x7A68, 0x11D1, [0x88, 0xF9, 0x00, 0x80, 0xC7, 0xD7, 0x71, 0xBF]};
-@GUID(0xFB2B72A0, 0x7A68, 0x11D1, [0x88, 0xF9, 0x00, 0x80, 0xC7, 0xD7, 0x71, 0xBF]);
+@GUID("FB2B72A0-7A68-11D1-88F9-0080C7D771BF")
 interface IEventClass : IDispatch
 {
     HRESULT get_EventClassID(BSTR* pbstrEventClassID);
@@ -2924,8 +2847,7 @@ interface IEventClass : IDispatch
     HRESULT put_TypeLib(BSTR bstrTypeLib);
 }
 
-const GUID IID_IEventClass2 = {0xFB2B72A1, 0x7A68, 0x11D1, [0x88, 0xF9, 0x00, 0x80, 0xC7, 0xD7, 0x71, 0xBF]};
-@GUID(0xFB2B72A1, 0x7A68, 0x11D1, [0x88, 0xF9, 0x00, 0x80, 0xC7, 0xD7, 0x71, 0xBF]);
+@GUID("FB2B72A1-7A68-11D1-88F9-0080C7D771BF")
 interface IEventClass2 : IEventClass
 {
     HRESULT get_PublisherID(BSTR* pbstrPublisherID);
@@ -2938,8 +2860,7 @@ interface IEventClass2 : IEventClass
     HRESULT put_FireInParallel(BOOL fFireInParallel);
 }
 
-const GUID IID_IEventSubscription = {0x4A6B0E15, 0x2E38, 0x11D1, [0x99, 0x65, 0x00, 0xC0, 0x4F, 0xBB, 0xB3, 0x45]};
-@GUID(0x4A6B0E15, 0x2E38, 0x11D1, [0x99, 0x65, 0x00, 0xC0, 0x4F, 0xBB, 0xB3, 0x45]);
+@GUID("4A6B0E15-2E38-11D1-9965-00C04FBBB345")
 interface IEventSubscription : IDispatch
 {
     HRESULT get_SubscriptionID(BSTR* pbstrSubscriptionID);
@@ -2978,31 +2899,27 @@ interface IEventSubscription : IDispatch
     HRESULT put_InterfaceID(BSTR bstrInterfaceID);
 }
 
-const GUID IID_IFiringControl = {0xE0498C93, 0x4EFE, 0x11D1, [0x99, 0x71, 0x00, 0xC0, 0x4F, 0xBB, 0xB3, 0x45]};
-@GUID(0xE0498C93, 0x4EFE, 0x11D1, [0x99, 0x71, 0x00, 0xC0, 0x4F, 0xBB, 0xB3, 0x45]);
+@GUID("E0498C93-4EFE-11D1-9971-00C04FBBB345")
 interface IFiringControl : IDispatch
 {
     HRESULT FireSubscription(IEventSubscription subscription);
 }
 
-const GUID IID_IPublisherFilter = {0x465E5CC0, 0x7B26, 0x11D1, [0x88, 0xFB, 0x00, 0x80, 0xC7, 0xD7, 0x71, 0xBF]};
-@GUID(0x465E5CC0, 0x7B26, 0x11D1, [0x88, 0xFB, 0x00, 0x80, 0xC7, 0xD7, 0x71, 0xBF]);
+@GUID("465E5CC0-7B26-11D1-88FB-0080C7D771BF")
 interface IPublisherFilter : IUnknown
 {
     HRESULT Initialize(BSTR methodName, IDispatch dispUserDefined);
     HRESULT PrepareToFire(BSTR methodName, IFiringControl firingControl);
 }
 
-const GUID IID_IMultiInterfacePublisherFilter = {0x465E5CC1, 0x7B26, 0x11D1, [0x88, 0xFB, 0x00, 0x80, 0xC7, 0xD7, 0x71, 0xBF]};
-@GUID(0x465E5CC1, 0x7B26, 0x11D1, [0x88, 0xFB, 0x00, 0x80, 0xC7, 0xD7, 0x71, 0xBF]);
+@GUID("465E5CC1-7B26-11D1-88FB-0080C7D771BF")
 interface IMultiInterfacePublisherFilter : IUnknown
 {
     HRESULT Initialize(IMultiInterfaceEventControl pEIC);
-    HRESULT PrepareToFire(const(Guid)* iid, BSTR methodName, IFiringControl firingControl);
+    HRESULT PrepareToFire(const(GUID)* iid, BSTR methodName, IFiringControl firingControl);
 }
 
-const GUID IID_IEventObjectChange = {0xF4A07D70, 0x2E25, 0x11D1, [0x99, 0x64, 0x00, 0xC0, 0x4F, 0xBB, 0xB3, 0x45]};
-@GUID(0xF4A07D70, 0x2E25, 0x11D1, [0x99, 0x64, 0x00, 0xC0, 0x4F, 0xBB, 0xB3, 0x45]);
+@GUID("F4A07D70-2E25-11D1-9964-00C04FBBB345")
 interface IEventObjectChange : IUnknown
 {
     HRESULT ChangedSubscription(EOC_ChangeType changeType, BSTR bstrSubscriptionID);
@@ -3010,26 +2927,14 @@ interface IEventObjectChange : IUnknown
     HRESULT ChangedPublisher(EOC_ChangeType changeType, BSTR bstrPublisherID);
 }
 
-struct COMEVENTSYSCHANGEINFO
-{
-    uint cbSize;
-    EOC_ChangeType changeType;
-    BSTR objectId;
-    BSTR partitionId;
-    BSTR applicationId;
-    Guid reserved;
-}
-
-const GUID IID_IEventObjectChange2 = {0x7701A9C3, 0xBD68, 0x438F, [0x83, 0xE0, 0x67, 0xBF, 0x4F, 0x53, 0xA4, 0x22]};
-@GUID(0x7701A9C3, 0xBD68, 0x438F, [0x83, 0xE0, 0x67, 0xBF, 0x4F, 0x53, 0xA4, 0x22]);
+@GUID("7701A9C3-BD68-438F-83E0-67BF4F53A422")
 interface IEventObjectChange2 : IUnknown
 {
     HRESULT ChangedSubscription(COMEVENTSYSCHANGEINFO* pInfo);
     HRESULT ChangedEventClass(COMEVENTSYSCHANGEINFO* pInfo);
 }
 
-const GUID IID_IEnumEventObject = {0xF4A07D63, 0x2E25, 0x11D1, [0x99, 0x64, 0x00, 0xC0, 0x4F, 0xBB, 0xB3, 0x45]};
-@GUID(0xF4A07D63, 0x2E25, 0x11D1, [0x99, 0x64, 0x00, 0xC0, 0x4F, 0xBB, 0xB3, 0x45]);
+@GUID("F4A07D63-2E25-11D1-9964-00C04FBBB345")
 interface IEnumEventObject : IUnknown
 {
     HRESULT Clone(IEnumEventObject* ppInterface);
@@ -3038,8 +2943,7 @@ interface IEnumEventObject : IUnknown
     HRESULT Skip(uint cSkipElem);
 }
 
-const GUID IID_IEventObjectCollection = {0xF89AC270, 0xD4EB, 0x11D1, [0xB6, 0x82, 0x00, 0x80, 0x5F, 0xC7, 0x92, 0x16]};
-@GUID(0xF89AC270, 0xD4EB, 0x11D1, [0xB6, 0x82, 0x00, 0x80, 0x5F, 0xC7, 0x92, 0x16]);
+@GUID("F89AC270-D4EB-11D1-B682-00805FC79216")
 interface IEventObjectCollection : IDispatch
 {
     HRESULT get__NewEnum(IUnknown* ppUnkEnum);
@@ -3050,33 +2954,273 @@ interface IEventObjectCollection : IDispatch
     HRESULT Remove(BSTR objectID);
 }
 
-const GUID IID_IEventControl = {0x0343E2F4, 0x86F6, 0x11D1, [0xB7, 0x60, 0x00, 0xC0, 0x4F, 0xB9, 0x26, 0xAF]};
-@GUID(0x0343E2F4, 0x86F6, 0x11D1, [0xB7, 0x60, 0x00, 0xC0, 0x4F, 0xB9, 0x26, 0xAF]);
+@GUID("0343E2F4-86F6-11D1-B760-00C04FB926AF")
 interface IEventControl : IDispatch
 {
     HRESULT SetPublisherFilter(BSTR methodName, IPublisherFilter pPublisherFilter);
     HRESULT get_AllowInprocActivation(int* pfAllowInprocActivation);
     HRESULT put_AllowInprocActivation(BOOL fAllowInprocActivation);
-    HRESULT GetSubscriptions(BSTR methodName, BSTR optionalCriteria, int* optionalErrorIndex, IEventObjectCollection* ppCollection);
+    HRESULT GetSubscriptions(BSTR methodName, BSTR optionalCriteria, int* optionalErrorIndex, 
+                             IEventObjectCollection* ppCollection);
     HRESULT SetDefaultQuery(BSTR methodName, BSTR criteria, int* errorIndex);
 }
 
-const GUID IID_IMultiInterfaceEventControl = {0x0343E2F5, 0x86F6, 0x11D1, [0xB7, 0x60, 0x00, 0xC0, 0x4F, 0xB9, 0x26, 0xAF]};
-@GUID(0x0343E2F5, 0x86F6, 0x11D1, [0xB7, 0x60, 0x00, 0xC0, 0x4F, 0xB9, 0x26, 0xAF]);
+@GUID("0343E2F5-86F6-11D1-B760-00C04FB926AF")
 interface IMultiInterfaceEventControl : IUnknown
 {
     HRESULT SetMultiInterfacePublisherFilter(IMultiInterfacePublisherFilter classFilter);
-    HRESULT GetSubscriptions(const(Guid)* eventIID, BSTR bstrMethodName, BSTR optionalCriteria, int* optionalErrorIndex, IEventObjectCollection* ppCollection);
-    HRESULT SetDefaultQuery(const(Guid)* eventIID, BSTR bstrMethodName, BSTR bstrCriteria, int* errorIndex);
+    HRESULT GetSubscriptions(const(GUID)* eventIID, BSTR bstrMethodName, BSTR optionalCriteria, 
+                             int* optionalErrorIndex, IEventObjectCollection* ppCollection);
+    HRESULT SetDefaultQuery(const(GUID)* eventIID, BSTR bstrMethodName, BSTR bstrCriteria, int* errorIndex);
     HRESULT get_AllowInprocActivation(int* pfAllowInprocActivation);
     HRESULT put_AllowInprocActivation(BOOL fAllowInprocActivation);
     HRESULT get_FireInParallel(int* pfFireInParallel);
     HRESULT put_FireInParallel(BOOL fFireInParallel);
 }
 
-const GUID IID_IDontSupportEventSubscription = {0x784121F1, 0x62A6, 0x4B89, [0x85, 0x5F, 0xD6, 0x5F, 0x29, 0x6D, 0xE8, 0x3A]};
-@GUID(0x784121F1, 0x62A6, 0x4B89, [0x85, 0x5F, 0xD6, 0x5F, 0x29, 0x6D, 0xE8, 0x3A]);
+@GUID("784121F1-62A6-4B89-855F-D65F296DE83A")
 interface IDontSupportEventSubscription : IUnknown
 {
 }
 
+
+// GUIDs
+
+const GUID CLSID_AppDomainHelper                 = GUIDOF!AppDomainHelper;
+const GUID CLSID_ByotServerEx                    = GUIDOF!ByotServerEx;
+const GUID CLSID_CEventClass                     = GUIDOF!CEventClass;
+const GUID CLSID_CEventPublisher                 = GUIDOF!CEventPublisher;
+const GUID CLSID_CEventSubscription              = GUIDOF!CEventSubscription;
+const GUID CLSID_CEventSystem                    = GUIDOF!CEventSystem;
+const GUID CLSID_COMAdminCatalog                 = GUIDOF!COMAdminCatalog;
+const GUID CLSID_COMAdminCatalogCollection       = GUIDOF!COMAdminCatalogCollection;
+const GUID CLSID_COMAdminCatalogObject           = GUIDOF!COMAdminCatalogObject;
+const GUID CLSID_COMEvents                       = GUIDOF!COMEvents;
+const GUID CLSID_CRMClerk                        = GUIDOF!CRMClerk;
+const GUID CLSID_CRMRecoveryClerk                = GUIDOF!CRMRecoveryClerk;
+const GUID CLSID_CServiceConfig                  = GUIDOF!CServiceConfig;
+const GUID CLSID_ClrAssemblyLocator              = GUIDOF!ClrAssemblyLocator;
+const GUID CLSID_CoMTSLocator                    = GUIDOF!CoMTSLocator;
+const GUID CLSID_ComServiceEvents                = GUIDOF!ComServiceEvents;
+const GUID CLSID_ComSystemAppEventData           = GUIDOF!ComSystemAppEventData;
+const GUID CLSID_DispenserManager                = GUIDOF!DispenserManager;
+const GUID CLSID_Dummy30040732                   = GUIDOF!Dummy30040732;
+const GUID CLSID_EventObjectChange               = GUIDOF!EventObjectChange;
+const GUID CLSID_EventObjectChange2              = GUIDOF!EventObjectChange2;
+const GUID CLSID_EventServer                     = GUIDOF!EventServer;
+const GUID CLSID_GetSecurityCallContextAppObject = GUIDOF!GetSecurityCallContextAppObject;
+const GUID CLSID_LBEvents                        = GUIDOF!LBEvents;
+const GUID CLSID_MessageMover                    = GUIDOF!MessageMover;
+const GUID CLSID_MtsGrp                          = GUIDOF!MtsGrp;
+const GUID CLSID_PoolMgr                         = GUIDOF!PoolMgr;
+const GUID CLSID_SecurityCallContext             = GUIDOF!SecurityCallContext;
+const GUID CLSID_SecurityCallers                 = GUIDOF!SecurityCallers;
+const GUID CLSID_SecurityIdentity                = GUIDOF!SecurityIdentity;
+const GUID CLSID_ServicePool                     = GUIDOF!ServicePool;
+const GUID CLSID_ServicePoolConfig               = GUIDOF!ServicePoolConfig;
+const GUID CLSID_SharedProperty                  = GUIDOF!SharedProperty;
+const GUID CLSID_SharedPropertyGroup             = GUIDOF!SharedPropertyGroup;
+const GUID CLSID_SharedPropertyGroupManager      = GUIDOF!SharedPropertyGroupManager;
+const GUID CLSID_TrackerServer                   = GUIDOF!TrackerServer;
+const GUID CLSID_TransactionContext              = GUIDOF!TransactionContext;
+const GUID CLSID_TransactionContextEx            = GUIDOF!TransactionContextEx;
+
+const GUID IID_ContextInfo                            = GUIDOF!ContextInfo;
+const GUID IID_ContextInfo2                           = GUIDOF!ContextInfo2;
+const GUID IID_IAppDomainHelper                       = GUIDOF!IAppDomainHelper;
+const GUID IID_IAssemblyLocator                       = GUIDOF!IAssemblyLocator;
+const GUID IID_IAsyncErrorNotify                      = GUIDOF!IAsyncErrorNotify;
+const GUID IID_ICOMAdminCatalog                       = GUIDOF!ICOMAdminCatalog;
+const GUID IID_ICOMAdminCatalog2                      = GUIDOF!ICOMAdminCatalog2;
+const GUID IID_ICOMLBArguments                        = GUIDOF!ICOMLBArguments;
+const GUID IID_ICatalogCollection                     = GUIDOF!ICatalogCollection;
+const GUID IID_ICatalogObject                         = GUIDOF!ICatalogObject;
+const GUID IID_ICheckSxsConfig                        = GUIDOF!ICheckSxsConfig;
+const GUID IID_IComActivityEvents                     = GUIDOF!IComActivityEvents;
+const GUID IID_IComApp2Events                         = GUIDOF!IComApp2Events;
+const GUID IID_IComAppEvents                          = GUIDOF!IComAppEvents;
+const GUID IID_IComCRMEvents                          = GUIDOF!IComCRMEvents;
+const GUID IID_IComExceptionEvents                    = GUIDOF!IComExceptionEvents;
+const GUID IID_IComIdentityEvents                     = GUIDOF!IComIdentityEvents;
+const GUID IID_IComInstance2Events                    = GUIDOF!IComInstance2Events;
+const GUID IID_IComInstanceEvents                     = GUIDOF!IComInstanceEvents;
+const GUID IID_IComLTxEvents                          = GUIDOF!IComLTxEvents;
+const GUID IID_IComMethod2Events                      = GUIDOF!IComMethod2Events;
+const GUID IID_IComMethodEvents                       = GUIDOF!IComMethodEvents;
+const GUID IID_IComMtaThreadPoolKnobs                 = GUIDOF!IComMtaThreadPoolKnobs;
+const GUID IID_IComObjectConstruction2Events          = GUIDOF!IComObjectConstruction2Events;
+const GUID IID_IComObjectConstructionEvents           = GUIDOF!IComObjectConstructionEvents;
+const GUID IID_IComObjectEvents                       = GUIDOF!IComObjectEvents;
+const GUID IID_IComObjectPool2Events                  = GUIDOF!IComObjectPool2Events;
+const GUID IID_IComObjectPoolEvents                   = GUIDOF!IComObjectPoolEvents;
+const GUID IID_IComObjectPoolEvents2                  = GUIDOF!IComObjectPoolEvents2;
+const GUID IID_IComQCEvents                           = GUIDOF!IComQCEvents;
+const GUID IID_IComResourceEvents                     = GUIDOF!IComResourceEvents;
+const GUID IID_IComSecurityEvents                     = GUIDOF!IComSecurityEvents;
+const GUID IID_IComStaThreadPoolKnobs                 = GUIDOF!IComStaThreadPoolKnobs;
+const GUID IID_IComStaThreadPoolKnobs2                = GUIDOF!IComStaThreadPoolKnobs2;
+const GUID IID_IComThreadEvents                       = GUIDOF!IComThreadEvents;
+const GUID IID_IComTrackingInfoCollection             = GUIDOF!IComTrackingInfoCollection;
+const GUID IID_IComTrackingInfoEvents                 = GUIDOF!IComTrackingInfoEvents;
+const GUID IID_IComTrackingInfoObject                 = GUIDOF!IComTrackingInfoObject;
+const GUID IID_IComTrackingInfoProperties             = GUIDOF!IComTrackingInfoProperties;
+const GUID IID_IComTransaction2Events                 = GUIDOF!IComTransaction2Events;
+const GUID IID_IComTransactionEvents                  = GUIDOF!IComTransactionEvents;
+const GUID IID_IComUserEvent                          = GUIDOF!IComUserEvent;
+const GUID IID_IContextProperties                     = GUIDOF!IContextProperties;
+const GUID IID_IContextSecurityPerimeter              = GUIDOF!IContextSecurityPerimeter;
+const GUID IID_IContextState                          = GUIDOF!IContextState;
+const GUID IID_ICreateWithLocalTransaction            = GUIDOF!ICreateWithLocalTransaction;
+const GUID IID_ICreateWithTipTransactionEx            = GUIDOF!ICreateWithTipTransactionEx;
+const GUID IID_ICreateWithTransactionEx               = GUIDOF!ICreateWithTransactionEx;
+const GUID IID_ICrmCompensator                        = GUIDOF!ICrmCompensator;
+const GUID IID_ICrmCompensatorVariants                = GUIDOF!ICrmCompensatorVariants;
+const GUID IID_ICrmFormatLogRecords                   = GUIDOF!ICrmFormatLogRecords;
+const GUID IID_ICrmLogControl                         = GUIDOF!ICrmLogControl;
+const GUID IID_ICrmMonitor                            = GUIDOF!ICrmMonitor;
+const GUID IID_ICrmMonitorClerks                      = GUIDOF!ICrmMonitorClerks;
+const GUID IID_ICrmMonitorLogRecords                  = GUIDOF!ICrmMonitorLogRecords;
+const GUID IID_IDispenserDriver                       = GUIDOF!IDispenserDriver;
+const GUID IID_IDispenserManager                      = GUIDOF!IDispenserManager;
+const GUID IID_IDontSupportEventSubscription          = GUIDOF!IDontSupportEventSubscription;
+const GUID IID_IDtcLuConfigure                        = GUIDOF!IDtcLuConfigure;
+const GUID IID_IDtcLuRecovery                         = GUIDOF!IDtcLuRecovery;
+const GUID IID_IDtcLuRecoveryFactory                  = GUIDOF!IDtcLuRecoveryFactory;
+const GUID IID_IDtcLuRecoveryInitiatedByDtc           = GUIDOF!IDtcLuRecoveryInitiatedByDtc;
+const GUID IID_IDtcLuRecoveryInitiatedByDtcStatusWork = GUIDOF!IDtcLuRecoveryInitiatedByDtcStatusWork;
+const GUID IID_IDtcLuRecoveryInitiatedByDtcTransWork  = GUIDOF!IDtcLuRecoveryInitiatedByDtcTransWork;
+const GUID IID_IDtcLuRecoveryInitiatedByLu            = GUIDOF!IDtcLuRecoveryInitiatedByLu;
+const GUID IID_IDtcLuRecoveryInitiatedByLuWork        = GUIDOF!IDtcLuRecoveryInitiatedByLuWork;
+const GUID IID_IDtcLuRmEnlistment                     = GUIDOF!IDtcLuRmEnlistment;
+const GUID IID_IDtcLuRmEnlistmentFactory              = GUIDOF!IDtcLuRmEnlistmentFactory;
+const GUID IID_IDtcLuRmEnlistmentSink                 = GUIDOF!IDtcLuRmEnlistmentSink;
+const GUID IID_IDtcLuSubordinateDtc                   = GUIDOF!IDtcLuSubordinateDtc;
+const GUID IID_IDtcLuSubordinateDtcFactory            = GUIDOF!IDtcLuSubordinateDtcFactory;
+const GUID IID_IDtcLuSubordinateDtcSink               = GUIDOF!IDtcLuSubordinateDtcSink;
+const GUID IID_IDtcNetworkAccessConfig                = GUIDOF!IDtcNetworkAccessConfig;
+const GUID IID_IDtcNetworkAccessConfig2               = GUIDOF!IDtcNetworkAccessConfig2;
+const GUID IID_IDtcNetworkAccessConfig3               = GUIDOF!IDtcNetworkAccessConfig3;
+const GUID IID_IEnumEventObject                       = GUIDOF!IEnumEventObject;
+const GUID IID_IEnumNames                             = GUIDOF!IEnumNames;
+const GUID IID_IEventClass                            = GUIDOF!IEventClass;
+const GUID IID_IEventClass2                           = GUIDOF!IEventClass2;
+const GUID IID_IEventControl                          = GUIDOF!IEventControl;
+const GUID IID_IEventObjectChange                     = GUIDOF!IEventObjectChange;
+const GUID IID_IEventObjectChange2                    = GUIDOF!IEventObjectChange2;
+const GUID IID_IEventObjectCollection                 = GUIDOF!IEventObjectCollection;
+const GUID IID_IEventServerTrace                      = GUIDOF!IEventServerTrace;
+const GUID IID_IEventSubscription                     = GUIDOF!IEventSubscription;
+const GUID IID_IEventSystem                           = GUIDOF!IEventSystem;
+const GUID IID_IFiringControl                         = GUIDOF!IFiringControl;
+const GUID IID_IGetAppTrackerData                     = GUIDOF!IGetAppTrackerData;
+const GUID IID_IGetContextProperties                  = GUIDOF!IGetContextProperties;
+const GUID IID_IGetDispenser                          = GUIDOF!IGetDispenser;
+const GUID IID_IGetSecurityCallContext                = GUIDOF!IGetSecurityCallContext;
+const GUID IID_IHolder                                = GUIDOF!IHolder;
+const GUID IID_IKernelTransaction                     = GUIDOF!IKernelTransaction;
+const GUID IID_ILBEvents                              = GUIDOF!ILBEvents;
+const GUID IID_ILastResourceManager                   = GUIDOF!ILastResourceManager;
+const GUID IID_IMTSActivity                           = GUIDOF!IMTSActivity;
+const GUID IID_IMTSCall                               = GUIDOF!IMTSCall;
+const GUID IID_IMTSLocator                            = GUIDOF!IMTSLocator;
+const GUID IID_IManagedActivationEvents               = GUIDOF!IManagedActivationEvents;
+const GUID IID_IManagedObjectInfo                     = GUIDOF!IManagedObjectInfo;
+const GUID IID_IManagedPoolAction                     = GUIDOF!IManagedPoolAction;
+const GUID IID_IManagedPooledObj                      = GUIDOF!IManagedPooledObj;
+const GUID IID_IMessageMover                          = GUIDOF!IMessageMover;
+const GUID IID_IMtsEventInfo                          = GUIDOF!IMtsEventInfo;
+const GUID IID_IMtsEvents                             = GUIDOF!IMtsEvents;
+const GUID IID_IMtsGrp                                = GUIDOF!IMtsGrp;
+const GUID IID_IMultiInterfaceEventControl            = GUIDOF!IMultiInterfaceEventControl;
+const GUID IID_IMultiInterfacePublisherFilter         = GUIDOF!IMultiInterfacePublisherFilter;
+const GUID IID_IObjPool                               = GUIDOF!IObjPool;
+const GUID IID_IObjectConstruct                       = GUIDOF!IObjectConstruct;
+const GUID IID_IObjectConstructString                 = GUIDOF!IObjectConstructString;
+const GUID IID_IObjectContext                         = GUIDOF!IObjectContext;
+const GUID IID_IObjectContextActivity                 = GUIDOF!IObjectContextActivity;
+const GUID IID_IObjectContextInfo                     = GUIDOF!IObjectContextInfo;
+const GUID IID_IObjectContextInfo2                    = GUIDOF!IObjectContextInfo2;
+const GUID IID_IObjectContextTip                      = GUIDOF!IObjectContextTip;
+const GUID IID_IObjectControl                         = GUIDOF!IObjectControl;
+const GUID IID_IPlaybackControl                       = GUIDOF!IPlaybackControl;
+const GUID IID_IPoolManager                           = GUIDOF!IPoolManager;
+const GUID IID_IPrepareInfo                           = GUIDOF!IPrepareInfo;
+const GUID IID_IPrepareInfo2                          = GUIDOF!IPrepareInfo2;
+const GUID IID_IProcessInitializer                    = GUIDOF!IProcessInitializer;
+const GUID IID_IPublisherFilter                       = GUIDOF!IPublisherFilter;
+const GUID IID_IRMHelper                              = GUIDOF!IRMHelper;
+const GUID IID_IResourceManager                       = GUIDOF!IResourceManager;
+const GUID IID_IResourceManager2                      = GUIDOF!IResourceManager2;
+const GUID IID_IResourceManagerFactory                = GUIDOF!IResourceManagerFactory;
+const GUID IID_IResourceManagerFactory2               = GUIDOF!IResourceManagerFactory2;
+const GUID IID_IResourceManagerRejoinable             = GUIDOF!IResourceManagerRejoinable;
+const GUID IID_IResourceManagerSink                   = GUIDOF!IResourceManagerSink;
+const GUID IID_ISecurityCallContext                   = GUIDOF!ISecurityCallContext;
+const GUID IID_ISecurityCallersColl                   = GUIDOF!ISecurityCallersColl;
+const GUID IID_ISecurityIdentityColl                  = GUIDOF!ISecurityIdentityColl;
+const GUID IID_ISecurityProperty                      = GUIDOF!ISecurityProperty;
+const GUID IID_ISelectCOMLBServer                     = GUIDOF!ISelectCOMLBServer;
+const GUID IID_ISendMethodEvents                      = GUIDOF!ISendMethodEvents;
+const GUID IID_IServiceActivity                       = GUIDOF!IServiceActivity;
+const GUID IID_IServiceCall                           = GUIDOF!IServiceCall;
+const GUID IID_IServiceComTIIntrinsicsConfig          = GUIDOF!IServiceComTIIntrinsicsConfig;
+const GUID IID_IServiceIISIntrinsicsConfig            = GUIDOF!IServiceIISIntrinsicsConfig;
+const GUID IID_IServiceInheritanceConfig              = GUIDOF!IServiceInheritanceConfig;
+const GUID IID_IServicePartitionConfig                = GUIDOF!IServicePartitionConfig;
+const GUID IID_IServicePool                           = GUIDOF!IServicePool;
+const GUID IID_IServicePoolConfig                     = GUIDOF!IServicePoolConfig;
+const GUID IID_IServiceSxsConfig                      = GUIDOF!IServiceSxsConfig;
+const GUID IID_IServiceSynchronizationConfig          = GUIDOF!IServiceSynchronizationConfig;
+const GUID IID_IServiceSysTxnConfig                   = GUIDOF!IServiceSysTxnConfig;
+const GUID IID_IServiceThreadPoolConfig               = GUIDOF!IServiceThreadPoolConfig;
+const GUID IID_IServiceTrackerConfig                  = GUIDOF!IServiceTrackerConfig;
+const GUID IID_IServiceTransactionConfig              = GUIDOF!IServiceTransactionConfig;
+const GUID IID_IServiceTransactionConfigBase          = GUIDOF!IServiceTransactionConfigBase;
+const GUID IID_ISharedProperty                        = GUIDOF!ISharedProperty;
+const GUID IID_ISharedPropertyGroup                   = GUIDOF!ISharedPropertyGroup;
+const GUID IID_ISharedPropertyGroupManager            = GUIDOF!ISharedPropertyGroupManager;
+const GUID IID_ISystemAppEventData                    = GUIDOF!ISystemAppEventData;
+const GUID IID_IThreadPoolKnobs                       = GUIDOF!IThreadPoolKnobs;
+const GUID IID_ITipHelper                             = GUIDOF!ITipHelper;
+const GUID IID_ITipPullSink                           = GUIDOF!ITipPullSink;
+const GUID IID_ITipTransaction                        = GUIDOF!ITipTransaction;
+const GUID IID_ITmNodeName                            = GUIDOF!ITmNodeName;
+const GUID IID_ITransaction                           = GUIDOF!ITransaction;
+const GUID IID_ITransaction2                          = GUIDOF!ITransaction2;
+const GUID IID_ITransactionCloner                     = GUIDOF!ITransactionCloner;
+const GUID IID_ITransactionContext                    = GUIDOF!ITransactionContext;
+const GUID IID_ITransactionContextEx                  = GUIDOF!ITransactionContextEx;
+const GUID IID_ITransactionDispenser                  = GUIDOF!ITransactionDispenser;
+const GUID IID_ITransactionEnlistmentAsync            = GUIDOF!ITransactionEnlistmentAsync;
+const GUID IID_ITransactionExport                     = GUIDOF!ITransactionExport;
+const GUID IID_ITransactionExportFactory              = GUIDOF!ITransactionExportFactory;
+const GUID IID_ITransactionImport                     = GUIDOF!ITransactionImport;
+const GUID IID_ITransactionImportWhereabouts          = GUIDOF!ITransactionImportWhereabouts;
+const GUID IID_ITransactionLastEnlistmentAsync        = GUIDOF!ITransactionLastEnlistmentAsync;
+const GUID IID_ITransactionLastResourceAsync          = GUIDOF!ITransactionLastResourceAsync;
+const GUID IID_ITransactionOptions                    = GUIDOF!ITransactionOptions;
+const GUID IID_ITransactionOutcomeEvents              = GUIDOF!ITransactionOutcomeEvents;
+const GUID IID_ITransactionPhase0EnlistmentAsync      = GUIDOF!ITransactionPhase0EnlistmentAsync;
+const GUID IID_ITransactionPhase0Factory              = GUIDOF!ITransactionPhase0Factory;
+const GUID IID_ITransactionPhase0NotifyAsync          = GUIDOF!ITransactionPhase0NotifyAsync;
+const GUID IID_ITransactionProperty                   = GUIDOF!ITransactionProperty;
+const GUID IID_ITransactionProxy                      = GUIDOF!ITransactionProxy;
+const GUID IID_ITransactionReceiver                   = GUIDOF!ITransactionReceiver;
+const GUID IID_ITransactionReceiverFactory            = GUIDOF!ITransactionReceiverFactory;
+const GUID IID_ITransactionResource                   = GUIDOF!ITransactionResource;
+const GUID IID_ITransactionResourceAsync              = GUIDOF!ITransactionResourceAsync;
+const GUID IID_ITransactionResourcePool               = GUIDOF!ITransactionResourcePool;
+const GUID IID_ITransactionStatus                     = GUIDOF!ITransactionStatus;
+const GUID IID_ITransactionTransmitter                = GUIDOF!ITransactionTransmitter;
+const GUID IID_ITransactionTransmitterFactory         = GUIDOF!ITransactionTransmitterFactory;
+const GUID IID_ITransactionVoterBallotAsync2          = GUIDOF!ITransactionVoterBallotAsync2;
+const GUID IID_ITransactionVoterFactory2              = GUIDOF!ITransactionVoterFactory2;
+const GUID IID_ITransactionVoterNotifyAsync2          = GUIDOF!ITransactionVoterNotifyAsync2;
+const GUID IID_ITxProxyHolder                         = GUIDOF!ITxProxyHolder;
+const GUID IID_IXAConfig                              = GUIDOF!IXAConfig;
+const GUID IID_IXAObtainRMInfo                        = GUIDOF!IXAObtainRMInfo;
+const GUID IID_IXATransLookup                         = GUIDOF!IXATransLookup;
+const GUID IID_IXATransLookup2                        = GUIDOF!IXATransLookup2;
+const GUID IID_ObjectContext                          = GUIDOF!ObjectContext;
+const GUID IID_ObjectControl                          = GUIDOF!ObjectControl;
+const GUID IID_SecurityProperty                       = GUIDOF!SecurityProperty;

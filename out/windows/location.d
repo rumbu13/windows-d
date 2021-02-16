@@ -1,69 +1,66 @@
 module windows.location;
 
-public import system;
-public import windows.automation;
-public import windows.com;
-public import windows.sensors;
-public import windows.structuredstorage;
-public import windows.systemservices;
-public import windows.windowsandmessaging;
-public import windows.windowsprogramming;
-public import windows.windowspropertiessystem;
+public import windows.core;
+public import windows.automation : BSTR, IDispatch;
+public import windows.com : HRESULT, IUnknown;
+public import windows.sensors : LOCATION_DESIRED_ACCURACY;
+public import windows.structuredstorage : PROPVARIANT;
+public import windows.systemservices : BOOL;
+public import windows.windowsandmessaging : HWND;
+public import windows.windowsprogramming : SYSTEMTIME;
+public import windows.windowspropertiessystem : PROPERTYKEY;
 
 extern(Windows):
 
-const GUID CLSID_Location = {0xE5B8E079, 0xEE6D, 0x4E33, [0xA4, 0x38, 0xC8, 0x7F, 0x2E, 0x95, 0x92, 0x54]};
-@GUID(0xE5B8E079, 0xEE6D, 0x4E33, [0xA4, 0x38, 0xC8, 0x7F, 0x2E, 0x95, 0x92, 0x54]);
+
+// Enums
+
+
+enum : int
+{
+    REPORT_NOT_SUPPORTED = 0x00000000,
+    REPORT_ERROR         = 0x00000001,
+    REPORT_ACCESS_DENIED = 0x00000002,
+    REPORT_INITIALIZING  = 0x00000003,
+    REPORT_RUNNING       = 0x00000004,
+}
+alias LOCATION_REPORT_STATUS = int;
+
+// Interfaces
+
+@GUID("E5B8E079-EE6D-4E33-A438-C87F2E959254")
 struct Location;
 
-const GUID CLSID_DefaultLocation = {0x8B7FBFE0, 0x5CD7, 0x494A, [0xAF, 0x8C, 0x28, 0x3A, 0x65, 0x70, 0x75, 0x06]};
-@GUID(0x8B7FBFE0, 0x5CD7, 0x494A, [0xAF, 0x8C, 0x28, 0x3A, 0x65, 0x70, 0x75, 0x06]);
+@GUID("8B7FBFE0-5CD7-494A-AF8C-283A65707506")
 struct DefaultLocation;
 
-const GUID CLSID_LatLongReport = {0xED81C073, 0x1F84, 0x4CA8, [0xA1, 0x61, 0x18, 0x3C, 0x77, 0x6B, 0xC6, 0x51]};
-@GUID(0xED81C073, 0x1F84, 0x4CA8, [0xA1, 0x61, 0x18, 0x3C, 0x77, 0x6B, 0xC6, 0x51]);
+@GUID("ED81C073-1F84-4CA8-A161-183C776BC651")
 struct LatLongReport;
 
-const GUID CLSID_CivicAddressReport = {0xD39E7BDD, 0x7D05, 0x46B8, [0x87, 0x21, 0x80, 0xCF, 0x03, 0x5F, 0x57, 0xD7]};
-@GUID(0xD39E7BDD, 0x7D05, 0x46B8, [0x87, 0x21, 0x80, 0xCF, 0x03, 0x5F, 0x57, 0xD7]);
+@GUID("D39E7BDD-7D05-46B8-8721-80CF035F57D7")
 struct CivicAddressReport;
 
-const GUID CLSID_LatLongReportFactory = {0x9DCC3CC8, 0x8609, 0x4863, [0xBA, 0xD4, 0x03, 0x60, 0x1F, 0x4C, 0x65, 0xE8]};
-@GUID(0x9DCC3CC8, 0x8609, 0x4863, [0xBA, 0xD4, 0x03, 0x60, 0x1F, 0x4C, 0x65, 0xE8]);
+@GUID("9DCC3CC8-8609-4863-BAD4-03601F4C65E8")
 struct LatLongReportFactory;
 
-const GUID CLSID_CivicAddressReportFactory = {0x2A11F42C, 0x3E81, 0x4AD4, [0x9C, 0xBE, 0x45, 0x57, 0x9D, 0x89, 0x67, 0x1A]};
-@GUID(0x2A11F42C, 0x3E81, 0x4AD4, [0x9C, 0xBE, 0x45, 0x57, 0x9D, 0x89, 0x67, 0x1A]);
+@GUID("2A11F42C-3E81-4AD4-9CBE-45579D89671A")
 struct CivicAddressReportFactory;
 
-const GUID CLSID_DispLatLongReport = {0x7A7C3277, 0x8F84, 0x4636, [0x95, 0xB2, 0xEB, 0xB5, 0x50, 0x7F, 0xF7, 0x7E]};
-@GUID(0x7A7C3277, 0x8F84, 0x4636, [0x95, 0xB2, 0xEB, 0xB5, 0x50, 0x7F, 0xF7, 0x7E]);
+@GUID("7A7C3277-8F84-4636-95B2-EBB5507FF77E")
 struct DispLatLongReport;
 
-const GUID CLSID_DispCivicAddressReport = {0x4C596AEC, 0x8544, 0x4082, [0xBA, 0x9F, 0xEB, 0x0A, 0x7D, 0x8E, 0x65, 0xC6]};
-@GUID(0x4C596AEC, 0x8544, 0x4082, [0xBA, 0x9F, 0xEB, 0x0A, 0x7D, 0x8E, 0x65, 0xC6]);
+@GUID("4C596AEC-8544-4082-BA9F-EB0A7D8E65C6")
 struct DispCivicAddressReport;
 
-enum LOCATION_REPORT_STATUS
-{
-    REPORT_NOT_SUPPORTED = 0,
-    REPORT_ERROR = 1,
-    REPORT_ACCESS_DENIED = 2,
-    REPORT_INITIALIZING = 3,
-    REPORT_RUNNING = 4,
-}
-
-const GUID IID_ILocationReport = {0xC8B7F7EE, 0x75D0, 0x4DB9, [0xB6, 0x2D, 0x7A, 0x0F, 0x36, 0x9C, 0xA4, 0x56]};
-@GUID(0xC8B7F7EE, 0x75D0, 0x4DB9, [0xB6, 0x2D, 0x7A, 0x0F, 0x36, 0x9C, 0xA4, 0x56]);
+@GUID("C8B7F7EE-75D0-4DB9-B62D-7A0F369CA456")
 interface ILocationReport : IUnknown
 {
-    HRESULT GetSensorID(Guid* pSensorID);
+    HRESULT GetSensorID(GUID* pSensorID);
     HRESULT GetTimestamp(SYSTEMTIME* pCreationTime);
     HRESULT GetValue(const(PROPERTYKEY)* pKey, PROPVARIANT* pValue);
 }
 
-const GUID IID_ILatLongReport = {0x7FED806D, 0x0EF8, 0x4F07, [0x80, 0xAC, 0x36, 0xA0, 0xBE, 0xAE, 0x31, 0x34]};
-@GUID(0x7FED806D, 0x0EF8, 0x4F07, [0x80, 0xAC, 0x36, 0xA0, 0xBE, 0xAE, 0x31, 0x34]);
+@GUID("7FED806D-0EF8-4F07-80AC-36A0BEAE3134")
 interface ILatLongReport : ILocationReport
 {
     HRESULT GetLatitude(double* pLatitude);
@@ -73,8 +70,7 @@ interface ILatLongReport : ILocationReport
     HRESULT GetAltitudeError(double* pAltitudeError);
 }
 
-const GUID IID_ICivicAddressReport = {0xC0B19F70, 0x4ADF, 0x445D, [0x87, 0xF2, 0xCA, 0xD8, 0xFD, 0x71, 0x17, 0x92]};
-@GUID(0xC0B19F70, 0x4ADF, 0x445D, [0x87, 0xF2, 0xCA, 0xD8, 0xFD, 0x71, 0x17, 0x92]);
+@GUID("C0B19F70-4ADF-445D-87F2-CAD8FD711792")
 interface ICivicAddressReport : ILocationReport
 {
     HRESULT GetAddressLine1(BSTR* pbstrAddress1);
@@ -86,47 +82,42 @@ interface ICivicAddressReport : ILocationReport
     HRESULT GetDetailLevel(uint* pDetailLevel);
 }
 
-const GUID IID_ILocation = {0xAB2ECE69, 0x56D9, 0x4F28, [0xB5, 0x25, 0xDE, 0x1B, 0x0E, 0xE4, 0x42, 0x37]};
-@GUID(0xAB2ECE69, 0x56D9, 0x4F28, [0xB5, 0x25, 0xDE, 0x1B, 0x0E, 0xE4, 0x42, 0x37]);
+@GUID("AB2ECE69-56D9-4F28-B525-DE1B0EE44237")
 interface ILocation : IUnknown
 {
-    HRESULT RegisterForReport(ILocationEvents pEvents, const(Guid)* reportType, uint dwRequestedReportInterval);
-    HRESULT UnregisterForReport(const(Guid)* reportType);
-    HRESULT GetReport(const(Guid)* reportType, ILocationReport* ppLocationReport);
-    HRESULT GetReportStatus(const(Guid)* reportType, LOCATION_REPORT_STATUS* pStatus);
-    HRESULT GetReportInterval(const(Guid)* reportType, uint* pMilliseconds);
-    HRESULT SetReportInterval(const(Guid)* reportType, uint millisecondsRequested);
-    HRESULT GetDesiredAccuracy(const(Guid)* reportType, LOCATION_DESIRED_ACCURACY* pDesiredAccuracy);
-    HRESULT SetDesiredAccuracy(const(Guid)* reportType, LOCATION_DESIRED_ACCURACY desiredAccuracy);
+    HRESULT RegisterForReport(ILocationEvents pEvents, const(GUID)* reportType, uint dwRequestedReportInterval);
+    HRESULT UnregisterForReport(const(GUID)* reportType);
+    HRESULT GetReport(const(GUID)* reportType, ILocationReport* ppLocationReport);
+    HRESULT GetReportStatus(const(GUID)* reportType, LOCATION_REPORT_STATUS* pStatus);
+    HRESULT GetReportInterval(const(GUID)* reportType, uint* pMilliseconds);
+    HRESULT SetReportInterval(const(GUID)* reportType, uint millisecondsRequested);
+    HRESULT GetDesiredAccuracy(const(GUID)* reportType, LOCATION_DESIRED_ACCURACY* pDesiredAccuracy);
+    HRESULT SetDesiredAccuracy(const(GUID)* reportType, LOCATION_DESIRED_ACCURACY desiredAccuracy);
     HRESULT RequestPermissions(HWND hParent, char* pReportTypes, uint count, BOOL fModal);
 }
 
-const GUID IID_ILocationPower = {0x193E7729, 0xAB6B, 0x4B12, [0x86, 0x17, 0x75, 0x96, 0xE1, 0xBB, 0x19, 0x1C]};
-@GUID(0x193E7729, 0xAB6B, 0x4B12, [0x86, 0x17, 0x75, 0x96, 0xE1, 0xBB, 0x19, 0x1C]);
+@GUID("193E7729-AB6B-4B12-8617-7596E1BB191C")
 interface ILocationPower : IUnknown
 {
     HRESULT Connect();
     HRESULT Disconnect();
 }
 
-const GUID IID_IDefaultLocation = {0xA65AF77E, 0x969A, 0x4A2E, [0x8A, 0xCA, 0x33, 0xBB, 0x7C, 0xBB, 0x12, 0x35]};
-@GUID(0xA65AF77E, 0x969A, 0x4A2E, [0x8A, 0xCA, 0x33, 0xBB, 0x7C, 0xBB, 0x12, 0x35]);
+@GUID("A65AF77E-969A-4A2E-8ACA-33BB7CBB1235")
 interface IDefaultLocation : IUnknown
 {
-    HRESULT SetReport(const(Guid)* reportType, ILocationReport pLocationReport);
-    HRESULT GetReport(const(Guid)* reportType, ILocationReport* ppLocationReport);
+    HRESULT SetReport(const(GUID)* reportType, ILocationReport pLocationReport);
+    HRESULT GetReport(const(GUID)* reportType, ILocationReport* ppLocationReport);
 }
 
-const GUID IID_ILocationEvents = {0xCAE02BBF, 0x798B, 0x4508, [0xA2, 0x07, 0x35, 0xA7, 0x90, 0x6D, 0xC7, 0x3D]};
-@GUID(0xCAE02BBF, 0x798B, 0x4508, [0xA2, 0x07, 0x35, 0xA7, 0x90, 0x6D, 0xC7, 0x3D]);
+@GUID("CAE02BBF-798B-4508-A207-35A7906DC73D")
 interface ILocationEvents : IUnknown
 {
-    HRESULT OnLocationChanged(const(Guid)* reportType, ILocationReport pLocationReport);
-    HRESULT OnStatusChanged(const(Guid)* reportType, LOCATION_REPORT_STATUS newStatus);
+    HRESULT OnLocationChanged(const(GUID)* reportType, ILocationReport pLocationReport);
+    HRESULT OnStatusChanged(const(GUID)* reportType, LOCATION_REPORT_STATUS newStatus);
 }
 
-const GUID IID_IDispLatLongReport = {0x8AE32723, 0x389B, 0x4A11, [0x99, 0x57, 0x5B, 0xDD, 0x48, 0xFC, 0x96, 0x17]};
-@GUID(0x8AE32723, 0x389B, 0x4A11, [0x99, 0x57, 0x5B, 0xDD, 0x48, 0xFC, 0x96, 0x17]);
+@GUID("8AE32723-389B-4A11-9957-5BDD48FC9617")
 interface IDispLatLongReport : IDispatch
 {
     HRESULT get_Latitude(double* pVal);
@@ -137,8 +128,7 @@ interface IDispLatLongReport : IDispatch
     HRESULT get_Timestamp(double* pVal);
 }
 
-const GUID IID_IDispCivicAddressReport = {0x16FF1A34, 0x9E30, 0x42C3, [0xB4, 0x4D, 0xE2, 0x25, 0x13, 0xB5, 0x76, 0x7A]};
-@GUID(0x16FF1A34, 0x9E30, 0x42C3, [0xB4, 0x4D, 0xE2, 0x25, 0x13, 0xB5, 0x76, 0x7A]);
+@GUID("16FF1A34-9E30-42C3-B44D-E22513B5767A")
 interface IDispCivicAddressReport : IDispatch
 {
     HRESULT get_AddressLine1(BSTR* pAddress1);
@@ -151,8 +141,7 @@ interface IDispCivicAddressReport : IDispatch
     HRESULT get_Timestamp(double* pVal);
 }
 
-const GUID IID_ILocationReportFactory = {0x2DAEC322, 0x90B2, 0x47E4, [0xBB, 0x08, 0x0D, 0xA8, 0x41, 0x93, 0x5A, 0x6B]};
-@GUID(0x2DAEC322, 0x90B2, 0x47E4, [0xBB, 0x08, 0x0D, 0xA8, 0x41, 0x93, 0x5A, 0x6B]);
+@GUID("2DAEC322-90B2-47E4-BB08-0DA841935A6B")
 interface ILocationReportFactory : IDispatch
 {
     HRESULT ListenForReports(uint requestedReportInterval);
@@ -165,29 +154,51 @@ interface ILocationReportFactory : IDispatch
     HRESULT RequestPermissions(uint* hWnd);
 }
 
-const GUID IID_ILatLongReportFactory = {0x3F0804CB, 0xB114, 0x447D, [0x83, 0xDD, 0x39, 0x01, 0x74, 0xEB, 0xB0, 0x82]};
-@GUID(0x3F0804CB, 0xB114, 0x447D, [0x83, 0xDD, 0x39, 0x01, 0x74, 0xEB, 0xB0, 0x82]);
+@GUID("3F0804CB-B114-447D-83DD-390174EBB082")
 interface ILatLongReportFactory : ILocationReportFactory
 {
     HRESULT get_LatLongReport(IDispLatLongReport* pVal);
 }
 
-const GUID IID_ICivicAddressReportFactory = {0xBF773B93, 0xC64F, 0x4BEE, [0xBE, 0xB2, 0x67, 0xC0, 0xB8, 0xDF, 0x66, 0xE0]};
-@GUID(0xBF773B93, 0xC64F, 0x4BEE, [0xBE, 0xB2, 0x67, 0xC0, 0xB8, 0xDF, 0x66, 0xE0]);
+@GUID("BF773B93-C64F-4BEE-BEB2-67C0B8DF66E0")
 interface ICivicAddressReportFactory : ILocationReportFactory
 {
     HRESULT get_CivicAddressReport(IDispCivicAddressReport* pVal);
 }
 
-const GUID IID__ILatLongReportFactoryEvents = {0x16EE6CB7, 0xAB3C, 0x424B, [0x84, 0x9F, 0x26, 0x9B, 0xE5, 0x51, 0xFC, 0xBC]};
-@GUID(0x16EE6CB7, 0xAB3C, 0x424B, [0x84, 0x9F, 0x26, 0x9B, 0xE5, 0x51, 0xFC, 0xBC]);
+@GUID("16EE6CB7-AB3C-424B-849F-269BE551FCBC")
 interface _ILatLongReportFactoryEvents : IDispatch
 {
 }
 
-const GUID IID__ICivicAddressReportFactoryEvents = {0xC96039FF, 0x72EC, 0x4617, [0x89, 0xBD, 0x84, 0xD8, 0x8B, 0xED, 0xC7, 0x22]};
-@GUID(0xC96039FF, 0x72EC, 0x4617, [0x89, 0xBD, 0x84, 0xD8, 0x8B, 0xED, 0xC7, 0x22]);
+@GUID("C96039FF-72EC-4617-89BD-84D88BEDC722")
 interface _ICivicAddressReportFactoryEvents : IDispatch
 {
 }
 
+
+// GUIDs
+
+const GUID CLSID_CivicAddressReport        = GUIDOF!CivicAddressReport;
+const GUID CLSID_CivicAddressReportFactory = GUIDOF!CivicAddressReportFactory;
+const GUID CLSID_DefaultLocation           = GUIDOF!DefaultLocation;
+const GUID CLSID_DispCivicAddressReport    = GUIDOF!DispCivicAddressReport;
+const GUID CLSID_DispLatLongReport         = GUIDOF!DispLatLongReport;
+const GUID CLSID_LatLongReport             = GUIDOF!LatLongReport;
+const GUID CLSID_LatLongReportFactory      = GUIDOF!LatLongReportFactory;
+const GUID CLSID_Location                  = GUIDOF!Location;
+
+const GUID IID_ICivicAddressReport               = GUIDOF!ICivicAddressReport;
+const GUID IID_ICivicAddressReportFactory        = GUIDOF!ICivicAddressReportFactory;
+const GUID IID_IDefaultLocation                  = GUIDOF!IDefaultLocation;
+const GUID IID_IDispCivicAddressReport           = GUIDOF!IDispCivicAddressReport;
+const GUID IID_IDispLatLongReport                = GUIDOF!IDispLatLongReport;
+const GUID IID_ILatLongReport                    = GUIDOF!ILatLongReport;
+const GUID IID_ILatLongReportFactory             = GUIDOF!ILatLongReportFactory;
+const GUID IID_ILocation                         = GUIDOF!ILocation;
+const GUID IID_ILocationEvents                   = GUIDOF!ILocationEvents;
+const GUID IID_ILocationPower                    = GUIDOF!ILocationPower;
+const GUID IID_ILocationReport                   = GUIDOF!ILocationReport;
+const GUID IID_ILocationReportFactory            = GUIDOF!ILocationReportFactory;
+const GUID IID__ICivicAddressReportFactoryEvents = GUIDOF!_ICivicAddressReportFactoryEvents;
+const GUID IID__ILatLongReportFactoryEvents      = GUIDOF!_ILatLongReportFactoryEvents;

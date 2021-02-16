@@ -1,116 +1,181 @@
 module windows.mib;
 
-public import system;
-public import windows.iphelper;
-public import windows.nativewifi;
-public import windows.networkdrivers;
-public import windows.systemservices;
-public import windows.winsock;
+public import windows.core;
+public import windows.iphelper : IF_OPER_STATUS, INTERNAL_IF_OPER_STATUS, IP_ADDRESS_PREFIX, MIB_IPFORWARD_TYPE,
+                                 MIB_IPNET_TYPE, MIB_IPSTATS_FORWARDING, MIB_TCP_STATE, NET_LUID_LH,
+                                 NL_BANDWIDTH_INFORMATION, NL_DAD_STATE, NL_PREFIX_ORIGIN, NL_SUFFIX_ORIGIN,
+                                 SOCKADDR_INET, TCP_RTO_ALGORITHM;
+public import windows.nativewifi : NDIS_MEDIUM, NDIS_PHYSICAL_MEDIUM;
+public import windows.networkdrivers : NET_IF_ACCESS_TYPE, NET_IF_ADMIN_STATUS, NET_IF_CONNECTION_TYPE,
+                                       NET_IF_DIRECTION_TYPE, NET_IF_MEDIA_CONNECT_STATE,
+                                       NL_LINK_LOCAL_ADDRESS_BEHAVIOR, NL_NEIGHBOR_STATE,
+                                       NL_ROUTER_DISCOVERY_BEHAVIOR, NL_ROUTE_ORIGIN, NL_ROUTE_PROTOCOL, TUNNEL_TYPE;
+public import windows.systemservices : BOOL, LARGE_INTEGER;
+public import windows.winsock : SCOPE_ID, in6_addr;
 
 extern(Windows):
 
-enum MIB_NOTIFICATION_TYPE
+
+// Enums
+
+
+enum : int
 {
-    MibParameterNotification = 0,
-    MibAddInstance = 1,
-    MibDeleteInstance = 2,
-    MibInitialNotification = 3,
+    MibParameterNotification = 0x00000000,
+    MibAddInstance           = 0x00000001,
+    MibDeleteInstance        = 0x00000002,
+    MibInitialNotification   = 0x00000003,
 }
+alias MIB_NOTIFICATION_TYPE = int;
+
+enum : int
+{
+    ICMP6_DST_UNREACH          = 0x00000001,
+    ICMP6_PACKET_TOO_BIG       = 0x00000002,
+    ICMP6_TIME_EXCEEDED        = 0x00000003,
+    ICMP6_PARAM_PROB           = 0x00000004,
+    ICMP6_ECHO_REQUEST         = 0x00000080,
+    ICMP6_ECHO_REPLY           = 0x00000081,
+    ICMP6_MEMBERSHIP_QUERY     = 0x00000082,
+    ICMP6_MEMBERSHIP_REPORT    = 0x00000083,
+    ICMP6_MEMBERSHIP_REDUCTION = 0x00000084,
+    ND_ROUTER_SOLICIT          = 0x00000085,
+    ND_ROUTER_ADVERT           = 0x00000086,
+    ND_NEIGHBOR_SOLICIT        = 0x00000087,
+    ND_NEIGHBOR_ADVERT         = 0x00000088,
+    ND_REDIRECT                = 0x00000089,
+    ICMP6_V2_MEMBERSHIP_REPORT = 0x0000008f,
+}
+alias ICMP6_TYPE = int;
+
+enum : int
+{
+    ICMP4_ECHO_REPLY        = 0x00000000,
+    ICMP4_DST_UNREACH       = 0x00000003,
+    ICMP4_SOURCE_QUENCH     = 0x00000004,
+    ICMP4_REDIRECT          = 0x00000005,
+    ICMP4_ECHO_REQUEST      = 0x00000008,
+    ICMP4_ROUTER_ADVERT     = 0x00000009,
+    ICMP4_ROUTER_SOLICIT    = 0x0000000a,
+    ICMP4_TIME_EXCEEDED     = 0x0000000b,
+    ICMP4_PARAM_PROB        = 0x0000000c,
+    ICMP4_TIMESTAMP_REQUEST = 0x0000000d,
+    ICMP4_TIMESTAMP_REPLY   = 0x0000000e,
+    ICMP4_MASK_REQUEST      = 0x00000011,
+    ICMP4_MASK_REPLY        = 0x00000012,
+}
+alias ICMP4_TYPE = int;
+
+enum : int
+{
+    TcpConnectionOffloadStateInHost     = 0x00000000,
+    TcpConnectionOffloadStateOffloading = 0x00000001,
+    TcpConnectionOffloadStateOffloaded  = 0x00000002,
+    TcpConnectionOffloadStateUploading  = 0x00000003,
+    TcpConnectionOffloadStateMax        = 0x00000004,
+}
+alias TCP_CONNECTION_OFFLOAD_STATE = int;
+
+// Structs
+
 
 struct MIB_IF_ROW2
 {
-    NET_LUID_LH InterfaceLuid;
-    uint InterfaceIndex;
-    Guid InterfaceGuid;
-    ushort Alias;
-    ushort Description;
-    uint PhysicalAddressLength;
-    ubyte PhysicalAddress;
-    ubyte PermanentPhysicalAddress;
-    uint Mtu;
-    uint Type;
-    TUNNEL_TYPE TunnelType;
-    NDIS_MEDIUM MediaType;
+    NET_LUID_LH          InterfaceLuid;
+    uint                 InterfaceIndex;
+    GUID                 InterfaceGuid;
+    ushort[257]          Alias;
+    ushort[257]          Description;
+    uint                 PhysicalAddressLength;
+    ubyte[32]            PhysicalAddress;
+    ubyte[32]            PermanentPhysicalAddress;
+    uint                 Mtu;
+    uint                 Type;
+    TUNNEL_TYPE          TunnelType;
+    NDIS_MEDIUM          MediaType;
     NDIS_PHYSICAL_MEDIUM PhysicalMediumType;
-    NET_IF_ACCESS_TYPE AccessType;
+    NET_IF_ACCESS_TYPE   AccessType;
     NET_IF_DIRECTION_TYPE DirectionType;
-    _InterfaceAndOperStatusFlags_e__Struct InterfaceAndOperStatusFlags;
-    IF_OPER_STATUS OperStatus;
-    NET_IF_ADMIN_STATUS AdminStatus;
+    struct InterfaceAndOperStatusFlags
+    {
+        ubyte _bitfield70;
+    }
+    IF_OPER_STATUS       OperStatus;
+    NET_IF_ADMIN_STATUS  AdminStatus;
     NET_IF_MEDIA_CONNECT_STATE MediaConnectState;
-    Guid NetworkGuid;
+    GUID                 NetworkGuid;
     NET_IF_CONNECTION_TYPE ConnectionType;
-    ulong TransmitLinkSpeed;
-    ulong ReceiveLinkSpeed;
-    ulong InOctets;
-    ulong InUcastPkts;
-    ulong InNUcastPkts;
-    ulong InDiscards;
-    ulong InErrors;
-    ulong InUnknownProtos;
-    ulong InUcastOctets;
-    ulong InMulticastOctets;
-    ulong InBroadcastOctets;
-    ulong OutOctets;
-    ulong OutUcastPkts;
-    ulong OutNUcastPkts;
-    ulong OutDiscards;
-    ulong OutErrors;
-    ulong OutUcastOctets;
-    ulong OutMulticastOctets;
-    ulong OutBroadcastOctets;
-    ulong OutQLen;
+    ulong                TransmitLinkSpeed;
+    ulong                ReceiveLinkSpeed;
+    ulong                InOctets;
+    ulong                InUcastPkts;
+    ulong                InNUcastPkts;
+    ulong                InDiscards;
+    ulong                InErrors;
+    ulong                InUnknownProtos;
+    ulong                InUcastOctets;
+    ulong                InMulticastOctets;
+    ulong                InBroadcastOctets;
+    ulong                OutOctets;
+    ulong                OutUcastPkts;
+    ulong                OutNUcastPkts;
+    ulong                OutDiscards;
+    ulong                OutErrors;
+    ulong                OutUcastOctets;
+    ulong                OutMulticastOctets;
+    ulong                OutBroadcastOctets;
+    ulong                OutQLen;
 }
 
 struct MIB_IF_TABLE2
 {
-    uint NumEntries;
-    MIB_IF_ROW2 Table;
+    uint           NumEntries;
+    MIB_IF_ROW2[1] Table;
 }
 
 struct MIB_IPINTERFACE_ROW
 {
-    ushort Family;
+    ushort      Family;
     NET_LUID_LH InterfaceLuid;
-    uint InterfaceIndex;
-    uint MaxReassemblySize;
-    ulong InterfaceIdentifier;
-    uint MinRouterAdvertisementInterval;
-    uint MaxRouterAdvertisementInterval;
-    ubyte AdvertisingEnabled;
-    ubyte ForwardingEnabled;
-    ubyte WeakHostSend;
-    ubyte WeakHostReceive;
-    ubyte UseAutomaticMetric;
-    ubyte UseNeighborUnreachabilityDetection;
-    ubyte ManagedAddressConfigurationSupported;
-    ubyte OtherStatefulConfigurationSupported;
-    ubyte AdvertiseDefaultRoute;
+    uint        InterfaceIndex;
+    uint        MaxReassemblySize;
+    ulong       InterfaceIdentifier;
+    uint        MinRouterAdvertisementInterval;
+    uint        MaxRouterAdvertisementInterval;
+    ubyte       AdvertisingEnabled;
+    ubyte       ForwardingEnabled;
+    ubyte       WeakHostSend;
+    ubyte       WeakHostReceive;
+    ubyte       UseAutomaticMetric;
+    ubyte       UseNeighborUnreachabilityDetection;
+    ubyte       ManagedAddressConfigurationSupported;
+    ubyte       OtherStatefulConfigurationSupported;
+    ubyte       AdvertiseDefaultRoute;
     NL_ROUTER_DISCOVERY_BEHAVIOR RouterDiscoveryBehavior;
-    uint DadTransmits;
-    uint BaseReachableTime;
-    uint RetransmitTime;
-    uint PathMtuDiscoveryTimeout;
+    uint        DadTransmits;
+    uint        BaseReachableTime;
+    uint        RetransmitTime;
+    uint        PathMtuDiscoveryTimeout;
     NL_LINK_LOCAL_ADDRESS_BEHAVIOR LinkLocalAddressBehavior;
-    uint LinkLocalAddressTimeout;
-    uint ZoneIndices;
-    uint SitePrefixLength;
-    uint Metric;
-    uint NlMtu;
-    ubyte Connected;
-    ubyte SupportsWakeUpPatterns;
-    ubyte SupportsNeighborDiscovery;
-    ubyte SupportsRouterDiscovery;
-    uint ReachableTime;
+    uint        LinkLocalAddressTimeout;
+    uint[16]    ZoneIndices;
+    uint        SitePrefixLength;
+    uint        Metric;
+    uint        NlMtu;
+    ubyte       Connected;
+    ubyte       SupportsWakeUpPatterns;
+    ubyte       SupportsNeighborDiscovery;
+    ubyte       SupportsRouterDiscovery;
+    uint        ReachableTime;
     NL_INTERFACE_OFFLOAD_ROD TransmitOffload;
     NL_INTERFACE_OFFLOAD_ROD ReceiveOffload;
-    ubyte DisableDefaultRoutes;
+    ubyte       DisableDefaultRoutes;
 }
 
 struct MIB_IPINTERFACE_TABLE
 {
     uint NumEntries;
-    MIB_IPINTERFACE_ROW Table;
+    MIB_IPINTERFACE_ROW[1] Table;
 }
 
 struct MIB_IFSTACK_ROW
@@ -127,14 +192,14 @@ struct MIB_INVERTEDIFSTACK_ROW
 
 struct MIB_IFSTACK_TABLE
 {
-    uint NumEntries;
-    MIB_IFSTACK_ROW Table;
+    uint               NumEntries;
+    MIB_IFSTACK_ROW[1] Table;
 }
 
 struct MIB_INVERTEDIFSTACK_TABLE
 {
     uint NumEntries;
-    MIB_INVERTEDIFSTACK_ROW Table;
+    MIB_INVERTEDIFSTACK_ROW[1] Table;
 }
 
 struct MIB_IP_NETWORK_CONNECTION_BANDWIDTH_ESTIMATES
@@ -145,123 +210,138 @@ struct MIB_IP_NETWORK_CONNECTION_BANDWIDTH_ESTIMATES
 
 struct MIB_UNICASTIPADDRESS_ROW
 {
-    SOCKADDR_INET Address;
-    NET_LUID_LH InterfaceLuid;
-    uint InterfaceIndex;
+    SOCKADDR_INET    Address;
+    NET_LUID_LH      InterfaceLuid;
+    uint             InterfaceIndex;
     NL_PREFIX_ORIGIN PrefixOrigin;
     NL_SUFFIX_ORIGIN SuffixOrigin;
-    uint ValidLifetime;
-    uint PreferredLifetime;
-    ubyte OnLinkPrefixLength;
-    ubyte SkipAsSource;
-    NL_DAD_STATE DadState;
-    SCOPE_ID ScopeId;
-    LARGE_INTEGER CreationTimeStamp;
+    uint             ValidLifetime;
+    uint             PreferredLifetime;
+    ubyte            OnLinkPrefixLength;
+    ubyte            SkipAsSource;
+    NL_DAD_STATE     DadState;
+    SCOPE_ID         ScopeId;
+    LARGE_INTEGER    CreationTimeStamp;
 }
 
 struct MIB_UNICASTIPADDRESS_TABLE
 {
     uint NumEntries;
-    MIB_UNICASTIPADDRESS_ROW Table;
+    MIB_UNICASTIPADDRESS_ROW[1] Table;
 }
 
 struct MIB_ANYCASTIPADDRESS_ROW
 {
     SOCKADDR_INET Address;
-    NET_LUID_LH InterfaceLuid;
-    uint InterfaceIndex;
-    SCOPE_ID ScopeId;
+    NET_LUID_LH   InterfaceLuid;
+    uint          InterfaceIndex;
+    SCOPE_ID      ScopeId;
 }
 
 struct MIB_ANYCASTIPADDRESS_TABLE
 {
     uint NumEntries;
-    MIB_ANYCASTIPADDRESS_ROW Table;
+    MIB_ANYCASTIPADDRESS_ROW[1] Table;
 }
 
 struct MIB_MULTICASTIPADDRESS_ROW
 {
     SOCKADDR_INET Address;
-    uint InterfaceIndex;
-    NET_LUID_LH InterfaceLuid;
-    SCOPE_ID ScopeId;
+    uint          InterfaceIndex;
+    NET_LUID_LH   InterfaceLuid;
+    SCOPE_ID      ScopeId;
 }
 
 struct MIB_MULTICASTIPADDRESS_TABLE
 {
     uint NumEntries;
-    MIB_MULTICASTIPADDRESS_ROW Table;
+    MIB_MULTICASTIPADDRESS_ROW[1] Table;
 }
 
 struct MIB_IPFORWARD_ROW2
 {
-    NET_LUID_LH InterfaceLuid;
-    uint InterfaceIndex;
+    NET_LUID_LH       InterfaceLuid;
+    uint              InterfaceIndex;
     IP_ADDRESS_PREFIX DestinationPrefix;
-    SOCKADDR_INET NextHop;
-    ubyte SitePrefixLength;
-    uint ValidLifetime;
-    uint PreferredLifetime;
-    uint Metric;
+    SOCKADDR_INET     NextHop;
+    ubyte             SitePrefixLength;
+    uint              ValidLifetime;
+    uint              PreferredLifetime;
+    uint              Metric;
     NL_ROUTE_PROTOCOL Protocol;
-    ubyte Loopback;
-    ubyte AutoconfigureAddress;
-    ubyte Publish;
-    ubyte Immortal;
-    uint Age;
-    NL_ROUTE_ORIGIN Origin;
+    ubyte             Loopback;
+    ubyte             AutoconfigureAddress;
+    ubyte             Publish;
+    ubyte             Immortal;
+    uint              Age;
+    NL_ROUTE_ORIGIN   Origin;
 }
 
 struct MIB_IPFORWARD_TABLE2
 {
     uint NumEntries;
-    MIB_IPFORWARD_ROW2 Table;
+    MIB_IPFORWARD_ROW2[1] Table;
 }
 
 struct MIB_IPPATH_ROW
 {
     SOCKADDR_INET Source;
     SOCKADDR_INET Destination;
-    NET_LUID_LH InterfaceLuid;
-    uint InterfaceIndex;
+    NET_LUID_LH   InterfaceLuid;
+    uint          InterfaceIndex;
     SOCKADDR_INET CurrentNextHop;
-    uint PathMtu;
-    uint RttMean;
-    uint RttDeviation;
-    _Anonymous_e__Union Anonymous;
-    ubyte IsReachable;
-    ulong LinkTransmitSpeed;
-    ulong LinkReceiveSpeed;
+    uint          PathMtu;
+    uint          RttMean;
+    uint          RttDeviation;
+    union
+    {
+        uint LastReachable;
+        uint LastUnreachable;
+    }
+    ubyte         IsReachable;
+    ulong         LinkTransmitSpeed;
+    ulong         LinkReceiveSpeed;
 }
 
 struct MIB_IPPATH_TABLE
 {
-    uint NumEntries;
-    MIB_IPPATH_ROW Table;
+    uint              NumEntries;
+    MIB_IPPATH_ROW[1] Table;
 }
 
 struct MIB_IPNET_ROW2
 {
-    SOCKADDR_INET Address;
-    uint InterfaceIndex;
-    NET_LUID_LH InterfaceLuid;
-    ubyte PhysicalAddress;
-    uint PhysicalAddressLength;
+    SOCKADDR_INET     Address;
+    uint              InterfaceIndex;
+    NET_LUID_LH       InterfaceLuid;
+    ubyte[32]         PhysicalAddress;
+    uint              PhysicalAddressLength;
     NL_NEIGHBOR_STATE State;
-    _Anonymous_e__Union Anonymous;
-    _ReachabilityTime_e__Union ReachabilityTime;
+    union
+    {
+        struct
+        {
+            ubyte _bitfield71;
+        }
+        ubyte Flags;
+    }
+    union ReachabilityTime
+    {
+        uint LastReachable;
+        uint LastUnreachable;
+    }
 }
 
 struct MIB_IPNET_TABLE2
 {
-    uint NumEntries;
-    MIB_IPNET_ROW2 Table;
+    uint              NumEntries;
+    MIB_IPNET_ROW2[1] Table;
 }
 
 struct MIB_OPAQUE_QUERY
 {
-    uint dwVarId;
-    uint rgdwVarIndex;
+    uint    dwVarId;
+    uint[1] rgdwVarIndex;
 }
 
 struct MIB_IFNUMBER
@@ -271,64 +351,64 @@ struct MIB_IFNUMBER
 
 struct MIB_IFROW
 {
-    ushort wszName;
-    uint dwIndex;
-    uint dwType;
-    uint dwMtu;
-    uint dwSpeed;
-    uint dwPhysAddrLen;
-    ubyte bPhysAddr;
-    uint dwAdminStatus;
+    ushort[256] wszName;
+    uint        dwIndex;
+    uint        dwType;
+    uint        dwMtu;
+    uint        dwSpeed;
+    uint        dwPhysAddrLen;
+    ubyte[8]    bPhysAddr;
+    uint        dwAdminStatus;
     INTERNAL_IF_OPER_STATUS dwOperStatus;
-    uint dwLastChange;
-    uint dwInOctets;
-    uint dwInUcastPkts;
-    uint dwInNUcastPkts;
-    uint dwInDiscards;
-    uint dwInErrors;
-    uint dwInUnknownProtos;
-    uint dwOutOctets;
-    uint dwOutUcastPkts;
-    uint dwOutNUcastPkts;
-    uint dwOutDiscards;
-    uint dwOutErrors;
-    uint dwOutQLen;
-    uint dwDescrLen;
-    ubyte bDescr;
+    uint        dwLastChange;
+    uint        dwInOctets;
+    uint        dwInUcastPkts;
+    uint        dwInNUcastPkts;
+    uint        dwInDiscards;
+    uint        dwInErrors;
+    uint        dwInUnknownProtos;
+    uint        dwOutOctets;
+    uint        dwOutUcastPkts;
+    uint        dwOutNUcastPkts;
+    uint        dwOutDiscards;
+    uint        dwOutErrors;
+    uint        dwOutQLen;
+    uint        dwDescrLen;
+    ubyte[256]  bDescr;
 }
 
 struct MIB_IFTABLE
 {
-    uint dwNumEntries;
-    MIB_IFROW table;
+    uint         dwNumEntries;
+    MIB_IFROW[1] table;
 }
 
 struct MIB_IPADDRROW_XP
 {
-    uint dwAddr;
-    uint dwIndex;
-    uint dwMask;
-    uint dwBCastAddr;
-    uint dwReasmSize;
+    uint   dwAddr;
+    uint   dwIndex;
+    uint   dwMask;
+    uint   dwBCastAddr;
+    uint   dwReasmSize;
     ushort unused1;
     ushort wType;
 }
 
 struct MIB_IPADDRROW_W2K
 {
-    uint dwAddr;
-    uint dwIndex;
-    uint dwMask;
-    uint dwBCastAddr;
-    uint dwReasmSize;
+    uint   dwAddr;
+    uint   dwIndex;
+    uint   dwMask;
+    uint   dwBCastAddr;
+    uint   dwReasmSize;
     ushort unused1;
     ushort unused2;
 }
 
 struct MIB_IPADDRTABLE
 {
-    uint dwNumEntries;
-    MIB_IPADDRROW_XP table;
+    uint                dwNumEntries;
+    MIB_IPADDRROW_XP[1] table;
 }
 
 struct MIB_IPFORWARDNUMBER
@@ -343,8 +423,16 @@ struct MIB_IPFORWARDROW
     uint dwForwardPolicy;
     uint dwForwardNextHop;
     uint dwForwardIfIndex;
-    _Anonymous1_e__Union Anonymous1;
-    _Anonymous2_e__Union Anonymous2;
+    union
+    {
+        uint               dwForwardType;
+        MIB_IPFORWARD_TYPE ForwardType;
+    }
+    union
+    {
+        uint              dwForwardProto;
+        NL_ROUTE_PROTOCOL ForwardProto;
+    }
     uint dwForwardAge;
     uint dwForwardNextHopAS;
     uint dwForwardMetric1;
@@ -356,37 +444,45 @@ struct MIB_IPFORWARDROW
 
 struct MIB_IPFORWARDTABLE
 {
-    uint dwNumEntries;
-    MIB_IPFORWARDROW table;
+    uint                dwNumEntries;
+    MIB_IPFORWARDROW[1] table;
 }
 
 struct MIB_IPNETROW_LH
 {
-    uint dwIndex;
-    uint dwPhysAddrLen;
-    ubyte bPhysAddr;
-    uint dwAddr;
-    _Anonymous_e__Union Anonymous;
+    uint     dwIndex;
+    uint     dwPhysAddrLen;
+    ubyte[8] bPhysAddr;
+    uint     dwAddr;
+    union
+    {
+        uint           dwType;
+        MIB_IPNET_TYPE Type;
+    }
 }
 
 struct MIB_IPNETROW_W2K
 {
-    uint dwIndex;
-    uint dwPhysAddrLen;
-    ubyte bPhysAddr;
-    uint dwAddr;
-    uint dwType;
+    uint     dwIndex;
+    uint     dwPhysAddrLen;
+    ubyte[8] bPhysAddr;
+    uint     dwAddr;
+    uint     dwType;
 }
 
 struct MIB_IPNETTABLE
 {
-    uint dwNumEntries;
-    MIB_IPNETROW_LH table;
+    uint               dwNumEntries;
+    MIB_IPNETROW_LH[1] table;
 }
 
 struct MIB_IPSTATS_LH
 {
-    _Anonymous_e__Union Anonymous;
+    union
+    {
+        uint dwForwarding;
+        MIB_IPSTATS_FORWARDING Forwarding;
+    }
     uint dwDefaultTTL;
     uint dwInReceives;
     uint dwInHdrErrors;
@@ -468,51 +564,15 @@ struct MIB_ICMP
 
 struct MIBICMPSTATS_EX_XPSP1
 {
-    uint dwMsgs;
-    uint dwErrors;
-    uint rgdwTypeCount;
+    uint      dwMsgs;
+    uint      dwErrors;
+    uint[256] rgdwTypeCount;
 }
 
 struct MIB_ICMP_EX_XPSP1
 {
     MIBICMPSTATS_EX_XPSP1 icmpInStats;
     MIBICMPSTATS_EX_XPSP1 icmpOutStats;
-}
-
-enum ICMP6_TYPE
-{
-    ICMP6_DST_UNREACH = 1,
-    ICMP6_PACKET_TOO_BIG = 2,
-    ICMP6_TIME_EXCEEDED = 3,
-    ICMP6_PARAM_PROB = 4,
-    ICMP6_ECHO_REQUEST = 128,
-    ICMP6_ECHO_REPLY = 129,
-    ICMP6_MEMBERSHIP_QUERY = 130,
-    ICMP6_MEMBERSHIP_REPORT = 131,
-    ICMP6_MEMBERSHIP_REDUCTION = 132,
-    ND_ROUTER_SOLICIT = 133,
-    ND_ROUTER_ADVERT = 134,
-    ND_NEIGHBOR_SOLICIT = 135,
-    ND_NEIGHBOR_ADVERT = 136,
-    ND_REDIRECT = 137,
-    ICMP6_V2_MEMBERSHIP_REPORT = 143,
-}
-
-enum ICMP4_TYPE
-{
-    ICMP4_ECHO_REPLY = 0,
-    ICMP4_DST_UNREACH = 3,
-    ICMP4_SOURCE_QUENCH = 4,
-    ICMP4_REDIRECT = 5,
-    ICMP4_ECHO_REQUEST = 8,
-    ICMP4_ROUTER_ADVERT = 9,
-    ICMP4_ROUTER_SOLICIT = 10,
-    ICMP4_TIME_EXCEEDED = 11,
-    ICMP4_PARAM_PROB = 12,
-    ICMP4_TIMESTAMP_REQUEST = 13,
-    ICMP4_TIMESTAMP_REPLY = 14,
-    ICMP4_MASK_REQUEST = 17,
-    ICMP4_MASK_REPLY = 18,
 }
 
 struct MIB_IPMCAST_OIF_XP
@@ -525,10 +585,10 @@ struct MIB_IPMCAST_OIF_XP
 
 struct MIB_IPMCAST_OIF_W2K
 {
-    uint dwOutIfIndex;
-    uint dwNextHopAddr;
+    uint  dwOutIfIndex;
+    uint  dwNextHopAddr;
     void* pvReserved;
-    uint dwReserved;
+    uint  dwReserved;
 }
 
 struct MIB_IPMCAST_MFE
@@ -548,13 +608,13 @@ struct MIB_IPMCAST_MFE
     uint ulNumOutIf;
     uint fFlags;
     uint dwReserved;
-    MIB_IPMCAST_OIF_XP rgmioOutInfo;
+    MIB_IPMCAST_OIF_XP[1] rgmioOutInfo;
 }
 
 struct MIB_MFE_TABLE
 {
-    uint dwNumEntries;
-    MIB_IPMCAST_MFE table;
+    uint               dwNumEntries;
+    MIB_IPMCAST_MFE[1] table;
 }
 
 struct MIB_IPMCAST_OIF_STATS_LH
@@ -570,13 +630,13 @@ struct MIB_IPMCAST_OIF_STATS_LH
 
 struct MIB_IPMCAST_OIF_STATS_W2K
 {
-    uint dwOutIfIndex;
-    uint dwNextHopAddr;
+    uint  dwOutIfIndex;
+    uint  dwNextHopAddr;
     void* pvDialContext;
-    uint ulTtlTooLow;
-    uint ulFragNeeded;
-    uint ulOutPackets;
-    uint ulOutDiscards;
+    uint  ulTtlTooLow;
+    uint  ulFragNeeded;
+    uint  ulOutPackets;
+    uint  ulOutDiscards;
 }
 
 struct MIB_IPMCAST_MFE_STATS
@@ -597,13 +657,13 @@ struct MIB_IPMCAST_MFE_STATS
     uint ulInOctets;
     uint ulPktsDifferentIf;
     uint ulQueueOverflow;
-    MIB_IPMCAST_OIF_STATS_LH rgmiosOutStats;
+    MIB_IPMCAST_OIF_STATS_LH[1] rgmiosOutStats;
 }
 
 struct MIB_MFE_STATS_TABLE
 {
     uint dwNumEntries;
-    MIB_IPMCAST_MFE_STATS table;
+    MIB_IPMCAST_MFE_STATS[1] table;
 }
 
 struct MIB_IPMCAST_MFE_STATS_EX_XP
@@ -629,13 +689,13 @@ struct MIB_IPMCAST_MFE_STATS_EX_XP
     uint ulInDiscards;
     uint ulInHdrErrors;
     uint ulTotalOutPackets;
-    MIB_IPMCAST_OIF_STATS_LH rgmiosOutStats;
+    MIB_IPMCAST_OIF_STATS_LH[1] rgmiosOutStats;
 }
 
 struct MIB_MFE_STATS_TABLE_EX_XP
 {
     uint dwNumEntries;
-    MIB_IPMCAST_MFE_STATS_EX_XP* table;
+    MIB_IPMCAST_MFE_STATS_EX_XP[1]* table;
 }
 
 struct MIB_IPMCAST_GLOBAL
@@ -656,21 +716,16 @@ struct MIB_IPMCAST_IF_ENTRY
 struct MIB_IPMCAST_IF_TABLE
 {
     uint dwNumEntries;
-    MIB_IPMCAST_IF_ENTRY table;
-}
-
-enum TCP_CONNECTION_OFFLOAD_STATE
-{
-    TcpConnectionOffloadStateInHost = 0,
-    TcpConnectionOffloadStateOffloading = 1,
-    TcpConnectionOffloadStateOffloaded = 2,
-    TcpConnectionOffloadStateUploading = 3,
-    TcpConnectionOffloadStateMax = 4,
+    MIB_IPMCAST_IF_ENTRY[1] table;
 }
 
 struct MIB_TCPROW_LH
 {
-    _Anonymous_e__Union Anonymous;
+    union
+    {
+        uint          dwState;
+        MIB_TCP_STATE State;
+    }
     uint dwLocalAddr;
     uint dwLocalPort;
     uint dwRemoteAddr;
@@ -688,8 +743,8 @@ struct MIB_TCPROW_W2K
 
 struct MIB_TCPTABLE
 {
-    uint dwNumEntries;
-    MIB_TCPROW_LH table;
+    uint             dwNumEntries;
+    MIB_TCPROW_LH[1] table;
 }
 
 struct MIB_TCPROW2
@@ -705,8 +760,8 @@ struct MIB_TCPROW2
 
 struct MIB_TCPTABLE2
 {
-    uint dwNumEntries;
-    MIB_TCPROW2 table;
+    uint           dwNumEntries;
+    MIB_TCPROW2[1] table;
 }
 
 struct MIB_TCPROW_OWNER_PID
@@ -722,104 +777,108 @@ struct MIB_TCPROW_OWNER_PID
 struct MIB_TCPTABLE_OWNER_PID
 {
     uint dwNumEntries;
-    MIB_TCPROW_OWNER_PID table;
+    MIB_TCPROW_OWNER_PID[1] table;
 }
 
 struct MIB_TCPROW_OWNER_MODULE
 {
-    uint dwState;
-    uint dwLocalAddr;
-    uint dwLocalPort;
-    uint dwRemoteAddr;
-    uint dwRemotePort;
-    uint dwOwningPid;
+    uint          dwState;
+    uint          dwLocalAddr;
+    uint          dwLocalPort;
+    uint          dwRemoteAddr;
+    uint          dwRemotePort;
+    uint          dwOwningPid;
     LARGE_INTEGER liCreateTimestamp;
-    ulong OwningModuleInfo;
+    ulong[16]     OwningModuleInfo;
 }
 
 struct MIB_TCPTABLE_OWNER_MODULE
 {
     uint dwNumEntries;
-    MIB_TCPROW_OWNER_MODULE table;
+    MIB_TCPROW_OWNER_MODULE[1] table;
 }
 
 struct MIB_TCP6ROW
 {
     MIB_TCP_STATE State;
-    in6_addr LocalAddr;
-    uint dwLocalScopeId;
-    uint dwLocalPort;
-    in6_addr RemoteAddr;
-    uint dwRemoteScopeId;
-    uint dwRemotePort;
+    in6_addr      LocalAddr;
+    uint          dwLocalScopeId;
+    uint          dwLocalPort;
+    in6_addr      RemoteAddr;
+    uint          dwRemoteScopeId;
+    uint          dwRemotePort;
 }
 
 struct MIB_TCP6TABLE
 {
-    uint dwNumEntries;
-    MIB_TCP6ROW table;
+    uint           dwNumEntries;
+    MIB_TCP6ROW[1] table;
 }
 
 struct MIB_TCP6ROW2
 {
-    in6_addr LocalAddr;
-    uint dwLocalScopeId;
-    uint dwLocalPort;
-    in6_addr RemoteAddr;
-    uint dwRemoteScopeId;
-    uint dwRemotePort;
+    in6_addr      LocalAddr;
+    uint          dwLocalScopeId;
+    uint          dwLocalPort;
+    in6_addr      RemoteAddr;
+    uint          dwRemoteScopeId;
+    uint          dwRemotePort;
     MIB_TCP_STATE State;
-    uint dwOwningPid;
+    uint          dwOwningPid;
     TCP_CONNECTION_OFFLOAD_STATE dwOffloadState;
 }
 
 struct MIB_TCP6TABLE2
 {
-    uint dwNumEntries;
-    MIB_TCP6ROW2 table;
+    uint            dwNumEntries;
+    MIB_TCP6ROW2[1] table;
 }
 
 struct MIB_TCP6ROW_OWNER_PID
 {
-    ubyte ucLocalAddr;
-    uint dwLocalScopeId;
-    uint dwLocalPort;
-    ubyte ucRemoteAddr;
-    uint dwRemoteScopeId;
-    uint dwRemotePort;
-    uint dwState;
-    uint dwOwningPid;
+    ubyte[16] ucLocalAddr;
+    uint      dwLocalScopeId;
+    uint      dwLocalPort;
+    ubyte[16] ucRemoteAddr;
+    uint      dwRemoteScopeId;
+    uint      dwRemotePort;
+    uint      dwState;
+    uint      dwOwningPid;
 }
 
 struct MIB_TCP6TABLE_OWNER_PID
 {
     uint dwNumEntries;
-    MIB_TCP6ROW_OWNER_PID table;
+    MIB_TCP6ROW_OWNER_PID[1] table;
 }
 
 struct MIB_TCP6ROW_OWNER_MODULE
 {
-    ubyte ucLocalAddr;
-    uint dwLocalScopeId;
-    uint dwLocalPort;
-    ubyte ucRemoteAddr;
-    uint dwRemoteScopeId;
-    uint dwRemotePort;
-    uint dwState;
-    uint dwOwningPid;
+    ubyte[16]     ucLocalAddr;
+    uint          dwLocalScopeId;
+    uint          dwLocalPort;
+    ubyte[16]     ucRemoteAddr;
+    uint          dwRemoteScopeId;
+    uint          dwRemotePort;
+    uint          dwState;
+    uint          dwOwningPid;
     LARGE_INTEGER liCreateTimestamp;
-    ulong OwningModuleInfo;
+    ulong[16]     OwningModuleInfo;
 }
 
 struct MIB_TCP6TABLE_OWNER_MODULE
 {
     uint dwNumEntries;
-    MIB_TCP6ROW_OWNER_MODULE table;
+    MIB_TCP6ROW_OWNER_MODULE[1] table;
 }
 
 struct MIB_TCPSTATS_LH
 {
-    _Anonymous_e__Union Anonymous;
+    union
+    {
+        uint              dwRtoAlgorithm;
+        TCP_RTO_ALGORITHM RtoAlgorithm;
+    }
     uint dwRtoMin;
     uint dwRtoMax;
     uint dwMaxConn;
@@ -858,20 +917,20 @@ struct MIB_TCPSTATS_W2K
 struct MIB_TCPSTATS2
 {
     TCP_RTO_ALGORITHM RtoAlgorithm;
-    uint dwRtoMin;
-    uint dwRtoMax;
-    uint dwMaxConn;
-    uint dwActiveOpens;
-    uint dwPassiveOpens;
-    uint dwAttemptFails;
-    uint dwEstabResets;
-    uint dwCurrEstab;
-    ulong dw64InSegs;
-    ulong dw64OutSegs;
-    uint dwRetransSegs;
-    uint dwInErrs;
-    uint dwOutRsts;
-    uint dwNumConns;
+    uint              dwRtoMin;
+    uint              dwRtoMax;
+    uint              dwMaxConn;
+    uint              dwActiveOpens;
+    uint              dwPassiveOpens;
+    uint              dwAttemptFails;
+    uint              dwEstabResets;
+    uint              dwCurrEstab;
+    ulong             dw64InSegs;
+    ulong             dw64OutSegs;
+    uint              dwRetransSegs;
+    uint              dwInErrs;
+    uint              dwOutRsts;
+    uint              dwNumConns;
 }
 
 struct MIB_UDPROW
@@ -882,8 +941,8 @@ struct MIB_UDPROW
 
 struct MIB_UDPTABLE
 {
-    uint dwNumEntries;
-    MIB_UDPROW table;
+    uint          dwNumEntries;
+    MIB_UDPROW[1] table;
 }
 
 struct MIB_UDPROW_OWNER_PID
@@ -896,67 +955,81 @@ struct MIB_UDPROW_OWNER_PID
 struct MIB_UDPTABLE_OWNER_PID
 {
     uint dwNumEntries;
-    MIB_UDPROW_OWNER_PID table;
+    MIB_UDPROW_OWNER_PID[1] table;
 }
 
 struct MIB_UDPROW_OWNER_MODULE
 {
-    uint dwLocalAddr;
-    uint dwLocalPort;
-    uint dwOwningPid;
+    uint          dwLocalAddr;
+    uint          dwLocalPort;
+    uint          dwOwningPid;
     LARGE_INTEGER liCreateTimestamp;
-    _Anonymous_e__Union Anonymous;
-    ulong OwningModuleInfo;
+    union
+    {
+        struct
+        {
+            int _bitfield72;
+        }
+        int dwFlags;
+    }
+    ulong[16]     OwningModuleInfo;
 }
 
 struct MIB_UDPTABLE_OWNER_MODULE
 {
     uint dwNumEntries;
-    MIB_UDPROW_OWNER_MODULE table;
+    MIB_UDPROW_OWNER_MODULE[1] table;
 }
 
 struct MIB_UDP6ROW
 {
     in6_addr dwLocalAddr;
-    uint dwLocalScopeId;
-    uint dwLocalPort;
+    uint     dwLocalScopeId;
+    uint     dwLocalPort;
 }
 
 struct MIB_UDP6TABLE
 {
-    uint dwNumEntries;
-    MIB_UDP6ROW table;
+    uint           dwNumEntries;
+    MIB_UDP6ROW[1] table;
 }
 
 struct MIB_UDP6ROW_OWNER_PID
 {
-    ubyte ucLocalAddr;
-    uint dwLocalScopeId;
-    uint dwLocalPort;
-    uint dwOwningPid;
+    ubyte[16] ucLocalAddr;
+    uint      dwLocalScopeId;
+    uint      dwLocalPort;
+    uint      dwOwningPid;
 }
 
 struct MIB_UDP6TABLE_OWNER_PID
 {
     uint dwNumEntries;
-    MIB_UDP6ROW_OWNER_PID table;
+    MIB_UDP6ROW_OWNER_PID[1] table;
 }
 
 struct MIB_UDP6ROW_OWNER_MODULE
 {
-    ubyte ucLocalAddr;
-    uint dwLocalScopeId;
-    uint dwLocalPort;
-    uint dwOwningPid;
+    ubyte[16]     ucLocalAddr;
+    uint          dwLocalScopeId;
+    uint          dwLocalPort;
+    uint          dwOwningPid;
     LARGE_INTEGER liCreateTimestamp;
-    _Anonymous_e__Union Anonymous;
-    ulong OwningModuleInfo;
+    union
+    {
+        struct
+        {
+            int _bitfield73;
+        }
+        int dwFlags;
+    }
+    ulong[16]     OwningModuleInfo;
 }
 
 struct MIB_UDP6TABLE_OWNER_MODULE
 {
     uint dwNumEntries;
-    MIB_UDP6ROW_OWNER_MODULE table;
+    MIB_UDP6ROW_OWNER_MODULE[1] table;
 }
 
 struct MIB_UDPSTATS
@@ -971,10 +1044,10 @@ struct MIB_UDPSTATS
 struct MIB_UDPSTATS2
 {
     ulong dw64InDatagrams;
-    uint dwNoPorts;
-    uint dwInErrors;
+    uint  dwNoPorts;
+    uint  dwInErrors;
     ulong dw64OutDatagrams;
-    uint dwNumAddrs;
+    uint  dwNumAddrs;
 }
 
 struct MIB_IPMCAST_BOUNDARY
@@ -988,7 +1061,7 @@ struct MIB_IPMCAST_BOUNDARY
 struct MIB_IPMCAST_BOUNDARY_TABLE
 {
     uint dwNumEntries;
-    MIB_IPMCAST_BOUNDARY table;
+    MIB_IPMCAST_BOUNDARY[1] table;
 }
 
 struct MIB_BOUNDARYROW
@@ -1005,10 +1078,10 @@ struct MIB_MCAST_LIMIT_ROW
 
 struct MIB_IPMCAST_SCOPE
 {
-    uint dwGroupAddress;
-    uint dwGroupMask;
-    ushort snNameBuffer;
-    uint dwStatus;
+    uint        dwGroupAddress;
+    uint        dwGroupMask;
+    ushort[256] snNameBuffer;
+    uint        dwStatus;
 }
 
 struct MIB_BEST_IF
@@ -1036,11 +1109,15 @@ struct MIB_IFSTATUS
 struct MIB_OPAQUE_INFO
 {
     uint dwId;
-    _Anonymous_e__Union Anonymous;
+    union
+    {
+        ulong    ullAlign;
+        ubyte[1] rgbyData;
+    }
 }
 
 struct NL_INTERFACE_OFFLOAD_ROD
 {
-    ubyte _bitfield;
+    ubyte _bitfield74;
 }
 

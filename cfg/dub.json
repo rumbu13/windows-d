@@ -1,0 +1,10 @@
+{
+	"name": "windows",
+    "description": "Windows Bindings",
+    "authors": ["Răzvan Ștefănescu"],
+    "license": "GPL-2.0",
+    "targetType": "staticLibrary",
+    "targetName": "windows",
+    "targetPath": "../bin",
+    "sourcePaths": ["windows"]
+}

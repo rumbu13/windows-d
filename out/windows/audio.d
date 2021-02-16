@@ -1,206 +1,218 @@
 module windows.audio;
 
-public import system;
-public import windows.com;
-public import windows.coreaudio;
-public import windows.directshow;
-public import windows.multimedia;
-public import windows.remotedesktopservices;
-public import windows.structuredstorage;
-public import windows.systemservices;
-public import windows.windowsandmessaging;
-public import windows.windowspropertiessystem;
+public import windows.core;
+public import windows.com : HRESULT, IUnknown;
+public import windows.coreaudio : IMMDeviceCollection, KSP_PIN;
+public import windows.directshow : IReferenceClock;
+public import windows.multimedia : WAVEFORMATEX, midiopenstrmid_tag;
+public import windows.remotedesktopservices : APO_CONNECTION_PROPERTY;
+public import windows.structuredstorage : PROPVARIANT;
+public import windows.systemservices : BOOL, D3DVECTOR, HANDLE, OVERLAPPED;
+public import windows.windowsandmessaging : HWND, LPARAM;
+public import windows.windowspropertiessystem : PROPERTYKEY;
 
 extern(Windows):
 
+
+// Enums
+
+
+enum : int
+{
+    APO_CONNECTION_BUFFER_TYPE_ALLOCATED = 0x00000000,
+    APO_CONNECTION_BUFFER_TYPE_EXTERNAL  = 0x00000001,
+    APO_CONNECTION_BUFFER_TYPE_DEPENDANT = 0x00000002,
+}
+alias APO_CONNECTION_BUFFER_TYPE = int;
+
+enum : int
+{
+    APO_FLAG_NONE                       = 0x00000000,
+    APO_FLAG_INPLACE                    = 0x00000001,
+    APO_FLAG_SAMPLESPERFRAME_MUST_MATCH = 0x00000002,
+    APO_FLAG_FRAMESPERSECOND_MUST_MATCH = 0x00000004,
+    APO_FLAG_BITSPERSAMPLE_MUST_MATCH   = 0x00000008,
+    APO_FLAG_MIXER                      = 0x00000010,
+    APO_FLAG_DEFAULT                    = 0x0000000e,
+}
+alias APO_FLAG = int;
+
+enum : int
+{
+    AUDIO_FLOW_PULL = 0x00000000,
+    AUDIO_FLOW_PUSH = 0x00000001,
+}
+alias AUDIO_FLOW_TYPE = int;
+
+enum EAudioConstriction : int
+{
+    eAudioConstrictionOff   = 0x00000000,
+    eAudioConstriction48_16 = 0x00000001,
+    eAudioConstriction44_16 = 0x00000002,
+    eAudioConstriction14_14 = 0x00000003,
+    eAudioConstrictionMute  = 0x00000004,
+}
+
+enum : int
+{
+    DMUS_CLOCK_SYSTEM = 0x00000000,
+    DMUS_CLOCK_WAVE   = 0x00000001,
+}
+alias DMUS_CLOCKTYPE = int;
+
+enum : int
+{
+    KSPROPERTY_AUDIOEFFECTSDISCOVERY_EFFECTSLIST = 0x00000001,
+}
+alias KSPROPERTY_AUDIOEFFECTSDISCOVERY = int;
+
+// Constants
+
+
+enum : int
+{
+    DSFXR_PRESENT     = 0x00000000,
+    DSFXR_LOCHARDWARE = 0x00000001,
+    DSFXR_LOCSOFTWARE = 0x00000002,
+}
+
+enum : int
+{
+    DSFXR_FAILED   = 0x00000004,
+    DSFXR_UNKNOWN  = 0x00000005,
+    DSFXR_SENDLOOP = 0x00000006,
+}
+
+enum : int
+{
+    DSFX_I3DL2_MATERIAL_PRESET_DOUBLEWINDOW = 0x00000001,
+    DSFX_I3DL2_MATERIAL_PRESET_THINDOOR     = 0x00000002,
+    DSFX_I3DL2_MATERIAL_PRESET_THICKDOOR    = 0x00000003,
+    DSFX_I3DL2_MATERIAL_PRESET_WOODWALL     = 0x00000004,
+    DSFX_I3DL2_MATERIAL_PRESET_BRICKWALL    = 0x00000005,
+    DSFX_I3DL2_MATERIAL_PRESET_STONEWALL    = 0x00000006,
+    DSFX_I3DL2_MATERIAL_PRESET_CURTAIN      = 0x00000007,
+}
+
+enum : int
+{
+    DSFX_I3DL2_ENVIRONMENT_PRESET_GENERIC         = 0x00000001,
+    DSFX_I3DL2_ENVIRONMENT_PRESET_PADDEDCELL      = 0x00000002,
+    DSFX_I3DL2_ENVIRONMENT_PRESET_ROOM            = 0x00000003,
+    DSFX_I3DL2_ENVIRONMENT_PRESET_BATHROOM        = 0x00000004,
+    DSFX_I3DL2_ENVIRONMENT_PRESET_LIVINGROOM      = 0x00000005,
+    DSFX_I3DL2_ENVIRONMENT_PRESET_STONEROOM       = 0x00000006,
+    DSFX_I3DL2_ENVIRONMENT_PRESET_AUDITORIUM      = 0x00000007,
+    DSFX_I3DL2_ENVIRONMENT_PRESET_CONCERTHALL     = 0x00000008,
+    DSFX_I3DL2_ENVIRONMENT_PRESET_CAVE            = 0x00000009,
+    DSFX_I3DL2_ENVIRONMENT_PRESET_ARENA           = 0x0000000a,
+    DSFX_I3DL2_ENVIRONMENT_PRESET_HANGAR          = 0x0000000b,
+    DSFX_I3DL2_ENVIRONMENT_PRESET_CARPETEDHALLWAY = 0x0000000c,
+    DSFX_I3DL2_ENVIRONMENT_PRESET_HALLWAY         = 0x0000000d,
+    DSFX_I3DL2_ENVIRONMENT_PRESET_STONECORRIDOR   = 0x0000000e,
+    DSFX_I3DL2_ENVIRONMENT_PRESET_ALLEY           = 0x0000000f,
+    DSFX_I3DL2_ENVIRONMENT_PRESET_FOREST          = 0x00000010,
+    DSFX_I3DL2_ENVIRONMENT_PRESET_CITY            = 0x00000011,
+    DSFX_I3DL2_ENVIRONMENT_PRESET_MOUNTAINS       = 0x00000012,
+    DSFX_I3DL2_ENVIRONMENT_PRESET_QUARRY          = 0x00000013,
+    DSFX_I3DL2_ENVIRONMENT_PRESET_PLAIN           = 0x00000014,
+    DSFX_I3DL2_ENVIRONMENT_PRESET_PARKINGLOT      = 0x00000015,
+    DSFX_I3DL2_ENVIRONMENT_PRESET_SEWERPIPE       = 0x00000016,
+    DSFX_I3DL2_ENVIRONMENT_PRESET_UNDERWATER      = 0x00000017,
+    DSFX_I3DL2_ENVIRONMENT_PRESET_SMALLROOM       = 0x00000018,
+    DSFX_I3DL2_ENVIRONMENT_PRESET_MEDIUMROOM      = 0x00000019,
+    DSFX_I3DL2_ENVIRONMENT_PRESET_LARGEROOM       = 0x0000001a,
+    DSFX_I3DL2_ENVIRONMENT_PRESET_MEDIUMHALL      = 0x0000001b,
+    DSFX_I3DL2_ENVIRONMENT_PRESET_LARGEHALL       = 0x0000001c,
+    DSFX_I3DL2_ENVIRONMENT_PRESET_PLATE           = 0x0000001d,
+}
+
+// Callbacks
+
+alias FNAPONOTIFICATIONCALLBACK = HRESULT function(APO_REG_PROPERTIES* pProperties, void* pvRefData);
+alias LPDSENUMCALLBACKA = BOOL function(GUID* param0, const(char)* param1, const(char)* param2, void* param3);
+alias LPDSENUMCALLBACKW = BOOL function(GUID* param0, const(wchar)* param1, const(wchar)* param2, void* param3);
+
+// Structs
+
+
 struct UNCOMPRESSEDAUDIOFORMAT
 {
-    Guid guidFormatType;
-    uint dwSamplesPerFrame;
-    uint dwBytesPerSampleContainer;
-    uint dwValidBitsPerSample;
+    GUID  guidFormatType;
+    uint  dwSamplesPerFrame;
+    uint  dwBytesPerSampleContainer;
+    uint  dwValidBitsPerSample;
     float fFramesPerSecond;
-    uint dwChannelMask;
-}
-
-const GUID IID_IAudioMediaType = {0x4E997F73, 0xB71F, 0x4798, [0x87, 0x3B, 0xED, 0x7D, 0xFC, 0xF1, 0x5B, 0x4D]};
-@GUID(0x4E997F73, 0xB71F, 0x4798, [0x87, 0x3B, 0xED, 0x7D, 0xFC, 0xF1, 0x5B, 0x4D]);
-interface IAudioMediaType : IUnknown
-{
-    HRESULT IsCompressedFormat(int* pfCompressed);
-    HRESULT IsEqual(IAudioMediaType pIAudioType, uint* pdwFlags);
-    WAVEFORMATEX* GetAudioFormat();
-    HRESULT GetUncompressedAudioFormat(UNCOMPRESSEDAUDIOFORMAT* pUncompressedAudioFormat);
-}
-
-enum APO_CONNECTION_BUFFER_TYPE
-{
-    APO_CONNECTION_BUFFER_TYPE_ALLOCATED = 0,
-    APO_CONNECTION_BUFFER_TYPE_EXTERNAL = 1,
-    APO_CONNECTION_BUFFER_TYPE_DEPENDANT = 2,
+    uint  dwChannelMask;
 }
 
 struct APO_CONNECTION_DESCRIPTOR
 {
     APO_CONNECTION_BUFFER_TYPE Type;
-    uint pBuffer;
-    uint u32MaxFrameCount;
+    size_t          pBuffer;
+    uint            u32MaxFrameCount;
     IAudioMediaType pFormat;
-    uint u32Signature;
-}
-
-enum APO_FLAG
-{
-    APO_FLAG_NONE = 0,
-    APO_FLAG_INPLACE = 1,
-    APO_FLAG_SAMPLESPERFRAME_MUST_MATCH = 2,
-    APO_FLAG_FRAMESPERSECOND_MUST_MATCH = 4,
-    APO_FLAG_BITSPERSAMPLE_MUST_MATCH = 8,
-    APO_FLAG_MIXER = 16,
-    APO_FLAG_DEFAULT = 14,
+    uint            u32Signature;
 }
 
 struct APO_REG_PROPERTIES
 {
-    Guid clsid;
-    APO_FLAG Flags;
-    ushort szFriendlyName;
-    ushort szCopyrightInfo;
-    uint u32MajorVersion;
-    uint u32MinorVersion;
-    uint u32MinInputConnections;
-    uint u32MaxInputConnections;
-    uint u32MinOutputConnections;
-    uint u32MaxOutputConnections;
-    uint u32MaxInstances;
-    uint u32NumAPOInterfaces;
-    Guid iidAPOInterfaceList;
+    GUID        clsid;
+    APO_FLAG    Flags;
+    ushort[256] szFriendlyName;
+    ushort[256] szCopyrightInfo;
+    uint        u32MajorVersion;
+    uint        u32MinorVersion;
+    uint        u32MinInputConnections;
+    uint        u32MaxInputConnections;
+    uint        u32MinOutputConnections;
+    uint        u32MaxOutputConnections;
+    uint        u32MaxInstances;
+    uint        u32NumAPOInterfaces;
+    GUID[1]     iidAPOInterfaceList;
 }
 
 struct APOInitBaseStruct
 {
     uint cbSize;
-    Guid clsid;
-}
-
-enum AUDIO_FLOW_TYPE
-{
-    AUDIO_FLOW_PULL = 0,
-    AUDIO_FLOW_PUSH = 1,
-}
-
-enum EAudioConstriction
-{
-    eAudioConstrictionOff = 0,
-    eAudioConstriction48_16 = 1,
-    eAudioConstriction44_16 = 2,
-    eAudioConstriction14_14 = 3,
-    eAudioConstrictionMute = 4,
-}
-
-const GUID IID_IAudioProcessingObjectRT = {0x9E1D6A6D, 0xDDBC, 0x4E95, [0xA4, 0xC7, 0xAD, 0x64, 0xBA, 0x37, 0x84, 0x6C]};
-@GUID(0x9E1D6A6D, 0xDDBC, 0x4E95, [0xA4, 0xC7, 0xAD, 0x64, 0xBA, 0x37, 0x84, 0x6C]);
-interface IAudioProcessingObjectRT : IUnknown
-{
-    void APOProcess(uint u32NumInputConnections, APO_CONNECTION_PROPERTY** ppInputConnections, uint u32NumOutputConnections, APO_CONNECTION_PROPERTY** ppOutputConnections);
-    uint CalcInputFrames(uint u32OutputFrameCount);
-    uint CalcOutputFrames(uint u32InputFrameCount);
-}
-
-const GUID IID_IAudioProcessingObjectVBR = {0x7BA1DB8F, 0x78AD, 0x49CD, [0x95, 0x91, 0xF7, 0x9D, 0x80, 0xA1, 0x7C, 0x81]};
-@GUID(0x7BA1DB8F, 0x78AD, 0x49CD, [0x95, 0x91, 0xF7, 0x9D, 0x80, 0xA1, 0x7C, 0x81]);
-interface IAudioProcessingObjectVBR : IUnknown
-{
-    HRESULT CalcMaxInputFrames(uint u32MaxOutputFrameCount, uint* pu32InputFrameCount);
-    HRESULT CalcMaxOutputFrames(uint u32MaxInputFrameCount, uint* pu32OutputFrameCount);
-}
-
-const GUID IID_IAudioProcessingObjectConfiguration = {0x0E5ED805, 0xABA6, 0x49C3, [0x8F, 0x9A, 0x2B, 0x8C, 0x88, 0x9C, 0x4F, 0xA8]};
-@GUID(0x0E5ED805, 0xABA6, 0x49C3, [0x8F, 0x9A, 0x2B, 0x8C, 0x88, 0x9C, 0x4F, 0xA8]);
-interface IAudioProcessingObjectConfiguration : IUnknown
-{
-    HRESULT LockForProcess(uint u32NumInputConnections, APO_CONNECTION_DESCRIPTOR** ppInputConnections, uint u32NumOutputConnections, APO_CONNECTION_DESCRIPTOR** ppOutputConnections);
-    HRESULT UnlockForProcess();
-}
-
-const GUID IID_IAudioProcessingObject = {0xFD7F2B29, 0x24D0, 0x4B5C, [0xB1, 0x77, 0x59, 0x2C, 0x39, 0xF9, 0xCA, 0x10]};
-@GUID(0xFD7F2B29, 0x24D0, 0x4B5C, [0xB1, 0x77, 0x59, 0x2C, 0x39, 0xF9, 0xCA, 0x10]);
-interface IAudioProcessingObject : IUnknown
-{
-    HRESULT Reset();
-    HRESULT GetLatency(long* pTime);
-    HRESULT GetRegistrationProperties(APO_REG_PROPERTIES** ppRegProps);
-    HRESULT Initialize(uint cbDataSize, char* pbyData);
-    HRESULT IsInputFormatSupported(IAudioMediaType pOppositeFormat, IAudioMediaType pRequestedInputFormat, IAudioMediaType* ppSupportedInputFormat);
-    HRESULT IsOutputFormatSupported(IAudioMediaType pOppositeFormat, IAudioMediaType pRequestedOutputFormat, IAudioMediaType* ppSupportedOutputFormat);
-    HRESULT GetInputChannelCount(uint* pu32ChannelCount);
-}
-
-const GUID IID_IAudioDeviceModulesClient = {0x98F37DAC, 0xD0B6, 0x49F5, [0x89, 0x6A, 0xAA, 0x4D, 0x16, 0x9A, 0x4C, 0x48]};
-@GUID(0x98F37DAC, 0xD0B6, 0x49F5, [0x89, 0x6A, 0xAA, 0x4D, 0x16, 0x9A, 0x4C, 0x48]);
-interface IAudioDeviceModulesClient : IUnknown
-{
-    HRESULT SetAudioDeviceModulesManager(IUnknown pAudioDeviceModulesManager);
-}
-
-alias FNAPONOTIFICATIONCALLBACK = extern(Windows) HRESULT function(APO_REG_PROPERTIES* pProperties, void* pvRefData);
-const GUID IID_IAudioSystemEffects = {0x5FA00F27, 0xADD6, 0x499A, [0x8A, 0x9D, 0x6B, 0x98, 0x52, 0x1F, 0xA7, 0x5B]};
-@GUID(0x5FA00F27, 0xADD6, 0x499A, [0x8A, 0x9D, 0x6B, 0x98, 0x52, 0x1F, 0xA7, 0x5B]);
-interface IAudioSystemEffects : IUnknown
-{
-}
-
-const GUID IID_IAudioSystemEffects2 = {0xBAFE99D2, 0x7436, 0x44CE, [0x9E, 0x0E, 0x4D, 0x89, 0xAF, 0xBF, 0xFF, 0x56]};
-@GUID(0xBAFE99D2, 0x7436, 0x44CE, [0x9E, 0x0E, 0x4D, 0x89, 0xAF, 0xBF, 0xFF, 0x56]);
-interface IAudioSystemEffects2 : IAudioSystemEffects
-{
-    HRESULT GetEffectsList(Guid** ppEffectsIds, uint* pcEffects, HANDLE Event);
-}
-
-const GUID IID_IAudioSystemEffectsCustomFormats = {0xB1176E34, 0xBB7F, 0x4F05, [0xBE, 0xBD, 0x1B, 0x18, 0xA5, 0x34, 0xE0, 0x97]};
-@GUID(0xB1176E34, 0xBB7F, 0x4F05, [0xBE, 0xBD, 0x1B, 0x18, 0xA5, 0x34, 0xE0, 0x97]);
-interface IAudioSystemEffectsCustomFormats : IUnknown
-{
-    HRESULT GetFormatCount(uint* pcFormats);
-    HRESULT GetFormat(uint nFormat, IAudioMediaType* ppFormat);
-    HRESULT GetFormatRepresentation(uint nFormat, ushort** ppwstrFormatRep);
+    GUID clsid;
 }
 
 struct APOInitSystemEffects
 {
-    APOInitBaseStruct APOInit;
-    IPropertyStore pAPOEndpointProperties;
-    IPropertyStore pAPOSystemEffectsProperties;
-    void* pReserved;
+    APOInitBaseStruct   APOInit;
+    IPropertyStore      pAPOEndpointProperties;
+    IPropertyStore      pAPOSystemEffectsProperties;
+    void*               pReserved;
     IMMDeviceCollection pDeviceCollection;
 }
 
 struct APOInitSystemEffects2
 {
-    APOInitBaseStruct APOInit;
-    IPropertyStore pAPOEndpointProperties;
-    IPropertyStore pAPOSystemEffectsProperties;
-    void* pReserved;
+    APOInitBaseStruct   APOInit;
+    IPropertyStore      pAPOEndpointProperties;
+    IPropertyStore      pAPOSystemEffectsProperties;
+    void*               pReserved;
     IMMDeviceCollection pDeviceCollection;
-    uint nSoftwareIoDeviceInCollection;
-    uint nSoftwareIoConnectorIndex;
-    Guid AudioProcessingMode;
-    BOOL InitializeForDiscoveryOnly;
+    uint                nSoftwareIoDeviceInCollection;
+    uint                nSoftwareIoConnectorIndex;
+    GUID                AudioProcessingMode;
+    BOOL                InitializeForDiscoveryOnly;
 }
 
 struct AudioFXExtensionParams
 {
-    LPARAM AddPageParam;
-    const(wchar)* pwstrEndpointID;
+    LPARAM         AddPageParam;
+    const(wchar)*  pwstrEndpointID;
     IPropertyStore pFxProperties;
 }
 
 struct DLSID
 {
-    uint ulData1;
-    ushort usData2;
-    ushort usData3;
-    ubyte abData4;
+    uint     ulData1;
+    ushort   usData2;
+    ushort   usData3;
+    ubyte[8] abData4;
 }
 
 struct DLSVERSION
@@ -215,7 +227,7 @@ struct CONNECTION
     ushort usControl;
     ushort usDestination;
     ushort usTransform;
-    int lScale;
+    int    lScale;
 }
 
 struct CONNECTIONLIST
@@ -240,13 +252,13 @@ struct RGNHEADER
 {
     RGNRANGE RangeKey;
     RGNRANGE RangeVelocity;
-    ushort fusOptions;
-    ushort usKeyGroup;
+    ushort   fusOptions;
+    ushort   usKeyGroup;
 }
 
 struct INSTHEADER
 {
-    uint cRegions;
+    uint       cRegions;
     MIDILOCALE Locale;
 }
 
@@ -259,8 +271,8 @@ struct WAVELINK
 {
     ushort fusOptions;
     ushort usPhaseGroup;
-    uint ulChannel;
-    uint ulTableIndex;
+    uint   ulChannel;
+    uint   ulTableIndex;
 }
 
 struct POOLCUE
@@ -276,12 +288,12 @@ struct POOLTABLE
 
 struct _rwsmp
 {
-    uint cbSize;
+    uint   cbSize;
     ushort usUnityNote;
-    short sFineTune;
-    int lAttenuation;
-    uint fulOptions;
-    uint cSampleLoops;
+    short  sFineTune;
+    int    lAttenuation;
+    uint   fulOptions;
+    uint   cSampleLoops;
 }
 
 struct _rloop
@@ -302,7 +314,7 @@ struct DMUS_DOWNLOADINFO
 
 struct DMUS_OFFSETTABLE
 {
-    uint ulOffsetTable;
+    uint[1] ulOffsetTable;
 }
 
 struct DMUS_INSTRUMENT
@@ -317,16 +329,16 @@ struct DMUS_INSTRUMENT
 
 struct DMUS_REGION
 {
-    RGNRANGE RangeKey;
-    RGNRANGE RangeVelocity;
-    ushort fusOptions;
-    ushort usKeyGroup;
-    uint ulRegionArtIdx;
-    uint ulNextRegionIdx;
-    uint ulFirstExtCkIdx;
-    WAVELINK WaveLink;
-    _rwsmp WSMP;
-    _rloop WLOOP;
+    RGNRANGE  RangeKey;
+    RGNRANGE  RangeVelocity;
+    ushort    fusOptions;
+    ushort    usKeyGroup;
+    uint      ulRegionArtIdx;
+    uint      ulNextRegionIdx;
+    uint      ulFirstExtCkIdx;
+    WAVELINK  WaveLink;
+    _rwsmp    WSMP;
+    _rloop[1] WLOOP;
 }
 
 struct DMUS_LFOPARAMS
@@ -388,29 +400,29 @@ struct DMUS_ARTICULATION2
 
 struct DMUS_EXTENSIONCHUNK
 {
-    uint cbSize;
-    uint ulNextExtCkIdx;
-    uint ExtCkID;
-    ubyte byExtCk;
+    uint     cbSize;
+    uint     ulNextExtCkIdx;
+    uint     ExtCkID;
+    ubyte[4] byExtCk;
 }
 
 struct DMUS_COPYRIGHT
 {
-    uint cbSize;
-    ubyte byCopyright;
+    uint     cbSize;
+    ubyte[4] byCopyright;
 }
 
 struct DMUS_WAVEDATA
 {
-    uint cbSize;
-    ubyte byData;
+    uint     cbSize;
+    ubyte[4] byData;
 }
 
 struct DMUS_WAVE
 {
-    uint ulFirstExtCkIdx;
-    uint ulCopyrightIdx;
-    uint ulWaveDataIdx;
+    uint         ulFirstExtCkIdx;
+    uint         ulCopyrightIdx;
+    uint         ulWaveDataIdx;
     WAVEFORMATEX WaveformatEx;
 }
 
@@ -422,10 +434,10 @@ struct DMUS_NOTERANGE
 
 struct DMUS_WAVEARTDL
 {
-    uint ulDownloadIdIdx;
-    uint ulBus;
-    uint ulBuffers;
-    uint ulMasterDLId;
+    uint   ulDownloadIdIdx;
+    uint   ulBus;
+    uint   ulBuffers;
+    uint   ulMasterDLId;
     ushort usOptions;
 }
 
@@ -473,66 +485,66 @@ struct DSBCAPS
 
 struct DSEFFECTDESC
 {
-    uint dwSize;
-    uint dwFlags;
-    Guid guidDSFXClass;
-    uint dwReserved1;
-    uint dwReserved2;
+    uint   dwSize;
+    uint   dwFlags;
+    GUID   guidDSFXClass;
+    size_t dwReserved1;
+    size_t dwReserved2;
 }
 
 struct DSCEFFECTDESC
 {
     uint dwSize;
     uint dwFlags;
-    Guid guidDSCFXClass;
-    Guid guidDSCFXInstance;
+    GUID guidDSCFXClass;
+    GUID guidDSCFXInstance;
     uint dwReserved1;
     uint dwReserved2;
 }
 
 struct DSBUFFERDESC
 {
-    uint dwSize;
-    uint dwFlags;
-    uint dwBufferBytes;
-    uint dwReserved;
+    uint          dwSize;
+    uint          dwFlags;
+    uint          dwBufferBytes;
+    uint          dwReserved;
     WAVEFORMATEX* lpwfxFormat;
-    Guid guid3DAlgorithm;
+    GUID          guid3DAlgorithm;
 }
 
 struct DSBUFFERDESC1
 {
-    uint dwSize;
-    uint dwFlags;
-    uint dwBufferBytes;
-    uint dwReserved;
+    uint          dwSize;
+    uint          dwFlags;
+    uint          dwBufferBytes;
+    uint          dwReserved;
     WAVEFORMATEX* lpwfxFormat;
 }
 
 struct DS3DBUFFER
 {
-    uint dwSize;
+    uint      dwSize;
     D3DVECTOR vPosition;
     D3DVECTOR vVelocity;
-    uint dwInsideConeAngle;
-    uint dwOutsideConeAngle;
+    uint      dwInsideConeAngle;
+    uint      dwOutsideConeAngle;
     D3DVECTOR vConeOrientation;
-    int lConeOutsideVolume;
-    float flMinDistance;
-    float flMaxDistance;
-    uint dwMode;
+    int       lConeOutsideVolume;
+    float     flMinDistance;
+    float     flMaxDistance;
+    uint      dwMode;
 }
 
 struct DS3DLISTENER
 {
-    uint dwSize;
+    uint      dwSize;
     D3DVECTOR vPosition;
     D3DVECTOR vVelocity;
     D3DVECTOR vOrientFront;
     D3DVECTOR vOrientTop;
-    float flDistanceFactor;
-    float flRolloffFactor;
-    float flDopplerFactor;
+    float     flDistanceFactor;
+    float     flRolloffFactor;
+    float     flDopplerFactor;
 }
 
 struct DSCCAPS
@@ -545,21 +557,21 @@ struct DSCCAPS
 
 struct DSCBUFFERDESC1
 {
-    uint dwSize;
-    uint dwFlags;
-    uint dwBufferBytes;
-    uint dwReserved;
+    uint          dwSize;
+    uint          dwFlags;
+    uint          dwBufferBytes;
+    uint          dwReserved;
     WAVEFORMATEX* lpwfxFormat;
 }
 
 struct DSCBUFFERDESC
 {
-    uint dwSize;
-    uint dwFlags;
-    uint dwBufferBytes;
-    uint dwReserved;
-    WAVEFORMATEX* lpwfxFormat;
-    uint dwFXCount;
+    uint           dwSize;
+    uint           dwFlags;
+    uint           dwBufferBytes;
+    uint           dwReserved;
+    WAVEFORMATEX*  lpwfxFormat;
+    uint           dwFXCount;
     DSCEFFECTDESC* lpDSCFXDesc;
 }
 
@@ -573,128 +585,8 @@ struct DSCBCAPS
 
 struct DSBPOSITIONNOTIFY
 {
-    uint dwOffset;
+    uint   dwOffset;
     HANDLE hEventNotify;
-}
-
-alias LPDSENUMCALLBACKA = extern(Windows) BOOL function(Guid* param0, const(char)* param1, const(char)* param2, void* param3);
-alias LPDSENUMCALLBACKW = extern(Windows) BOOL function(Guid* param0, const(wchar)* param1, const(wchar)* param2, void* param3);
-interface IDirectSound : IUnknown
-{
-    HRESULT CreateSoundBuffer(DSBUFFERDESC* pcDSBufferDesc, IDirectSoundBuffer* ppDSBuffer, IUnknown pUnkOuter);
-    HRESULT GetCaps(DSCAPS* pDSCaps);
-    HRESULT DuplicateSoundBuffer(IDirectSoundBuffer pDSBufferOriginal, IDirectSoundBuffer* ppDSBufferDuplicate);
-    HRESULT SetCooperativeLevel(HWND hwnd, uint dwLevel);
-    HRESULT Compact();
-    HRESULT GetSpeakerConfig(uint* pdwSpeakerConfig);
-    HRESULT SetSpeakerConfig(uint dwSpeakerConfig);
-    HRESULT Initialize(Guid* pcGuidDevice);
-}
-
-interface IDirectSound8 : IDirectSound
-{
-    HRESULT VerifyCertification(uint* pdwCertified);
-}
-
-interface IDirectSoundBuffer : IUnknown
-{
-    HRESULT GetCaps(DSBCAPS* pDSBufferCaps);
-    HRESULT GetCurrentPosition(uint* pdwCurrentPlayCursor, uint* pdwCurrentWriteCursor);
-    HRESULT GetFormat(char* pwfxFormat, uint dwSizeAllocated, uint* pdwSizeWritten);
-    HRESULT GetVolume(int* plVolume);
-    HRESULT GetPan(int* plPan);
-    HRESULT GetFrequency(uint* pdwFrequency);
-    HRESULT GetStatus(uint* pdwStatus);
-    HRESULT Initialize(IDirectSound pDirectSound, DSBUFFERDESC* pcDSBufferDesc);
-    HRESULT Lock(uint dwOffset, uint dwBytes, void** ppvAudioPtr1, uint* pdwAudioBytes1, void** ppvAudioPtr2, uint* pdwAudioBytes2, uint dwFlags);
-    HRESULT Play(uint dwReserved1, uint dwPriority, uint dwFlags);
-    HRESULT SetCurrentPosition(uint dwNewPosition);
-    HRESULT SetFormat(WAVEFORMATEX* pcfxFormat);
-    HRESULT SetVolume(int lVolume);
-    HRESULT SetPan(int lPan);
-    HRESULT SetFrequency(uint dwFrequency);
-    HRESULT Stop();
-    HRESULT Unlock(char* pvAudioPtr1, uint dwAudioBytes1, char* pvAudioPtr2, uint dwAudioBytes2);
-    HRESULT Restore();
-}
-
-interface IDirectSoundBuffer8 : IDirectSoundBuffer
-{
-    HRESULT SetFX(uint dwEffectsCount, char* pDSFXDesc, char* pdwResultCodes);
-    HRESULT AcquireResources(uint dwFlags, uint dwEffectsCount, char* pdwResultCodes);
-    HRESULT GetObjectInPath(const(Guid)* rguidObject, uint dwIndex, const(Guid)* rguidInterface, void** ppObject);
-}
-
-interface IDirectSound3DListener : IUnknown
-{
-    HRESULT GetAllParameters(DS3DLISTENER* pListener);
-    HRESULT GetDistanceFactor(float* pflDistanceFactor);
-    HRESULT GetDopplerFactor(float* pflDopplerFactor);
-    HRESULT GetOrientation(D3DVECTOR* pvOrientFront, D3DVECTOR* pvOrientTop);
-    HRESULT GetPosition(D3DVECTOR* pvPosition);
-    HRESULT GetRolloffFactor(float* pflRolloffFactor);
-    HRESULT GetVelocity(D3DVECTOR* pvVelocity);
-    HRESULT SetAllParameters(DS3DLISTENER* pcListener, uint dwApply);
-    HRESULT SetDistanceFactor(float flDistanceFactor, uint dwApply);
-    HRESULT SetDopplerFactor(float flDopplerFactor, uint dwApply);
-    HRESULT SetOrientation(float xFront, float yFront, float zFront, float xTop, float yTop, float zTop, uint dwApply);
-    HRESULT SetPosition(float x, float y, float z, uint dwApply);
-    HRESULT SetRolloffFactor(float flRolloffFactor, uint dwApply);
-    HRESULT SetVelocity(float x, float y, float z, uint dwApply);
-    HRESULT CommitDeferredSettings();
-}
-
-interface IDirectSound3DBuffer : IUnknown
-{
-    HRESULT GetAllParameters(DS3DBUFFER* pDs3dBuffer);
-    HRESULT GetConeAngles(uint* pdwInsideConeAngle, uint* pdwOutsideConeAngle);
-    HRESULT GetConeOrientation(D3DVECTOR* pvOrientation);
-    HRESULT GetConeOutsideVolume(int* plConeOutsideVolume);
-    HRESULT GetMaxDistance(float* pflMaxDistance);
-    HRESULT GetMinDistance(float* pflMinDistance);
-    HRESULT GetMode(uint* pdwMode);
-    HRESULT GetPosition(D3DVECTOR* pvPosition);
-    HRESULT GetVelocity(D3DVECTOR* pvVelocity);
-    HRESULT SetAllParameters(DS3DBUFFER* pcDs3dBuffer, uint dwApply);
-    HRESULT SetConeAngles(uint dwInsideConeAngle, uint dwOutsideConeAngle, uint dwApply);
-    HRESULT SetConeOrientation(float x, float y, float z, uint dwApply);
-    HRESULT SetConeOutsideVolume(int lConeOutsideVolume, uint dwApply);
-    HRESULT SetMaxDistance(float flMaxDistance, uint dwApply);
-    HRESULT SetMinDistance(float flMinDistance, uint dwApply);
-    HRESULT SetMode(uint dwMode, uint dwApply);
-    HRESULT SetPosition(float x, float y, float z, uint dwApply);
-    HRESULT SetVelocity(float x, float y, float z, uint dwApply);
-}
-
-interface IDirectSoundCapture : IUnknown
-{
-    HRESULT CreateCaptureBuffer(DSCBUFFERDESC* pcDSCBufferDesc, IDirectSoundCaptureBuffer* ppDSCBuffer, IUnknown pUnkOuter);
-    HRESULT GetCaps(DSCCAPS* pDSCCaps);
-    HRESULT Initialize(Guid* pcGuidDevice);
-}
-
-interface IDirectSoundCaptureBuffer : IUnknown
-{
-    HRESULT GetCaps(DSCBCAPS* pDSCBCaps);
-    HRESULT GetCurrentPosition(uint* pdwCapturePosition, uint* pdwReadPosition);
-    HRESULT GetFormat(char* pwfxFormat, uint dwSizeAllocated, uint* pdwSizeWritten);
-    HRESULT GetStatus(uint* pdwStatus);
-    HRESULT Initialize(IDirectSoundCapture pDirectSoundCapture, DSCBUFFERDESC* pcDSCBufferDesc);
-    HRESULT Lock(uint dwOffset, uint dwBytes, void** ppvAudioPtr1, uint* pdwAudioBytes1, void** ppvAudioPtr2, uint* pdwAudioBytes2, uint dwFlags);
-    HRESULT Start(uint dwFlags);
-    HRESULT Stop();
-    HRESULT Unlock(char* pvAudioPtr1, uint dwAudioBytes1, char* pvAudioPtr2, uint dwAudioBytes2);
-}
-
-interface IDirectSoundCaptureBuffer8 : IDirectSoundCaptureBuffer
-{
-    HRESULT GetObjectInPath(const(Guid)* rguidObject, uint dwIndex, const(Guid)* rguidInterface, void** ppObject);
-    HRESULT GetFXStatus(uint dwEffectsCount, char* pdwFXStatus);
-}
-
-interface IDirectSoundNotify : IUnknown
-{
-    HRESULT SetNotificationPositions(uint dwPositionNotifies, char* pcPositionNotifies);
 }
 
 struct DSFXGargle
@@ -703,27 +595,15 @@ struct DSFXGargle
     uint dwWaveShape;
 }
 
-interface IDirectSoundFXGargle : IUnknown
-{
-    HRESULT SetAllParameters(DSFXGargle* pcDsFxGargle);
-    HRESULT GetAllParameters(DSFXGargle* pDsFxGargle);
-}
-
 struct DSFXChorus
 {
     float fWetDryMix;
     float fDepth;
     float fFeedback;
     float fFrequency;
-    int lWaveform;
+    int   lWaveform;
     float fDelay;
-    int lPhase;
-}
-
-interface IDirectSoundFXChorus : IUnknown
-{
-    HRESULT SetAllParameters(DSFXChorus* pcDsFxChorus);
-    HRESULT GetAllParameters(DSFXChorus* pDsFxChorus);
+    int   lPhase;
 }
 
 struct DSFXFlanger
@@ -732,15 +612,9 @@ struct DSFXFlanger
     float fDepth;
     float fFeedback;
     float fFrequency;
-    int lWaveform;
+    int   lWaveform;
     float fDelay;
-    int lPhase;
-}
-
-interface IDirectSoundFXFlanger : IUnknown
-{
-    HRESULT SetAllParameters(DSFXFlanger* pcDsFxFlanger);
-    HRESULT GetAllParameters(DSFXFlanger* pDsFxFlanger);
+    int   lPhase;
 }
 
 struct DSFXEcho
@@ -749,13 +623,7 @@ struct DSFXEcho
     float fFeedback;
     float fLeftDelay;
     float fRightDelay;
-    int lPanDelay;
-}
-
-interface IDirectSoundFXEcho : IUnknown
-{
-    HRESULT SetAllParameters(DSFXEcho* pcDsFxEcho);
-    HRESULT GetAllParameters(DSFXEcho* pDsFxEcho);
+    int   lPanDelay;
 }
 
 struct DSFXDistortion
@@ -765,12 +633,6 @@ struct DSFXDistortion
     float fPostEQCenterFrequency;
     float fPostEQBandwidth;
     float fPreLowpassCutoff;
-}
-
-interface IDirectSoundFXDistortion : IUnknown
-{
-    HRESULT SetAllParameters(DSFXDistortion* pcDsFxDistortion);
-    HRESULT GetAllParameters(DSFXDistortion* pDsFxDistortion);
 }
 
 struct DSFXCompressor
@@ -783,12 +645,6 @@ struct DSFXCompressor
     float fPredelay;
 }
 
-interface IDirectSoundFXCompressor : IUnknown
-{
-    HRESULT SetAllParameters(DSFXCompressor* pcDsFxCompressor);
-    HRESULT GetAllParameters(DSFXCompressor* pDsFxCompressor);
-}
-
 struct DSFXParamEq
 {
     float fCenter;
@@ -796,36 +652,20 @@ struct DSFXParamEq
     float fGain;
 }
 
-interface IDirectSoundFXParamEq : IUnknown
-{
-    HRESULT SetAllParameters(DSFXParamEq* pcDsFxParamEq);
-    HRESULT GetAllParameters(DSFXParamEq* pDsFxParamEq);
-}
-
 struct DSFXI3DL2Reverb
 {
-    int lRoom;
-    int lRoomHF;
+    int   lRoom;
+    int   lRoomHF;
     float flRoomRolloffFactor;
     float flDecayTime;
     float flDecayHFRatio;
-    int lReflections;
+    int   lReflections;
     float flReflectionsDelay;
-    int lReverb;
+    int   lReverb;
     float flReverbDelay;
     float flDiffusion;
     float flDensity;
     float flHFReference;
-}
-
-interface IDirectSoundFXI3DL2Reverb : IUnknown
-{
-    HRESULT SetAllParameters(DSFXI3DL2Reverb* pcDsFxI3DL2Reverb);
-    HRESULT GetAllParameters(DSFXI3DL2Reverb* pDsFxI3DL2Reverb);
-    HRESULT SetPreset(uint dwPreset);
-    HRESULT GetPreset(uint* pdwPreset);
-    HRESULT SetQuality(int lQuality);
-    HRESULT GetQuality(int* plQuality);
 }
 
 struct DSFXWavesReverb
@@ -836,12 +676,6 @@ struct DSFXWavesReverb
     float fHighFreqRTRatio;
 }
 
-interface IDirectSoundFXWavesReverb : IUnknown
-{
-    HRESULT SetAllParameters(DSFXWavesReverb* pcDsFxWavesReverb);
-    HRESULT GetAllParameters(DSFXWavesReverb* pDsFxWavesReverb);
-}
-
 struct DSCFXAec
 {
     BOOL fEnable;
@@ -849,33 +683,14 @@ struct DSCFXAec
     uint dwMode;
 }
 
-interface IDirectSoundCaptureFXAec : IUnknown
-{
-    HRESULT SetAllParameters(DSCFXAec* pDscFxAec);
-    HRESULT GetAllParameters(DSCFXAec* pDscFxAec);
-    HRESULT GetStatus(uint* pdwStatus);
-    HRESULT Reset();
-}
-
 struct DSCFXNoiseSuppress
 {
     BOOL fEnable;
 }
 
-interface IDirectSoundCaptureFXNoiseSuppress : IUnknown
-{
-    HRESULT SetAllParameters(DSCFXNoiseSuppress* pcDscFxNoiseSuppress);
-    HRESULT GetAllParameters(DSCFXNoiseSuppress* pDscFxNoiseSuppress);
-    HRESULT Reset();
-}
-
-interface IDirectSoundFullDuplex : IUnknown
-{
-    HRESULT Initialize(Guid* pCaptureGuid, Guid* pRenderGuid, DSCBUFFERDESC* lpDscBufferDesc, DSBUFFERDESC* lpDsBufferDesc, HWND hWnd, uint dwLevel, IDirectSoundCaptureBuffer8* lplpDirectSoundCaptureBuffer8, IDirectSoundBuffer8* lplpDirectSoundBuffer8);
-}
-
 struct DMUS_EVENTHEADER
 {
+align (4):
     uint cbEvent;
     uint dwChannelGroup;
     long rtDelta;
@@ -886,23 +701,23 @@ struct DMUS_BUFFERDESC
 {
     uint dwSize;
     uint dwFlags;
-    Guid guidBufferFormat;
+    GUID guidBufferFormat;
     uint cbBuffer;
 }
 
 struct DMUS_PORTCAPS
 {
-    uint dwSize;
-    uint dwFlags;
-    Guid guidPort;
-    uint dwClass;
-    uint dwType;
-    uint dwMemorySize;
-    uint dwMaxChannelGroups;
-    uint dwMaxVoices;
-    uint dwMaxAudioChannels;
-    uint dwEffectFlags;
-    ushort wszDescription;
+    uint        dwSize;
+    uint        dwFlags;
+    GUID        guidPort;
+    uint        dwClass;
+    uint        dwType;
+    uint        dwMemorySize;
+    uint        dwMaxChannelGroups;
+    uint        dwMaxVoices;
+    uint        dwMaxAudioChannels;
+    uint        dwEffectFlags;
+    ushort[128] wszDescription;
 }
 
 struct _DMUS_PORTPARAMS
@@ -939,7 +754,7 @@ struct DMUS_SYNTHSTATS
     uint dwCPUPerVoice;
     uint dwLostNotes;
     uint dwFreeMemory;
-    int lPeakVolume;
+    int  lPeakVolume;
 }
 
 struct DMUS_SYNTHSTATS8
@@ -951,7 +766,7 @@ struct DMUS_SYNTHSTATS8
     uint dwCPUPerVoice;
     uint dwLostNotes;
     uint dwFreeMemory;
-    int lPeakVolume;
+    int  lPeakVolume;
     uint dwSynthMemUse;
 }
 
@@ -963,39 +778,378 @@ struct DMUS_WAVES_REVERB_PARAMS
     float fHighFreqRTRatio;
 }
 
-enum DMUS_CLOCKTYPE
-{
-    DMUS_CLOCK_SYSTEM = 0,
-    DMUS_CLOCK_WAVE = 1,
-}
-
 struct DMUS_CLOCKINFO7
 {
-    uint dwSize;
+    uint           dwSize;
     DMUS_CLOCKTYPE ctType;
-    Guid guidClock;
-    ushort wszDescription;
+    GUID           guidClock;
+    ushort[128]    wszDescription;
 }
 
 struct DMUS_CLOCKINFO8
 {
-    uint dwSize;
+    uint           dwSize;
     DMUS_CLOCKTYPE ctType;
-    Guid guidClock;
-    ushort wszDescription;
-    uint dwFlags;
+    GUID           guidClock;
+    ushort[128]    wszDescription;
+    uint           dwFlags;
+}
+
+struct DMUS_VOICE_STATE
+{
+    BOOL  bExists;
+    ulong spPosition;
+}
+
+struct KSP_PINMODE
+{
+    KSP_PIN PinProperty;
+    GUID    AudioProcessingMode;
+}
+
+struct MDEVICECAPSEX
+{
+align (1):
+    uint  cbSize;
+    void* pCaps;
+}
+
+struct MIDIOPENDESC
+{
+align (1):
+    ptrdiff_t hMidi;
+    size_t    dwCallback;
+    size_t    dwInstance;
+    size_t    dnDevNode;
+    uint      cIds;
+    midiopenstrmid_tag[1] rgIds;
+}
+
+// Functions
+
+@DllImport("DSOUND")
+HRESULT DirectSoundCreate(GUID* pcGuidDevice, IDirectSound* ppDS, IUnknown pUnkOuter);
+
+@DllImport("DSOUND")
+HRESULT DirectSoundEnumerateA(LPDSENUMCALLBACKA pDSEnumCallback, void* pContext);
+
+@DllImport("DSOUND")
+HRESULT DirectSoundEnumerateW(LPDSENUMCALLBACKW pDSEnumCallback, void* pContext);
+
+@DllImport("DSOUND")
+HRESULT DirectSoundCaptureCreate(GUID* pcGuidDevice, IDirectSoundCapture* ppDSC, IUnknown pUnkOuter);
+
+@DllImport("DSOUND")
+HRESULT DirectSoundCaptureEnumerateA(LPDSENUMCALLBACKA pDSEnumCallback, void* pContext);
+
+@DllImport("DSOUND")
+HRESULT DirectSoundCaptureEnumerateW(LPDSENUMCALLBACKW pDSEnumCallback, void* pContext);
+
+@DllImport("DSOUND")
+HRESULT DirectSoundCreate8(GUID* pcGuidDevice, IDirectSound8* ppDS8, IUnknown pUnkOuter);
+
+@DllImport("DSOUND")
+HRESULT DirectSoundCaptureCreate8(GUID* pcGuidDevice, IDirectSoundCapture* ppDSC8, IUnknown pUnkOuter);
+
+@DllImport("DSOUND")
+HRESULT DirectSoundFullDuplexCreate(GUID* pcGuidCaptureDevice, GUID* pcGuidRenderDevice, 
+                                    DSCBUFFERDESC* pcDSCBufferDesc, DSBUFFERDESC* pcDSBufferDesc, HWND hWnd, 
+                                    uint dwLevel, IDirectSoundFullDuplex* ppDSFD, 
+                                    IDirectSoundCaptureBuffer8* ppDSCBuffer8, IDirectSoundBuffer8* ppDSBuffer8, 
+                                    IUnknown pUnkOuter);
+
+
+// Interfaces
+
+@GUID("0B217A72-16B8-4A4D-BDED-F9D6BBEDCD8F")
+struct KSPROPSETID_AudioEffectsDiscovery;
+
+@GUID("4E997F73-B71F-4798-873B-ED7DFCF15B4D")
+interface IAudioMediaType : IUnknown
+{
+    HRESULT IsCompressedFormat(int* pfCompressed);
+    HRESULT IsEqual(IAudioMediaType pIAudioType, uint* pdwFlags);
+    WAVEFORMATEX* GetAudioFormat();
+    HRESULT GetUncompressedAudioFormat(UNCOMPRESSEDAUDIOFORMAT* pUncompressedAudioFormat);
+}
+
+@GUID("9E1D6A6D-DDBC-4E95-A4C7-AD64BA37846C")
+interface IAudioProcessingObjectRT : IUnknown
+{
+    void APOProcess(uint u32NumInputConnections, APO_CONNECTION_PROPERTY** ppInputConnections, 
+                    uint u32NumOutputConnections, APO_CONNECTION_PROPERTY** ppOutputConnections);
+    uint CalcInputFrames(uint u32OutputFrameCount);
+    uint CalcOutputFrames(uint u32InputFrameCount);
+}
+
+@GUID("7BA1DB8F-78AD-49CD-9591-F79D80A17C81")
+interface IAudioProcessingObjectVBR : IUnknown
+{
+    HRESULT CalcMaxInputFrames(uint u32MaxOutputFrameCount, uint* pu32InputFrameCount);
+    HRESULT CalcMaxOutputFrames(uint u32MaxInputFrameCount, uint* pu32OutputFrameCount);
+}
+
+@GUID("0E5ED805-ABA6-49C3-8F9A-2B8C889C4FA8")
+interface IAudioProcessingObjectConfiguration : IUnknown
+{
+    HRESULT LockForProcess(uint u32NumInputConnections, APO_CONNECTION_DESCRIPTOR** ppInputConnections, 
+                           uint u32NumOutputConnections, APO_CONNECTION_DESCRIPTOR** ppOutputConnections);
+    HRESULT UnlockForProcess();
+}
+
+@GUID("FD7F2B29-24D0-4B5C-B177-592C39F9CA10")
+interface IAudioProcessingObject : IUnknown
+{
+    HRESULT Reset();
+    HRESULT GetLatency(long* pTime);
+    HRESULT GetRegistrationProperties(APO_REG_PROPERTIES** ppRegProps);
+    HRESULT Initialize(uint cbDataSize, char* pbyData);
+    HRESULT IsInputFormatSupported(IAudioMediaType pOppositeFormat, IAudioMediaType pRequestedInputFormat, 
+                                   IAudioMediaType* ppSupportedInputFormat);
+    HRESULT IsOutputFormatSupported(IAudioMediaType pOppositeFormat, IAudioMediaType pRequestedOutputFormat, 
+                                    IAudioMediaType* ppSupportedOutputFormat);
+    HRESULT GetInputChannelCount(uint* pu32ChannelCount);
+}
+
+@GUID("98F37DAC-D0B6-49F5-896A-AA4D169A4C48")
+interface IAudioDeviceModulesClient : IUnknown
+{
+    HRESULT SetAudioDeviceModulesManager(IUnknown pAudioDeviceModulesManager);
+}
+
+@GUID("5FA00F27-ADD6-499A-8A9D-6B98521FA75B")
+interface IAudioSystemEffects : IUnknown
+{
+}
+
+@GUID("BAFE99D2-7436-44CE-9E0E-4D89AFBFFF56")
+interface IAudioSystemEffects2 : IAudioSystemEffects
+{
+    HRESULT GetEffectsList(GUID** ppEffectsIds, uint* pcEffects, HANDLE Event);
+}
+
+@GUID("B1176E34-BB7F-4F05-BEBD-1B18A534E097")
+interface IAudioSystemEffectsCustomFormats : IUnknown
+{
+    HRESULT GetFormatCount(uint* pcFormats);
+    HRESULT GetFormat(uint nFormat, IAudioMediaType* ppFormat);
+    HRESULT GetFormatRepresentation(uint nFormat, ushort** ppwstrFormatRep);
+}
+
+interface IDirectSound : IUnknown
+{
+    HRESULT CreateSoundBuffer(DSBUFFERDESC* pcDSBufferDesc, IDirectSoundBuffer* ppDSBuffer, IUnknown pUnkOuter);
+    HRESULT GetCaps(DSCAPS* pDSCaps);
+    HRESULT DuplicateSoundBuffer(IDirectSoundBuffer pDSBufferOriginal, IDirectSoundBuffer* ppDSBufferDuplicate);
+    HRESULT SetCooperativeLevel(HWND hwnd, uint dwLevel);
+    HRESULT Compact();
+    HRESULT GetSpeakerConfig(uint* pdwSpeakerConfig);
+    HRESULT SetSpeakerConfig(uint dwSpeakerConfig);
+    HRESULT Initialize(GUID* pcGuidDevice);
+}
+
+interface IDirectSound8 : IDirectSound
+{
+    HRESULT VerifyCertification(uint* pdwCertified);
+}
+
+interface IDirectSoundBuffer : IUnknown
+{
+    HRESULT GetCaps(DSBCAPS* pDSBufferCaps);
+    HRESULT GetCurrentPosition(uint* pdwCurrentPlayCursor, uint* pdwCurrentWriteCursor);
+    HRESULT GetFormat(char* pwfxFormat, uint dwSizeAllocated, uint* pdwSizeWritten);
+    HRESULT GetVolume(int* plVolume);
+    HRESULT GetPan(int* plPan);
+    HRESULT GetFrequency(uint* pdwFrequency);
+    HRESULT GetStatus(uint* pdwStatus);
+    HRESULT Initialize(IDirectSound pDirectSound, DSBUFFERDESC* pcDSBufferDesc);
+    HRESULT Lock(uint dwOffset, uint dwBytes, void** ppvAudioPtr1, uint* pdwAudioBytes1, void** ppvAudioPtr2, 
+                 uint* pdwAudioBytes2, uint dwFlags);
+    HRESULT Play(uint dwReserved1, uint dwPriority, uint dwFlags);
+    HRESULT SetCurrentPosition(uint dwNewPosition);
+    HRESULT SetFormat(WAVEFORMATEX* pcfxFormat);
+    HRESULT SetVolume(int lVolume);
+    HRESULT SetPan(int lPan);
+    HRESULT SetFrequency(uint dwFrequency);
+    HRESULT Stop();
+    HRESULT Unlock(char* pvAudioPtr1, uint dwAudioBytes1, char* pvAudioPtr2, uint dwAudioBytes2);
+    HRESULT Restore();
+}
+
+interface IDirectSoundBuffer8 : IDirectSoundBuffer
+{
+    HRESULT SetFX(uint dwEffectsCount, char* pDSFXDesc, char* pdwResultCodes);
+    HRESULT AcquireResources(uint dwFlags, uint dwEffectsCount, char* pdwResultCodes);
+    HRESULT GetObjectInPath(const(GUID)* rguidObject, uint dwIndex, const(GUID)* rguidInterface, void** ppObject);
+}
+
+interface IDirectSound3DListener : IUnknown
+{
+    HRESULT GetAllParameters(DS3DLISTENER* pListener);
+    HRESULT GetDistanceFactor(float* pflDistanceFactor);
+    HRESULT GetDopplerFactor(float* pflDopplerFactor);
+    HRESULT GetOrientation(D3DVECTOR* pvOrientFront, D3DVECTOR* pvOrientTop);
+    HRESULT GetPosition(D3DVECTOR* pvPosition);
+    HRESULT GetRolloffFactor(float* pflRolloffFactor);
+    HRESULT GetVelocity(D3DVECTOR* pvVelocity);
+    HRESULT SetAllParameters(DS3DLISTENER* pcListener, uint dwApply);
+    HRESULT SetDistanceFactor(float flDistanceFactor, uint dwApply);
+    HRESULT SetDopplerFactor(float flDopplerFactor, uint dwApply);
+    HRESULT SetOrientation(float xFront, float yFront, float zFront, float xTop, float yTop, float zTop, 
+                           uint dwApply);
+    HRESULT SetPosition(float x, float y, float z, uint dwApply);
+    HRESULT SetRolloffFactor(float flRolloffFactor, uint dwApply);
+    HRESULT SetVelocity(float x, float y, float z, uint dwApply);
+    HRESULT CommitDeferredSettings();
+}
+
+interface IDirectSound3DBuffer : IUnknown
+{
+    HRESULT GetAllParameters(DS3DBUFFER* pDs3dBuffer);
+    HRESULT GetConeAngles(uint* pdwInsideConeAngle, uint* pdwOutsideConeAngle);
+    HRESULT GetConeOrientation(D3DVECTOR* pvOrientation);
+    HRESULT GetConeOutsideVolume(int* plConeOutsideVolume);
+    HRESULT GetMaxDistance(float* pflMaxDistance);
+    HRESULT GetMinDistance(float* pflMinDistance);
+    HRESULT GetMode(uint* pdwMode);
+    HRESULT GetPosition(D3DVECTOR* pvPosition);
+    HRESULT GetVelocity(D3DVECTOR* pvVelocity);
+    HRESULT SetAllParameters(DS3DBUFFER* pcDs3dBuffer, uint dwApply);
+    HRESULT SetConeAngles(uint dwInsideConeAngle, uint dwOutsideConeAngle, uint dwApply);
+    HRESULT SetConeOrientation(float x, float y, float z, uint dwApply);
+    HRESULT SetConeOutsideVolume(int lConeOutsideVolume, uint dwApply);
+    HRESULT SetMaxDistance(float flMaxDistance, uint dwApply);
+    HRESULT SetMinDistance(float flMinDistance, uint dwApply);
+    HRESULT SetMode(uint dwMode, uint dwApply);
+    HRESULT SetPosition(float x, float y, float z, uint dwApply);
+    HRESULT SetVelocity(float x, float y, float z, uint dwApply);
+}
+
+interface IDirectSoundCapture : IUnknown
+{
+    HRESULT CreateCaptureBuffer(DSCBUFFERDESC* pcDSCBufferDesc, IDirectSoundCaptureBuffer* ppDSCBuffer, 
+                                IUnknown pUnkOuter);
+    HRESULT GetCaps(DSCCAPS* pDSCCaps);
+    HRESULT Initialize(GUID* pcGuidDevice);
+}
+
+interface IDirectSoundCaptureBuffer : IUnknown
+{
+    HRESULT GetCaps(DSCBCAPS* pDSCBCaps);
+    HRESULT GetCurrentPosition(uint* pdwCapturePosition, uint* pdwReadPosition);
+    HRESULT GetFormat(char* pwfxFormat, uint dwSizeAllocated, uint* pdwSizeWritten);
+    HRESULT GetStatus(uint* pdwStatus);
+    HRESULT Initialize(IDirectSoundCapture pDirectSoundCapture, DSCBUFFERDESC* pcDSCBufferDesc);
+    HRESULT Lock(uint dwOffset, uint dwBytes, void** ppvAudioPtr1, uint* pdwAudioBytes1, void** ppvAudioPtr2, 
+                 uint* pdwAudioBytes2, uint dwFlags);
+    HRESULT Start(uint dwFlags);
+    HRESULT Stop();
+    HRESULT Unlock(char* pvAudioPtr1, uint dwAudioBytes1, char* pvAudioPtr2, uint dwAudioBytes2);
+}
+
+interface IDirectSoundCaptureBuffer8 : IDirectSoundCaptureBuffer
+{
+    HRESULT GetObjectInPath(const(GUID)* rguidObject, uint dwIndex, const(GUID)* rguidInterface, void** ppObject);
+    HRESULT GetFXStatus(uint dwEffectsCount, char* pdwFXStatus);
+}
+
+interface IDirectSoundNotify : IUnknown
+{
+    HRESULT SetNotificationPositions(uint dwPositionNotifies, char* pcPositionNotifies);
+}
+
+interface IDirectSoundFXGargle : IUnknown
+{
+    HRESULT SetAllParameters(DSFXGargle* pcDsFxGargle);
+    HRESULT GetAllParameters(DSFXGargle* pDsFxGargle);
+}
+
+interface IDirectSoundFXChorus : IUnknown
+{
+    HRESULT SetAllParameters(DSFXChorus* pcDsFxChorus);
+    HRESULT GetAllParameters(DSFXChorus* pDsFxChorus);
+}
+
+interface IDirectSoundFXFlanger : IUnknown
+{
+    HRESULT SetAllParameters(DSFXFlanger* pcDsFxFlanger);
+    HRESULT GetAllParameters(DSFXFlanger* pDsFxFlanger);
+}
+
+interface IDirectSoundFXEcho : IUnknown
+{
+    HRESULT SetAllParameters(DSFXEcho* pcDsFxEcho);
+    HRESULT GetAllParameters(DSFXEcho* pDsFxEcho);
+}
+
+interface IDirectSoundFXDistortion : IUnknown
+{
+    HRESULT SetAllParameters(DSFXDistortion* pcDsFxDistortion);
+    HRESULT GetAllParameters(DSFXDistortion* pDsFxDistortion);
+}
+
+interface IDirectSoundFXCompressor : IUnknown
+{
+    HRESULT SetAllParameters(DSFXCompressor* pcDsFxCompressor);
+    HRESULT GetAllParameters(DSFXCompressor* pDsFxCompressor);
+}
+
+interface IDirectSoundFXParamEq : IUnknown
+{
+    HRESULT SetAllParameters(DSFXParamEq* pcDsFxParamEq);
+    HRESULT GetAllParameters(DSFXParamEq* pDsFxParamEq);
+}
+
+interface IDirectSoundFXI3DL2Reverb : IUnknown
+{
+    HRESULT SetAllParameters(DSFXI3DL2Reverb* pcDsFxI3DL2Reverb);
+    HRESULT GetAllParameters(DSFXI3DL2Reverb* pDsFxI3DL2Reverb);
+    HRESULT SetPreset(uint dwPreset);
+    HRESULT GetPreset(uint* pdwPreset);
+    HRESULT SetQuality(int lQuality);
+    HRESULT GetQuality(int* plQuality);
+}
+
+interface IDirectSoundFXWavesReverb : IUnknown
+{
+    HRESULT SetAllParameters(DSFXWavesReverb* pcDsFxWavesReverb);
+    HRESULT GetAllParameters(DSFXWavesReverb* pDsFxWavesReverb);
+}
+
+interface IDirectSoundCaptureFXAec : IUnknown
+{
+    HRESULT SetAllParameters(DSCFXAec* pDscFxAec);
+    HRESULT GetAllParameters(DSCFXAec* pDscFxAec);
+    HRESULT GetStatus(uint* pdwStatus);
+    HRESULT Reset();
+}
+
+interface IDirectSoundCaptureFXNoiseSuppress : IUnknown
+{
+    HRESULT SetAllParameters(DSCFXNoiseSuppress* pcDscFxNoiseSuppress);
+    HRESULT GetAllParameters(DSCFXNoiseSuppress* pDscFxNoiseSuppress);
+    HRESULT Reset();
+}
+
+interface IDirectSoundFullDuplex : IUnknown
+{
+    HRESULT Initialize(GUID* pCaptureGuid, GUID* pRenderGuid, DSCBUFFERDESC* lpDscBufferDesc, 
+                       DSBUFFERDESC* lpDsBufferDesc, HWND hWnd, uint dwLevel, 
+                       IDirectSoundCaptureBuffer8* lplpDirectSoundCaptureBuffer8, 
+                       IDirectSoundBuffer8* lplpDirectSoundBuffer8);
 }
 
 interface IDirectMusic : IUnknown
 {
     HRESULT EnumPort(uint dwIndex, DMUS_PORTCAPS* pPortCaps);
     HRESULT CreateMusicBuffer(DMUS_BUFFERDESC* pBufferDesc, IDirectMusicBuffer* ppBuffer, IUnknown pUnkOuter);
-    HRESULT CreatePort(const(Guid)* rclsidPort, DMUS_PORTPARAMS8* pPortParams, IDirectMusicPort* ppPort, IUnknown pUnkOuter);
+    HRESULT CreatePort(const(GUID)* rclsidPort, DMUS_PORTPARAMS8* pPortParams, IDirectMusicPort* ppPort, 
+                       IUnknown pUnkOuter);
     HRESULT EnumMasterClock(uint dwIndex, DMUS_CLOCKINFO8* lpClockInfo);
-    HRESULT GetMasterClock(Guid* pguidClock, IReferenceClock* ppReferenceClock);
-    HRESULT SetMasterClock(const(Guid)* rguidClock);
+    HRESULT GetMasterClock(GUID* pguidClock, IReferenceClock* ppReferenceClock);
+    HRESULT SetMasterClock(const(GUID)* rguidClock);
     HRESULT Activate(BOOL fEnable);
-    HRESULT GetDefaultPort(Guid* pguidPort);
+    HRESULT GetDefaultPort(GUID* pguidPort);
     HRESULT SetDirectSound(IDirectSound pDirectSound, HWND hWnd);
 }
 
@@ -1016,7 +1170,7 @@ interface IDirectMusicBuffer : IUnknown
     HRESULT GetStartTime(long* prt);
     HRESULT GetUsedBytes(uint* pcb);
     HRESULT GetMaxBytes(uint* pcb);
-    HRESULT GetBufferFormat(Guid* pGuidFormat);
+    HRESULT GetBufferFormat(GUID* pGuidFormat);
     HRESULT SetStartTime(long rt);
     HRESULT SetUsedBytes(uint cb);
 }
@@ -1057,13 +1211,16 @@ interface IDirectMusicPort : IUnknown
     HRESULT PlayBuffer(IDirectMusicBuffer pBuffer);
     HRESULT SetReadNotificationHandle(HANDLE hEvent);
     HRESULT Read(IDirectMusicBuffer pBuffer);
-    HRESULT DownloadInstrument(IDirectMusicInstrument pInstrument, IDirectMusicDownloadedInstrument* ppDownloadedInstrument, DMUS_NOTERANGE* pNoteRanges, uint dwNumNoteRanges);
+    HRESULT DownloadInstrument(IDirectMusicInstrument pInstrument, 
+                               IDirectMusicDownloadedInstrument* ppDownloadedInstrument, DMUS_NOTERANGE* pNoteRanges, 
+                               uint dwNumNoteRanges);
     HRESULT UnloadInstrument(IDirectMusicDownloadedInstrument pDownloadedInstrument);
     HRESULT GetLatencyClock(IReferenceClock* ppClock);
     HRESULT GetRunningStats(DMUS_SYNTHSTATS* pStats);
     HRESULT Compact();
     HRESULT GetCaps(DMUS_PORTCAPS* pPortCaps);
-    HRESULT DeviceIoControl(uint dwIoControlCode, void* lpInBuffer, uint nInBufferSize, void* lpOutBuffer, uint nOutBufferSize, uint* lpBytesReturned, OVERLAPPED* lpOverlapped);
+    HRESULT DeviceIoControl(uint dwIoControlCode, void* lpInBuffer, uint nInBufferSize, void* lpOutBuffer, 
+                            uint nOutBufferSize, uint* lpBytesReturned, OVERLAPPED* lpOverlapped);
     HRESULT SetNumChannelGroups(uint dwChannelGroups);
     HRESULT GetNumChannelGroups(uint* pdwChannelGroups);
     HRESULT Activate(BOOL fActive);
@@ -1075,13 +1232,8 @@ interface IDirectMusicPort : IUnknown
 
 interface IDirectMusicThru : IUnknown
 {
-    HRESULT ThruChannel(uint dwSourceChannelGroup, uint dwSourceChannel, uint dwDestinationChannelGroup, uint dwDestinationChannel, IDirectMusicPort pDestinationPort);
-}
-
-struct DMUS_VOICE_STATE
-{
-    BOOL bExists;
-    ulong spPosition;
+    HRESULT ThruChannel(uint dwSourceChannelGroup, uint dwSourceChannel, uint dwDestinationChannelGroup, 
+                        uint dwDestinationChannel, IDirectMusicPort pDestinationPort);
 }
 
 interface IDirectMusicSynth : IUnknown
@@ -1089,7 +1241,7 @@ interface IDirectMusicSynth : IUnknown
     HRESULT Open(DMUS_PORTPARAMS8* pPortParams);
     HRESULT Close();
     HRESULT SetNumChannelGroups(uint dwGroups);
-    HRESULT Download(int* phDownload, void* pvData, int* pbFree);
+    HRESULT Download(ptrdiff_t* phDownload, void* pvData, int* pbFree);
     HRESULT Unload(HANDLE hDownload, HRESULT*********** lpFreeHandle, HANDLE hUserData);
     HRESULT PlayBuffer(long rt, ubyte* pbBuffer, uint cbBuffer);
     HRESULT GetRunningStats(DMUS_SYNTHSTATS* pStats);
@@ -1107,7 +1259,8 @@ interface IDirectMusicSynth : IUnknown
 
 interface IDirectMusicSynth8 : IDirectMusicSynth
 {
-    HRESULT PlayVoice(long rt, uint dwVoiceId, uint dwChannelGroup, uint dwChannel, uint dwDLId, int prPitch, int vrVolume, ulong stVoiceStart, ulong stLoopStart, ulong stLoopEnd);
+    HRESULT PlayVoice(long rt, uint dwVoiceId, uint dwChannelGroup, uint dwChannel, uint dwDLId, int prPitch, 
+                      int vrVolume, ulong stVoiceStart, ulong stLoopStart, ulong stLoopEnd);
     HRESULT StopVoice(long rt, uint dwVoiceId);
     HRESULT GetVoiceState(uint* dwVoice, uint cbVoice, DMUS_VOICE_STATE* dwVoiceState);
     HRESULT Refresh(uint dwDownloadID, uint dwFlags);
@@ -1126,50 +1279,7 @@ interface IDirectMusicSynthSink : IUnknown
     HRESULT GetDesiredBufferSize(uint* pdwBufferSizeInSamples);
 }
 
-const GUID CLSID_KSPROPSETID_AudioEffectsDiscovery = {0x0B217A72, 0x16B8, 0x4A4D, [0xBD, 0xED, 0xF9, 0xD6, 0xBB, 0xED, 0xCD, 0x8F]};
-@GUID(0x0B217A72, 0x16B8, 0x4A4D, [0xBD, 0xED, 0xF9, 0xD6, 0xBB, 0xED, 0xCD, 0x8F]);
-struct KSPROPSETID_AudioEffectsDiscovery;
-
-enum KSPROPERTY_AUDIOEFFECTSDISCOVERY
-{
-    KSPROPERTY_AUDIOEFFECTSDISCOVERY_EFFECTSLIST = 1,
-}
-
-struct KSP_PINMODE
-{
-    KSP_PIN PinProperty;
-    Guid AudioProcessingMode;
-}
-
-@DllImport("DSOUND.dll")
-HRESULT DirectSoundCreate(Guid* pcGuidDevice, IDirectSound* ppDS, IUnknown pUnkOuter);
-
-@DllImport("DSOUND.dll")
-HRESULT DirectSoundEnumerateA(LPDSENUMCALLBACKA pDSEnumCallback, void* pContext);
-
-@DllImport("DSOUND.dll")
-HRESULT DirectSoundEnumerateW(LPDSENUMCALLBACKW pDSEnumCallback, void* pContext);
-
-@DllImport("DSOUND.dll")
-HRESULT DirectSoundCaptureCreate(Guid* pcGuidDevice, IDirectSoundCapture* ppDSC, IUnknown pUnkOuter);
-
-@DllImport("DSOUND.dll")
-HRESULT DirectSoundCaptureEnumerateA(LPDSENUMCALLBACKA pDSEnumCallback, void* pContext);
-
-@DllImport("DSOUND.dll")
-HRESULT DirectSoundCaptureEnumerateW(LPDSENUMCALLBACKW pDSEnumCallback, void* pContext);
-
-@DllImport("DSOUND.dll")
-HRESULT DirectSoundCreate8(Guid* pcGuidDevice, IDirectSound8* ppDS8, IUnknown pUnkOuter);
-
-@DllImport("DSOUND.dll")
-HRESULT DirectSoundCaptureCreate8(Guid* pcGuidDevice, IDirectSoundCapture* ppDSC8, IUnknown pUnkOuter);
-
-@DllImport("DSOUND.dll")
-HRESULT DirectSoundFullDuplexCreate(Guid* pcGuidCaptureDevice, Guid* pcGuidRenderDevice, DSCBUFFERDESC* pcDSCBufferDesc, DSBUFFERDESC* pcDSBufferDesc, HWND hWnd, uint dwLevel, IDirectSoundFullDuplex* ppDSFD, IDirectSoundCaptureBuffer8* ppDSCBuffer8, IDirectSoundBuffer8* ppDSBuffer8, IUnknown pUnkOuter);
-
-const GUID IID_IPropertyStore = {0x886D8EEB, 0x8CF2, 0x4446, [0x8D, 0x02, 0xCD, 0xBA, 0x1D, 0xBD, 0xCF, 0x99]};
-@GUID(0x886D8EEB, 0x8CF2, 0x4446, [0x8D, 0x02, 0xCD, 0xBA, 0x1D, 0xBD, 0xCF, 0x99]);
+@GUID("886D8EEB-8CF2-4446-8D02-CDBA1DBDCF99")
 interface IPropertyStore : IUnknown
 {
     HRESULT GetCount(uint* cProps);
@@ -1179,19 +1289,18 @@ interface IPropertyStore : IUnknown
     HRESULT Commit();
 }
 
-struct MDEVICECAPSEX
-{
-    uint cbSize;
-    void* pCaps;
-}
 
-struct MIDIOPENDESC
-{
-    int hMidi;
-    uint dwCallback;
-    uint dwInstance;
-    uint dnDevNode;
-    uint cIds;
-    midiopenstrmid_tag rgIds;
-}
+// GUIDs
 
+const GUID CLSID_KSPROPSETID_AudioEffectsDiscovery = GUIDOF!KSPROPSETID_AudioEffectsDiscovery;
+
+const GUID IID_IAudioDeviceModulesClient           = GUIDOF!IAudioDeviceModulesClient;
+const GUID IID_IAudioMediaType                     = GUIDOF!IAudioMediaType;
+const GUID IID_IAudioProcessingObject              = GUIDOF!IAudioProcessingObject;
+const GUID IID_IAudioProcessingObjectConfiguration = GUIDOF!IAudioProcessingObjectConfiguration;
+const GUID IID_IAudioProcessingObjectRT            = GUIDOF!IAudioProcessingObjectRT;
+const GUID IID_IAudioProcessingObjectVBR           = GUIDOF!IAudioProcessingObjectVBR;
+const GUID IID_IAudioSystemEffects                 = GUIDOF!IAudioSystemEffects;
+const GUID IID_IAudioSystemEffects2                = GUIDOF!IAudioSystemEffects2;
+const GUID IID_IAudioSystemEffectsCustomFormats    = GUIDOF!IAudioSystemEffectsCustomFormats;
+const GUID IID_IPropertyStore                      = GUIDOF!IPropertyStore;

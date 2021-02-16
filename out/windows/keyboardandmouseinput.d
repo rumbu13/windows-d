@@ -1,197 +1,22 @@
 module windows.keyboardandmouseinput;
 
-public import windows.displaydevices;
-public import windows.systemservices;
-public import windows.windowsandmessaging;
+public import windows.core;
+public import windows.displaydevices : POINT;
+public import windows.systemservices : BOOL, HANDLE, LRESULT;
+public import windows.windowsandmessaging : HWND, WPARAM;
 
 extern(Windows):
 
-@DllImport("COMCTL32.dll")
-BOOL _TrackMouseEvent(TRACKMOUSEEVENT* lpEventTrack);
 
-@DllImport("USER32.dll")
-int LoadKeyboardLayoutA(const(char)* pwszKLID, uint Flags);
+// Structs
 
-@DllImport("USER32.dll")
-int LoadKeyboardLayoutW(const(wchar)* pwszKLID, uint Flags);
-
-@DllImport("USER32.dll")
-int ActivateKeyboardLayout(int hkl, uint Flags);
-
-@DllImport("USER32.dll")
-int ToUnicodeEx(uint wVirtKey, uint wScanCode, char* lpKeyState, const(wchar)* pwszBuff, int cchBuff, uint wFlags, int dwhkl);
-
-@DllImport("USER32.dll")
-BOOL UnloadKeyboardLayout(int hkl);
-
-@DllImport("USER32.dll")
-BOOL GetKeyboardLayoutNameA(const(char)* pwszKLID);
-
-@DllImport("USER32.dll")
-BOOL GetKeyboardLayoutNameW(const(wchar)* pwszKLID);
-
-@DllImport("USER32.dll")
-int GetKeyboardLayoutList(int nBuff, char* lpList);
-
-@DllImport("USER32.dll")
-int GetKeyboardLayout(uint idThread);
-
-@DllImport("USER32.dll")
-int GetMouseMovePointsEx(uint cbSize, MOUSEMOVEPOINT* lppt, char* lpptBuf, int nBufPoints, uint resolution);
-
-@DllImport("USER32.dll")
-BOOL TrackMouseEvent(TRACKMOUSEEVENT* lpEventTrack);
-
-@DllImport("USER32.dll")
-BOOL RegisterHotKey(HWND hWnd, int id, uint fsModifiers, uint vk);
-
-@DllImport("USER32.dll")
-BOOL UnregisterHotKey(HWND hWnd, int id);
-
-@DllImport("USER32.dll")
-BOOL SwapMouseButton(BOOL fSwap);
-
-@DllImport("USER32.dll")
-uint GetDoubleClickTime();
-
-@DllImport("USER32.dll")
-BOOL SetDoubleClickTime(uint param0);
-
-@DllImport("USER32.dll")
-HWND SetFocus(HWND hWnd);
-
-@DllImport("USER32.dll")
-HWND GetActiveWindow();
-
-@DllImport("USER32.dll")
-HWND GetFocus();
-
-@DllImport("USER32.dll")
-uint GetKBCodePage();
-
-@DllImport("USER32.dll")
-short GetKeyState(int nVirtKey);
-
-@DllImport("USER32.dll")
-short GetAsyncKeyState(int vKey);
-
-@DllImport("USER32.dll")
-BOOL GetKeyboardState(char* lpKeyState);
-
-@DllImport("USER32.dll")
-BOOL SetKeyboardState(char* lpKeyState);
-
-@DllImport("USER32.dll")
-int GetKeyNameTextA(int lParam, const(char)* lpString, int cchSize);
-
-@DllImport("USER32.dll")
-int GetKeyNameTextW(int lParam, const(wchar)* lpString, int cchSize);
-
-@DllImport("USER32.dll")
-int GetKeyboardType(int nTypeFlag);
-
-@DllImport("USER32.dll")
-int ToAscii(uint uVirtKey, uint uScanCode, char* lpKeyState, ushort* lpChar, uint uFlags);
-
-@DllImport("USER32.dll")
-int ToAsciiEx(uint uVirtKey, uint uScanCode, char* lpKeyState, ushort* lpChar, uint uFlags, int dwhkl);
-
-@DllImport("USER32.dll")
-int ToUnicode(uint wVirtKey, uint wScanCode, char* lpKeyState, const(wchar)* pwszBuff, int cchBuff, uint wFlags);
-
-@DllImport("USER32.dll")
-uint OemKeyScan(ushort wOemChar);
-
-@DllImport("USER32.dll")
-short VkKeyScanA(byte ch);
-
-@DllImport("USER32.dll")
-short VkKeyScanW(ushort ch);
-
-@DllImport("USER32.dll")
-short VkKeyScanExA(byte ch, int dwhkl);
-
-@DllImport("USER32.dll")
-short VkKeyScanExW(ushort ch, int dwhkl);
-
-@DllImport("USER32.dll")
-void keybd_event(ubyte bVk, ubyte bScan, uint dwFlags, uint dwExtraInfo);
-
-@DllImport("USER32.dll")
-void mouse_event(uint dwFlags, uint dx, uint dy, uint dwData, uint dwExtraInfo);
-
-@DllImport("USER32.dll")
-uint SendInput(uint cInputs, char* pInputs, int cbSize);
-
-@DllImport("USER32.dll")
-BOOL GetLastInputInfo(LASTINPUTINFO* plii);
-
-@DllImport("USER32.dll")
-uint MapVirtualKeyA(uint uCode, uint uMapType);
-
-@DllImport("USER32.dll")
-uint MapVirtualKeyW(uint uCode, uint uMapType);
-
-@DllImport("USER32.dll")
-uint MapVirtualKeyExA(uint uCode, uint uMapType, int dwhkl);
-
-@DllImport("USER32.dll")
-uint MapVirtualKeyExW(uint uCode, uint uMapType, int dwhkl);
-
-@DllImport("USER32.dll")
-HWND GetCapture();
-
-@DllImport("USER32.dll")
-HWND SetCapture(HWND hWnd);
-
-@DllImport("USER32.dll")
-BOOL ReleaseCapture();
-
-@DllImport("USER32.dll")
-BOOL EnableWindow(HWND hWnd, BOOL bEnable);
-
-@DllImport("USER32.dll")
-BOOL IsWindowEnabled(HWND hWnd);
-
-@DllImport("USER32.dll")
-BOOL DragDetect(HWND hwnd, POINT pt);
-
-@DllImport("USER32.dll")
-HWND SetActiveWindow(HWND hWnd);
-
-@DllImport("USER32.dll")
-BOOL BlockInput(BOOL fBlockIt);
-
-@DllImport("USER32.dll")
-uint GetRawInputData(int hRawInput, uint uiCommand, char* pData, uint* pcbSize, uint cbSizeHeader);
-
-@DllImport("USER32.dll")
-uint GetRawInputDeviceInfoA(HANDLE hDevice, uint uiCommand, char* pData, uint* pcbSize);
-
-@DllImport("USER32.dll")
-uint GetRawInputDeviceInfoW(HANDLE hDevice, uint uiCommand, char* pData, uint* pcbSize);
-
-@DllImport("USER32.dll")
-uint GetRawInputBuffer(char* pData, uint* pcbSize, uint cbSizeHeader);
-
-@DllImport("USER32.dll")
-BOOL RegisterRawInputDevices(char* pRawInputDevices, uint uiNumDevices, uint cbSize);
-
-@DllImport("USER32.dll")
-uint GetRegisteredRawInputDevices(char* pRawInputDevices, uint* puiNumDevices, uint cbSize);
-
-@DllImport("USER32.dll")
-uint GetRawInputDeviceList(char* pRawInputDeviceList, uint* puiNumDevices, uint cbSize);
-
-@DllImport("USER32.dll")
-LRESULT DefRawInputProc(char* paRawInput, int nInput, uint cbSizeHeader);
 
 struct MOUSEMOVEPOINT
 {
-    int x;
-    int y;
-    uint time;
-    uint dwExtraInfo;
+    int    x;
+    int    y;
+    uint   time;
+    size_t dwExtraInfo;
 }
 
 struct TRACKMOUSEEVENT
@@ -204,26 +29,26 @@ struct TRACKMOUSEEVENT
 
 struct MOUSEINPUT
 {
-    int dx;
-    int dy;
-    uint mouseData;
-    uint dwFlags;
-    uint time;
-    uint dwExtraInfo;
+    int    dx;
+    int    dy;
+    uint   mouseData;
+    uint   dwFlags;
+    uint   time;
+    size_t dwExtraInfo;
 }
 
 struct KEYBDINPUT
 {
     ushort wVk;
     ushort wScan;
-    uint dwFlags;
-    uint time;
-    uint dwExtraInfo;
+    uint   dwFlags;
+    uint   time;
+    size_t dwExtraInfo;
 }
 
 struct HARDWAREINPUT
 {
-    uint uMsg;
+    uint   uMsg;
     ushort wParamL;
     ushort wParamH;
 }
@@ -231,7 +56,12 @@ struct HARDWAREINPUT
 struct INPUT
 {
     uint type;
-    _Anonymous_e__Union Anonymous;
+    union
+    {
+        MOUSEINPUT    mi;
+        KEYBDINPUT    ki;
+        HARDWAREINPUT hi;
+    }
 }
 
 struct LASTINPUTINFO
@@ -242,8 +72,8 @@ struct LASTINPUTINFO
 
 struct RAWINPUTHEADER
 {
-    uint dwType;
-    uint dwSize;
+    uint   dwType;
+    uint   dwSize;
     HANDLE hDevice;
     WPARAM wParam;
 }
@@ -251,11 +81,19 @@ struct RAWINPUTHEADER
 struct RAWMOUSE
 {
     ushort usFlags;
-    _Anonymous_e__Union Anonymous;
-    uint ulRawButtons;
-    int lLastX;
-    int lLastY;
-    uint ulExtraInformation;
+    union
+    {
+        uint ulButtons;
+        struct
+        {
+            ushort usButtonFlags;
+            ushort usButtonData;
+        }
+    }
+    uint   ulRawButtons;
+    int    lLastX;
+    int    lLastY;
+    uint   ulExtraInformation;
 }
 
 struct RAWKEYBOARD
@@ -264,21 +102,26 @@ struct RAWKEYBOARD
     ushort Flags;
     ushort Reserved;
     ushort VKey;
-    uint Message;
-    uint ExtraInformation;
+    uint   Message;
+    uint   ExtraInformation;
 }
 
 struct RAWHID
 {
-    uint dwSizeHid;
-    uint dwCount;
-    ubyte bRawData;
+    uint     dwSizeHid;
+    uint     dwCount;
+    ubyte[1] bRawData;
 }
 
 struct RAWINPUT
 {
     RAWINPUTHEADER header;
-    _data_e__Union data;
+    union data
+    {
+        RAWMOUSE    mouse;
+        RAWKEYBOARD keyboard;
+        RAWHID      hid;
+    }
 }
 
 struct RID_DEVICE_INFO_MOUSE
@@ -301,9 +144,9 @@ struct RID_DEVICE_INFO_KEYBOARD
 
 struct RID_DEVICE_INFO_HID
 {
-    uint dwVendorId;
-    uint dwProductId;
-    uint dwVersionNumber;
+    uint   dwVendorId;
+    uint   dwProductId;
+    uint   dwVersionNumber;
     ushort usUsagePage;
     ushort usUsage;
 }
@@ -312,20 +155,209 @@ struct RID_DEVICE_INFO
 {
     uint cbSize;
     uint dwType;
-    _Anonymous_e__Union Anonymous;
+    union
+    {
+        RID_DEVICE_INFO_MOUSE mouse;
+        RID_DEVICE_INFO_KEYBOARD keyboard;
+        RID_DEVICE_INFO_HID hid;
+    }
 }
 
 struct RAWINPUTDEVICE
 {
     ushort usUsagePage;
     ushort usUsage;
-    uint dwFlags;
-    HWND hwndTarget;
+    uint   dwFlags;
+    HWND   hwndTarget;
 }
 
 struct RAWINPUTDEVICELIST
 {
     HANDLE hDevice;
-    uint dwType;
+    uint   dwType;
 }
+
+// Functions
+
+@DllImport("COMCTL32")
+BOOL _TrackMouseEvent(TRACKMOUSEEVENT* lpEventTrack);
+
+@DllImport("USER32")
+ptrdiff_t LoadKeyboardLayoutA(const(char)* pwszKLID, uint Flags);
+
+@DllImport("USER32")
+ptrdiff_t LoadKeyboardLayoutW(const(wchar)* pwszKLID, uint Flags);
+
+@DllImport("USER32")
+ptrdiff_t ActivateKeyboardLayout(ptrdiff_t hkl, uint Flags);
+
+@DllImport("USER32")
+int ToUnicodeEx(uint wVirtKey, uint wScanCode, char* lpKeyState, const(wchar)* pwszBuff, int cchBuff, uint wFlags, 
+                ptrdiff_t dwhkl);
+
+@DllImport("USER32")
+BOOL UnloadKeyboardLayout(ptrdiff_t hkl);
+
+@DllImport("USER32")
+BOOL GetKeyboardLayoutNameA(const(char)* pwszKLID);
+
+@DllImport("USER32")
+BOOL GetKeyboardLayoutNameW(const(wchar)* pwszKLID);
+
+@DllImport("USER32")
+int GetKeyboardLayoutList(int nBuff, char* lpList);
+
+@DllImport("USER32")
+ptrdiff_t GetKeyboardLayout(uint idThread);
+
+@DllImport("USER32")
+int GetMouseMovePointsEx(uint cbSize, MOUSEMOVEPOINT* lppt, char* lpptBuf, int nBufPoints, uint resolution);
+
+@DllImport("USER32")
+BOOL TrackMouseEvent(TRACKMOUSEEVENT* lpEventTrack);
+
+@DllImport("USER32")
+BOOL RegisterHotKey(HWND hWnd, int id, uint fsModifiers, uint vk);
+
+@DllImport("USER32")
+BOOL UnregisterHotKey(HWND hWnd, int id);
+
+@DllImport("USER32")
+BOOL SwapMouseButton(BOOL fSwap);
+
+@DllImport("USER32")
+uint GetDoubleClickTime();
+
+@DllImport("USER32")
+BOOL SetDoubleClickTime(uint param0);
+
+@DllImport("USER32")
+HWND SetFocus(HWND hWnd);
+
+@DllImport("USER32")
+HWND GetActiveWindow();
+
+@DllImport("USER32")
+HWND GetFocus();
+
+@DllImport("USER32")
+uint GetKBCodePage();
+
+@DllImport("USER32")
+short GetKeyState(int nVirtKey);
+
+@DllImport("USER32")
+short GetAsyncKeyState(int vKey);
+
+@DllImport("USER32")
+BOOL GetKeyboardState(char* lpKeyState);
+
+@DllImport("USER32")
+BOOL SetKeyboardState(char* lpKeyState);
+
+@DllImport("USER32")
+int GetKeyNameTextA(int lParam, const(char)* lpString, int cchSize);
+
+@DllImport("USER32")
+int GetKeyNameTextW(int lParam, const(wchar)* lpString, int cchSize);
+
+@DllImport("USER32")
+int GetKeyboardType(int nTypeFlag);
+
+@DllImport("USER32")
+int ToAscii(uint uVirtKey, uint uScanCode, char* lpKeyState, ushort* lpChar, uint uFlags);
+
+@DllImport("USER32")
+int ToAsciiEx(uint uVirtKey, uint uScanCode, char* lpKeyState, ushort* lpChar, uint uFlags, ptrdiff_t dwhkl);
+
+@DllImport("USER32")
+int ToUnicode(uint wVirtKey, uint wScanCode, char* lpKeyState, const(wchar)* pwszBuff, int cchBuff, uint wFlags);
+
+@DllImport("USER32")
+uint OemKeyScan(ushort wOemChar);
+
+@DllImport("USER32")
+short VkKeyScanA(byte ch);
+
+@DllImport("USER32")
+short VkKeyScanW(ushort ch);
+
+@DllImport("USER32")
+short VkKeyScanExA(byte ch, ptrdiff_t dwhkl);
+
+@DllImport("USER32")
+short VkKeyScanExW(ushort ch, ptrdiff_t dwhkl);
+
+@DllImport("USER32")
+void keybd_event(ubyte bVk, ubyte bScan, uint dwFlags, size_t dwExtraInfo);
+
+@DllImport("USER32")
+void mouse_event(uint dwFlags, uint dx, uint dy, uint dwData, size_t dwExtraInfo);
+
+@DllImport("USER32")
+uint SendInput(uint cInputs, char* pInputs, int cbSize);
+
+@DllImport("USER32")
+BOOL GetLastInputInfo(LASTINPUTINFO* plii);
+
+@DllImport("USER32")
+uint MapVirtualKeyA(uint uCode, uint uMapType);
+
+@DllImport("USER32")
+uint MapVirtualKeyW(uint uCode, uint uMapType);
+
+@DllImport("USER32")
+uint MapVirtualKeyExA(uint uCode, uint uMapType, ptrdiff_t dwhkl);
+
+@DllImport("USER32")
+uint MapVirtualKeyExW(uint uCode, uint uMapType, ptrdiff_t dwhkl);
+
+@DllImport("USER32")
+HWND GetCapture();
+
+@DllImport("USER32")
+HWND SetCapture(HWND hWnd);
+
+@DllImport("USER32")
+BOOL ReleaseCapture();
+
+@DllImport("USER32")
+BOOL EnableWindow(HWND hWnd, BOOL bEnable);
+
+@DllImport("USER32")
+BOOL IsWindowEnabled(HWND hWnd);
+
+@DllImport("USER32")
+BOOL DragDetect(HWND hwnd, POINT pt);
+
+@DllImport("USER32")
+HWND SetActiveWindow(HWND hWnd);
+
+@DllImport("USER32")
+BOOL BlockInput(BOOL fBlockIt);
+
+@DllImport("USER32")
+uint GetRawInputData(ptrdiff_t hRawInput, uint uiCommand, char* pData, uint* pcbSize, uint cbSizeHeader);
+
+@DllImport("USER32")
+uint GetRawInputDeviceInfoA(HANDLE hDevice, uint uiCommand, char* pData, uint* pcbSize);
+
+@DllImport("USER32")
+uint GetRawInputDeviceInfoW(HANDLE hDevice, uint uiCommand, char* pData, uint* pcbSize);
+
+@DllImport("USER32")
+uint GetRawInputBuffer(char* pData, uint* pcbSize, uint cbSizeHeader);
+
+@DllImport("USER32")
+BOOL RegisterRawInputDevices(char* pRawInputDevices, uint uiNumDevices, uint cbSize);
+
+@DllImport("USER32")
+uint GetRegisteredRawInputDevices(char* pRawInputDevices, uint* puiNumDevices, uint cbSize);
+
+@DllImport("USER32")
+uint GetRawInputDeviceList(char* pRawInputDeviceList, uint* puiNumDevices, uint cbSize);
+
+@DllImport("USER32")
+LRESULT DefRawInputProc(char* paRawInput, int nInput, uint cbSizeHeader);
+
 

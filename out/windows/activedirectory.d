@@ -1,256 +1,659 @@
 module windows.activedirectory;
 
-public import system;
-public import windows.automation;
-public import windows.com;
-public import windows.controls;
-public import windows.gdi;
-public import windows.security;
-public import windows.systemservices;
-public import windows.winsock;
-public import windows.windowsandmessaging;
-public import windows.windowsprogramming;
+public import windows.core;
+public import windows.automation : BSTR, DISPPARAMS, EXCEPINFO, IDispatch, IEnumVARIANT, IPropertyBag, ITypeInfo,
+                                   VARIANT;
+public import windows.com : HRESULT, IDataObject, IPersist, IUnknown;
+public import windows.controls : LPFNADDPROPSHEETPAGE;
+public import windows.gdi : HICON;
+public import windows.security : LSA_FOREST_TRUST_INFORMATION;
+public import windows.systemservices : BOOL, HANDLE, HINSTANCE, LARGE_INTEGER;
+public import windows.winsock : SOCKET_ADDRESS;
+public import windows.windowsandmessaging : DLGPROC, HWND, LPARAM, WPARAM;
+public import windows.windowsprogramming : FILETIME, HKEY, SYSTEMTIME;
 
 extern(Windows):
 
+
+// Enums
+
+
+enum : int
+{
+    ADSTYPE_INVALID                = 0x00000000,
+    ADSTYPE_DN_STRING              = 0x00000001,
+    ADSTYPE_CASE_EXACT_STRING      = 0x00000002,
+    ADSTYPE_CASE_IGNORE_STRING     = 0x00000003,
+    ADSTYPE_PRINTABLE_STRING       = 0x00000004,
+    ADSTYPE_NUMERIC_STRING         = 0x00000005,
+    ADSTYPE_BOOLEAN                = 0x00000006,
+    ADSTYPE_INTEGER                = 0x00000007,
+    ADSTYPE_OCTET_STRING           = 0x00000008,
+    ADSTYPE_UTC_TIME               = 0x00000009,
+    ADSTYPE_LARGE_INTEGER          = 0x0000000a,
+    ADSTYPE_PROV_SPECIFIC          = 0x0000000b,
+    ADSTYPE_OBJECT_CLASS           = 0x0000000c,
+    ADSTYPE_CASEIGNORE_LIST        = 0x0000000d,
+    ADSTYPE_OCTET_LIST             = 0x0000000e,
+    ADSTYPE_PATH                   = 0x0000000f,
+    ADSTYPE_POSTALADDRESS          = 0x00000010,
+    ADSTYPE_TIMESTAMP              = 0x00000011,
+    ADSTYPE_BACKLINK               = 0x00000012,
+    ADSTYPE_TYPEDNAME              = 0x00000013,
+    ADSTYPE_HOLD                   = 0x00000014,
+    ADSTYPE_NETADDRESS             = 0x00000015,
+    ADSTYPE_REPLICAPOINTER         = 0x00000016,
+    ADSTYPE_FAXNUMBER              = 0x00000017,
+    ADSTYPE_EMAIL                  = 0x00000018,
+    ADSTYPE_NT_SECURITY_DESCRIPTOR = 0x00000019,
+    ADSTYPE_UNKNOWN                = 0x0000001a,
+    ADSTYPE_DN_WITH_BINARY         = 0x0000001b,
+    ADSTYPE_DN_WITH_STRING         = 0x0000001c,
+}
+alias ADSTYPEENUM = int;
+
+enum : int
+{
+    ADS_SECURE_AUTHENTICATION = 0x00000001,
+    ADS_USE_ENCRYPTION        = 0x00000002,
+    ADS_USE_SSL               = 0x00000002,
+    ADS_READONLY_SERVER       = 0x00000004,
+    ADS_PROMPT_CREDENTIALS    = 0x00000008,
+    ADS_NO_AUTHENTICATION     = 0x00000010,
+    ADS_FAST_BIND             = 0x00000020,
+    ADS_USE_SIGNING           = 0x00000040,
+    ADS_USE_SEALING           = 0x00000080,
+    ADS_USE_DELEGATION        = 0x00000100,
+    ADS_SERVER_BIND           = 0x00000200,
+    ADS_NO_REFERRAL_CHASING   = 0x00000400,
+    ADS_AUTH_RESERVED         = 0x80000000,
+}
+alias ADS_AUTHENTICATION_ENUM = int;
+
+enum : int
+{
+    ADS_STATUS_S_OK                    = 0x00000000,
+    ADS_STATUS_INVALID_SEARCHPREF      = 0x00000001,
+    ADS_STATUS_INVALID_SEARCHPREFVALUE = 0x00000002,
+}
+alias ADS_STATUSENUM = int;
+
+enum : int
+{
+    ADS_DEREF_NEVER     = 0x00000000,
+    ADS_DEREF_SEARCHING = 0x00000001,
+    ADS_DEREF_FINDING   = 0x00000002,
+    ADS_DEREF_ALWAYS    = 0x00000003,
+}
+alias ADS_DEREFENUM = int;
+
+enum : int
+{
+    ADS_SCOPE_BASE     = 0x00000000,
+    ADS_SCOPE_ONELEVEL = 0x00000001,
+    ADS_SCOPE_SUBTREE  = 0x00000002,
+}
+alias ADS_SCOPEENUM = int;
+
+enum : int
+{
+    ADSIPROP_ASYNCHRONOUS     = 0x00000000,
+    ADSIPROP_DEREF_ALIASES    = 0x00000001,
+    ADSIPROP_SIZE_LIMIT       = 0x00000002,
+    ADSIPROP_TIME_LIMIT       = 0x00000003,
+    ADSIPROP_ATTRIBTYPES_ONLY = 0x00000004,
+    ADSIPROP_SEARCH_SCOPE     = 0x00000005,
+    ADSIPROP_TIMEOUT          = 0x00000006,
+    ADSIPROP_PAGESIZE         = 0x00000007,
+    ADSIPROP_PAGED_TIME_LIMIT = 0x00000008,
+    ADSIPROP_CHASE_REFERRALS  = 0x00000009,
+    ADSIPROP_SORT_ON          = 0x0000000a,
+    ADSIPROP_CACHE_RESULTS    = 0x0000000b,
+    ADSIPROP_ADSIFLAG         = 0x0000000c,
+}
+alias ADS_PREFERENCES_ENUM = int;
+
+enum : int
+{
+    ADSI_DIALECT_LDAP = 0x00000000,
+    ADSI_DIALECT_SQL  = 0x00000001,
+}
+alias ADSI_DIALECT_ENUM = int;
+
+enum : int
+{
+    ADS_CHASE_REFERRALS_NEVER       = 0x00000000,
+    ADS_CHASE_REFERRALS_SUBORDINATE = 0x00000020,
+    ADS_CHASE_REFERRALS_EXTERNAL    = 0x00000040,
+    ADS_CHASE_REFERRALS_ALWAYS      = 0x00000060,
+}
+alias ADS_CHASE_REFERRALS_ENUM = int;
+
+enum : int
+{
+    ADS_SEARCHPREF_ASYNCHRONOUS     = 0x00000000,
+    ADS_SEARCHPREF_DEREF_ALIASES    = 0x00000001,
+    ADS_SEARCHPREF_SIZE_LIMIT       = 0x00000002,
+    ADS_SEARCHPREF_TIME_LIMIT       = 0x00000003,
+    ADS_SEARCHPREF_ATTRIBTYPES_ONLY = 0x00000004,
+    ADS_SEARCHPREF_SEARCH_SCOPE     = 0x00000005,
+    ADS_SEARCHPREF_TIMEOUT          = 0x00000006,
+    ADS_SEARCHPREF_PAGESIZE         = 0x00000007,
+    ADS_SEARCHPREF_PAGED_TIME_LIMIT = 0x00000008,
+    ADS_SEARCHPREF_CHASE_REFERRALS  = 0x00000009,
+    ADS_SEARCHPREF_SORT_ON          = 0x0000000a,
+    ADS_SEARCHPREF_CACHE_RESULTS    = 0x0000000b,
+    ADS_SEARCHPREF_DIRSYNC          = 0x0000000c,
+    ADS_SEARCHPREF_TOMBSTONE        = 0x0000000d,
+    ADS_SEARCHPREF_VLV              = 0x0000000e,
+    ADS_SEARCHPREF_ATTRIBUTE_QUERY  = 0x0000000f,
+    ADS_SEARCHPREF_SECURITY_MASK    = 0x00000010,
+    ADS_SEARCHPREF_DIRSYNC_FLAG     = 0x00000011,
+    ADS_SEARCHPREF_EXTENDED_DN      = 0x00000012,
+}
+alias ADS_SEARCHPREF_ENUM = int;
+
+enum : int
+{
+    ADS_PASSWORD_ENCODE_REQUIRE_SSL = 0x00000000,
+    ADS_PASSWORD_ENCODE_CLEAR       = 0x00000001,
+}
+alias ADS_PASSWORD_ENCODING_ENUM = int;
+
+enum : int
+{
+    ADS_PROPERTY_CLEAR  = 0x00000001,
+    ADS_PROPERTY_UPDATE = 0x00000002,
+    ADS_PROPERTY_APPEND = 0x00000003,
+    ADS_PROPERTY_DELETE = 0x00000004,
+}
+alias ADS_PROPERTY_OPERATION_ENUM = int;
+
+enum : int
+{
+    ADS_SYSTEMFLAG_DISALLOW_DELETE           = 0x80000000,
+    ADS_SYSTEMFLAG_CONFIG_ALLOW_RENAME       = 0x40000000,
+    ADS_SYSTEMFLAG_CONFIG_ALLOW_MOVE         = 0x20000000,
+    ADS_SYSTEMFLAG_CONFIG_ALLOW_LIMITED_MOVE = 0x10000000,
+    ADS_SYSTEMFLAG_DOMAIN_DISALLOW_RENAME    = 0x08000000,
+    ADS_SYSTEMFLAG_DOMAIN_DISALLOW_MOVE      = 0x04000000,
+    ADS_SYSTEMFLAG_CR_NTDS_NC                = 0x00000001,
+    ADS_SYSTEMFLAG_CR_NTDS_DOMAIN            = 0x00000002,
+    ADS_SYSTEMFLAG_ATTR_NOT_REPLICATED       = 0x00000001,
+    ADS_SYSTEMFLAG_ATTR_IS_CONSTRUCTED       = 0x00000004,
+}
+alias ADS_SYSTEMFLAG_ENUM = int;
+
+enum : int
+{
+    ADS_GROUP_TYPE_GLOBAL_GROUP       = 0x00000002,
+    ADS_GROUP_TYPE_DOMAIN_LOCAL_GROUP = 0x00000004,
+    ADS_GROUP_TYPE_LOCAL_GROUP        = 0x00000004,
+    ADS_GROUP_TYPE_UNIVERSAL_GROUP    = 0x00000008,
+    ADS_GROUP_TYPE_SECURITY_ENABLED   = 0x80000000,
+}
+alias ADS_GROUP_TYPE_ENUM = int;
+
+enum : int
+{
+    ADS_UF_SCRIPT                                 = 0x00000001,
+    ADS_UF_ACCOUNTDISABLE                         = 0x00000002,
+    ADS_UF_HOMEDIR_REQUIRED                       = 0x00000008,
+    ADS_UF_LOCKOUT                                = 0x00000010,
+    ADS_UF_PASSWD_NOTREQD                         = 0x00000020,
+    ADS_UF_PASSWD_CANT_CHANGE                     = 0x00000040,
+    ADS_UF_ENCRYPTED_TEXT_PASSWORD_ALLOWED        = 0x00000080,
+    ADS_UF_TEMP_DUPLICATE_ACCOUNT                 = 0x00000100,
+    ADS_UF_NORMAL_ACCOUNT                         = 0x00000200,
+    ADS_UF_INTERDOMAIN_TRUST_ACCOUNT              = 0x00000800,
+    ADS_UF_WORKSTATION_TRUST_ACCOUNT              = 0x00001000,
+    ADS_UF_SERVER_TRUST_ACCOUNT                   = 0x00002000,
+    ADS_UF_DONT_EXPIRE_PASSWD                     = 0x00010000,
+    ADS_UF_MNS_LOGON_ACCOUNT                      = 0x00020000,
+    ADS_UF_SMARTCARD_REQUIRED                     = 0x00040000,
+    ADS_UF_TRUSTED_FOR_DELEGATION                 = 0x00080000,
+    ADS_UF_NOT_DELEGATED                          = 0x00100000,
+    ADS_UF_USE_DES_KEY_ONLY                       = 0x00200000,
+    ADS_UF_DONT_REQUIRE_PREAUTH                   = 0x00400000,
+    ADS_UF_PASSWORD_EXPIRED                       = 0x00800000,
+    ADS_UF_TRUSTED_TO_AUTHENTICATE_FOR_DELEGATION = 0x01000000,
+}
+alias ADS_USER_FLAG_ENUM = int;
+
+enum : int
+{
+    ADS_RIGHT_DELETE                 = 0x00010000,
+    ADS_RIGHT_READ_CONTROL           = 0x00020000,
+    ADS_RIGHT_WRITE_DAC              = 0x00040000,
+    ADS_RIGHT_WRITE_OWNER            = 0x00080000,
+    ADS_RIGHT_SYNCHRONIZE            = 0x00100000,
+    ADS_RIGHT_ACCESS_SYSTEM_SECURITY = 0x01000000,
+    ADS_RIGHT_GENERIC_READ           = 0x80000000,
+    ADS_RIGHT_GENERIC_WRITE          = 0x40000000,
+    ADS_RIGHT_GENERIC_EXECUTE        = 0x20000000,
+    ADS_RIGHT_GENERIC_ALL            = 0x10000000,
+    ADS_RIGHT_DS_CREATE_CHILD        = 0x00000001,
+    ADS_RIGHT_DS_DELETE_CHILD        = 0x00000002,
+    ADS_RIGHT_ACTRL_DS_LIST          = 0x00000004,
+    ADS_RIGHT_DS_SELF                = 0x00000008,
+    ADS_RIGHT_DS_READ_PROP           = 0x00000010,
+    ADS_RIGHT_DS_WRITE_PROP          = 0x00000020,
+    ADS_RIGHT_DS_DELETE_TREE         = 0x00000040,
+    ADS_RIGHT_DS_LIST_OBJECT         = 0x00000080,
+    ADS_RIGHT_DS_CONTROL_ACCESS      = 0x00000100,
+}
+alias ADS_RIGHTS_ENUM = int;
+
+enum : int
+{
+    ADS_ACETYPE_ACCESS_ALLOWED                 = 0x00000000,
+    ADS_ACETYPE_ACCESS_DENIED                  = 0x00000001,
+    ADS_ACETYPE_SYSTEM_AUDIT                   = 0x00000002,
+    ADS_ACETYPE_ACCESS_ALLOWED_OBJECT          = 0x00000005,
+    ADS_ACETYPE_ACCESS_DENIED_OBJECT           = 0x00000006,
+    ADS_ACETYPE_SYSTEM_AUDIT_OBJECT            = 0x00000007,
+    ADS_ACETYPE_SYSTEM_ALARM_OBJECT            = 0x00000008,
+    ADS_ACETYPE_ACCESS_ALLOWED_CALLBACK        = 0x00000009,
+    ADS_ACETYPE_ACCESS_DENIED_CALLBACK         = 0x0000000a,
+    ADS_ACETYPE_ACCESS_ALLOWED_CALLBACK_OBJECT = 0x0000000b,
+    ADS_ACETYPE_ACCESS_DENIED_CALLBACK_OBJECT  = 0x0000000c,
+    ADS_ACETYPE_SYSTEM_AUDIT_CALLBACK          = 0x0000000d,
+    ADS_ACETYPE_SYSTEM_ALARM_CALLBACK          = 0x0000000e,
+    ADS_ACETYPE_SYSTEM_AUDIT_CALLBACK_OBJECT   = 0x0000000f,
+    ADS_ACETYPE_SYSTEM_ALARM_CALLBACK_OBJECT   = 0x00000010,
+}
+alias ADS_ACETYPE_ENUM = int;
+
+enum : int
+{
+    ADS_ACEFLAG_INHERIT_ACE              = 0x00000002,
+    ADS_ACEFLAG_NO_PROPAGATE_INHERIT_ACE = 0x00000004,
+    ADS_ACEFLAG_INHERIT_ONLY_ACE         = 0x00000008,
+    ADS_ACEFLAG_INHERITED_ACE            = 0x00000010,
+    ADS_ACEFLAG_VALID_INHERIT_FLAGS      = 0x0000001f,
+    ADS_ACEFLAG_SUCCESSFUL_ACCESS        = 0x00000040,
+    ADS_ACEFLAG_FAILED_ACCESS            = 0x00000080,
+}
+alias ADS_ACEFLAG_ENUM = int;
+
+enum : int
+{
+    ADS_FLAG_OBJECT_TYPE_PRESENT           = 0x00000001,
+    ADS_FLAG_INHERITED_OBJECT_TYPE_PRESENT = 0x00000002,
+}
+alias ADS_FLAGTYPE_ENUM = int;
+
+enum : int
+{
+    ADS_SD_CONTROL_SE_OWNER_DEFAULTED       = 0x00000001,
+    ADS_SD_CONTROL_SE_GROUP_DEFAULTED       = 0x00000002,
+    ADS_SD_CONTROL_SE_DACL_PRESENT          = 0x00000004,
+    ADS_SD_CONTROL_SE_DACL_DEFAULTED        = 0x00000008,
+    ADS_SD_CONTROL_SE_SACL_PRESENT          = 0x00000010,
+    ADS_SD_CONTROL_SE_SACL_DEFAULTED        = 0x00000020,
+    ADS_SD_CONTROL_SE_DACL_AUTO_INHERIT_REQ = 0x00000100,
+    ADS_SD_CONTROL_SE_SACL_AUTO_INHERIT_REQ = 0x00000200,
+    ADS_SD_CONTROL_SE_DACL_AUTO_INHERITED   = 0x00000400,
+    ADS_SD_CONTROL_SE_SACL_AUTO_INHERITED   = 0x00000800,
+    ADS_SD_CONTROL_SE_DACL_PROTECTED        = 0x00001000,
+    ADS_SD_CONTROL_SE_SACL_PROTECTED        = 0x00002000,
+    ADS_SD_CONTROL_SE_SELF_RELATIVE         = 0x00008000,
+}
+alias ADS_SD_CONTROL_ENUM = int;
+
+enum : int
+{
+    ADS_SD_REVISION_DS = 0x00000004,
+}
+alias ADS_SD_REVISION_ENUM = int;
+
+enum : int
+{
+    ADS_NAME_TYPE_1779                    = 0x00000001,
+    ADS_NAME_TYPE_CANONICAL               = 0x00000002,
+    ADS_NAME_TYPE_NT4                     = 0x00000003,
+    ADS_NAME_TYPE_DISPLAY                 = 0x00000004,
+    ADS_NAME_TYPE_DOMAIN_SIMPLE           = 0x00000005,
+    ADS_NAME_TYPE_ENTERPRISE_SIMPLE       = 0x00000006,
+    ADS_NAME_TYPE_GUID                    = 0x00000007,
+    ADS_NAME_TYPE_UNKNOWN                 = 0x00000008,
+    ADS_NAME_TYPE_USER_PRINCIPAL_NAME     = 0x00000009,
+    ADS_NAME_TYPE_CANONICAL_EX            = 0x0000000a,
+    ADS_NAME_TYPE_SERVICE_PRINCIPAL_NAME  = 0x0000000b,
+    ADS_NAME_TYPE_SID_OR_SID_HISTORY_NAME = 0x0000000c,
+}
+alias ADS_NAME_TYPE_ENUM = int;
+
+enum : int
+{
+    ADS_NAME_INITTYPE_DOMAIN = 0x00000001,
+    ADS_NAME_INITTYPE_SERVER = 0x00000002,
+    ADS_NAME_INITTYPE_GC     = 0x00000003,
+}
+alias ADS_NAME_INITTYPE_ENUM = int;
+
+enum : int
+{
+    ADS_OPTION_SERVERNAME                = 0x00000000,
+    ADS_OPTION_REFERRALS                 = 0x00000001,
+    ADS_OPTION_PAGE_SIZE                 = 0x00000002,
+    ADS_OPTION_SECURITY_MASK             = 0x00000003,
+    ADS_OPTION_MUTUAL_AUTH_STATUS        = 0x00000004,
+    ADS_OPTION_QUOTA                     = 0x00000005,
+    ADS_OPTION_PASSWORD_PORTNUMBER       = 0x00000006,
+    ADS_OPTION_PASSWORD_METHOD           = 0x00000007,
+    ADS_OPTION_ACCUMULATIVE_MODIFICATION = 0x00000008,
+    ADS_OPTION_SKIP_SID_LOOKUP           = 0x00000009,
+}
+alias ADS_OPTION_ENUM = int;
+
+enum : int
+{
+    ADS_SECURITY_INFO_OWNER = 0x00000001,
+    ADS_SECURITY_INFO_GROUP = 0x00000002,
+    ADS_SECURITY_INFO_DACL  = 0x00000004,
+    ADS_SECURITY_INFO_SACL  = 0x00000008,
+}
+alias ADS_SECURITY_INFO_ENUM = int;
+
+enum : int
+{
+    ADS_SETTYPE_FULL     = 0x00000001,
+    ADS_SETTYPE_PROVIDER = 0x00000002,
+    ADS_SETTYPE_SERVER   = 0x00000003,
+    ADS_SETTYPE_DN       = 0x00000004,
+}
+alias ADS_SETTYPE_ENUM = int;
+
+enum : int
+{
+    ADS_FORMAT_WINDOWS           = 0x00000001,
+    ADS_FORMAT_WINDOWS_NO_SERVER = 0x00000002,
+    ADS_FORMAT_WINDOWS_DN        = 0x00000003,
+    ADS_FORMAT_WINDOWS_PARENT    = 0x00000004,
+    ADS_FORMAT_X500              = 0x00000005,
+    ADS_FORMAT_X500_NO_SERVER    = 0x00000006,
+    ADS_FORMAT_X500_DN           = 0x00000007,
+    ADS_FORMAT_X500_PARENT       = 0x00000008,
+    ADS_FORMAT_SERVER            = 0x00000009,
+    ADS_FORMAT_PROVIDER          = 0x0000000a,
+    ADS_FORMAT_LEAF              = 0x0000000b,
+}
+alias ADS_FORMAT_ENUM = int;
+
+enum : int
+{
+    ADS_DISPLAY_FULL       = 0x00000001,
+    ADS_DISPLAY_VALUE_ONLY = 0x00000002,
+}
+alias ADS_DISPLAY_ENUM = int;
+
+enum : int
+{
+    ADS_ESCAPEDMODE_DEFAULT = 0x00000001,
+    ADS_ESCAPEDMODE_ON      = 0x00000002,
+    ADS_ESCAPEDMODE_OFF     = 0x00000003,
+    ADS_ESCAPEDMODE_OFF_EX  = 0x00000004,
+}
+alias ADS_ESCAPE_MODE_ENUM = int;
+
+enum : int
+{
+    ADS_PATH_FILE      = 0x00000001,
+    ADS_PATH_FILESHARE = 0x00000002,
+    ADS_PATH_REGISTRY  = 0x00000003,
+}
+alias ADS_PATHTYPE_ENUM = int;
+
+enum : int
+{
+    ADS_SD_FORMAT_IID       = 0x00000001,
+    ADS_SD_FORMAT_RAW       = 0x00000002,
+    ADS_SD_FORMAT_HEXSTRING = 0x00000003,
+}
+alias ADS_SD_FORMAT_ENUM = int;
+
+enum : int
+{
+    DS_MANGLE_UNKNOWN                      = 0x00000000,
+    DS_MANGLE_OBJECT_RDN_FOR_DELETION      = 0x00000001,
+    DS_MANGLE_OBJECT_RDN_FOR_NAME_CONFLICT = 0x00000002,
+}
+alias DS_MANGLE_FOR = int;
+
+enum : int
+{
+    DS_UNKNOWN_NAME            = 0x00000000,
+    DS_FQDN_1779_NAME          = 0x00000001,
+    DS_NT4_ACCOUNT_NAME        = 0x00000002,
+    DS_DISPLAY_NAME            = 0x00000003,
+    DS_UNIQUE_ID_NAME          = 0x00000006,
+    DS_CANONICAL_NAME          = 0x00000007,
+    DS_USER_PRINCIPAL_NAME     = 0x00000008,
+    DS_CANONICAL_NAME_EX       = 0x00000009,
+    DS_SERVICE_PRINCIPAL_NAME  = 0x0000000a,
+    DS_SID_OR_SID_HISTORY_NAME = 0x0000000b,
+    DS_DNS_DOMAIN_NAME         = 0x0000000c,
+}
+alias DS_NAME_FORMAT = int;
+
+enum : int
+{
+    DS_NAME_NO_FLAGS              = 0x00000000,
+    DS_NAME_FLAG_SYNTACTICAL_ONLY = 0x00000001,
+    DS_NAME_FLAG_EVAL_AT_DC       = 0x00000002,
+    DS_NAME_FLAG_GCVERIFY         = 0x00000004,
+    DS_NAME_FLAG_TRUST_REFERRAL   = 0x00000008,
+}
+alias DS_NAME_FLAGS = int;
+
+enum : int
+{
+    DS_NAME_NO_ERROR                     = 0x00000000,
+    DS_NAME_ERROR_RESOLVING              = 0x00000001,
+    DS_NAME_ERROR_NOT_FOUND              = 0x00000002,
+    DS_NAME_ERROR_NOT_UNIQUE             = 0x00000003,
+    DS_NAME_ERROR_NO_MAPPING             = 0x00000004,
+    DS_NAME_ERROR_DOMAIN_ONLY            = 0x00000005,
+    DS_NAME_ERROR_NO_SYNTACTICAL_MAPPING = 0x00000006,
+    DS_NAME_ERROR_TRUST_REFERRAL         = 0x00000007,
+}
+alias DS_NAME_ERROR = int;
+
+enum : int
+{
+    DS_SPN_DNS_HOST  = 0x00000000,
+    DS_SPN_DN_HOST   = 0x00000001,
+    DS_SPN_NB_HOST   = 0x00000002,
+    DS_SPN_DOMAIN    = 0x00000003,
+    DS_SPN_NB_DOMAIN = 0x00000004,
+    DS_SPN_SERVICE   = 0x00000005,
+}
+alias DS_SPN_NAME_TYPE = int;
+
+enum : int
+{
+    DS_SPN_ADD_SPN_OP     = 0x00000000,
+    DS_SPN_REPLACE_SPN_OP = 0x00000001,
+    DS_SPN_DELETE_SPN_OP  = 0x00000002,
+}
+alias DS_SPN_WRITE_OP = int;
+
+enum : int
+{
+    DS_REPSYNCALL_WIN32_ERROR_CONTACTING_SERVER = 0x00000000,
+    DS_REPSYNCALL_WIN32_ERROR_REPLICATING       = 0x00000001,
+    DS_REPSYNCALL_SERVER_UNREACHABLE            = 0x00000002,
+}
+alias DS_REPSYNCALL_ERROR = int;
+
+enum : int
+{
+    DS_REPSYNCALL_EVENT_ERROR          = 0x00000000,
+    DS_REPSYNCALL_EVENT_SYNC_STARTED   = 0x00000001,
+    DS_REPSYNCALL_EVENT_SYNC_COMPLETED = 0x00000002,
+    DS_REPSYNCALL_EVENT_FINISHED       = 0x00000003,
+}
+alias DS_REPSYNCALL_EVENT = int;
+
+enum : int
+{
+    DS_KCC_TASKID_UPDATE_TOPOLOGY = 0x00000000,
+}
+alias DS_KCC_TASKID = int;
+
+enum : int
+{
+    DS_REPL_INFO_NEIGHBORS                   = 0x00000000,
+    DS_REPL_INFO_CURSORS_FOR_NC              = 0x00000001,
+    DS_REPL_INFO_METADATA_FOR_OBJ            = 0x00000002,
+    DS_REPL_INFO_KCC_DSA_CONNECT_FAILURES    = 0x00000003,
+    DS_REPL_INFO_KCC_DSA_LINK_FAILURES       = 0x00000004,
+    DS_REPL_INFO_PENDING_OPS                 = 0x00000005,
+    DS_REPL_INFO_METADATA_FOR_ATTR_VALUE     = 0x00000006,
+    DS_REPL_INFO_CURSORS_2_FOR_NC            = 0x00000007,
+    DS_REPL_INFO_CURSORS_3_FOR_NC            = 0x00000008,
+    DS_REPL_INFO_METADATA_2_FOR_OBJ          = 0x00000009,
+    DS_REPL_INFO_METADATA_2_FOR_ATTR_VALUE   = 0x0000000a,
+    DS_REPL_INFO_METADATA_EXT_FOR_ATTR_VALUE = 0x0000000b,
+    DS_REPL_INFO_TYPE_MAX                    = 0x0000000c,
+}
+alias DS_REPL_INFO_TYPE = int;
+
+enum : int
+{
+    DS_REPL_OP_TYPE_SYNC        = 0x00000000,
+    DS_REPL_OP_TYPE_ADD         = 0x00000001,
+    DS_REPL_OP_TYPE_DELETE      = 0x00000002,
+    DS_REPL_OP_TYPE_MODIFY      = 0x00000003,
+    DS_REPL_OP_TYPE_UPDATE_REFS = 0x00000004,
+}
+alias DS_REPL_OP_TYPE = int;
+
+enum : int
+{
+    DsRole_RoleStandaloneWorkstation   = 0x00000000,
+    DsRole_RoleMemberWorkstation       = 0x00000001,
+    DsRole_RoleStandaloneServer        = 0x00000002,
+    DsRole_RoleMemberServer            = 0x00000003,
+    DsRole_RoleBackupDomainController  = 0x00000004,
+    DsRole_RolePrimaryDomainController = 0x00000005,
+}
+alias DSROLE_MACHINE_ROLE = int;
+
+enum : int
+{
+    DsRoleServerUnknown = 0x00000000,
+    DsRoleServerPrimary = 0x00000001,
+    DsRoleServerBackup  = 0x00000002,
+}
+alias DSROLE_SERVER_STATE = int;
+
+enum : int
+{
+    DsRolePrimaryDomainInfoBasic = 0x00000001,
+    DsRoleUpgradeStatus          = 0x00000002,
+    DsRoleOperationState         = 0x00000003,
+}
+alias DSROLE_PRIMARY_DOMAIN_INFO_LEVEL = int;
+
+enum : int
+{
+    DsRoleOperationIdle       = 0x00000000,
+    DsRoleOperationActive     = 0x00000001,
+    DsRoleOperationNeedReboot = 0x00000002,
+}
+alias DSROLE_OPERATION_STATE = int;
+
+// Callbacks
+
+alias LPCQADDFORMSPROC = HRESULT function(LPARAM lParam, CQFORM* pForm);
+alias LPCQADDPAGESPROC = HRESULT function(LPARAM lParam, const(GUID)* clsidForm, CQPAGE* pPage);
+alias LPCQPAGEPROC = HRESULT function(CQPAGE* pPage, HWND hwnd, uint uMsg, WPARAM wParam, LPARAM lParam);
+alias LPDSENUMATTRIBUTES = HRESULT function(LPARAM lParam, const(wchar)* pszAttributeName, 
+                                            const(wchar)* pszDisplayName, uint dwFlags);
+alias BFFCALLBACK = int function(HWND hwnd, uint uMsg, LPARAM lParam, LPARAM lpData);
+
+// Structs
+
+
 struct CQFORM
 {
-    uint cbStruct;
-    uint dwFlags;
-    Guid clsid;
-    HICON hIcon;
+    uint          cbStruct;
+    uint          dwFlags;
+    GUID          clsid;
+    HICON         hIcon;
     const(wchar)* pszTitle;
 }
 
-alias LPCQADDFORMSPROC = extern(Windows) HRESULT function(LPARAM lParam, CQFORM* pForm);
-alias LPCQADDPAGESPROC = extern(Windows) HRESULT function(LPARAM lParam, const(Guid)* clsidForm, CQPAGE* pPage);
-alias LPCQPAGEPROC = extern(Windows) HRESULT function(CQPAGE* pPage, HWND hwnd, uint uMsg, WPARAM wParam, LPARAM lParam);
 struct CQPAGE
 {
-    uint cbStruct;
-    uint dwFlags;
+    uint         cbStruct;
+    uint         dwFlags;
     LPCQPAGEPROC pPageProc;
-    HINSTANCE hInstance;
-    int idPageName;
-    int idPageTemplate;
-    DLGPROC pDlgProc;
-    LPARAM lParam;
-}
-
-const GUID IID_IQueryForm = {0x8CFCEE30, 0x39BD, 0x11D0, [0xB8, 0xD1, 0x00, 0xA0, 0x24, 0xAB, 0x2D, 0xBB]};
-@GUID(0x8CFCEE30, 0x39BD, 0x11D0, [0xB8, 0xD1, 0x00, 0xA0, 0x24, 0xAB, 0x2D, 0xBB]);
-interface IQueryForm : IUnknown
-{
-    HRESULT Initialize(HKEY hkForm);
-    HRESULT AddForms(LPCQADDFORMSPROC pAddFormsProc, LPARAM lParam);
-    HRESULT AddPages(LPCQADDPAGESPROC pAddPagesProc, LPARAM lParam);
-}
-
-const GUID IID_IPersistQuery = {0x1A3114B8, 0xA62E, 0x11D0, [0xA6, 0xC5, 0x00, 0xA0, 0xC9, 0x06, 0xAF, 0x45]};
-@GUID(0x1A3114B8, 0xA62E, 0x11D0, [0xA6, 0xC5, 0x00, 0xA0, 0xC9, 0x06, 0xAF, 0x45]);
-interface IPersistQuery : IPersist
-{
-    HRESULT WriteString(const(wchar)* pSection, const(wchar)* pValueName, const(wchar)* pValue);
-    HRESULT ReadString(const(wchar)* pSection, const(wchar)* pValueName, const(wchar)* pBuffer, int cchBuffer);
-    HRESULT WriteInt(const(wchar)* pSection, const(wchar)* pValueName, int value);
-    HRESULT ReadInt(const(wchar)* pSection, const(wchar)* pValueName, int* pValue);
-    HRESULT WriteStruct(const(wchar)* pSection, const(wchar)* pValueName, void* pStruct, uint cbStruct);
-    HRESULT ReadStruct(const(wchar)* pSection, const(wchar)* pValueName, void* pStruct, uint cbStruct);
-    HRESULT Clear();
+    HINSTANCE    hInstance;
+    int          idPageName;
+    int          idPageTemplate;
+    DLGPROC      pDlgProc;
+    LPARAM       lParam;
 }
 
 struct OPENQUERYWINDOW
 {
-    uint cbStruct;
-    uint dwFlags;
-    Guid clsidHandler;
-    void* pHandlerParameters;
-    Guid clsidDefaultForm;
+    uint          cbStruct;
+    uint          dwFlags;
+    GUID          clsidHandler;
+    void*         pHandlerParameters;
+    GUID          clsidDefaultForm;
     IPersistQuery pPersistQuery;
-    _Anonymous_e__Union Anonymous;
-}
-
-const GUID IID_ICommonQuery = {0xAB50DEC0, 0x6F1D, 0x11D0, [0xA1, 0xC4, 0x00, 0xAA, 0x00, 0xC1, 0x6E, 0x65]};
-@GUID(0xAB50DEC0, 0x6F1D, 0x11D0, [0xA1, 0xC4, 0x00, 0xAA, 0x00, 0xC1, 0x6E, 0x65]);
-interface ICommonQuery : IUnknown
-{
-    HRESULT OpenQueryWindow(HWND hwndParent, OPENQUERYWINDOW* pQueryWnd, IDataObject* ppDataObject);
-}
-
-const GUID CLSID_PropertyEntry = {0x72D3EDC2, 0xA4C4, 0x11D0, [0x85, 0x33, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]};
-@GUID(0x72D3EDC2, 0xA4C4, 0x11D0, [0x85, 0x33, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]);
-struct PropertyEntry;
-
-const GUID CLSID_PropertyValue = {0x7B9E38B0, 0xA97C, 0x11D0, [0x85, 0x34, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]};
-@GUID(0x7B9E38B0, 0xA97C, 0x11D0, [0x85, 0x34, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]);
-struct PropertyValue;
-
-const GUID CLSID_AccessControlEntry = {0xB75AC000, 0x9BDD, 0x11D0, [0x85, 0x2C, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]};
-@GUID(0xB75AC000, 0x9BDD, 0x11D0, [0x85, 0x2C, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]);
-struct AccessControlEntry;
-
-const GUID CLSID_AccessControlList = {0xB85EA052, 0x9BDD, 0x11D0, [0x85, 0x2C, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]};
-@GUID(0xB85EA052, 0x9BDD, 0x11D0, [0x85, 0x2C, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]);
-struct AccessControlList;
-
-const GUID CLSID_SecurityDescriptor = {0xB958F73C, 0x9BDD, 0x11D0, [0x85, 0x2C, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]};
-@GUID(0xB958F73C, 0x9BDD, 0x11D0, [0x85, 0x2C, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]);
-struct SecurityDescriptor;
-
-const GUID CLSID_LargeInteger = {0x927971F5, 0x0939, 0x11D1, [0x8B, 0xE1, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]};
-@GUID(0x927971F5, 0x0939, 0x11D1, [0x8B, 0xE1, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]);
-struct LargeInteger;
-
-const GUID CLSID_NameTranslate = {0x274FAE1F, 0x3626, 0x11D1, [0xA3, 0xA4, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]};
-@GUID(0x274FAE1F, 0x3626, 0x11D1, [0xA3, 0xA4, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]);
-struct NameTranslate;
-
-const GUID CLSID_CaseIgnoreList = {0x15F88A55, 0x4680, 0x11D1, [0xA3, 0xB4, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]};
-@GUID(0x15F88A55, 0x4680, 0x11D1, [0xA3, 0xB4, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]);
-struct CaseIgnoreList;
-
-const GUID CLSID_FaxNumber = {0xA5062215, 0x4681, 0x11D1, [0xA3, 0xB4, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]};
-@GUID(0xA5062215, 0x4681, 0x11D1, [0xA3, 0xB4, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]);
-struct FaxNumber;
-
-const GUID CLSID_NetAddress = {0xB0B71247, 0x4080, 0x11D1, [0xA3, 0xAC, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]};
-@GUID(0xB0B71247, 0x4080, 0x11D1, [0xA3, 0xAC, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]);
-struct NetAddress;
-
-const GUID CLSID_OctetList = {0x1241400F, 0x4680, 0x11D1, [0xA3, 0xB4, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]};
-@GUID(0x1241400F, 0x4680, 0x11D1, [0xA3, 0xB4, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]);
-struct OctetList;
-
-const GUID CLSID_Email = {0x8F92A857, 0x478E, 0x11D1, [0xA3, 0xB4, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]};
-@GUID(0x8F92A857, 0x478E, 0x11D1, [0xA3, 0xB4, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]);
-struct Email;
-
-const GUID CLSID_Path = {0xB2538919, 0x4080, 0x11D1, [0xA3, 0xAC, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]};
-@GUID(0xB2538919, 0x4080, 0x11D1, [0xA3, 0xAC, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]);
-struct Path;
-
-const GUID CLSID_ReplicaPointer = {0xF5D1BADF, 0x4080, 0x11D1, [0xA3, 0xAC, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]};
-@GUID(0xF5D1BADF, 0x4080, 0x11D1, [0xA3, 0xAC, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]);
-struct ReplicaPointer;
-
-const GUID CLSID_Timestamp = {0xB2BED2EB, 0x4080, 0x11D1, [0xA3, 0xAC, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]};
-@GUID(0xB2BED2EB, 0x4080, 0x11D1, [0xA3, 0xAC, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]);
-struct Timestamp;
-
-const GUID CLSID_PostalAddress = {0x0A75AFCD, 0x4680, 0x11D1, [0xA3, 0xB4, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]};
-@GUID(0x0A75AFCD, 0x4680, 0x11D1, [0xA3, 0xB4, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]);
-struct PostalAddress;
-
-const GUID CLSID_BackLink = {0xFCBF906F, 0x4080, 0x11D1, [0xA3, 0xAC, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]};
-@GUID(0xFCBF906F, 0x4080, 0x11D1, [0xA3, 0xAC, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]);
-struct BackLink;
-
-const GUID CLSID_TypedName = {0xB33143CB, 0x4080, 0x11D1, [0xA3, 0xAC, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]};
-@GUID(0xB33143CB, 0x4080, 0x11D1, [0xA3, 0xAC, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]);
-struct TypedName;
-
-const GUID CLSID_Hold = {0xB3AD3E13, 0x4080, 0x11D1, [0xA3, 0xAC, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]};
-@GUID(0xB3AD3E13, 0x4080, 0x11D1, [0xA3, 0xAC, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]);
-struct Hold;
-
-const GUID CLSID_Pathname = {0x080D0D78, 0xF421, 0x11D0, [0xA3, 0x6E, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]};
-@GUID(0x080D0D78, 0xF421, 0x11D0, [0xA3, 0x6E, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]);
-struct Pathname;
-
-const GUID CLSID_ADSystemInfo = {0x50B6327F, 0xAFD1, 0x11D2, [0x9C, 0xB9, 0x00, 0x00, 0xF8, 0x7A, 0x36, 0x9E]};
-@GUID(0x50B6327F, 0xAFD1, 0x11D2, [0x9C, 0xB9, 0x00, 0x00, 0xF8, 0x7A, 0x36, 0x9E]);
-struct ADSystemInfo;
-
-const GUID CLSID_WinNTSystemInfo = {0x66182EC4, 0xAFD1, 0x11D2, [0x9C, 0xB9, 0x00, 0x00, 0xF8, 0x7A, 0x36, 0x9E]};
-@GUID(0x66182EC4, 0xAFD1, 0x11D2, [0x9C, 0xB9, 0x00, 0x00, 0xF8, 0x7A, 0x36, 0x9E]);
-struct WinNTSystemInfo;
-
-const GUID CLSID_DNWithBinary = {0x7E99C0A3, 0xF935, 0x11D2, [0xBA, 0x96, 0x00, 0xC0, 0x4F, 0xB6, 0xD0, 0xD1]};
-@GUID(0x7E99C0A3, 0xF935, 0x11D2, [0xBA, 0x96, 0x00, 0xC0, 0x4F, 0xB6, 0xD0, 0xD1]);
-struct DNWithBinary;
-
-const GUID CLSID_DNWithString = {0x334857CC, 0xF934, 0x11D2, [0xBA, 0x96, 0x00, 0xC0, 0x4F, 0xB6, 0xD0, 0xD1]};
-@GUID(0x334857CC, 0xF934, 0x11D2, [0xBA, 0x96, 0x00, 0xC0, 0x4F, 0xB6, 0xD0, 0xD1]);
-struct DNWithString;
-
-const GUID CLSID_ADsSecurityUtility = {0xF270C64A, 0xFFB8, 0x4AE4, [0x85, 0xFE, 0x3A, 0x75, 0xE5, 0x34, 0x79, 0x66]};
-@GUID(0xF270C64A, 0xFFB8, 0x4AE4, [0x85, 0xFE, 0x3A, 0x75, 0xE5, 0x34, 0x79, 0x66]);
-struct ADsSecurityUtility;
-
-enum ADSTYPEENUM
-{
-    ADSTYPE_INVALID = 0,
-    ADSTYPE_DN_STRING = 1,
-    ADSTYPE_CASE_EXACT_STRING = 2,
-    ADSTYPE_CASE_IGNORE_STRING = 3,
-    ADSTYPE_PRINTABLE_STRING = 4,
-    ADSTYPE_NUMERIC_STRING = 5,
-    ADSTYPE_BOOLEAN = 6,
-    ADSTYPE_INTEGER = 7,
-    ADSTYPE_OCTET_STRING = 8,
-    ADSTYPE_UTC_TIME = 9,
-    ADSTYPE_LARGE_INTEGER = 10,
-    ADSTYPE_PROV_SPECIFIC = 11,
-    ADSTYPE_OBJECT_CLASS = 12,
-    ADSTYPE_CASEIGNORE_LIST = 13,
-    ADSTYPE_OCTET_LIST = 14,
-    ADSTYPE_PATH = 15,
-    ADSTYPE_POSTALADDRESS = 16,
-    ADSTYPE_TIMESTAMP = 17,
-    ADSTYPE_BACKLINK = 18,
-    ADSTYPE_TYPEDNAME = 19,
-    ADSTYPE_HOLD = 20,
-    ADSTYPE_NETADDRESS = 21,
-    ADSTYPE_REPLICAPOINTER = 22,
-    ADSTYPE_FAXNUMBER = 23,
-    ADSTYPE_EMAIL = 24,
-    ADSTYPE_NT_SECURITY_DESCRIPTOR = 25,
-    ADSTYPE_UNKNOWN = 26,
-    ADSTYPE_DN_WITH_BINARY = 27,
-    ADSTYPE_DN_WITH_STRING = 28,
+    union
+    {
+        void*        pFormParameters;
+        IPropertyBag ppbFormParameters;
+    }
 }
 
 struct ADS_OCTET_STRING
 {
-    uint dwLength;
+    uint   dwLength;
     ubyte* lpValue;
 }
 
 struct ADS_NT_SECURITY_DESCRIPTOR
 {
-    uint dwLength;
+    uint   dwLength;
     ubyte* lpValue;
 }
 
 struct ADS_PROV_SPECIFIC
 {
-    uint dwLength;
+    uint   dwLength;
     ubyte* lpValue;
 }
 
 struct ADS_CASEIGNORE_LIST
 {
     ADS_CASEIGNORE_LIST* Next;
-    const(wchar)* String;
+    const(wchar)*        String;
 }
 
 struct ADS_OCTET_LIST
 {
     ADS_OCTET_LIST* Next;
-    uint Length;
-    ubyte* Data;
+    uint            Length;
+    ubyte*          Data;
 }
 
 struct ADS_PATH
 {
-    uint Type;
+    uint          Type;
     const(wchar)* VolumeName;
     const(wchar)* Path;
 }
 
 struct ADS_POSTALADDRESS
 {
-    ushort* PostalAddress;
+    ushort[6]* PostalAddress;
 }
 
 struct ADS_TIMESTAMP
@@ -261,56 +664,56 @@ struct ADS_TIMESTAMP
 
 struct ADS_BACKLINK
 {
-    uint RemoteID;
+    uint          RemoteID;
     const(wchar)* ObjectName;
 }
 
 struct ADS_TYPEDNAME
 {
     const(wchar)* ObjectName;
-    uint Level;
-    uint Interval;
+    uint          Level;
+    uint          Interval;
 }
 
 struct ADS_HOLD
 {
     const(wchar)* ObjectName;
-    uint Amount;
+    uint          Amount;
 }
 
 struct ADS_NETADDRESS
 {
-    uint AddressType;
-    uint AddressLength;
+    uint   AddressType;
+    uint   AddressLength;
     ubyte* Address;
 }
 
 struct ADS_REPLICAPOINTER
 {
-    const(wchar)* ServerName;
-    uint ReplicaType;
-    uint ReplicaNumber;
-    uint Count;
+    const(wchar)*   ServerName;
+    uint            ReplicaType;
+    uint            ReplicaNumber;
+    uint            Count;
     ADS_NETADDRESS* ReplicaAddressHints;
 }
 
 struct ADS_FAXNUMBER
 {
     const(wchar)* TelephoneNumber;
-    uint NumberOfBits;
-    ubyte* Parameters;
+    uint          NumberOfBits;
+    ubyte*        Parameters;
 }
 
 struct ADS_EMAIL
 {
     const(wchar)* Address;
-    uint Type;
+    uint          Type;
 }
 
 struct ADS_DN_WITH_BINARY
 {
-    uint dwLength;
-    ubyte* lpBinaryValue;
+    uint          dwLength;
+    ubyte*        lpBinaryValue;
     const(wchar)* pszDNString;
 }
 
@@ -323,33 +726,45 @@ struct ADS_DN_WITH_STRING
 struct ADSVALUE
 {
     ADSTYPEENUM dwType;
-    _Anonymous_e__Union Anonymous;
+    union
+    {
+        ushort*              DNString;
+        ushort*              CaseExactString;
+        ushort*              CaseIgnoreString;
+        ushort*              PrintableString;
+        ushort*              NumericString;
+        uint                 Boolean;
+        uint                 Integer;
+        ADS_OCTET_STRING     OctetString;
+        SYSTEMTIME           UTCTime;
+        LARGE_INTEGER        LargeInteger;
+        ushort*              ClassName;
+        ADS_PROV_SPECIFIC    ProviderSpecific;
+        ADS_CASEIGNORE_LIST* pCaseIgnoreList;
+        ADS_OCTET_LIST*      pOctetList;
+        ADS_PATH*            pPath;
+        ADS_POSTALADDRESS*   pPostalAddress;
+        ADS_TIMESTAMP        Timestamp;
+        ADS_BACKLINK         BackLink;
+        ADS_TYPEDNAME*       pTypedName;
+        ADS_HOLD             Hold;
+        ADS_NETADDRESS*      pNetAddress;
+        ADS_REPLICAPOINTER*  pReplicaPointer;
+        ADS_FAXNUMBER*       pFaxNumber;
+        ADS_EMAIL            Email;
+        ADS_NT_SECURITY_DESCRIPTOR SecurityDescriptor;
+        ADS_DN_WITH_BINARY*  pDNWithBinary;
+        ADS_DN_WITH_STRING*  pDNWithString;
+    }
 }
 
 struct ADS_ATTR_INFO
 {
     const(wchar)* pszAttrName;
-    uint dwControlCode;
-    ADSTYPEENUM dwADsType;
-    ADSVALUE* pADsValues;
-    uint dwNumValues;
-}
-
-enum ADS_AUTHENTICATION_ENUM
-{
-    ADS_SECURE_AUTHENTICATION = 1,
-    ADS_USE_ENCRYPTION = 2,
-    ADS_USE_SSL = 2,
-    ADS_READONLY_SERVER = 4,
-    ADS_PROMPT_CREDENTIALS = 8,
-    ADS_NO_AUTHENTICATION = 16,
-    ADS_FAST_BIND = 32,
-    ADS_USE_SIGNING = 64,
-    ADS_USE_SEALING = 128,
-    ADS_USE_DELEGATION = 256,
-    ADS_SERVER_BIND = 512,
-    ADS_NO_REFERRAL_CHASING = 1024,
-    ADS_AUTH_RESERVED = -2147483648,
+    uint          dwControlCode;
+    ADSTYPEENUM   dwADsType;
+    ADSVALUE*     pADsValues;
+    uint          dwNumValues;
 }
 
 struct ADS_OBJECT_INFO
@@ -361,380 +776,1561 @@ struct ADS_OBJECT_INFO
     const(wchar)* pszClassName;
 }
 
-enum ADS_STATUSENUM
-{
-    ADS_STATUS_S_OK = 0,
-    ADS_STATUS_INVALID_SEARCHPREF = 1,
-    ADS_STATUS_INVALID_SEARCHPREFVALUE = 2,
-}
-
-enum ADS_DEREFENUM
-{
-    ADS_DEREF_NEVER = 0,
-    ADS_DEREF_SEARCHING = 1,
-    ADS_DEREF_FINDING = 2,
-    ADS_DEREF_ALWAYS = 3,
-}
-
-enum ADS_SCOPEENUM
-{
-    ADS_SCOPE_BASE = 0,
-    ADS_SCOPE_ONELEVEL = 1,
-    ADS_SCOPE_SUBTREE = 2,
-}
-
-enum ADS_PREFERENCES_ENUM
-{
-    ADSIPROP_ASYNCHRONOUS = 0,
-    ADSIPROP_DEREF_ALIASES = 1,
-    ADSIPROP_SIZE_LIMIT = 2,
-    ADSIPROP_TIME_LIMIT = 3,
-    ADSIPROP_ATTRIBTYPES_ONLY = 4,
-    ADSIPROP_SEARCH_SCOPE = 5,
-    ADSIPROP_TIMEOUT = 6,
-    ADSIPROP_PAGESIZE = 7,
-    ADSIPROP_PAGED_TIME_LIMIT = 8,
-    ADSIPROP_CHASE_REFERRALS = 9,
-    ADSIPROP_SORT_ON = 10,
-    ADSIPROP_CACHE_RESULTS = 11,
-    ADSIPROP_ADSIFLAG = 12,
-}
-
-enum ADSI_DIALECT_ENUM
-{
-    ADSI_DIALECT_LDAP = 0,
-    ADSI_DIALECT_SQL = 1,
-}
-
-enum ADS_CHASE_REFERRALS_ENUM
-{
-    ADS_CHASE_REFERRALS_NEVER = 0,
-    ADS_CHASE_REFERRALS_SUBORDINATE = 32,
-    ADS_CHASE_REFERRALS_EXTERNAL = 64,
-    ADS_CHASE_REFERRALS_ALWAYS = 96,
-}
-
-enum ADS_SEARCHPREF_ENUM
-{
-    ADS_SEARCHPREF_ASYNCHRONOUS = 0,
-    ADS_SEARCHPREF_DEREF_ALIASES = 1,
-    ADS_SEARCHPREF_SIZE_LIMIT = 2,
-    ADS_SEARCHPREF_TIME_LIMIT = 3,
-    ADS_SEARCHPREF_ATTRIBTYPES_ONLY = 4,
-    ADS_SEARCHPREF_SEARCH_SCOPE = 5,
-    ADS_SEARCHPREF_TIMEOUT = 6,
-    ADS_SEARCHPREF_PAGESIZE = 7,
-    ADS_SEARCHPREF_PAGED_TIME_LIMIT = 8,
-    ADS_SEARCHPREF_CHASE_REFERRALS = 9,
-    ADS_SEARCHPREF_SORT_ON = 10,
-    ADS_SEARCHPREF_CACHE_RESULTS = 11,
-    ADS_SEARCHPREF_DIRSYNC = 12,
-    ADS_SEARCHPREF_TOMBSTONE = 13,
-    ADS_SEARCHPREF_VLV = 14,
-    ADS_SEARCHPREF_ATTRIBUTE_QUERY = 15,
-    ADS_SEARCHPREF_SECURITY_MASK = 16,
-    ADS_SEARCHPREF_DIRSYNC_FLAG = 17,
-    ADS_SEARCHPREF_EXTENDED_DN = 18,
-}
-
-enum ADS_PASSWORD_ENCODING_ENUM
-{
-    ADS_PASSWORD_ENCODE_REQUIRE_SSL = 0,
-    ADS_PASSWORD_ENCODE_CLEAR = 1,
-}
-
 struct ads_searchpref_info
 {
     ADS_SEARCHPREF_ENUM dwSearchPref;
-    ADSVALUE vValue;
-    ADS_STATUSENUM dwStatus;
+    ADSVALUE            vValue;
+    ADS_STATUSENUM      dwStatus;
 }
 
 struct ads_search_column
 {
     const(wchar)* pszAttrName;
-    ADSTYPEENUM dwADsType;
-    ADSVALUE* pADsValues;
-    uint dwNumValues;
-    HANDLE hReserved;
+    ADSTYPEENUM   dwADsType;
+    ADSVALUE*     pADsValues;
+    uint          dwNumValues;
+    HANDLE        hReserved;
 }
 
 struct ADS_ATTR_DEF
 {
     const(wchar)* pszAttrName;
-    ADSTYPEENUM dwADsType;
-    uint dwMinRange;
-    uint dwMaxRange;
-    BOOL fMultiValued;
+    ADSTYPEENUM   dwADsType;
+    uint          dwMinRange;
+    uint          dwMaxRange;
+    BOOL          fMultiValued;
 }
 
 struct ADS_CLASS_DEF
 {
     const(wchar)* pszClassName;
-    uint dwMandatoryAttrs;
-    ushort** ppszMandatoryAttrs;
-    uint optionalAttrs;
-    ushort*** ppszOptionalAttrs;
-    uint dwNamingAttrs;
-    ushort*** ppszNamingAttrs;
-    uint dwSuperClasses;
-    ushort*** ppszSuperClasses;
-    BOOL fIsContainer;
+    uint          dwMandatoryAttrs;
+    ushort**      ppszMandatoryAttrs;
+    uint          optionalAttrs;
+    ushort***     ppszOptionalAttrs;
+    uint          dwNamingAttrs;
+    ushort***     ppszNamingAttrs;
+    uint          dwSuperClasses;
+    ushort***     ppszSuperClasses;
+    BOOL          fIsContainer;
 }
 
 struct ADS_SORTKEY
 {
     const(wchar)* pszAttrType;
     const(wchar)* pszReserved;
-    ubyte fReverseorder;
+    ubyte         fReverseorder;
 }
 
 struct ADS_VLV
 {
-    uint dwBeforeCount;
-    uint dwAfterCount;
-    uint dwOffset;
-    uint dwContentCount;
+    uint          dwBeforeCount;
+    uint          dwAfterCount;
+    uint          dwOffset;
+    uint          dwContentCount;
     const(wchar)* pszTarget;
-    uint dwContextIDLength;
-    ubyte* lpContextID;
+    uint          dwContextIDLength;
+    ubyte*        lpContextID;
 }
 
-enum ADS_PROPERTY_OPERATION_ENUM
+struct DSOBJECT
 {
-    ADS_PROPERTY_CLEAR = 1,
-    ADS_PROPERTY_UPDATE = 2,
-    ADS_PROPERTY_APPEND = 3,
-    ADS_PROPERTY_DELETE = 4,
+    uint dwFlags;
+    uint dwProviderFlags;
+    uint offsetName;
+    uint offsetClass;
 }
 
-enum ADS_SYSTEMFLAG_ENUM
+struct DSOBJECTNAMES
 {
-    ADS_SYSTEMFLAG_DISALLOW_DELETE = -2147483648,
-    ADS_SYSTEMFLAG_CONFIG_ALLOW_RENAME = 1073741824,
-    ADS_SYSTEMFLAG_CONFIG_ALLOW_MOVE = 536870912,
-    ADS_SYSTEMFLAG_CONFIG_ALLOW_LIMITED_MOVE = 268435456,
-    ADS_SYSTEMFLAG_DOMAIN_DISALLOW_RENAME = 134217728,
-    ADS_SYSTEMFLAG_DOMAIN_DISALLOW_MOVE = 67108864,
-    ADS_SYSTEMFLAG_CR_NTDS_NC = 1,
-    ADS_SYSTEMFLAG_CR_NTDS_DOMAIN = 2,
-    ADS_SYSTEMFLAG_ATTR_NOT_REPLICATED = 1,
-    ADS_SYSTEMFLAG_ATTR_IS_CONSTRUCTED = 4,
+    GUID        clsidNamespace;
+    uint        cItems;
+    DSOBJECT[1] aObjects;
 }
 
-enum ADS_GROUP_TYPE_ENUM
+struct DSDISPLAYSPECOPTIONS
 {
-    ADS_GROUP_TYPE_GLOBAL_GROUP = 2,
-    ADS_GROUP_TYPE_DOMAIN_LOCAL_GROUP = 4,
-    ADS_GROUP_TYPE_LOCAL_GROUP = 4,
-    ADS_GROUP_TYPE_UNIVERSAL_GROUP = 8,
-    ADS_GROUP_TYPE_SECURITY_ENABLED = -2147483648,
+    uint dwSize;
+    uint dwFlags;
+    uint offsetAttribPrefix;
+    uint offsetUserName;
+    uint offsetPassword;
+    uint offsetServer;
+    uint offsetServerConfigPath;
 }
 
-enum ADS_USER_FLAG_ENUM
+struct DSPROPERTYPAGEINFO
 {
-    ADS_UF_SCRIPT = 1,
-    ADS_UF_ACCOUNTDISABLE = 2,
-    ADS_UF_HOMEDIR_REQUIRED = 8,
-    ADS_UF_LOCKOUT = 16,
-    ADS_UF_PASSWD_NOTREQD = 32,
-    ADS_UF_PASSWD_CANT_CHANGE = 64,
-    ADS_UF_ENCRYPTED_TEXT_PASSWORD_ALLOWED = 128,
-    ADS_UF_TEMP_DUPLICATE_ACCOUNT = 256,
-    ADS_UF_NORMAL_ACCOUNT = 512,
-    ADS_UF_INTERDOMAIN_TRUST_ACCOUNT = 2048,
-    ADS_UF_WORKSTATION_TRUST_ACCOUNT = 4096,
-    ADS_UF_SERVER_TRUST_ACCOUNT = 8192,
-    ADS_UF_DONT_EXPIRE_PASSWD = 65536,
-    ADS_UF_MNS_LOGON_ACCOUNT = 131072,
-    ADS_UF_SMARTCARD_REQUIRED = 262144,
-    ADS_UF_TRUSTED_FOR_DELEGATION = 524288,
-    ADS_UF_NOT_DELEGATED = 1048576,
-    ADS_UF_USE_DES_KEY_ONLY = 2097152,
-    ADS_UF_DONT_REQUIRE_PREAUTH = 4194304,
-    ADS_UF_PASSWORD_EXPIRED = 8388608,
-    ADS_UF_TRUSTED_TO_AUTHENTICATE_FOR_DELEGATION = 16777216,
+    uint offsetString;
 }
 
-enum ADS_RIGHTS_ENUM
+struct DOMAINDESC
 {
-    ADS_RIGHT_DELETE = 65536,
-    ADS_RIGHT_READ_CONTROL = 131072,
-    ADS_RIGHT_WRITE_DAC = 262144,
-    ADS_RIGHT_WRITE_OWNER = 524288,
-    ADS_RIGHT_SYNCHRONIZE = 1048576,
-    ADS_RIGHT_ACCESS_SYSTEM_SECURITY = 16777216,
-    ADS_RIGHT_GENERIC_READ = -2147483648,
-    ADS_RIGHT_GENERIC_WRITE = 1073741824,
-    ADS_RIGHT_GENERIC_EXECUTE = 536870912,
-    ADS_RIGHT_GENERIC_ALL = 268435456,
-    ADS_RIGHT_DS_CREATE_CHILD = 1,
-    ADS_RIGHT_DS_DELETE_CHILD = 2,
-    ADS_RIGHT_ACTRL_DS_LIST = 4,
-    ADS_RIGHT_DS_SELF = 8,
-    ADS_RIGHT_DS_READ_PROP = 16,
-    ADS_RIGHT_DS_WRITE_PROP = 32,
-    ADS_RIGHT_DS_DELETE_TREE = 64,
-    ADS_RIGHT_DS_LIST_OBJECT = 128,
-    ADS_RIGHT_DS_CONTROL_ACCESS = 256,
+    const(wchar)* pszName;
+    const(wchar)* pszPath;
+    const(wchar)* pszNCName;
+    const(wchar)* pszTrustParent;
+    const(wchar)* pszObjectClass;
+    uint          ulFlags;
+    BOOL          fDownLevel;
+    DOMAINDESC*   pdChildList;
+    DOMAINDESC*   pdNextSibling;
 }
 
-enum ADS_ACETYPE_ENUM
+struct DOMAIN_TREE
 {
-    ADS_ACETYPE_ACCESS_ALLOWED = 0,
-    ADS_ACETYPE_ACCESS_DENIED = 1,
-    ADS_ACETYPE_SYSTEM_AUDIT = 2,
-    ADS_ACETYPE_ACCESS_ALLOWED_OBJECT = 5,
-    ADS_ACETYPE_ACCESS_DENIED_OBJECT = 6,
-    ADS_ACETYPE_SYSTEM_AUDIT_OBJECT = 7,
-    ADS_ACETYPE_SYSTEM_ALARM_OBJECT = 8,
-    ADS_ACETYPE_ACCESS_ALLOWED_CALLBACK = 9,
-    ADS_ACETYPE_ACCESS_DENIED_CALLBACK = 10,
-    ADS_ACETYPE_ACCESS_ALLOWED_CALLBACK_OBJECT = 11,
-    ADS_ACETYPE_ACCESS_DENIED_CALLBACK_OBJECT = 12,
-    ADS_ACETYPE_SYSTEM_AUDIT_CALLBACK = 13,
-    ADS_ACETYPE_SYSTEM_ALARM_CALLBACK = 14,
-    ADS_ACETYPE_SYSTEM_AUDIT_CALLBACK_OBJECT = 15,
-    ADS_ACETYPE_SYSTEM_ALARM_CALLBACK_OBJECT = 16,
+    uint          dsSize;
+    uint          dwCount;
+    DOMAINDESC[1] aDomains;
 }
 
-enum ADS_ACEFLAG_ENUM
+struct DSCLASSCREATIONINFO
 {
-    ADS_ACEFLAG_INHERIT_ACE = 2,
-    ADS_ACEFLAG_NO_PROPAGATE_INHERIT_ACE = 4,
-    ADS_ACEFLAG_INHERIT_ONLY_ACE = 8,
-    ADS_ACEFLAG_INHERITED_ACE = 16,
-    ADS_ACEFLAG_VALID_INHERIT_FLAGS = 31,
-    ADS_ACEFLAG_SUCCESSFUL_ACCESS = 64,
-    ADS_ACEFLAG_FAILED_ACCESS = 128,
+    uint    dwFlags;
+    GUID    clsidWizardDialog;
+    GUID    clsidWizardPrimaryPage;
+    uint    cWizardExtensions;
+    GUID[1] aWizardExtensions;
 }
 
-enum ADS_FLAGTYPE_ENUM
+struct DSBROWSEINFOW
 {
-    ADS_FLAG_OBJECT_TYPE_PRESENT = 1,
-    ADS_FLAG_INHERITED_OBJECT_TYPE_PRESENT = 2,
+    uint          cbStruct;
+    HWND          hwndOwner;
+    const(wchar)* pszCaption;
+    const(wchar)* pszTitle;
+    const(wchar)* pszRoot;
+    const(wchar)* pszPath;
+    uint          cchPath;
+    uint          dwFlags;
+    BFFCALLBACK   pfnCallback;
+    LPARAM        lParam;
+    uint          dwReturnFormat;
+    const(wchar)* pUserName;
+    const(wchar)* pPassword;
+    const(wchar)* pszObjectClass;
+    uint          cchObjectClass;
 }
 
-enum ADS_SD_CONTROL_ENUM
+struct DSBROWSEINFOA
 {
-    ADS_SD_CONTROL_SE_OWNER_DEFAULTED = 1,
-    ADS_SD_CONTROL_SE_GROUP_DEFAULTED = 2,
-    ADS_SD_CONTROL_SE_DACL_PRESENT = 4,
-    ADS_SD_CONTROL_SE_DACL_DEFAULTED = 8,
-    ADS_SD_CONTROL_SE_SACL_PRESENT = 16,
-    ADS_SD_CONTROL_SE_SACL_DEFAULTED = 32,
-    ADS_SD_CONTROL_SE_DACL_AUTO_INHERIT_REQ = 256,
-    ADS_SD_CONTROL_SE_SACL_AUTO_INHERIT_REQ = 512,
-    ADS_SD_CONTROL_SE_DACL_AUTO_INHERITED = 1024,
-    ADS_SD_CONTROL_SE_SACL_AUTO_INHERITED = 2048,
-    ADS_SD_CONTROL_SE_DACL_PROTECTED = 4096,
-    ADS_SD_CONTROL_SE_SACL_PROTECTED = 8192,
-    ADS_SD_CONTROL_SE_SELF_RELATIVE = 32768,
+    uint          cbStruct;
+    HWND          hwndOwner;
+    const(char)*  pszCaption;
+    const(char)*  pszTitle;
+    const(wchar)* pszRoot;
+    const(wchar)* pszPath;
+    uint          cchPath;
+    uint          dwFlags;
+    BFFCALLBACK   pfnCallback;
+    LPARAM        lParam;
+    uint          dwReturnFormat;
+    const(wchar)* pUserName;
+    const(wchar)* pPassword;
+    const(wchar)* pszObjectClass;
+    uint          cchObjectClass;
 }
 
-enum ADS_SD_REVISION_ENUM
+struct DSBITEMW
 {
-    ADS_SD_REVISION_DS = 4,
+    uint          cbStruct;
+    const(wchar)* pszADsPath;
+    const(wchar)* pszClass;
+    uint          dwMask;
+    uint          dwState;
+    uint          dwStateMask;
+    ushort[64]    szDisplayName;
+    ushort[260]   szIconLocation;
+    int           iIconResID;
 }
 
-enum ADS_NAME_TYPE_ENUM
+struct DSBITEMA
 {
-    ADS_NAME_TYPE_1779 = 1,
-    ADS_NAME_TYPE_CANONICAL = 2,
-    ADS_NAME_TYPE_NT4 = 3,
-    ADS_NAME_TYPE_DISPLAY = 4,
-    ADS_NAME_TYPE_DOMAIN_SIMPLE = 5,
-    ADS_NAME_TYPE_ENTERPRISE_SIMPLE = 6,
-    ADS_NAME_TYPE_GUID = 7,
-    ADS_NAME_TYPE_UNKNOWN = 8,
-    ADS_NAME_TYPE_USER_PRINCIPAL_NAME = 9,
-    ADS_NAME_TYPE_CANONICAL_EX = 10,
-    ADS_NAME_TYPE_SERVICE_PRINCIPAL_NAME = 11,
-    ADS_NAME_TYPE_SID_OR_SID_HISTORY_NAME = 12,
+    uint          cbStruct;
+    const(wchar)* pszADsPath;
+    const(wchar)* pszClass;
+    uint          dwMask;
+    uint          dwState;
+    uint          dwStateMask;
+    byte[64]      szDisplayName;
+    byte[260]     szIconLocation;
+    int           iIconResID;
 }
 
-enum ADS_NAME_INITTYPE_ENUM
+struct DSOP_UPLEVEL_FILTER_FLAGS
 {
-    ADS_NAME_INITTYPE_DOMAIN = 1,
-    ADS_NAME_INITTYPE_SERVER = 2,
-    ADS_NAME_INITTYPE_GC = 3,
+    uint flBothModes;
+    uint flMixedModeOnly;
+    uint flNativeModeOnly;
 }
 
-enum ADS_OPTION_ENUM
+struct DSOP_FILTER_FLAGS
 {
-    ADS_OPTION_SERVERNAME = 0,
-    ADS_OPTION_REFERRALS = 1,
-    ADS_OPTION_PAGE_SIZE = 2,
-    ADS_OPTION_SECURITY_MASK = 3,
-    ADS_OPTION_MUTUAL_AUTH_STATUS = 4,
-    ADS_OPTION_QUOTA = 5,
-    ADS_OPTION_PASSWORD_PORTNUMBER = 6,
-    ADS_OPTION_PASSWORD_METHOD = 7,
-    ADS_OPTION_ACCUMULATIVE_MODIFICATION = 8,
-    ADS_OPTION_SKIP_SID_LOOKUP = 9,
+    DSOP_UPLEVEL_FILTER_FLAGS Uplevel;
+    uint flDownlevel;
 }
 
-enum ADS_SECURITY_INFO_ENUM
+struct DSOP_SCOPE_INIT_INFO
 {
-    ADS_SECURITY_INFO_OWNER = 1,
-    ADS_SECURITY_INFO_GROUP = 2,
-    ADS_SECURITY_INFO_DACL = 4,
-    ADS_SECURITY_INFO_SACL = 8,
+    uint              cbSize;
+    uint              flType;
+    uint              flScope;
+    DSOP_FILTER_FLAGS FilterFlags;
+    const(wchar)*     pwzDcName;
+    const(wchar)*     pwzADsPath;
+    HRESULT           hr;
 }
 
-enum ADS_SETTYPE_ENUM
+struct DSOP_INIT_INFO
 {
-    ADS_SETTYPE_FULL = 1,
-    ADS_SETTYPE_PROVIDER = 2,
-    ADS_SETTYPE_SERVER = 3,
-    ADS_SETTYPE_DN = 4,
+    uint          cbSize;
+    const(wchar)* pwzTargetComputer;
+    uint          cDsScopeInfos;
+    DSOP_SCOPE_INIT_INFO* aDsScopeInfos;
+    uint          flOptions;
+    uint          cAttributesToFetch;
+    ushort**      apwzAttributeNames;
 }
 
-enum ADS_FORMAT_ENUM
+struct DS_SELECTION
 {
-    ADS_FORMAT_WINDOWS = 1,
-    ADS_FORMAT_WINDOWS_NO_SERVER = 2,
-    ADS_FORMAT_WINDOWS_DN = 3,
-    ADS_FORMAT_WINDOWS_PARENT = 4,
-    ADS_FORMAT_X500 = 5,
-    ADS_FORMAT_X500_NO_SERVER = 6,
-    ADS_FORMAT_X500_DN = 7,
-    ADS_FORMAT_X500_PARENT = 8,
-    ADS_FORMAT_SERVER = 9,
-    ADS_FORMAT_PROVIDER = 10,
-    ADS_FORMAT_LEAF = 11,
+    const(wchar)* pwzName;
+    const(wchar)* pwzADsPath;
+    const(wchar)* pwzClass;
+    const(wchar)* pwzUPN;
+    VARIANT*      pvarFetchedAttributes;
+    uint          flScopeType;
 }
 
-enum ADS_DISPLAY_ENUM
+struct DS_SELECTION_LIST
 {
-    ADS_DISPLAY_FULL = 1,
-    ADS_DISPLAY_VALUE_ONLY = 2,
+    uint            cItems;
+    uint            cFetchedAttributes;
+    DS_SELECTION[1] aDsSelection;
 }
 
-enum ADS_ESCAPE_MODE_ENUM
+struct DSQUERYINITPARAMS
 {
-    ADS_ESCAPEDMODE_DEFAULT = 1,
-    ADS_ESCAPEDMODE_ON = 2,
-    ADS_ESCAPEDMODE_OFF = 3,
-    ADS_ESCAPEDMODE_OFF_EX = 4,
+    uint          cbStruct;
+    uint          dwFlags;
+    const(wchar)* pDefaultScope;
+    const(wchar)* pDefaultSaveLocation;
+    const(wchar)* pUserName;
+    const(wchar)* pPassword;
+    const(wchar)* pServer;
 }
 
-enum ADS_PATHTYPE_ENUM
+struct DSCOLUMN
 {
-    ADS_PATH_FILE = 1,
-    ADS_PATH_FILESHARE = 2,
-    ADS_PATH_REGISTRY = 3,
+    uint dwFlags;
+    int  fmt;
+    int  cx;
+    int  idsName;
+    int  offsetProperty;
+    uint dwReserved;
 }
 
-enum ADS_SD_FORMAT_ENUM
+struct DSQUERYPARAMS
 {
-    ADS_SD_FORMAT_IID = 1,
-    ADS_SD_FORMAT_RAW = 2,
-    ADS_SD_FORMAT_HEXSTRING = 3,
+    uint        cbStruct;
+    uint        dwFlags;
+    HINSTANCE   hInstance;
+    int         offsetQuery;
+    int         iColumns;
+    uint        dwReserved;
+    DSCOLUMN[1] aColumns;
 }
 
-const GUID IID_IADs = {0xFD8256D0, 0xFD15, 0x11CE, [0xAB, 0xC4, 0x02, 0x60, 0x8C, 0x9E, 0x75, 0x53]};
-@GUID(0xFD8256D0, 0xFD15, 0x11CE, [0xAB, 0xC4, 0x02, 0x60, 0x8C, 0x9E, 0x75, 0x53]);
+struct DSQUERYCLASSLIST
+{
+    uint    cbStruct;
+    int     cClasses;
+    uint[1] offsetClass;
+}
+
+struct DSA_NEWOBJ_DISPINFO
+{
+    uint          dwSize;
+    HICON         hObjClassIcon;
+    const(wchar)* lpszWizTitle;
+    const(wchar)* lpszContDisplayName;
+}
+
+struct ADSPROPINITPARAMS
+{
+    uint             dwSize;
+    uint             dwFlags;
+    HRESULT          hr;
+    IDirectoryObject pDsObj;
+    const(wchar)*    pwzCN;
+    ADS_ATTR_INFO*   pWritableAttrs;
+}
+
+struct ADSPROPERROR
+{
+    HWND          hwndPage;
+    const(wchar)* pszPageTitle;
+    const(wchar)* pszObjPath;
+    const(wchar)* pszObjClass;
+    HRESULT       hr;
+    const(wchar)* pszError;
+}
+
+struct SCHEDULE_HEADER
+{
+    uint Type;
+    uint Offset;
+}
+
+struct SCHEDULE
+{
+    uint               Size;
+    uint               Bandwidth;
+    uint               NumberOfSchedules;
+    SCHEDULE_HEADER[1] Schedules;
+}
+
+struct DS_NAME_RESULT_ITEMA
+{
+    uint         status;
+    const(char)* pDomain;
+    const(char)* pName;
+}
+
+struct DS_NAME_RESULTA
+{
+    uint cItems;
+    DS_NAME_RESULT_ITEMA* rItems;
+}
+
+struct DS_NAME_RESULT_ITEMW
+{
+    uint          status;
+    const(wchar)* pDomain;
+    const(wchar)* pName;
+}
+
+struct DS_NAME_RESULTW
+{
+    uint cItems;
+    DS_NAME_RESULT_ITEMW* rItems;
+}
+
+struct DS_REPSYNCALL_SYNCA
+{
+    const(char)* pszSrcId;
+    const(char)* pszDstId;
+    const(char)* pszNC;
+    GUID*        pguidSrc;
+    GUID*        pguidDst;
+}
+
+struct DS_REPSYNCALL_SYNCW
+{
+    const(wchar)* pszSrcId;
+    const(wchar)* pszDstId;
+    const(wchar)* pszNC;
+    GUID*         pguidSrc;
+    GUID*         pguidDst;
+}
+
+struct DS_REPSYNCALL_ERRINFOA
+{
+    const(char)*        pszSvrId;
+    DS_REPSYNCALL_ERROR error;
+    uint                dwWin32Err;
+    const(char)*        pszSrcId;
+}
+
+struct DS_REPSYNCALL_ERRINFOW
+{
+    const(wchar)*       pszSvrId;
+    DS_REPSYNCALL_ERROR error;
+    uint                dwWin32Err;
+    const(wchar)*       pszSrcId;
+}
+
+struct DS_REPSYNCALL_UPDATEA
+{
+    DS_REPSYNCALL_EVENT  event;
+    DS_REPSYNCALL_ERRINFOA* pErrInfo;
+    DS_REPSYNCALL_SYNCA* pSync;
+}
+
+struct DS_REPSYNCALL_UPDATEW
+{
+    DS_REPSYNCALL_EVENT  event;
+    DS_REPSYNCALL_ERRINFOW* pErrInfo;
+    DS_REPSYNCALL_SYNCW* pSync;
+}
+
+struct DS_SITE_COST_INFO
+{
+    uint errorCode;
+    uint cost;
+}
+
+struct DS_SCHEMA_GUID_MAPA
+{
+    GUID         guid;
+    uint         guidType;
+    const(char)* pName;
+}
+
+struct DS_SCHEMA_GUID_MAPW
+{
+    GUID          guid;
+    uint          guidType;
+    const(wchar)* pName;
+}
+
+struct DS_DOMAIN_CONTROLLER_INFO_1A
+{
+    const(char)* NetbiosName;
+    const(char)* DnsHostName;
+    const(char)* SiteName;
+    const(char)* ComputerObjectName;
+    const(char)* ServerObjectName;
+    BOOL         fIsPdc;
+    BOOL         fDsEnabled;
+}
+
+struct DS_DOMAIN_CONTROLLER_INFO_1W
+{
+    const(wchar)* NetbiosName;
+    const(wchar)* DnsHostName;
+    const(wchar)* SiteName;
+    const(wchar)* ComputerObjectName;
+    const(wchar)* ServerObjectName;
+    BOOL          fIsPdc;
+    BOOL          fDsEnabled;
+}
+
+struct DS_DOMAIN_CONTROLLER_INFO_2A
+{
+    const(char)* NetbiosName;
+    const(char)* DnsHostName;
+    const(char)* SiteName;
+    const(char)* SiteObjectName;
+    const(char)* ComputerObjectName;
+    const(char)* ServerObjectName;
+    const(char)* NtdsDsaObjectName;
+    BOOL         fIsPdc;
+    BOOL         fDsEnabled;
+    BOOL         fIsGc;
+    GUID         SiteObjectGuid;
+    GUID         ComputerObjectGuid;
+    GUID         ServerObjectGuid;
+    GUID         NtdsDsaObjectGuid;
+}
+
+struct DS_DOMAIN_CONTROLLER_INFO_2W
+{
+    const(wchar)* NetbiosName;
+    const(wchar)* DnsHostName;
+    const(wchar)* SiteName;
+    const(wchar)* SiteObjectName;
+    const(wchar)* ComputerObjectName;
+    const(wchar)* ServerObjectName;
+    const(wchar)* NtdsDsaObjectName;
+    BOOL          fIsPdc;
+    BOOL          fDsEnabled;
+    BOOL          fIsGc;
+    GUID          SiteObjectGuid;
+    GUID          ComputerObjectGuid;
+    GUID          ServerObjectGuid;
+    GUID          NtdsDsaObjectGuid;
+}
+
+struct DS_DOMAIN_CONTROLLER_INFO_3A
+{
+    const(char)* NetbiosName;
+    const(char)* DnsHostName;
+    const(char)* SiteName;
+    const(char)* SiteObjectName;
+    const(char)* ComputerObjectName;
+    const(char)* ServerObjectName;
+    const(char)* NtdsDsaObjectName;
+    BOOL         fIsPdc;
+    BOOL         fDsEnabled;
+    BOOL         fIsGc;
+    BOOL         fIsRodc;
+    GUID         SiteObjectGuid;
+    GUID         ComputerObjectGuid;
+    GUID         ServerObjectGuid;
+    GUID         NtdsDsaObjectGuid;
+}
+
+struct DS_DOMAIN_CONTROLLER_INFO_3W
+{
+    const(wchar)* NetbiosName;
+    const(wchar)* DnsHostName;
+    const(wchar)* SiteName;
+    const(wchar)* SiteObjectName;
+    const(wchar)* ComputerObjectName;
+    const(wchar)* ServerObjectName;
+    const(wchar)* NtdsDsaObjectName;
+    BOOL          fIsPdc;
+    BOOL          fDsEnabled;
+    BOOL          fIsGc;
+    BOOL          fIsRodc;
+    GUID          SiteObjectGuid;
+    GUID          ComputerObjectGuid;
+    GUID          ServerObjectGuid;
+    GUID          NtdsDsaObjectGuid;
+}
+
+struct DS_REPL_NEIGHBORW
+{
+    const(wchar)* pszNamingContext;
+    const(wchar)* pszSourceDsaDN;
+    const(wchar)* pszSourceDsaAddress;
+    const(wchar)* pszAsyncIntersiteTransportDN;
+    uint          dwReplicaFlags;
+    uint          dwReserved;
+    GUID          uuidNamingContextObjGuid;
+    GUID          uuidSourceDsaObjGuid;
+    GUID          uuidSourceDsaInvocationID;
+    GUID          uuidAsyncIntersiteTransportObjGuid;
+    long          usnLastObjChangeSynced;
+    long          usnAttributeFilter;
+    FILETIME      ftimeLastSyncSuccess;
+    FILETIME      ftimeLastSyncAttempt;
+    uint          dwLastSyncResult;
+    uint          cNumConsecutiveSyncFailures;
+}
+
+struct DS_REPL_NEIGHBORW_BLOB
+{
+    uint     oszNamingContext;
+    uint     oszSourceDsaDN;
+    uint     oszSourceDsaAddress;
+    uint     oszAsyncIntersiteTransportDN;
+    uint     dwReplicaFlags;
+    uint     dwReserved;
+    GUID     uuidNamingContextObjGuid;
+    GUID     uuidSourceDsaObjGuid;
+    GUID     uuidSourceDsaInvocationID;
+    GUID     uuidAsyncIntersiteTransportObjGuid;
+    long     usnLastObjChangeSynced;
+    long     usnAttributeFilter;
+    FILETIME ftimeLastSyncSuccess;
+    FILETIME ftimeLastSyncAttempt;
+    uint     dwLastSyncResult;
+    uint     cNumConsecutiveSyncFailures;
+}
+
+struct DS_REPL_NEIGHBORSW
+{
+    uint                 cNumNeighbors;
+    uint                 dwReserved;
+    DS_REPL_NEIGHBORW[1] rgNeighbor;
+}
+
+struct DS_REPL_CURSOR
+{
+    GUID uuidSourceDsaInvocationID;
+    long usnAttributeFilter;
+}
+
+struct DS_REPL_CURSOR_2
+{
+    GUID     uuidSourceDsaInvocationID;
+    long     usnAttributeFilter;
+    FILETIME ftimeLastSyncSuccess;
+}
+
+struct DS_REPL_CURSOR_3W
+{
+    GUID          uuidSourceDsaInvocationID;
+    long          usnAttributeFilter;
+    FILETIME      ftimeLastSyncSuccess;
+    const(wchar)* pszSourceDsaDN;
+}
+
+struct DS_REPL_CURSOR_BLOB
+{
+    GUID     uuidSourceDsaInvocationID;
+    long     usnAttributeFilter;
+    FILETIME ftimeLastSyncSuccess;
+    uint     oszSourceDsaDN;
+}
+
+struct DS_REPL_CURSORS
+{
+    uint              cNumCursors;
+    uint              dwReserved;
+    DS_REPL_CURSOR[1] rgCursor;
+}
+
+struct DS_REPL_CURSORS_2
+{
+    uint                cNumCursors;
+    uint                dwEnumerationContext;
+    DS_REPL_CURSOR_2[1] rgCursor;
+}
+
+struct DS_REPL_CURSORS_3W
+{
+    uint                 cNumCursors;
+    uint                 dwEnumerationContext;
+    DS_REPL_CURSOR_3W[1] rgCursor;
+}
+
+struct DS_REPL_ATTR_META_DATA
+{
+    const(wchar)* pszAttributeName;
+    uint          dwVersion;
+    FILETIME      ftimeLastOriginatingChange;
+    GUID          uuidLastOriginatingDsaInvocationID;
+    long          usnOriginatingChange;
+    long          usnLocalChange;
+}
+
+struct DS_REPL_ATTR_META_DATA_2
+{
+    const(wchar)* pszAttributeName;
+    uint          dwVersion;
+    FILETIME      ftimeLastOriginatingChange;
+    GUID          uuidLastOriginatingDsaInvocationID;
+    long          usnOriginatingChange;
+    long          usnLocalChange;
+    const(wchar)* pszLastOriginatingDsaDN;
+}
+
+struct DS_REPL_ATTR_META_DATA_BLOB
+{
+    uint     oszAttributeName;
+    uint     dwVersion;
+    FILETIME ftimeLastOriginatingChange;
+    GUID     uuidLastOriginatingDsaInvocationID;
+    long     usnOriginatingChange;
+    long     usnLocalChange;
+    uint     oszLastOriginatingDsaDN;
+}
+
+struct DS_REPL_OBJ_META_DATA
+{
+    uint cNumEntries;
+    uint dwReserved;
+    DS_REPL_ATTR_META_DATA[1] rgMetaData;
+}
+
+struct DS_REPL_OBJ_META_DATA_2
+{
+    uint cNumEntries;
+    uint dwReserved;
+    DS_REPL_ATTR_META_DATA_2[1] rgMetaData;
+}
+
+struct DS_REPL_KCC_DSA_FAILUREW
+{
+    const(wchar)* pszDsaDN;
+    GUID          uuidDsaObjGuid;
+    FILETIME      ftimeFirstFailure;
+    uint          cNumFailures;
+    uint          dwLastResult;
+}
+
+struct DS_REPL_KCC_DSA_FAILUREW_BLOB
+{
+    uint     oszDsaDN;
+    GUID     uuidDsaObjGuid;
+    FILETIME ftimeFirstFailure;
+    uint     cNumFailures;
+    uint     dwLastResult;
+}
+
+struct DS_REPL_KCC_DSA_FAILURESW
+{
+    uint cNumEntries;
+    uint dwReserved;
+    DS_REPL_KCC_DSA_FAILUREW[1] rgDsaFailure;
+}
+
+struct DS_REPL_OPW
+{
+    FILETIME        ftimeEnqueued;
+    uint            ulSerialNumber;
+    uint            ulPriority;
+    DS_REPL_OP_TYPE OpType;
+    uint            ulOptions;
+    const(wchar)*   pszNamingContext;
+    const(wchar)*   pszDsaDN;
+    const(wchar)*   pszDsaAddress;
+    GUID            uuidNamingContextObjGuid;
+    GUID            uuidDsaObjGuid;
+}
+
+struct DS_REPL_OPW_BLOB
+{
+    FILETIME        ftimeEnqueued;
+    uint            ulSerialNumber;
+    uint            ulPriority;
+    DS_REPL_OP_TYPE OpType;
+    uint            ulOptions;
+    uint            oszNamingContext;
+    uint            oszDsaDN;
+    uint            oszDsaAddress;
+    GUID            uuidNamingContextObjGuid;
+    GUID            uuidDsaObjGuid;
+}
+
+struct DS_REPL_PENDING_OPSW
+{
+    FILETIME       ftimeCurrentOpStarted;
+    uint           cNumPendingOps;
+    DS_REPL_OPW[1] rgPendingOp;
+}
+
+struct DS_REPL_VALUE_META_DATA
+{
+    const(wchar)* pszAttributeName;
+    const(wchar)* pszObjectDn;
+    uint          cbData;
+    ubyte*        pbData;
+    FILETIME      ftimeDeleted;
+    FILETIME      ftimeCreated;
+    uint          dwVersion;
+    FILETIME      ftimeLastOriginatingChange;
+    GUID          uuidLastOriginatingDsaInvocationID;
+    long          usnOriginatingChange;
+    long          usnLocalChange;
+}
+
+struct DS_REPL_VALUE_META_DATA_2
+{
+    const(wchar)* pszAttributeName;
+    const(wchar)* pszObjectDn;
+    uint          cbData;
+    ubyte*        pbData;
+    FILETIME      ftimeDeleted;
+    FILETIME      ftimeCreated;
+    uint          dwVersion;
+    FILETIME      ftimeLastOriginatingChange;
+    GUID          uuidLastOriginatingDsaInvocationID;
+    long          usnOriginatingChange;
+    long          usnLocalChange;
+    const(wchar)* pszLastOriginatingDsaDN;
+}
+
+struct DS_REPL_VALUE_META_DATA_EXT
+{
+    const(wchar)* pszAttributeName;
+    const(wchar)* pszObjectDn;
+    uint          cbData;
+    ubyte*        pbData;
+    FILETIME      ftimeDeleted;
+    FILETIME      ftimeCreated;
+    uint          dwVersion;
+    FILETIME      ftimeLastOriginatingChange;
+    GUID          uuidLastOriginatingDsaInvocationID;
+    long          usnOriginatingChange;
+    long          usnLocalChange;
+    const(wchar)* pszLastOriginatingDsaDN;
+    uint          dwUserIdentifier;
+    uint          dwPriorLinkState;
+    uint          dwCurrentLinkState;
+}
+
+struct DS_REPL_VALUE_META_DATA_BLOB
+{
+    uint     oszAttributeName;
+    uint     oszObjectDn;
+    uint     cbData;
+    uint     obData;
+    FILETIME ftimeDeleted;
+    FILETIME ftimeCreated;
+    uint     dwVersion;
+    FILETIME ftimeLastOriginatingChange;
+    GUID     uuidLastOriginatingDsaInvocationID;
+    long     usnOriginatingChange;
+    long     usnLocalChange;
+    uint     oszLastOriginatingDsaDN;
+}
+
+struct DS_REPL_VALUE_META_DATA_BLOB_EXT
+{
+    uint     oszAttributeName;
+    uint     oszObjectDn;
+    uint     cbData;
+    uint     obData;
+    FILETIME ftimeDeleted;
+    FILETIME ftimeCreated;
+    uint     dwVersion;
+    FILETIME ftimeLastOriginatingChange;
+    GUID     uuidLastOriginatingDsaInvocationID;
+    long     usnOriginatingChange;
+    long     usnLocalChange;
+    uint     oszLastOriginatingDsaDN;
+    uint     dwUserIdentifier;
+    uint     dwPriorLinkState;
+    uint     dwCurrentLinkState;
+}
+
+struct DS_REPL_ATTR_VALUE_META_DATA
+{
+    uint cNumEntries;
+    uint dwEnumerationContext;
+    DS_REPL_VALUE_META_DATA[1] rgMetaData;
+}
+
+struct DS_REPL_ATTR_VALUE_META_DATA_2
+{
+    uint cNumEntries;
+    uint dwEnumerationContext;
+    DS_REPL_VALUE_META_DATA_2[1] rgMetaData;
+}
+
+struct DS_REPL_ATTR_VALUE_META_DATA_EXT
+{
+    uint cNumEntries;
+    uint dwEnumerationContext;
+    DS_REPL_VALUE_META_DATA_EXT[1] rgMetaData;
+}
+
+struct DS_REPL_QUEUE_STATISTICSW
+{
+    FILETIME ftimeCurrentOpStarted;
+    uint     cNumPendingOps;
+    FILETIME ftimeOldestSync;
+    FILETIME ftimeOldestAdd;
+    FILETIME ftimeOldestMod;
+    FILETIME ftimeOldestDel;
+    FILETIME ftimeOldestUpdRefs;
+}
+
+struct DSROLE_PRIMARY_DOMAIN_INFO_BASIC
+{
+    DSROLE_MACHINE_ROLE MachineRole;
+    uint                Flags;
+    const(wchar)*       DomainNameFlat;
+    const(wchar)*       DomainNameDns;
+    const(wchar)*       DomainForestName;
+    GUID                DomainGuid;
+}
+
+struct DSROLE_UPGRADE_STATUS_INFO
+{
+    uint                OperationState;
+    DSROLE_SERVER_STATE PreviousServerState;
+}
+
+struct DSROLE_OPERATION_STATE_INFO
+{
+    DSROLE_OPERATION_STATE OperationState;
+}
+
+struct DOMAIN_CONTROLLER_INFOA
+{
+    const(char)* DomainControllerName;
+    const(char)* DomainControllerAddress;
+    uint         DomainControllerAddressType;
+    GUID         DomainGuid;
+    const(char)* DomainName;
+    const(char)* DnsForestName;
+    uint         Flags;
+    const(char)* DcSiteName;
+    const(char)* ClientSiteName;
+}
+
+struct DOMAIN_CONTROLLER_INFOW
+{
+    const(wchar)* DomainControllerName;
+    const(wchar)* DomainControllerAddress;
+    uint          DomainControllerAddressType;
+    GUID          DomainGuid;
+    const(wchar)* DomainName;
+    const(wchar)* DnsForestName;
+    uint          Flags;
+    const(wchar)* DcSiteName;
+    const(wchar)* ClientSiteName;
+}
+
+struct DS_DOMAIN_TRUSTSW
+{
+    const(wchar)* NetbiosDomainName;
+    const(wchar)* DnsDomainName;
+    uint          Flags;
+    uint          ParentIndex;
+    uint          TrustType;
+    uint          TrustAttributes;
+    void*         DomainSid;
+    GUID          DomainGuid;
+}
+
+struct DS_DOMAIN_TRUSTSA
+{
+    const(char)* NetbiosDomainName;
+    const(char)* DnsDomainName;
+    uint         Flags;
+    uint         ParentIndex;
+    uint         TrustType;
+    uint         TrustAttributes;
+    void*        DomainSid;
+    GUID         DomainGuid;
+}
+
+alias GetDcContextHandle = ptrdiff_t;
+
+// Functions
+
+@DllImport("ACTIVEDS")
+HRESULT ADsGetObject(const(wchar)* lpszPathName, const(GUID)* riid, void** ppObject);
+
+@DllImport("ACTIVEDS")
+HRESULT ADsBuildEnumerator(IADsContainer pADsContainer, IEnumVARIANT* ppEnumVariant);
+
+@DllImport("ACTIVEDS")
+HRESULT ADsFreeEnumerator(IEnumVARIANT pEnumVariant);
+
+@DllImport("ACTIVEDS")
+HRESULT ADsEnumerateNext(IEnumVARIANT pEnumVariant, uint cElements, VARIANT* pvar, uint* pcElementsFetched);
+
+@DllImport("ACTIVEDS")
+HRESULT ADsBuildVarArrayStr(char* lppPathNames, uint dwPathNames, VARIANT* pVar);
+
+@DllImport("ACTIVEDS")
+HRESULT ADsBuildVarArrayInt(uint* lpdwObjectTypes, uint dwObjectTypes, VARIANT* pVar);
+
+@DllImport("ACTIVEDS")
+HRESULT ADsOpenObject(const(wchar)* lpszPathName, const(wchar)* lpszUserName, const(wchar)* lpszPassword, 
+                      uint dwReserved, const(GUID)* riid, void** ppObject);
+
+@DllImport("ACTIVEDS")
+HRESULT ADsGetLastError(uint* lpError, const(wchar)* lpErrorBuf, uint dwErrorBufLen, const(wchar)* lpNameBuf, 
+                        uint dwNameBufLen);
+
+@DllImport("ACTIVEDS")
+void ADsSetLastError(uint dwErr, const(wchar)* pszError, const(wchar)* pszProvider);
+
+@DllImport("ACTIVEDS")
+void* AllocADsMem(uint cb);
+
+@DllImport("ACTIVEDS")
+BOOL FreeADsMem(void* pMem);
+
+@DllImport("ACTIVEDS")
+void* ReallocADsMem(void* pOldMem, uint cbOld, uint cbNew);
+
+@DllImport("ACTIVEDS")
+ushort* AllocADsStr(const(wchar)* pStr);
+
+@DllImport("ACTIVEDS")
+BOOL FreeADsStr(const(wchar)* pStr);
+
+@DllImport("ACTIVEDS")
+BOOL ReallocADsStr(ushort** ppStr, const(wchar)* pStr);
+
+@DllImport("ACTIVEDS")
+HRESULT ADsEncodeBinaryData(ubyte* pbSrcData, uint dwSrcLen, ushort** ppszDestData);
+
+@DllImport("ACTIVEDS")
+HRESULT ADsDecodeBinaryData(const(wchar)* szSrcData, ubyte** ppbDestData, uint* pdwDestLen);
+
+@DllImport("ACTIVEDS")
+HRESULT PropVariantToAdsType(VARIANT* pVariant, uint dwNumVariant, ADSVALUE** ppAdsValues, uint* pdwNumValues);
+
+@DllImport("ACTIVEDS")
+HRESULT AdsTypeToPropVariant(ADSVALUE* pAdsValues, uint dwNumValues, VARIANT* pVariant);
+
+@DllImport("ACTIVEDS")
+void AdsFreeAdsValues(ADSVALUE* pAdsValues, uint dwNumValues);
+
+@DllImport("ACTIVEDS")
+HRESULT BinarySDToSecurityDescriptor(void* pSecurityDescriptor, VARIANT* pVarsec, const(wchar)* pszServerName, 
+                                     const(wchar)* userName, const(wchar)* passWord, uint dwFlags);
+
+@DllImport("ACTIVEDS")
+HRESULT SecurityDescriptorToBinarySD(VARIANT vVarSecDes, void** ppSecurityDescriptor, uint* pdwSDLength, 
+                                     const(wchar)* pszServerName, const(wchar)* userName, const(wchar)* passWord, 
+                                     uint dwFlags);
+
+@DllImport("dsuiext")
+int DsBrowseForContainerW(DSBROWSEINFOW* pInfo);
+
+@DllImport("dsuiext")
+int DsBrowseForContainerA(DSBROWSEINFOA* pInfo);
+
+@DllImport("dsuiext")
+HICON DsGetIcon(uint dwFlags, const(wchar)* pszObjectClass, int cxImage, int cyImage);
+
+@DllImport("dsuiext")
+HRESULT DsGetFriendlyClassName(const(wchar)* pszObjectClass, const(wchar)* pszBuffer, uint cchBuffer);
+
+@DllImport("dsprop")
+HRESULT ADsPropCreateNotifyObj(IDataObject pAppThdDataObj, const(wchar)* pwzADsObjName, HWND* phNotifyObj);
+
+@DllImport("dsprop")
+BOOL ADsPropGetInitInfo(HWND hNotifyObj, ADSPROPINITPARAMS* pInitParams);
+
+@DllImport("dsprop")
+BOOL ADsPropSetHwndWithTitle(HWND hNotifyObj, HWND hPage, byte* ptzTitle);
+
+@DllImport("dsprop")
+BOOL ADsPropSetHwnd(HWND hNotifyObj, HWND hPage);
+
+@DllImport("dsprop")
+BOOL ADsPropCheckIfWritable(const(ushort)* pwzAttr, const(ADS_ATTR_INFO)* pWritableAttrs);
+
+@DllImport("dsprop")
+BOOL ADsPropSendErrorMessage(HWND hNotifyObj, ADSPROPERROR* pError);
+
+@DllImport("dsprop")
+BOOL ADsPropShowErrorDialog(HWND hNotifyObj, HWND hPage);
+
+@DllImport("DSPARSE")
+uint DsMakeSpnW(const(wchar)* ServiceClass, const(wchar)* ServiceName, const(wchar)* InstanceName, 
+                ushort InstancePort, const(wchar)* Referrer, uint* pcSpnLength, const(wchar)* pszSpn);
+
+@DllImport("DSPARSE")
+uint DsMakeSpnA(const(char)* ServiceClass, const(char)* ServiceName, const(char)* InstanceName, 
+                ushort InstancePort, const(char)* Referrer, uint* pcSpnLength, const(char)* pszSpn);
+
+@DllImport("DSPARSE")
+uint DsCrackSpnA(const(char)* pszSpn, uint* pcServiceClass, const(char)* ServiceClass, uint* pcServiceName, 
+                 const(char)* ServiceName, uint* pcInstanceName, const(char)* InstanceName, ushort* pInstancePort);
+
+@DllImport("DSPARSE")
+uint DsCrackSpnW(const(wchar)* pszSpn, uint* pcServiceClass, const(wchar)* ServiceClass, uint* pcServiceName, 
+                 const(wchar)* ServiceName, uint* pcInstanceName, const(wchar)* InstanceName, ushort* pInstancePort);
+
+@DllImport("DSPARSE")
+uint DsQuoteRdnValueW(uint cUnquotedRdnValueLength, const(wchar)* psUnquotedRdnValue, uint* pcQuotedRdnValueLength, 
+                      const(wchar)* psQuotedRdnValue);
+
+@DllImport("DSPARSE")
+uint DsQuoteRdnValueA(uint cUnquotedRdnValueLength, const(char)* psUnquotedRdnValue, uint* pcQuotedRdnValueLength, 
+                      const(char)* psQuotedRdnValue);
+
+@DllImport("DSPARSE")
+uint DsUnquoteRdnValueW(uint cQuotedRdnValueLength, const(wchar)* psQuotedRdnValue, uint* pcUnquotedRdnValueLength, 
+                        const(wchar)* psUnquotedRdnValue);
+
+@DllImport("DSPARSE")
+uint DsUnquoteRdnValueA(uint cQuotedRdnValueLength, const(char)* psQuotedRdnValue, uint* pcUnquotedRdnValueLength, 
+                        const(char)* psUnquotedRdnValue);
+
+@DllImport("DSPARSE")
+uint DsGetRdnW(char* ppDN, uint* pcDN, ushort** ppKey, uint* pcKey, ushort** ppVal, uint* pcVal);
+
+@DllImport("DSPARSE")
+BOOL DsCrackUnquotedMangledRdnW(const(wchar)* pszRDN, uint cchRDN, GUID* pGuid, DS_MANGLE_FOR* peDsMangleFor);
+
+@DllImport("DSPARSE")
+BOOL DsCrackUnquotedMangledRdnA(const(char)* pszRDN, uint cchRDN, GUID* pGuid, DS_MANGLE_FOR* peDsMangleFor);
+
+@DllImport("DSPARSE")
+BOOL DsIsMangledRdnValueW(const(wchar)* pszRdn, uint cRdn, DS_MANGLE_FOR eDsMangleForDesired);
+
+@DllImport("DSPARSE")
+BOOL DsIsMangledRdnValueA(const(char)* pszRdn, uint cRdn, DS_MANGLE_FOR eDsMangleForDesired);
+
+@DllImport("DSPARSE")
+BOOL DsIsMangledDnA(const(char)* pszDn, DS_MANGLE_FOR eDsMangleFor);
+
+@DllImport("DSPARSE")
+BOOL DsIsMangledDnW(const(wchar)* pszDn, DS_MANGLE_FOR eDsMangleFor);
+
+@DllImport("DSPARSE")
+uint DsCrackSpn2A(const(char)* pszSpn, uint cSpn, uint* pcServiceClass, const(char)* ServiceClass, 
+                  uint* pcServiceName, const(char)* ServiceName, uint* pcInstanceName, const(char)* InstanceName, 
+                  ushort* pInstancePort);
+
+@DllImport("DSPARSE")
+uint DsCrackSpn2W(const(wchar)* pszSpn, uint cSpn, uint* pcServiceClass, const(wchar)* ServiceClass, 
+                  uint* pcServiceName, const(wchar)* ServiceName, uint* pcInstanceName, const(wchar)* InstanceName, 
+                  ushort* pInstancePort);
+
+@DllImport("DSPARSE")
+uint DsCrackSpn3W(const(wchar)* pszSpn, uint cSpn, uint* pcHostName, const(wchar)* HostName, uint* pcInstanceName, 
+                  const(wchar)* InstanceName, ushort* pPortNumber, uint* pcDomainName, const(wchar)* DomainName, 
+                  uint* pcRealmName, const(wchar)* RealmName);
+
+@DllImport("DSPARSE")
+uint DsCrackSpn4W(const(wchar)* pszSpn, uint cSpn, uint* pcHostName, const(wchar)* HostName, uint* pcInstanceName, 
+                  const(wchar)* InstanceName, uint* pcPortName, const(wchar)* PortName, uint* pcDomainName, 
+                  const(wchar)* DomainName, uint* pcRealmName, const(wchar)* RealmName);
+
+@DllImport("NTDSAPI")
+uint DsBindW(const(wchar)* DomainControllerName, const(wchar)* DnsDomainName, HANDLE* phDS);
+
+@DllImport("NTDSAPI")
+uint DsBindA(const(char)* DomainControllerName, const(char)* DnsDomainName, HANDLE* phDS);
+
+@DllImport("NTDSAPI")
+uint DsBindWithCredW(const(wchar)* DomainControllerName, const(wchar)* DnsDomainName, void* AuthIdentity, 
+                     HANDLE* phDS);
+
+@DllImport("NTDSAPI")
+uint DsBindWithCredA(const(char)* DomainControllerName, const(char)* DnsDomainName, void* AuthIdentity, 
+                     HANDLE* phDS);
+
+@DllImport("NTDSAPI")
+uint DsBindWithSpnW(const(wchar)* DomainControllerName, const(wchar)* DnsDomainName, void* AuthIdentity, 
+                    const(wchar)* ServicePrincipalName, HANDLE* phDS);
+
+@DllImport("NTDSAPI")
+uint DsBindWithSpnA(const(char)* DomainControllerName, const(char)* DnsDomainName, void* AuthIdentity, 
+                    const(char)* ServicePrincipalName, HANDLE* phDS);
+
+@DllImport("NTDSAPI")
+uint DsBindWithSpnExW(const(wchar)* DomainControllerName, const(wchar)* DnsDomainName, void* AuthIdentity, 
+                      const(wchar)* ServicePrincipalName, uint BindFlags, HANDLE* phDS);
+
+@DllImport("NTDSAPI")
+uint DsBindWithSpnExA(const(char)* DomainControllerName, const(char)* DnsDomainName, void* AuthIdentity, 
+                      const(char)* ServicePrincipalName, uint BindFlags, HANDLE* phDS);
+
+@DllImport("NTDSAPI")
+uint DsBindByInstanceW(const(wchar)* ServerName, const(wchar)* Annotation, GUID* InstanceGuid, 
+                       const(wchar)* DnsDomainName, void* AuthIdentity, const(wchar)* ServicePrincipalName, 
+                       uint BindFlags, HANDLE* phDS);
+
+@DllImport("NTDSAPI")
+uint DsBindByInstanceA(const(char)* ServerName, const(char)* Annotation, GUID* InstanceGuid, 
+                       const(char)* DnsDomainName, void* AuthIdentity, const(char)* ServicePrincipalName, 
+                       uint BindFlags, HANDLE* phDS);
+
+@DllImport("NTDSAPI")
+uint DsBindToISTGW(const(wchar)* SiteName, HANDLE* phDS);
+
+@DllImport("NTDSAPI")
+uint DsBindToISTGA(const(char)* SiteName, HANDLE* phDS);
+
+@DllImport("NTDSAPI")
+uint DsBindingSetTimeout(HANDLE hDS, uint cTimeoutSecs);
+
+@DllImport("NTDSAPI")
+uint DsUnBindW(HANDLE* phDS);
+
+@DllImport("NTDSAPI")
+uint DsUnBindA(HANDLE* phDS);
+
+@DllImport("NTDSAPI")
+uint DsMakePasswordCredentialsW(const(wchar)* User, const(wchar)* Domain, const(wchar)* Password, 
+                                void** pAuthIdentity);
+
+@DllImport("NTDSAPI")
+uint DsMakePasswordCredentialsA(const(char)* User, const(char)* Domain, const(char)* Password, 
+                                void** pAuthIdentity);
+
+@DllImport("NTDSAPI")
+void DsFreePasswordCredentials(void* AuthIdentity);
+
+@DllImport("NTDSAPI")
+uint DsCrackNamesW(HANDLE hDS, DS_NAME_FLAGS flags, DS_NAME_FORMAT formatOffered, DS_NAME_FORMAT formatDesired, 
+                   uint cNames, char* rpNames, DS_NAME_RESULTW** ppResult);
+
+@DllImport("NTDSAPI")
+uint DsCrackNamesA(HANDLE hDS, DS_NAME_FLAGS flags, DS_NAME_FORMAT formatOffered, DS_NAME_FORMAT formatDesired, 
+                   uint cNames, char* rpNames, DS_NAME_RESULTA** ppResult);
+
+@DllImport("NTDSAPI")
+void DsFreeNameResultW(DS_NAME_RESULTW* pResult);
+
+@DllImport("NTDSAPI")
+void DsFreeNameResultA(DS_NAME_RESULTA* pResult);
+
+@DllImport("NTDSAPI")
+uint DsGetSpnA(DS_SPN_NAME_TYPE ServiceType, const(char)* ServiceClass, const(char)* ServiceName, 
+               ushort InstancePort, ushort cInstanceNames, char* pInstanceNames, char* pInstancePorts, uint* pcSpn, 
+               byte*** prpszSpn);
+
+@DllImport("NTDSAPI")
+uint DsGetSpnW(DS_SPN_NAME_TYPE ServiceType, const(wchar)* ServiceClass, const(wchar)* ServiceName, 
+               ushort InstancePort, ushort cInstanceNames, char* pInstanceNames, char* pInstancePorts, uint* pcSpn, 
+               ushort*** prpszSpn);
+
+@DllImport("NTDSAPI")
+void DsFreeSpnArrayA(uint cSpn, char* rpszSpn);
+
+@DllImport("NTDSAPI")
+void DsFreeSpnArrayW(uint cSpn, char* rpszSpn);
+
+@DllImport("NTDSAPI")
+uint DsWriteAccountSpnA(HANDLE hDS, DS_SPN_WRITE_OP Operation, const(char)* pszAccount, uint cSpn, char* rpszSpn);
+
+@DllImport("NTDSAPI")
+uint DsWriteAccountSpnW(HANDLE hDS, DS_SPN_WRITE_OP Operation, const(wchar)* pszAccount, uint cSpn, char* rpszSpn);
+
+@DllImport("NTDSAPI")
+uint DsClientMakeSpnForTargetServerW(const(wchar)* ServiceClass, const(wchar)* ServiceName, uint* pcSpnLength, 
+                                     const(wchar)* pszSpn);
+
+@DllImport("NTDSAPI")
+uint DsClientMakeSpnForTargetServerA(const(char)* ServiceClass, const(char)* ServiceName, uint* pcSpnLength, 
+                                     const(char)* pszSpn);
+
+@DllImport("NTDSAPI")
+uint DsServerRegisterSpnA(DS_SPN_WRITE_OP Operation, const(char)* ServiceClass, const(char)* UserObjectDN);
+
+@DllImport("NTDSAPI")
+uint DsServerRegisterSpnW(DS_SPN_WRITE_OP Operation, const(wchar)* ServiceClass, const(wchar)* UserObjectDN);
+
+@DllImport("NTDSAPI")
+uint DsReplicaSyncA(HANDLE hDS, const(char)* NameContext, const(GUID)* pUuidDsaSrc, uint Options);
+
+@DllImport("NTDSAPI")
+uint DsReplicaSyncW(HANDLE hDS, const(wchar)* NameContext, const(GUID)* pUuidDsaSrc, uint Options);
+
+@DllImport("NTDSAPI")
+uint DsReplicaAddA(HANDLE hDS, const(char)* NameContext, const(char)* SourceDsaDn, const(char)* TransportDn, 
+                   const(char)* SourceDsaAddress, const(SCHEDULE)* pSchedule, uint Options);
+
+@DllImport("NTDSAPI")
+uint DsReplicaAddW(HANDLE hDS, const(wchar)* NameContext, const(wchar)* SourceDsaDn, const(wchar)* TransportDn, 
+                   const(wchar)* SourceDsaAddress, const(SCHEDULE)* pSchedule, uint Options);
+
+@DllImport("NTDSAPI")
+uint DsReplicaDelA(HANDLE hDS, const(char)* NameContext, const(char)* DsaSrc, uint Options);
+
+@DllImport("NTDSAPI")
+uint DsReplicaDelW(HANDLE hDS, const(wchar)* NameContext, const(wchar)* DsaSrc, uint Options);
+
+@DllImport("NTDSAPI")
+uint DsReplicaModifyA(HANDLE hDS, const(char)* NameContext, const(GUID)* pUuidSourceDsa, const(char)* TransportDn, 
+                      const(char)* SourceDsaAddress, const(SCHEDULE)* pSchedule, uint ReplicaFlags, 
+                      uint ModifyFields, uint Options);
+
+@DllImport("NTDSAPI")
+uint DsReplicaModifyW(HANDLE hDS, const(wchar)* NameContext, const(GUID)* pUuidSourceDsa, 
+                      const(wchar)* TransportDn, const(wchar)* SourceDsaAddress, const(SCHEDULE)* pSchedule, 
+                      uint ReplicaFlags, uint ModifyFields, uint Options);
+
+@DllImport("NTDSAPI")
+uint DsReplicaUpdateRefsA(HANDLE hDS, const(char)* NameContext, const(char)* DsaDest, const(GUID)* pUuidDsaDest, 
+                          uint Options);
+
+@DllImport("NTDSAPI")
+uint DsReplicaUpdateRefsW(HANDLE hDS, const(wchar)* NameContext, const(wchar)* DsaDest, const(GUID)* pUuidDsaDest, 
+                          uint Options);
+
+@DllImport("NTDSAPI")
+uint DsReplicaSyncAllA(HANDLE hDS, const(char)* pszNameContext, uint ulFlags, BOOL*********** pFnCallBack, 
+                       void* pCallbackData, DS_REPSYNCALL_ERRINFOA*** pErrors);
+
+@DllImport("NTDSAPI")
+uint DsReplicaSyncAllW(HANDLE hDS, const(wchar)* pszNameContext, uint ulFlags, BOOL*********** pFnCallBack, 
+                       void* pCallbackData, DS_REPSYNCALL_ERRINFOW*** pErrors);
+
+@DllImport("NTDSAPI")
+uint DsRemoveDsServerW(HANDLE hDs, const(wchar)* ServerDN, const(wchar)* DomainDN, int* fLastDcInDomain, 
+                       BOOL fCommit);
+
+@DllImport("NTDSAPI")
+uint DsRemoveDsServerA(HANDLE hDs, const(char)* ServerDN, const(char)* DomainDN, int* fLastDcInDomain, 
+                       BOOL fCommit);
+
+@DllImport("NTDSAPI")
+uint DsRemoveDsDomainW(HANDLE hDs, const(wchar)* DomainDN);
+
+@DllImport("NTDSAPI")
+uint DsRemoveDsDomainA(HANDLE hDs, const(char)* DomainDN);
+
+@DllImport("NTDSAPI")
+uint DsListSitesA(HANDLE hDs, DS_NAME_RESULTA** ppSites);
+
+@DllImport("NTDSAPI")
+uint DsListSitesW(HANDLE hDs, DS_NAME_RESULTW** ppSites);
+
+@DllImport("NTDSAPI")
+uint DsListServersInSiteA(HANDLE hDs, const(char)* site, DS_NAME_RESULTA** ppServers);
+
+@DllImport("NTDSAPI")
+uint DsListServersInSiteW(HANDLE hDs, const(wchar)* site, DS_NAME_RESULTW** ppServers);
+
+@DllImport("NTDSAPI")
+uint DsListDomainsInSiteA(HANDLE hDs, const(char)* site, DS_NAME_RESULTA** ppDomains);
+
+@DllImport("NTDSAPI")
+uint DsListDomainsInSiteW(HANDLE hDs, const(wchar)* site, DS_NAME_RESULTW** ppDomains);
+
+@DllImport("NTDSAPI")
+uint DsListServersForDomainInSiteA(HANDLE hDs, const(char)* domain, const(char)* site, DS_NAME_RESULTA** ppServers);
+
+@DllImport("NTDSAPI")
+uint DsListServersForDomainInSiteW(HANDLE hDs, const(wchar)* domain, const(wchar)* site, 
+                                   DS_NAME_RESULTW** ppServers);
+
+@DllImport("NTDSAPI")
+uint DsListInfoForServerA(HANDLE hDs, const(char)* server, DS_NAME_RESULTA** ppInfo);
+
+@DllImport("NTDSAPI")
+uint DsListInfoForServerW(HANDLE hDs, const(wchar)* server, DS_NAME_RESULTW** ppInfo);
+
+@DllImport("NTDSAPI")
+uint DsListRolesA(HANDLE hDs, DS_NAME_RESULTA** ppRoles);
+
+@DllImport("NTDSAPI")
+uint DsListRolesW(HANDLE hDs, DS_NAME_RESULTW** ppRoles);
+
+@DllImport("NTDSAPI")
+uint DsQuerySitesByCostW(HANDLE hDS, const(wchar)* pwszFromSite, char* rgwszToSites, uint cToSites, uint dwFlags, 
+                         DS_SITE_COST_INFO** prgSiteInfo);
+
+@DllImport("NTDSAPI")
+uint DsQuerySitesByCostA(HANDLE hDS, const(char)* pszFromSite, char* rgszToSites, uint cToSites, uint dwFlags, 
+                         DS_SITE_COST_INFO** prgSiteInfo);
+
+@DllImport("NTDSAPI")
+void DsQuerySitesFree(DS_SITE_COST_INFO* rgSiteInfo);
+
+@DllImport("NTDSAPI")
+uint DsMapSchemaGuidsA(HANDLE hDs, uint cGuids, char* rGuids, DS_SCHEMA_GUID_MAPA** ppGuidMap);
+
+@DllImport("NTDSAPI")
+void DsFreeSchemaGuidMapA(DS_SCHEMA_GUID_MAPA* pGuidMap);
+
+@DllImport("NTDSAPI")
+uint DsMapSchemaGuidsW(HANDLE hDs, uint cGuids, char* rGuids, DS_SCHEMA_GUID_MAPW** ppGuidMap);
+
+@DllImport("NTDSAPI")
+void DsFreeSchemaGuidMapW(DS_SCHEMA_GUID_MAPW* pGuidMap);
+
+@DllImport("NTDSAPI")
+uint DsGetDomainControllerInfoA(HANDLE hDs, const(char)* DomainName, uint InfoLevel, uint* pcOut, void** ppInfo);
+
+@DllImport("NTDSAPI")
+uint DsGetDomainControllerInfoW(HANDLE hDs, const(wchar)* DomainName, uint InfoLevel, uint* pcOut, void** ppInfo);
+
+@DllImport("NTDSAPI")
+void DsFreeDomainControllerInfoA(uint InfoLevel, uint cInfo, char* pInfo);
+
+@DllImport("NTDSAPI")
+void DsFreeDomainControllerInfoW(uint InfoLevel, uint cInfo, char* pInfo);
+
+@DllImport("NTDSAPI")
+uint DsReplicaConsistencyCheck(HANDLE hDS, DS_KCC_TASKID TaskID, uint dwFlags);
+
+@DllImport("NTDSAPI")
+uint DsReplicaVerifyObjectsW(HANDLE hDS, const(wchar)* NameContext, const(GUID)* pUuidDsaSrc, uint ulOptions);
+
+@DllImport("NTDSAPI")
+uint DsReplicaVerifyObjectsA(HANDLE hDS, const(char)* NameContext, const(GUID)* pUuidDsaSrc, uint ulOptions);
+
+@DllImport("NTDSAPI")
+uint DsReplicaGetInfoW(HANDLE hDS, DS_REPL_INFO_TYPE InfoType, const(wchar)* pszObject, 
+                       GUID* puuidForSourceDsaObjGuid, void** ppInfo);
+
+@DllImport("NTDSAPI")
+uint DsReplicaGetInfo2W(HANDLE hDS, DS_REPL_INFO_TYPE InfoType, const(wchar)* pszObject, 
+                        GUID* puuidForSourceDsaObjGuid, const(wchar)* pszAttributeName, const(wchar)* pszValue, 
+                        uint dwFlags, uint dwEnumerationContext, void** ppInfo);
+
+@DllImport("NTDSAPI")
+void DsReplicaFreeInfo(DS_REPL_INFO_TYPE InfoType, void* pInfo);
+
+@DllImport("NTDSAPI")
+uint DsAddSidHistoryW(HANDLE hDS, uint Flags, const(wchar)* SrcDomain, const(wchar)* SrcPrincipal, 
+                      const(wchar)* SrcDomainController, void* SrcDomainCreds, const(wchar)* DstDomain, 
+                      const(wchar)* DstPrincipal);
+
+@DllImport("NTDSAPI")
+uint DsAddSidHistoryA(HANDLE hDS, uint Flags, const(char)* SrcDomain, const(char)* SrcPrincipal, 
+                      const(char)* SrcDomainController, void* SrcDomainCreds, const(char)* DstDomain, 
+                      const(char)* DstPrincipal);
+
+@DllImport("NTDSAPI")
+uint DsInheritSecurityIdentityW(HANDLE hDS, uint Flags, const(wchar)* SrcPrincipal, const(wchar)* DstPrincipal);
+
+@DllImport("NTDSAPI")
+uint DsInheritSecurityIdentityA(HANDLE hDS, uint Flags, const(char)* SrcPrincipal, const(char)* DstPrincipal);
+
+@DllImport("DSROLE")
+uint DsRoleGetPrimaryDomainInformation(const(wchar)* lpServer, DSROLE_PRIMARY_DOMAIN_INFO_LEVEL InfoLevel, 
+                                       ubyte** Buffer);
+
+@DllImport("DSROLE")
+void DsRoleFreeMemory(void* Buffer);
+
+@DllImport("logoncli")
+uint DsGetDcNameA(const(char)* ComputerName, const(char)* DomainName, GUID* DomainGuid, const(char)* SiteName, 
+                  uint Flags, DOMAIN_CONTROLLER_INFOA** DomainControllerInfo);
+
+@DllImport("logoncli")
+uint DsGetDcNameW(const(wchar)* ComputerName, const(wchar)* DomainName, GUID* DomainGuid, const(wchar)* SiteName, 
+                  uint Flags, DOMAIN_CONTROLLER_INFOW** DomainControllerInfo);
+
+@DllImport("logoncli")
+uint DsGetSiteNameA(const(char)* ComputerName, byte** SiteName);
+
+@DllImport("logoncli")
+uint DsGetSiteNameW(const(wchar)* ComputerName, ushort** SiteName);
+
+@DllImport("logoncli")
+uint DsValidateSubnetNameW(const(wchar)* SubnetName);
+
+@DllImport("logoncli")
+uint DsValidateSubnetNameA(const(char)* SubnetName);
+
+@DllImport("logoncli")
+uint DsAddressToSiteNamesW(const(wchar)* ComputerName, uint EntryCount, char* SocketAddresses, ushort*** SiteNames);
+
+@DllImport("logoncli")
+uint DsAddressToSiteNamesA(const(char)* ComputerName, uint EntryCount, char* SocketAddresses, byte*** SiteNames);
+
+@DllImport("logoncli")
+uint DsAddressToSiteNamesExW(const(wchar)* ComputerName, uint EntryCount, char* SocketAddresses, 
+                             ushort*** SiteNames, ushort*** SubnetNames);
+
+@DllImport("logoncli")
+uint DsAddressToSiteNamesExA(const(char)* ComputerName, uint EntryCount, char* SocketAddresses, byte*** SiteNames, 
+                             byte*** SubnetNames);
+
+@DllImport("logoncli")
+uint DsEnumerateDomainTrustsW(const(wchar)* ServerName, uint Flags, DS_DOMAIN_TRUSTSW** Domains, uint* DomainCount);
+
+@DllImport("logoncli")
+uint DsEnumerateDomainTrustsA(const(char)* ServerName, uint Flags, DS_DOMAIN_TRUSTSA** Domains, uint* DomainCount);
+
+@DllImport("logoncli")
+uint DsGetForestTrustInformationW(const(wchar)* ServerName, const(wchar)* TrustedDomainName, uint Flags, 
+                                  LSA_FOREST_TRUST_INFORMATION** ForestTrustInfo);
+
+@DllImport("logoncli")
+uint DsMergeForestTrustInformationW(const(wchar)* DomainName, LSA_FOREST_TRUST_INFORMATION* NewForestTrustInfo, 
+                                    LSA_FOREST_TRUST_INFORMATION* OldForestTrustInfo, 
+                                    LSA_FOREST_TRUST_INFORMATION** MergedForestTrustInfo);
+
+@DllImport("logoncli")
+uint DsGetDcSiteCoverageW(const(wchar)* ServerName, uint* EntryCount, ushort*** SiteNames);
+
+@DllImport("logoncli")
+uint DsGetDcSiteCoverageA(const(char)* ServerName, uint* EntryCount, byte*** SiteNames);
+
+@DllImport("logoncli")
+uint DsDeregisterDnsHostRecordsW(const(wchar)* ServerName, const(wchar)* DnsDomainName, GUID* DomainGuid, 
+                                 GUID* DsaGuid, const(wchar)* DnsHostName);
+
+@DllImport("logoncli")
+uint DsDeregisterDnsHostRecordsA(const(char)* ServerName, const(char)* DnsDomainName, GUID* DomainGuid, 
+                                 GUID* DsaGuid, const(char)* DnsHostName);
+
+@DllImport("logoncli")
+uint DsGetDcOpenW(const(wchar)* DnsName, uint OptionFlags, const(wchar)* SiteName, GUID* DomainGuid, 
+                  const(wchar)* DnsForestName, uint DcFlags, GetDcContextHandle* RetGetDcContext);
+
+@DllImport("logoncli")
+uint DsGetDcOpenA(const(char)* DnsName, uint OptionFlags, const(char)* SiteName, GUID* DomainGuid, 
+                  const(char)* DnsForestName, uint DcFlags, GetDcContextHandle* RetGetDcContext);
+
+@DllImport("logoncli")
+uint DsGetDcNextW(HANDLE GetDcContextHandle, uint* SockAddressCount, SOCKET_ADDRESS** SockAddresses, 
+                  ushort** DnsHostName);
+
+@DllImport("logoncli")
+uint DsGetDcNextA(HANDLE GetDcContextHandle, uint* SockAddressCount, SOCKET_ADDRESS** SockAddresses, 
+                  byte** DnsHostName);
+
+@DllImport("logoncli")
+void DsGetDcCloseW(HANDLE GetDcContextHandle);
+
+
+// Interfaces
+
+@GUID("72D3EDC2-A4C4-11D0-8533-00C04FD8D503")
+struct PropertyEntry;
+
+@GUID("7B9E38B0-A97C-11D0-8534-00C04FD8D503")
+struct PropertyValue;
+
+@GUID("B75AC000-9BDD-11D0-852C-00C04FD8D503")
+struct AccessControlEntry;
+
+@GUID("B85EA052-9BDD-11D0-852C-00C04FD8D503")
+struct AccessControlList;
+
+@GUID("B958F73C-9BDD-11D0-852C-00C04FD8D503")
+struct SecurityDescriptor;
+
+@GUID("927971F5-0939-11D1-8BE1-00C04FD8D503")
+struct LargeInteger;
+
+@GUID("274FAE1F-3626-11D1-A3A4-00C04FB950DC")
+struct NameTranslate;
+
+@GUID("15F88A55-4680-11D1-A3B4-00C04FB950DC")
+struct CaseIgnoreList;
+
+@GUID("A5062215-4681-11D1-A3B4-00C04FB950DC")
+struct FaxNumber;
+
+@GUID("B0B71247-4080-11D1-A3AC-00C04FB950DC")
+struct NetAddress;
+
+@GUID("1241400F-4680-11D1-A3B4-00C04FB950DC")
+struct OctetList;
+
+@GUID("8F92A857-478E-11D1-A3B4-00C04FB950DC")
+struct Email;
+
+@GUID("B2538919-4080-11D1-A3AC-00C04FB950DC")
+struct Path;
+
+@GUID("F5D1BADF-4080-11D1-A3AC-00C04FB950DC")
+struct ReplicaPointer;
+
+@GUID("B2BED2EB-4080-11D1-A3AC-00C04FB950DC")
+struct Timestamp;
+
+@GUID("0A75AFCD-4680-11D1-A3B4-00C04FB950DC")
+struct PostalAddress;
+
+@GUID("FCBF906F-4080-11D1-A3AC-00C04FB950DC")
+struct BackLink;
+
+@GUID("B33143CB-4080-11D1-A3AC-00C04FB950DC")
+struct TypedName;
+
+@GUID("B3AD3E13-4080-11D1-A3AC-00C04FB950DC")
+struct Hold;
+
+@GUID("080D0D78-F421-11D0-A36E-00C04FB950DC")
+struct Pathname;
+
+@GUID("50B6327F-AFD1-11D2-9CB9-0000F87A369E")
+struct ADSystemInfo;
+
+@GUID("66182EC4-AFD1-11D2-9CB9-0000F87A369E")
+struct WinNTSystemInfo;
+
+@GUID("7E99C0A3-F935-11D2-BA96-00C04FB6D0D1")
+struct DNWithBinary;
+
+@GUID("334857CC-F934-11D2-BA96-00C04FB6D0D1")
+struct DNWithString;
+
+@GUID("F270C64A-FFB8-4AE4-85FE-3A75E5347966")
+struct ADsSecurityUtility;
+
+@GUID("8CFCEE30-39BD-11D0-B8D1-00A024AB2DBB")
+interface IQueryForm : IUnknown
+{
+    HRESULT Initialize(HKEY hkForm);
+    HRESULT AddForms(LPCQADDFORMSPROC pAddFormsProc, LPARAM lParam);
+    HRESULT AddPages(LPCQADDPAGESPROC pAddPagesProc, LPARAM lParam);
+}
+
+@GUID("1A3114B8-A62E-11D0-A6C5-00A0C906AF45")
+interface IPersistQuery : IPersist
+{
+    HRESULT WriteString(const(wchar)* pSection, const(wchar)* pValueName, const(wchar)* pValue);
+    HRESULT ReadString(const(wchar)* pSection, const(wchar)* pValueName, const(wchar)* pBuffer, int cchBuffer);
+    HRESULT WriteInt(const(wchar)* pSection, const(wchar)* pValueName, int value);
+    HRESULT ReadInt(const(wchar)* pSection, const(wchar)* pValueName, int* pValue);
+    HRESULT WriteStruct(const(wchar)* pSection, const(wchar)* pValueName, void* pStruct, uint cbStruct);
+    HRESULT ReadStruct(const(wchar)* pSection, const(wchar)* pValueName, void* pStruct, uint cbStruct);
+    HRESULT Clear();
+}
+
+@GUID("AB50DEC0-6F1D-11D0-A1C4-00AA00C16E65")
+interface ICommonQuery : IUnknown
+{
+    HRESULT OpenQueryWindow(HWND hwndParent, OPENQUERYWINDOW* pQueryWnd, IDataObject* ppDataObject);
+}
+
+@GUID("FD8256D0-FD15-11CE-ABC4-02608C9E7553")
 interface IADs : IDispatch
 {
     HRESULT get_Name(BSTR* retval);
@@ -752,8 +2348,7 @@ interface IADs : IDispatch
     HRESULT GetInfoEx(VARIANT vProperties, int lnReserved);
 }
 
-const GUID IID_IADsContainer = {0x001677D0, 0xFD16, 0x11CE, [0xAB, 0xC4, 0x02, 0x60, 0x8C, 0x9E, 0x75, 0x53]};
-@GUID(0x001677D0, 0xFD16, 0x11CE, [0xAB, 0xC4, 0x02, 0x60, 0x8C, 0x9E, 0x75, 0x53]);
+@GUID("001677D0-FD16-11CE-ABC4-02608C9E7553")
 interface IADsContainer : IDispatch
 {
     HRESULT get_Count(int* retval);
@@ -769,8 +2364,7 @@ interface IADsContainer : IDispatch
     HRESULT MoveHere(BSTR SourceName, BSTR NewName, IDispatch* ppObject);
 }
 
-const GUID IID_IADsCollection = {0x72B945E0, 0x253B, 0x11CF, [0xA9, 0x88, 0x00, 0xAA, 0x00, 0x6B, 0xC1, 0x49]};
-@GUID(0x72B945E0, 0x253B, 0x11CF, [0xA9, 0x88, 0x00, 0xAA, 0x00, 0x6B, 0xC1, 0x49]);
+@GUID("72B945E0-253B-11CF-A988-00AA006BC149")
 interface IADsCollection : IDispatch
 {
     HRESULT get__NewEnum(IUnknown* ppEnumerator);
@@ -779,8 +2373,7 @@ interface IADsCollection : IDispatch
     HRESULT GetObjectA(BSTR bstrName, VARIANT* pvItem);
 }
 
-const GUID IID_IADsMembers = {0x451A0030, 0x72EC, 0x11CF, [0xB0, 0x3B, 0x00, 0xAA, 0x00, 0x6E, 0x09, 0x75]};
-@GUID(0x451A0030, 0x72EC, 0x11CF, [0xB0, 0x3B, 0x00, 0xAA, 0x00, 0x6E, 0x09, 0x75]);
+@GUID("451A0030-72EC-11CF-B03B-00AA006E0975")
 interface IADsMembers : IDispatch
 {
     HRESULT get_Count(int* plCount);
@@ -789,8 +2382,7 @@ interface IADsMembers : IDispatch
     HRESULT put_Filter(VARIANT pvFilter);
 }
 
-const GUID IID_IADsPropertyList = {0xC6F602B6, 0x8F69, 0x11D0, [0x85, 0x28, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]};
-@GUID(0xC6F602B6, 0x8F69, 0x11D0, [0x85, 0x28, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]);
+@GUID("C6F602B6-8F69-11D0-8528-00C04FD8D503")
 interface IADsPropertyList : IDispatch
 {
     HRESULT get_PropertyCount(int* plCount);
@@ -804,8 +2396,7 @@ interface IADsPropertyList : IDispatch
     HRESULT PurgePropertyList();
 }
 
-const GUID IID_IADsPropertyEntry = {0x05792C8E, 0x941F, 0x11D0, [0x85, 0x29, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]};
-@GUID(0x05792C8E, 0x941F, 0x11D0, [0x85, 0x29, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]);
+@GUID("05792C8E-941F-11D0-8529-00C04FD8D503")
 interface IADsPropertyEntry : IDispatch
 {
     HRESULT Clear();
@@ -819,8 +2410,7 @@ interface IADsPropertyEntry : IDispatch
     HRESULT put_Values(VARIANT vValues);
 }
 
-const GUID IID_IADsPropertyValue = {0x79FA9AD0, 0xA97C, 0x11D0, [0x85, 0x34, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]};
-@GUID(0x79FA9AD0, 0xA97C, 0x11D0, [0x85, 0x34, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]);
+@GUID("79FA9AD0-A97C-11D0-8534-00C04FD8D503")
 interface IADsPropertyValue : IDispatch
 {
     HRESULT Clear();
@@ -850,59 +2440,54 @@ interface IADsPropertyValue : IDispatch
     HRESULT put_UTCTime(double daUTCTime);
 }
 
-const GUID IID_IADsPropertyValue2 = {0x306E831C, 0x5BC7, 0x11D1, [0xA3, 0xB8, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]};
-@GUID(0x306E831C, 0x5BC7, 0x11D1, [0xA3, 0xB8, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]);
+@GUID("306E831C-5BC7-11D1-A3B8-00C04FB950DC")
 interface IADsPropertyValue2 : IDispatch
 {
     HRESULT GetObjectProperty(int* lnADsType, VARIANT* pvProp);
     HRESULT PutObjectProperty(int lnADsType, VARIANT vProp);
 }
 
-const GUID IID_IPrivateDispatch = {0x86AB4BBE, 0x65F6, 0x11D1, [0x8C, 0x13, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]};
-@GUID(0x86AB4BBE, 0x65F6, 0x11D1, [0x8C, 0x13, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]);
+@GUID("86AB4BBE-65F6-11D1-8C13-00C04FD8D503")
 interface IPrivateDispatch : IUnknown
 {
     HRESULT ADSIInitializeDispatchManager(int dwExtensionId);
     HRESULT ADSIGetTypeInfoCount(uint* pctinfo);
     HRESULT ADSIGetTypeInfo(uint itinfo, uint lcid, ITypeInfo* pptinfo);
-    HRESULT ADSIGetIDsOfNames(const(Guid)* riid, ushort** rgszNames, uint cNames, uint lcid, int* rgdispid);
-    HRESULT ADSIInvoke(int dispidMember, const(Guid)* riid, uint lcid, ushort wFlags, DISPPARAMS* pdispparams, VARIANT* pvarResult, EXCEPINFO* pexcepinfo, uint* puArgErr);
+    HRESULT ADSIGetIDsOfNames(const(GUID)* riid, ushort** rgszNames, uint cNames, uint lcid, int* rgdispid);
+    HRESULT ADSIInvoke(int dispidMember, const(GUID)* riid, uint lcid, ushort wFlags, DISPPARAMS* pdispparams, 
+                       VARIANT* pvarResult, EXCEPINFO* pexcepinfo, uint* puArgErr);
 }
 
-const GUID IID_IPrivateUnknown = {0x89126BAB, 0x6EAD, 0x11D1, [0x8C, 0x18, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]};
-@GUID(0x89126BAB, 0x6EAD, 0x11D1, [0x8C, 0x18, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]);
+@GUID("89126BAB-6EAD-11D1-8C18-00C04FD8D503")
 interface IPrivateUnknown : IUnknown
 {
     HRESULT ADSIInitializeObject(BSTR lpszUserName, BSTR lpszPassword, int lnReserved);
     HRESULT ADSIReleaseObject();
 }
 
-const GUID IID_IADsExtension = {0x3D35553C, 0xD2B0, 0x11D1, [0xB1, 0x7B, 0x00, 0x00, 0xF8, 0x75, 0x93, 0xA0]};
-@GUID(0x3D35553C, 0xD2B0, 0x11D1, [0xB1, 0x7B, 0x00, 0x00, 0xF8, 0x75, 0x93, 0xA0]);
+@GUID("3D35553C-D2B0-11D1-B17B-0000F87593A0")
 interface IADsExtension : IUnknown
 {
     HRESULT Operate(uint dwCode, VARIANT varData1, VARIANT varData2, VARIANT varData3);
-    HRESULT PrivateGetIDsOfNames(const(Guid)* riid, ushort** rgszNames, uint cNames, uint lcid, int* rgDispid);
-    HRESULT PrivateInvoke(int dispidMember, const(Guid)* riid, uint lcid, ushort wFlags, DISPPARAMS* pdispparams, VARIANT* pvarResult, EXCEPINFO* pexcepinfo, uint* puArgErr);
+    HRESULT PrivateGetIDsOfNames(const(GUID)* riid, ushort** rgszNames, uint cNames, uint lcid, int* rgDispid);
+    HRESULT PrivateInvoke(int dispidMember, const(GUID)* riid, uint lcid, ushort wFlags, DISPPARAMS* pdispparams, 
+                          VARIANT* pvarResult, EXCEPINFO* pexcepinfo, uint* puArgErr);
 }
 
-const GUID IID_IADsDeleteOps = {0xB2BD0902, 0x8878, 0x11D1, [0x8C, 0x21, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]};
-@GUID(0xB2BD0902, 0x8878, 0x11D1, [0x8C, 0x21, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]);
+@GUID("B2BD0902-8878-11D1-8C21-00C04FD8D503")
 interface IADsDeleteOps : IDispatch
 {
     HRESULT DeleteObject(int lnFlags);
 }
 
-const GUID IID_IADsNamespaces = {0x28B96BA0, 0xB330, 0x11CF, [0xA9, 0xAD, 0x00, 0xAA, 0x00, 0x6B, 0xC1, 0x49]};
-@GUID(0x28B96BA0, 0xB330, 0x11CF, [0xA9, 0xAD, 0x00, 0xAA, 0x00, 0x6B, 0xC1, 0x49]);
+@GUID("28B96BA0-B330-11CF-A9AD-00AA006BC149")
 interface IADsNamespaces : IADs
 {
     HRESULT get_DefaultContainer(BSTR* retval);
     HRESULT put_DefaultContainer(BSTR bstrDefaultContainer);
 }
 
-const GUID IID_IADsClass = {0xC8F93DD0, 0x4AE0, 0x11CF, [0x9E, 0x73, 0x00, 0xAA, 0x00, 0x4A, 0x56, 0x91]};
-@GUID(0xC8F93DD0, 0x4AE0, 0x11CF, [0x9E, 0x73, 0x00, 0xAA, 0x00, 0x4A, 0x56, 0x91]);
+@GUID("C8F93DD0-4AE0-11CF-9E73-00AA004A5691")
 interface IADsClass : IADs
 {
     HRESULT get_PrimaryInterface(BSTR* retval);
@@ -937,8 +2522,7 @@ interface IADsClass : IADs
     HRESULT Qualifiers(IADsCollection* ppQualifiers);
 }
 
-const GUID IID_IADsProperty = {0xC8F93DD3, 0x4AE0, 0x11CF, [0x9E, 0x73, 0x00, 0xAA, 0x00, 0x4A, 0x56, 0x91]};
-@GUID(0xC8F93DD3, 0x4AE0, 0x11CF, [0x9E, 0x73, 0x00, 0xAA, 0x00, 0x4A, 0x56, 0x91]);
+@GUID("C8F93DD3-4AE0-11CF-9E73-00AA004A5691")
 interface IADsProperty : IADs
 {
     HRESULT get_OID(BSTR* retval);
@@ -954,16 +2538,14 @@ interface IADsProperty : IADs
     HRESULT Qualifiers(IADsCollection* ppQualifiers);
 }
 
-const GUID IID_IADsSyntax = {0xC8F93DD2, 0x4AE0, 0x11CF, [0x9E, 0x73, 0x00, 0xAA, 0x00, 0x4A, 0x56, 0x91]};
-@GUID(0xC8F93DD2, 0x4AE0, 0x11CF, [0x9E, 0x73, 0x00, 0xAA, 0x00, 0x4A, 0x56, 0x91]);
+@GUID("C8F93DD2-4AE0-11CF-9E73-00AA004A5691")
 interface IADsSyntax : IADs
 {
     HRESULT get_OleAutoDataType(int* retval);
     HRESULT put_OleAutoDataType(int lnOleAutoDataType);
 }
 
-const GUID IID_IADsLocality = {0xA05E03A2, 0xEFFE, 0x11CF, [0x8A, 0xBC, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]};
-@GUID(0xA05E03A2, 0xEFFE, 0x11CF, [0x8A, 0xBC, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]);
+@GUID("A05E03A2-EFFE-11CF-8ABC-00C04FD8D503")
 interface IADsLocality : IADs
 {
     HRESULT get_Description(BSTR* retval);
@@ -976,8 +2558,7 @@ interface IADsLocality : IADs
     HRESULT put_SeeAlso(VARIANT vSeeAlso);
 }
 
-const GUID IID_IADsO = {0xA1CD2DC6, 0xEFFE, 0x11CF, [0x8A, 0xBC, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]};
-@GUID(0xA1CD2DC6, 0xEFFE, 0x11CF, [0x8A, 0xBC, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]);
+@GUID("A1CD2DC6-EFFE-11CF-8ABC-00C04FD8D503")
 interface IADsO : IADs
 {
     HRESULT get_Description(BSTR* retval);
@@ -994,8 +2575,7 @@ interface IADsO : IADs
     HRESULT put_SeeAlso(VARIANT vSeeAlso);
 }
 
-const GUID IID_IADsOU = {0xA2F733B8, 0xEFFE, 0x11CF, [0x8A, 0xBC, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]};
-@GUID(0xA2F733B8, 0xEFFE, 0x11CF, [0x8A, 0xBC, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]);
+@GUID("A2F733B8-EFFE-11CF-8ABC-00C04FD8D503")
 interface IADsOU : IADs
 {
     HRESULT get_Description(BSTR* retval);
@@ -1014,8 +2594,7 @@ interface IADsOU : IADs
     HRESULT put_BusinessCategory(BSTR bstrBusinessCategory);
 }
 
-const GUID IID_IADsDomain = {0x00E4C220, 0xFD16, 0x11CE, [0xAB, 0xC4, 0x02, 0x60, 0x8C, 0x9E, 0x75, 0x53]};
-@GUID(0x00E4C220, 0xFD16, 0x11CE, [0xAB, 0xC4, 0x02, 0x60, 0x8C, 0x9E, 0x75, 0x53]);
+@GUID("00E4C220-FD16-11CE-ABC4-02608C9E7553")
 interface IADsDomain : IADs
 {
     HRESULT get_IsWorkgroup(short* retval);
@@ -1037,8 +2616,7 @@ interface IADsDomain : IADs
     HRESULT put_LockoutObservationInterval(int lnLockoutObservationInterval);
 }
 
-const GUID IID_IADsComputer = {0xEFE3CC70, 0x1D9F, 0x11CF, [0xB1, 0xF3, 0x02, 0x60, 0x8C, 0x9E, 0x75, 0x53]};
-@GUID(0xEFE3CC70, 0x1D9F, 0x11CF, [0xB1, 0xF3, 0x02, 0x60, 0x8C, 0x9E, 0x75, 0x53]);
+@GUID("EFE3CC70-1D9F-11CF-B1F3-02608C9E7553")
 interface IADsComputer : IADs
 {
     HRESULT get_ComputerID(BSTR* retval);
@@ -1075,16 +2653,14 @@ interface IADsComputer : IADs
     HRESULT put_NetAddresses(VARIANT vNetAddresses);
 }
 
-const GUID IID_IADsComputerOperations = {0xEF497680, 0x1D9F, 0x11CF, [0xB1, 0xF3, 0x02, 0x60, 0x8C, 0x9E, 0x75, 0x53]};
-@GUID(0xEF497680, 0x1D9F, 0x11CF, [0xB1, 0xF3, 0x02, 0x60, 0x8C, 0x9E, 0x75, 0x53]);
+@GUID("EF497680-1D9F-11CF-B1F3-02608C9E7553")
 interface IADsComputerOperations : IADs
 {
     HRESULT Status(IDispatch* ppObject);
     HRESULT Shutdown(short bReboot);
 }
 
-const GUID IID_IADsGroup = {0x27636B00, 0x410F, 0x11CF, [0xB1, 0xFF, 0x02, 0x60, 0x8C, 0x9E, 0x75, 0x53]};
-@GUID(0x27636B00, 0x410F, 0x11CF, [0xB1, 0xFF, 0x02, 0x60, 0x8C, 0x9E, 0x75, 0x53]);
+@GUID("27636B00-410F-11CF-B1FF-02608C9E7553")
 interface IADsGroup : IADs
 {
     HRESULT get_Description(BSTR* retval);
@@ -1095,8 +2671,7 @@ interface IADsGroup : IADs
     HRESULT Remove(BSTR bstrItemToBeRemoved);
 }
 
-const GUID IID_IADsUser = {0x3E37E320, 0x17E2, 0x11CF, [0xAB, 0xC4, 0x02, 0x60, 0x8C, 0x9E, 0x75, 0x53]};
-@GUID(0x3E37E320, 0x17E2, 0x11CF, [0xAB, 0xC4, 0x02, 0x60, 0x8C, 0x9E, 0x75, 0x53]);
+@GUID("3E37E320-17E2-11CF-ABC4-02608C9E7553")
 interface IADsUser : IADs
 {
     HRESULT get_BadLoginAddress(BSTR* retval);
@@ -1192,8 +2767,7 @@ interface IADsUser : IADs
     HRESULT ChangePassword(BSTR bstrOldPassword, BSTR bstrNewPassword);
 }
 
-const GUID IID_IADsPrintQueue = {0xB15160D0, 0x1226, 0x11CF, [0xA9, 0x85, 0x00, 0xAA, 0x00, 0x6B, 0xC1, 0x49]};
-@GUID(0xB15160D0, 0x1226, 0x11CF, [0xA9, 0x85, 0x00, 0xAA, 0x00, 0x6B, 0xC1, 0x49]);
+@GUID("B15160D0-1226-11CF-A985-00AA006BC149")
 interface IADsPrintQueue : IADs
 {
     HRESULT get_PrinterPath(BSTR* retval);
@@ -1224,8 +2798,7 @@ interface IADsPrintQueue : IADs
     HRESULT put_NetAddresses(VARIANT vNetAddresses);
 }
 
-const GUID IID_IADsPrintQueueOperations = {0x124BE5C0, 0x156E, 0x11CF, [0xA9, 0x86, 0x00, 0xAA, 0x00, 0x6B, 0xC1, 0x49]};
-@GUID(0x124BE5C0, 0x156E, 0x11CF, [0xA9, 0x86, 0x00, 0xAA, 0x00, 0x6B, 0xC1, 0x49]);
+@GUID("124BE5C0-156E-11CF-A986-00AA006BC149")
 interface IADsPrintQueueOperations : IADs
 {
     HRESULT get_Status(int* retval);
@@ -1235,8 +2808,7 @@ interface IADsPrintQueueOperations : IADs
     HRESULT Purge();
 }
 
-const GUID IID_IADsPrintJob = {0x32FB6780, 0x1ED0, 0x11CF, [0xA9, 0x88, 0x00, 0xAA, 0x00, 0x6B, 0xC1, 0x49]};
-@GUID(0x32FB6780, 0x1ED0, 0x11CF, [0xA9, 0x88, 0x00, 0xAA, 0x00, 0x6B, 0xC1, 0x49]);
+@GUID("32FB6780-1ED0-11CF-A988-00AA006BC149")
 interface IADsPrintJob : IADs
 {
     HRESULT get_HostPrintQueue(BSTR* retval);
@@ -1259,8 +2831,7 @@ interface IADsPrintJob : IADs
     HRESULT put_NotifyPath(BSTR bstrNotifyPath);
 }
 
-const GUID IID_IADsPrintJobOperations = {0x9A52DB30, 0x1ECF, 0x11CF, [0xA9, 0x88, 0x00, 0xAA, 0x00, 0x6B, 0xC1, 0x49]};
-@GUID(0x9A52DB30, 0x1ECF, 0x11CF, [0xA9, 0x88, 0x00, 0xAA, 0x00, 0x6B, 0xC1, 0x49]);
+@GUID("9A52DB30-1ECF-11CF-A988-00AA006BC149")
 interface IADsPrintJobOperations : IADs
 {
     HRESULT get_Status(int* retval);
@@ -1272,8 +2843,7 @@ interface IADsPrintJobOperations : IADs
     HRESULT Resume();
 }
 
-const GUID IID_IADsService = {0x68AF66E0, 0x31CA, 0x11CF, [0xA9, 0x8A, 0x00, 0xAA, 0x00, 0x6B, 0xC1, 0x49]};
-@GUID(0x68AF66E0, 0x31CA, 0x11CF, [0xA9, 0x8A, 0x00, 0xAA, 0x00, 0x6B, 0xC1, 0x49]);
+@GUID("68AF66E0-31CA-11CF-A98A-00AA006BC149")
 interface IADsService : IADs
 {
     HRESULT get_HostComputer(BSTR* retval);
@@ -1302,8 +2872,7 @@ interface IADsService : IADs
     HRESULT put_Dependencies(VARIANT vDependencies);
 }
 
-const GUID IID_IADsServiceOperations = {0x5D7B33F0, 0x31CA, 0x11CF, [0xA9, 0x8A, 0x00, 0xAA, 0x00, 0x6B, 0xC1, 0x49]};
-@GUID(0x5D7B33F0, 0x31CA, 0x11CF, [0xA9, 0x8A, 0x00, 0xAA, 0x00, 0x6B, 0xC1, 0x49]);
+@GUID("5D7B33F0-31CA-11CF-A98A-00AA006BC149")
 interface IADsServiceOperations : IADs
 {
     HRESULT get_Status(int* retval);
@@ -1314,8 +2883,7 @@ interface IADsServiceOperations : IADs
     HRESULT SetPassword(BSTR bstrNewPassword);
 }
 
-const GUID IID_IADsFileService = {0xA89D1900, 0x31CA, 0x11CF, [0xA9, 0x8A, 0x00, 0xAA, 0x00, 0x6B, 0xC1, 0x49]};
-@GUID(0xA89D1900, 0x31CA, 0x11CF, [0xA9, 0x8A, 0x00, 0xAA, 0x00, 0x6B, 0xC1, 0x49]);
+@GUID("A89D1900-31CA-11CF-A98A-00AA006BC149")
 interface IADsFileService : IADsService
 {
     HRESULT get_Description(BSTR* retval);
@@ -1324,16 +2892,14 @@ interface IADsFileService : IADsService
     HRESULT put_MaxUserCount(int lnMaxUserCount);
 }
 
-const GUID IID_IADsFileServiceOperations = {0xA02DED10, 0x31CA, 0x11CF, [0xA9, 0x8A, 0x00, 0xAA, 0x00, 0x6B, 0xC1, 0x49]};
-@GUID(0xA02DED10, 0x31CA, 0x11CF, [0xA9, 0x8A, 0x00, 0xAA, 0x00, 0x6B, 0xC1, 0x49]);
+@GUID("A02DED10-31CA-11CF-A98A-00AA006BC149")
 interface IADsFileServiceOperations : IADsServiceOperations
 {
     HRESULT Sessions(IADsCollection* ppSessions);
     HRESULT Resources(IADsCollection* ppResources);
 }
 
-const GUID IID_IADsFileShare = {0xEB6DCAF0, 0x4B83, 0x11CF, [0xA9, 0x95, 0x00, 0xAA, 0x00, 0x6B, 0xC1, 0x49]};
-@GUID(0xEB6DCAF0, 0x4B83, 0x11CF, [0xA9, 0x95, 0x00, 0xAA, 0x00, 0x6B, 0xC1, 0x49]);
+@GUID("EB6DCAF0-4B83-11CF-A995-00AA006BC149")
 interface IADsFileShare : IADs
 {
     HRESULT get_CurrentUserCount(int* retval);
@@ -1347,8 +2913,7 @@ interface IADsFileShare : IADs
     HRESULT put_MaxUserCount(int lnMaxUserCount);
 }
 
-const GUID IID_IADsSession = {0x398B7DA0, 0x4AAB, 0x11CF, [0xAE, 0x2C, 0x00, 0xAA, 0x00, 0x6E, 0xBF, 0xB9]};
-@GUID(0x398B7DA0, 0x4AAB, 0x11CF, [0xAE, 0x2C, 0x00, 0xAA, 0x00, 0x6E, 0xBF, 0xB9]);
+@GUID("398B7DA0-4AAB-11CF-AE2C-00AA006EBFB9")
 interface IADsSession : IADs
 {
     HRESULT get_User(BSTR* retval);
@@ -1359,8 +2924,7 @@ interface IADsSession : IADs
     HRESULT get_IdleTime(int* retval);
 }
 
-const GUID IID_IADsResource = {0x34A05B20, 0x4AAB, 0x11CF, [0xAE, 0x2C, 0x00, 0xAA, 0x00, 0x6E, 0xBF, 0xB9]};
-@GUID(0x34A05B20, 0x4AAB, 0x11CF, [0xAE, 0x2C, 0x00, 0xAA, 0x00, 0x6E, 0xBF, 0xB9]);
+@GUID("34A05B20-4AAB-11CF-AE2C-00AA006EBFB9")
 interface IADsResource : IADs
 {
     HRESULT get_User(BSTR* retval);
@@ -1369,74 +2933,74 @@ interface IADsResource : IADs
     HRESULT get_LockCount(int* retval);
 }
 
-const GUID IID_IADsOpenDSObject = {0xDDF2891E, 0x0F9C, 0x11D0, [0x8A, 0xD4, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]};
-@GUID(0xDDF2891E, 0x0F9C, 0x11D0, [0x8A, 0xD4, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]);
+@GUID("DDF2891E-0F9C-11D0-8AD4-00C04FD8D503")
 interface IADsOpenDSObject : IDispatch
 {
-    HRESULT OpenDSObject(BSTR lpszDNName, BSTR lpszUserName, BSTR lpszPassword, int lnReserved, IDispatch* ppOleDsObj);
+    HRESULT OpenDSObject(BSTR lpszDNName, BSTR lpszUserName, BSTR lpszPassword, int lnReserved, 
+                         IDispatch* ppOleDsObj);
 }
 
-const GUID IID_IDirectoryObject = {0xE798DE2C, 0x22E4, 0x11D0, [0x84, 0xFE, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]};
-@GUID(0xE798DE2C, 0x22E4, 0x11D0, [0x84, 0xFE, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]);
+@GUID("E798DE2C-22E4-11D0-84FE-00C04FD8D503")
 interface IDirectoryObject : IUnknown
 {
     HRESULT GetObjectInformation(ADS_OBJECT_INFO** ppObjInfo);
-    HRESULT GetObjectAttributes(ushort** pAttributeNames, uint dwNumberAttributes, ADS_ATTR_INFO** ppAttributeEntries, uint* pdwNumAttributesReturned);
-    HRESULT SetObjectAttributes(ADS_ATTR_INFO* pAttributeEntries, uint dwNumAttributes, uint* pdwNumAttributesModified);
-    HRESULT CreateDSObject(const(wchar)* pszRDNName, ADS_ATTR_INFO* pAttributeEntries, uint dwNumAttributes, IDispatch* ppObject);
+    HRESULT GetObjectAttributes(ushort** pAttributeNames, uint dwNumberAttributes, 
+                                ADS_ATTR_INFO** ppAttributeEntries, uint* pdwNumAttributesReturned);
+    HRESULT SetObjectAttributes(ADS_ATTR_INFO* pAttributeEntries, uint dwNumAttributes, 
+                                uint* pdwNumAttributesModified);
+    HRESULT CreateDSObject(const(wchar)* pszRDNName, ADS_ATTR_INFO* pAttributeEntries, uint dwNumAttributes, 
+                           IDispatch* ppObject);
     HRESULT DeleteDSObject(const(wchar)* pszRDNName);
 }
 
-const GUID IID_IDirectorySearch = {0x109BA8EC, 0x92F0, 0x11D0, [0xA7, 0x90, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0xA8]};
-@GUID(0x109BA8EC, 0x92F0, 0x11D0, [0xA7, 0x90, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0xA8]);
+@GUID("109BA8EC-92F0-11D0-A790-00C04FD8D5A8")
 interface IDirectorySearch : IUnknown
 {
     HRESULT SetSearchPreference(ads_searchpref_info* pSearchPrefs, uint dwNumPrefs);
-    HRESULT ExecuteSearch(const(wchar)* pszSearchFilter, ushort** pAttributeNames, uint dwNumberAttributes, int* phSearchResult);
-    HRESULT AbandonSearch(int phSearchResult);
-    HRESULT GetFirstRow(int hSearchResult);
-    HRESULT GetNextRow(int hSearchResult);
-    HRESULT GetPreviousRow(int hSearchResult);
-    HRESULT GetNextColumnName(int hSearchHandle, ushort** ppszColumnName);
-    HRESULT GetColumn(int hSearchResult, const(wchar)* szColumnName, ads_search_column* pSearchColumn);
+    HRESULT ExecuteSearch(const(wchar)* pszSearchFilter, ushort** pAttributeNames, uint dwNumberAttributes, 
+                          ptrdiff_t* phSearchResult);
+    HRESULT AbandonSearch(ptrdiff_t phSearchResult);
+    HRESULT GetFirstRow(ptrdiff_t hSearchResult);
+    HRESULT GetNextRow(ptrdiff_t hSearchResult);
+    HRESULT GetPreviousRow(ptrdiff_t hSearchResult);
+    HRESULT GetNextColumnName(ptrdiff_t hSearchHandle, ushort** ppszColumnName);
+    HRESULT GetColumn(ptrdiff_t hSearchResult, const(wchar)* szColumnName, ads_search_column* pSearchColumn);
     HRESULT FreeColumn(ads_search_column* pSearchColumn);
-    HRESULT CloseSearchHandle(int hSearchResult);
+    HRESULT CloseSearchHandle(ptrdiff_t hSearchResult);
 }
 
-const GUID IID_IDirectorySchemaMgmt = {0x75DB3B9C, 0xA4D8, 0x11D0, [0xA7, 0x9C, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0xA8]};
-@GUID(0x75DB3B9C, 0xA4D8, 0x11D0, [0xA7, 0x9C, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0xA8]);
+@GUID("75DB3B9C-A4D8-11D0-A79C-00C04FD8D5A8")
 interface IDirectorySchemaMgmt : IUnknown
 {
-    HRESULT EnumAttributes(ushort** ppszAttrNames, uint dwNumAttributes, ADS_ATTR_DEF** ppAttrDefinition, uint* pdwNumAttributes);
+    HRESULT EnumAttributes(ushort** ppszAttrNames, uint dwNumAttributes, ADS_ATTR_DEF** ppAttrDefinition, 
+                           uint* pdwNumAttributes);
     HRESULT CreateAttributeDefinition(const(wchar)* pszAttributeName, ADS_ATTR_DEF* pAttributeDefinition);
     HRESULT WriteAttributeDefinition(const(wchar)* pszAttributeName, ADS_ATTR_DEF* pAttributeDefinition);
     HRESULT DeleteAttributeDefinition(const(wchar)* pszAttributeName);
-    HRESULT EnumClasses(ushort** ppszClassNames, uint dwNumClasses, ADS_CLASS_DEF** ppClassDefinition, uint* pdwNumClasses);
+    HRESULT EnumClasses(ushort** ppszClassNames, uint dwNumClasses, ADS_CLASS_DEF** ppClassDefinition, 
+                        uint* pdwNumClasses);
     HRESULT WriteClassDefinition(const(wchar)* pszClassName, ADS_CLASS_DEF* pClassDefinition);
     HRESULT CreateClassDefinition(const(wchar)* pszClassName, ADS_CLASS_DEF* pClassDefinition);
     HRESULT DeleteClassDefinition(const(wchar)* pszClassName);
 }
 
-const GUID IID_IADsAggregatee = {0x1346CE8C, 0x9039, 0x11D0, [0x85, 0x28, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]};
-@GUID(0x1346CE8C, 0x9039, 0x11D0, [0x85, 0x28, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]);
+@GUID("1346CE8C-9039-11D0-8528-00C04FD8D503")
 interface IADsAggregatee : IUnknown
 {
     HRESULT ConnectAsAggregatee(IUnknown pOuterUnknown);
     HRESULT DisconnectAsAggregatee();
-    HRESULT RelinquishInterface(const(Guid)* riid);
-    HRESULT RestoreInterface(const(Guid)* riid);
+    HRESULT RelinquishInterface(const(GUID)* riid);
+    HRESULT RestoreInterface(const(GUID)* riid);
 }
 
-const GUID IID_IADsAggregator = {0x52DB5FB0, 0x941F, 0x11D0, [0x85, 0x29, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]};
-@GUID(0x52DB5FB0, 0x941F, 0x11D0, [0x85, 0x29, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]);
+@GUID("52DB5FB0-941F-11D0-8529-00C04FD8D503")
 interface IADsAggregator : IUnknown
 {
     HRESULT ConnectAsAggregator(IUnknown pAggregatee);
     HRESULT DisconnectAsAggregator();
 }
 
-const GUID IID_IADsAccessControlEntry = {0xB4F3A14C, 0x9BDD, 0x11D0, [0x85, 0x2C, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]};
-@GUID(0xB4F3A14C, 0x9BDD, 0x11D0, [0x85, 0x2C, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]);
+@GUID("B4F3A14C-9BDD-11D0-852C-00C04FD8D503")
 interface IADsAccessControlEntry : IDispatch
 {
     HRESULT get_AccessMask(int* retval);
@@ -1455,8 +3019,7 @@ interface IADsAccessControlEntry : IDispatch
     HRESULT put_Trustee(BSTR bstrTrustee);
 }
 
-const GUID IID_IADsAccessControlList = {0xB7EE91CC, 0x9BDD, 0x11D0, [0x85, 0x2C, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]};
-@GUID(0xB7EE91CC, 0x9BDD, 0x11D0, [0x85, 0x2C, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]);
+@GUID("B7EE91CC-9BDD-11D0-852C-00C04FD8D503")
 interface IADsAccessControlList : IDispatch
 {
     HRESULT get_AclRevision(int* retval);
@@ -1469,8 +3032,7 @@ interface IADsAccessControlList : IDispatch
     HRESULT get__NewEnum(IUnknown* retval);
 }
 
-const GUID IID_IADsSecurityDescriptor = {0xB8C787CA, 0x9BDD, 0x11D0, [0x85, 0x2C, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]};
-@GUID(0xB8C787CA, 0x9BDD, 0x11D0, [0x85, 0x2C, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]);
+@GUID("B8C787CA-9BDD-11D0-852C-00C04FD8D503")
 interface IADsSecurityDescriptor : IDispatch
 {
     HRESULT get_Revision(int* retval);
@@ -1496,8 +3058,7 @@ interface IADsSecurityDescriptor : IDispatch
     HRESULT CopySecurityDescriptor(IDispatch* ppSecurityDescriptor);
 }
 
-const GUID IID_IADsLargeInteger = {0x9068270B, 0x0939, 0x11D1, [0x8B, 0xE1, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]};
-@GUID(0x9068270B, 0x0939, 0x11D1, [0x8B, 0xE1, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x03]);
+@GUID("9068270B-0939-11D1-8BE1-00C04FD8D503")
 interface IADsLargeInteger : IDispatch
 {
     HRESULT get_HighPart(int* retval);
@@ -1506,8 +3067,7 @@ interface IADsLargeInteger : IDispatch
     HRESULT put_LowPart(int lnLowPart);
 }
 
-const GUID IID_IADsNameTranslate = {0xB1B272A3, 0x3625, 0x11D1, [0xA3, 0xA4, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]};
-@GUID(0xB1B272A3, 0x3625, 0x11D1, [0xA3, 0xA4, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]);
+@GUID("B1B272A3-3625-11D1-A3A4-00C04FB950DC")
 interface IADsNameTranslate : IDispatch
 {
     HRESULT put_ChaseReferral(int lnChaseReferral);
@@ -1519,16 +3079,14 @@ interface IADsNameTranslate : IDispatch
     HRESULT GetEx(int lnFormatType, VARIANT* pvar);
 }
 
-const GUID IID_IADsCaseIgnoreList = {0x7B66B533, 0x4680, 0x11D1, [0xA3, 0xB4, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]};
-@GUID(0x7B66B533, 0x4680, 0x11D1, [0xA3, 0xB4, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]);
+@GUID("7B66B533-4680-11D1-A3B4-00C04FB950DC")
 interface IADsCaseIgnoreList : IDispatch
 {
     HRESULT get_CaseIgnoreList(VARIANT* retval);
     HRESULT put_CaseIgnoreList(VARIANT vCaseIgnoreList);
 }
 
-const GUID IID_IADsFaxNumber = {0xA910DEA9, 0x4680, 0x11D1, [0xA3, 0xB4, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]};
-@GUID(0xA910DEA9, 0x4680, 0x11D1, [0xA3, 0xB4, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]);
+@GUID("A910DEA9-4680-11D1-A3B4-00C04FB950DC")
 interface IADsFaxNumber : IDispatch
 {
     HRESULT get_TelephoneNumber(BSTR* retval);
@@ -1537,8 +3095,7 @@ interface IADsFaxNumber : IDispatch
     HRESULT put_Parameters(VARIANT vParameters);
 }
 
-const GUID IID_IADsNetAddress = {0xB21A50A9, 0x4080, 0x11D1, [0xA3, 0xAC, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]};
-@GUID(0xB21A50A9, 0x4080, 0x11D1, [0xA3, 0xAC, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]);
+@GUID("B21A50A9-4080-11D1-A3AC-00C04FB950DC")
 interface IADsNetAddress : IDispatch
 {
     HRESULT get_AddressType(int* retval);
@@ -1547,16 +3104,14 @@ interface IADsNetAddress : IDispatch
     HRESULT put_Address(VARIANT vAddress);
 }
 
-const GUID IID_IADsOctetList = {0x7B28B80F, 0x4680, 0x11D1, [0xA3, 0xB4, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]};
-@GUID(0x7B28B80F, 0x4680, 0x11D1, [0xA3, 0xB4, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]);
+@GUID("7B28B80F-4680-11D1-A3B4-00C04FB950DC")
 interface IADsOctetList : IDispatch
 {
     HRESULT get_OctetList(VARIANT* retval);
     HRESULT put_OctetList(VARIANT vOctetList);
 }
 
-const GUID IID_IADsEmail = {0x97AF011A, 0x478E, 0x11D1, [0xA3, 0xB4, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]};
-@GUID(0x97AF011A, 0x478E, 0x11D1, [0xA3, 0xB4, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]);
+@GUID("97AF011A-478E-11D1-A3B4-00C04FB950DC")
 interface IADsEmail : IDispatch
 {
     HRESULT get_Type(int* retval);
@@ -1565,8 +3120,7 @@ interface IADsEmail : IDispatch
     HRESULT put_Address(BSTR bstrAddress);
 }
 
-const GUID IID_IADsPath = {0xB287FCD5, 0x4080, 0x11D1, [0xA3, 0xAC, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]};
-@GUID(0xB287FCD5, 0x4080, 0x11D1, [0xA3, 0xAC, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]);
+@GUID("B287FCD5-4080-11D1-A3AC-00C04FB950DC")
 interface IADsPath : IDispatch
 {
     HRESULT get_Type(int* retval);
@@ -1577,8 +3131,7 @@ interface IADsPath : IDispatch
     HRESULT put_Path(BSTR bstrPath);
 }
 
-const GUID IID_IADsReplicaPointer = {0xF60FB803, 0x4080, 0x11D1, [0xA3, 0xAC, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]};
-@GUID(0xF60FB803, 0x4080, 0x11D1, [0xA3, 0xAC, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]);
+@GUID("F60FB803-4080-11D1-A3AC-00C04FB950DC")
 interface IADsReplicaPointer : IDispatch
 {
     HRESULT get_ServerName(BSTR* retval);
@@ -1593,8 +3146,7 @@ interface IADsReplicaPointer : IDispatch
     HRESULT put_ReplicaAddressHints(VARIANT vReplicaAddressHints);
 }
 
-const GUID IID_IADsAcl = {0x8452D3AB, 0x0869, 0x11D1, [0xA3, 0x77, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]};
-@GUID(0x8452D3AB, 0x0869, 0x11D1, [0xA3, 0x77, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]);
+@GUID("8452D3AB-0869-11D1-A377-00C04FB950DC")
 interface IADsAcl : IDispatch
 {
     HRESULT get_ProtectedAttrName(BSTR* retval);
@@ -1606,8 +3158,7 @@ interface IADsAcl : IDispatch
     HRESULT CopyAcl(IDispatch* ppAcl);
 }
 
-const GUID IID_IADsTimestamp = {0xB2F5A901, 0x4080, 0x11D1, [0xA3, 0xAC, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]};
-@GUID(0xB2F5A901, 0x4080, 0x11D1, [0xA3, 0xAC, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]);
+@GUID("B2F5A901-4080-11D1-A3AC-00C04FB950DC")
 interface IADsTimestamp : IDispatch
 {
     HRESULT get_WholeSeconds(int* retval);
@@ -1616,16 +3167,14 @@ interface IADsTimestamp : IDispatch
     HRESULT put_EventID(int lnEventID);
 }
 
-const GUID IID_IADsPostalAddress = {0x7ADECF29, 0x4680, 0x11D1, [0xA3, 0xB4, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]};
-@GUID(0x7ADECF29, 0x4680, 0x11D1, [0xA3, 0xB4, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]);
+@GUID("7ADECF29-4680-11D1-A3B4-00C04FB950DC")
 interface IADsPostalAddress : IDispatch
 {
     HRESULT get_PostalAddress(VARIANT* retval);
     HRESULT put_PostalAddress(VARIANT vPostalAddress);
 }
 
-const GUID IID_IADsBackLink = {0xFD1302BD, 0x4080, 0x11D1, [0xA3, 0xAC, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]};
-@GUID(0xFD1302BD, 0x4080, 0x11D1, [0xA3, 0xAC, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]);
+@GUID("FD1302BD-4080-11D1-A3AC-00C04FB950DC")
 interface IADsBackLink : IDispatch
 {
     HRESULT get_RemoteID(int* retval);
@@ -1634,8 +3183,7 @@ interface IADsBackLink : IDispatch
     HRESULT put_ObjectName(BSTR bstrObjectName);
 }
 
-const GUID IID_IADsTypedName = {0xB371A349, 0x4080, 0x11D1, [0xA3, 0xAC, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]};
-@GUID(0xB371A349, 0x4080, 0x11D1, [0xA3, 0xAC, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]);
+@GUID("B371A349-4080-11D1-A3AC-00C04FB950DC")
 interface IADsTypedName : IDispatch
 {
     HRESULT get_ObjectName(BSTR* retval);
@@ -1646,8 +3194,7 @@ interface IADsTypedName : IDispatch
     HRESULT put_Interval(int lnInterval);
 }
 
-const GUID IID_IADsHold = {0xB3EB3B37, 0x4080, 0x11D1, [0xA3, 0xAC, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]};
-@GUID(0xB3EB3B37, 0x4080, 0x11D1, [0xA3, 0xAC, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]);
+@GUID("B3EB3B37-4080-11D1-A3AC-00C04FB950DC")
 interface IADsHold : IDispatch
 {
     HRESULT get_ObjectName(BSTR* retval);
@@ -1656,16 +3203,14 @@ interface IADsHold : IDispatch
     HRESULT put_Amount(int lnAmount);
 }
 
-const GUID IID_IADsObjectOptions = {0x46F14FDA, 0x232B, 0x11D1, [0xA8, 0x08, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0xA8]};
-@GUID(0x46F14FDA, 0x232B, 0x11D1, [0xA8, 0x08, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0xA8]);
+@GUID("46F14FDA-232B-11D1-A808-00C04FD8D5A8")
 interface IADsObjectOptions : IDispatch
 {
     HRESULT GetOption(int lnOption, VARIANT* pvValue);
     HRESULT SetOption(int lnOption, VARIANT vValue);
 }
 
-const GUID IID_IADsPathname = {0xD592AED4, 0xF420, 0x11D0, [0xA3, 0x6E, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]};
-@GUID(0xD592AED4, 0xF420, 0x11D0, [0xA3, 0x6E, 0x00, 0xC0, 0x4F, 0xB9, 0x50, 0xDC]);
+@GUID("D592AED4-F420-11D0-A36E-00C04FB950DC")
 interface IADsPathname : IDispatch
 {
     HRESULT Set(BSTR bstrADsPath, int lnSetType);
@@ -1681,8 +3226,7 @@ interface IADsPathname : IDispatch
     HRESULT put_EscapedMode(int lnEscapedMode);
 }
 
-const GUID IID_IADsADSystemInfo = {0x5BB11929, 0xAFD1, 0x11D2, [0x9C, 0xB9, 0x00, 0x00, 0xF8, 0x7A, 0x36, 0x9E]};
-@GUID(0x5BB11929, 0xAFD1, 0x11D2, [0x9C, 0xB9, 0x00, 0x00, 0xF8, 0x7A, 0x36, 0x9E]);
+@GUID("5BB11929-AFD1-11D2-9CB9-0000F87A369E")
 interface IADsADSystemInfo : IDispatch
 {
     HRESULT get_UserName(BSTR* retval);
@@ -1700,8 +3244,7 @@ interface IADsADSystemInfo : IDispatch
     HRESULT GetTrees(VARIANT* pvTrees);
 }
 
-const GUID IID_IADsWinNTSystemInfo = {0x6C6D65DC, 0xAFD1, 0x11D2, [0x9C, 0xB9, 0x00, 0x00, 0xF8, 0x7A, 0x36, 0x9E]};
-@GUID(0x6C6D65DC, 0xAFD1, 0x11D2, [0x9C, 0xB9, 0x00, 0x00, 0xF8, 0x7A, 0x36, 0x9E]);
+@GUID("6C6D65DC-AFD1-11D2-9CB9-0000F87A369E")
 interface IADsWinNTSystemInfo : IDispatch
 {
     HRESULT get_UserName(BSTR* retval);
@@ -1710,8 +3253,7 @@ interface IADsWinNTSystemInfo : IDispatch
     HRESULT get_PDC(BSTR* retval);
 }
 
-const GUID IID_IADsDNWithBinary = {0x7E99C0A2, 0xF935, 0x11D2, [0xBA, 0x96, 0x00, 0xC0, 0x4F, 0xB6, 0xD0, 0xD1]};
-@GUID(0x7E99C0A2, 0xF935, 0x11D2, [0xBA, 0x96, 0x00, 0xC0, 0x4F, 0xB6, 0xD0, 0xD1]);
+@GUID("7E99C0A2-F935-11D2-BA96-00C04FB6D0D1")
 interface IADsDNWithBinary : IDispatch
 {
     HRESULT get_BinaryValue(VARIANT* retval);
@@ -1720,8 +3262,7 @@ interface IADsDNWithBinary : IDispatch
     HRESULT put_DNString(BSTR bstrDNString);
 }
 
-const GUID IID_IADsDNWithString = {0x370DF02E, 0xF934, 0x11D2, [0xBA, 0x96, 0x00, 0xC0, 0x4F, 0xB6, 0xD0, 0xD1]};
-@GUID(0x370DF02E, 0xF934, 0x11D2, [0xBA, 0x96, 0x00, 0xC0, 0x4F, 0xB6, 0xD0, 0xD1]);
+@GUID("370DF02E-F934-11D2-BA96-00C04FB6D0D1")
 interface IADsDNWithString : IDispatch
 {
     HRESULT get_StringValue(BSTR* retval);
@@ -1730,8 +3271,7 @@ interface IADsDNWithString : IDispatch
     HRESULT put_DNString(BSTR bstrDNString);
 }
 
-const GUID IID_IADsSecurityUtility = {0xA63251B2, 0x5F21, 0x474B, [0xAB, 0x52, 0x4A, 0x8E, 0xFA, 0xD1, 0x08, 0x95]};
-@GUID(0xA63251B2, 0x5F21, 0x474B, [0xAB, 0x52, 0x4A, 0x8E, 0xFA, 0xD1, 0x08, 0x95]);
+@GUID("A63251B2-5F21-474B-AB52-4A8EFAD10895")
 interface IADsSecurityUtility : IDispatch
 {
     HRESULT GetSecurityDescriptor(VARIANT varPath, int lPathFormat, int lFormat, VARIANT* pVariant);
@@ -1741,59 +3281,7 @@ interface IADsSecurityUtility : IDispatch
     HRESULT put_SecurityMask(int lnSecurityMask);
 }
 
-struct DSOBJECT
-{
-    uint dwFlags;
-    uint dwProviderFlags;
-    uint offsetName;
-    uint offsetClass;
-}
-
-struct DSOBJECTNAMES
-{
-    Guid clsidNamespace;
-    uint cItems;
-    DSOBJECT aObjects;
-}
-
-struct DSDISPLAYSPECOPTIONS
-{
-    uint dwSize;
-    uint dwFlags;
-    uint offsetAttribPrefix;
-    uint offsetUserName;
-    uint offsetPassword;
-    uint offsetServer;
-    uint offsetServerConfigPath;
-}
-
-struct DSPROPERTYPAGEINFO
-{
-    uint offsetString;
-}
-
-struct DOMAINDESC
-{
-    const(wchar)* pszName;
-    const(wchar)* pszPath;
-    const(wchar)* pszNCName;
-    const(wchar)* pszTrustParent;
-    const(wchar)* pszObjectClass;
-    uint ulFlags;
-    BOOL fDownLevel;
-    DOMAINDESC* pdChildList;
-    DOMAINDESC* pdNextSibling;
-}
-
-struct DOMAIN_TREE
-{
-    uint dsSize;
-    uint dwCount;
-    DOMAINDESC aDomains;
-}
-
-const GUID IID_IDsBrowseDomainTree = {0x7CABCF1E, 0x78F5, 0x11D2, [0x96, 0x0C, 0x00, 0xC0, 0x4F, 0xA3, 0x1A, 0x86]};
-@GUID(0x7CABCF1E, 0x78F5, 0x11D2, [0x96, 0x0C, 0x00, 0xC0, 0x4F, 0xA3, 0x1A, 0x86]);
+@GUID("7CABCF1E-78F5-11D2-960C-00C04FA31A86")
 interface IDsBrowseDomainTree : IUnknown
 {
     HRESULT BrowseTo(HWND hwndParent, ushort** ppszTargetPath, uint dwFlags);
@@ -1803,147 +3291,22 @@ interface IDsBrowseDomainTree : IUnknown
     HRESULT SetComputer(const(wchar)* pszComputerName, const(wchar)* pszUserName, const(wchar)* pszPassword);
 }
 
-alias LPDSENUMATTRIBUTES = extern(Windows) HRESULT function(LPARAM lParam, const(wchar)* pszAttributeName, const(wchar)* pszDisplayName, uint dwFlags);
-struct DSCLASSCREATIONINFO
-{
-    uint dwFlags;
-    Guid clsidWizardDialog;
-    Guid clsidWizardPrimaryPage;
-    uint cWizardExtensions;
-    Guid aWizardExtensions;
-}
-
-const GUID IID_IDsDisplaySpecifier = {0x1AB4A8C0, 0x6A0B, 0x11D2, [0xAD, 0x49, 0x00, 0xC0, 0x4F, 0xA3, 0x1A, 0x86]};
-@GUID(0x1AB4A8C0, 0x6A0B, 0x11D2, [0xAD, 0x49, 0x00, 0xC0, 0x4F, 0xA3, 0x1A, 0x86]);
+@GUID("1AB4A8C0-6A0B-11D2-AD49-00C04FA31A86")
 interface IDsDisplaySpecifier : IUnknown
 {
     HRESULT SetServer(const(wchar)* pszServer, const(wchar)* pszUserName, const(wchar)* pszPassword, uint dwFlags);
     HRESULT SetLanguageID(ushort langid);
-    HRESULT GetDisplaySpecifier(const(wchar)* pszObjectClass, const(Guid)* riid, void** ppv);
-    HRESULT GetIconLocation(const(wchar)* pszObjectClass, uint dwFlags, const(wchar)* pszBuffer, int cchBuffer, int* presid);
-    HICON GetIcon(const(wchar)* pszObjectClass, uint dwFlags, int cxIcon, int cyIcon);
+    HRESULT GetDisplaySpecifier(const(wchar)* pszObjectClass, const(GUID)* riid, void** ppv);
+    HRESULT GetIconLocation(const(wchar)* pszObjectClass, uint dwFlags, const(wchar)* pszBuffer, int cchBuffer, 
+                            int* presid);
+    HICON   GetIcon(const(wchar)* pszObjectClass, uint dwFlags, int cxIcon, int cyIcon);
     HRESULT GetFriendlyClassName(const(wchar)* pszObjectClass, const(wchar)* pszBuffer, int cchBuffer);
-    HRESULT GetFriendlyAttributeName(const(wchar)* pszObjectClass, const(wchar)* pszAttributeName, const(wchar)* pszBuffer, uint cchBuffer);
-    BOOL IsClassContainer(const(wchar)* pszObjectClass, const(wchar)* pszADsPath, uint dwFlags);
+    HRESULT GetFriendlyAttributeName(const(wchar)* pszObjectClass, const(wchar)* pszAttributeName, 
+                                     const(wchar)* pszBuffer, uint cchBuffer);
+    BOOL    IsClassContainer(const(wchar)* pszObjectClass, const(wchar)* pszADsPath, uint dwFlags);
     HRESULT GetClassCreationInfo(const(wchar)* pszObjectClass, DSCLASSCREATIONINFO** ppdscci);
     HRESULT EnumClassAttributes(const(wchar)* pszObjectClass, LPDSENUMATTRIBUTES pcbEnum, LPARAM lParam);
     ADSTYPEENUM GetAttributeADsType(const(wchar)* pszAttributeName);
-}
-
-struct DSBROWSEINFOW
-{
-    uint cbStruct;
-    HWND hwndOwner;
-    const(wchar)* pszCaption;
-    const(wchar)* pszTitle;
-    const(wchar)* pszRoot;
-    const(wchar)* pszPath;
-    uint cchPath;
-    uint dwFlags;
-    BFFCALLBACK pfnCallback;
-    LPARAM lParam;
-    uint dwReturnFormat;
-    const(wchar)* pUserName;
-    const(wchar)* pPassword;
-    const(wchar)* pszObjectClass;
-    uint cchObjectClass;
-}
-
-struct DSBROWSEINFOA
-{
-    uint cbStruct;
-    HWND hwndOwner;
-    const(char)* pszCaption;
-    const(char)* pszTitle;
-    const(wchar)* pszRoot;
-    const(wchar)* pszPath;
-    uint cchPath;
-    uint dwFlags;
-    BFFCALLBACK pfnCallback;
-    LPARAM lParam;
-    uint dwReturnFormat;
-    const(wchar)* pUserName;
-    const(wchar)* pPassword;
-    const(wchar)* pszObjectClass;
-    uint cchObjectClass;
-}
-
-struct DSBITEMW
-{
-    uint cbStruct;
-    const(wchar)* pszADsPath;
-    const(wchar)* pszClass;
-    uint dwMask;
-    uint dwState;
-    uint dwStateMask;
-    ushort szDisplayName;
-    ushort szIconLocation;
-    int iIconResID;
-}
-
-struct DSBITEMA
-{
-    uint cbStruct;
-    const(wchar)* pszADsPath;
-    const(wchar)* pszClass;
-    uint dwMask;
-    uint dwState;
-    uint dwStateMask;
-    byte szDisplayName;
-    byte szIconLocation;
-    int iIconResID;
-}
-
-struct DSOP_UPLEVEL_FILTER_FLAGS
-{
-    uint flBothModes;
-    uint flMixedModeOnly;
-    uint flNativeModeOnly;
-}
-
-struct DSOP_FILTER_FLAGS
-{
-    DSOP_UPLEVEL_FILTER_FLAGS Uplevel;
-    uint flDownlevel;
-}
-
-struct DSOP_SCOPE_INIT_INFO
-{
-    uint cbSize;
-    uint flType;
-    uint flScope;
-    DSOP_FILTER_FLAGS FilterFlags;
-    const(wchar)* pwzDcName;
-    const(wchar)* pwzADsPath;
-    HRESULT hr;
-}
-
-struct DSOP_INIT_INFO
-{
-    uint cbSize;
-    const(wchar)* pwzTargetComputer;
-    uint cDsScopeInfos;
-    DSOP_SCOPE_INIT_INFO* aDsScopeInfos;
-    uint flOptions;
-    uint cAttributesToFetch;
-    ushort** apwzAttributeNames;
-}
-
-struct DS_SELECTION
-{
-    const(wchar)* pwzName;
-    const(wchar)* pwzADsPath;
-    const(wchar)* pwzClass;
-    const(wchar)* pwzUPN;
-    VARIANT* pvarFetchedAttributes;
-    uint flScopeType;
-}
-
-struct DS_SELECTION_LIST
-{
-    uint cItems;
-    uint cFetchedAttributes;
-    DS_SELECTION aDsSelection;
 }
 
 interface IDsObjectPicker : IUnknown
@@ -1955,45 +3318,6 @@ interface IDsObjectPicker : IUnknown
 interface IDsObjectPickerCredentials : IDsObjectPicker
 {
     HRESULT SetCredentials(const(wchar)* szUserName, const(wchar)* szPassword);
-}
-
-struct DSQUERYINITPARAMS
-{
-    uint cbStruct;
-    uint dwFlags;
-    const(wchar)* pDefaultScope;
-    const(wchar)* pDefaultSaveLocation;
-    const(wchar)* pUserName;
-    const(wchar)* pPassword;
-    const(wchar)* pServer;
-}
-
-struct DSCOLUMN
-{
-    uint dwFlags;
-    int fmt;
-    int cx;
-    int idsName;
-    int offsetProperty;
-    uint dwReserved;
-}
-
-struct DSQUERYPARAMS
-{
-    uint cbStruct;
-    uint dwFlags;
-    HINSTANCE hInstance;
-    int offsetQuery;
-    int iColumns;
-    uint dwReserved;
-    DSCOLUMN aColumns;
-}
-
-struct DSQUERYCLASSLIST
-{
-    uint cbStruct;
-    int cClasses;
-    uint offsetClass;
 }
 
 interface IDsAdminCreateObj : IUnknown
@@ -2014,17 +3338,10 @@ interface IDsAdminNewObjPrimarySite : IUnknown
     HRESULT Commit();
 }
 
-struct DSA_NEWOBJ_DISPINFO
-{
-    uint dwSize;
-    HICON hObjClassIcon;
-    const(wchar)* lpszWizTitle;
-    const(wchar)* lpszContDisplayName;
-}
-
 interface IDsAdminNewObjExt : IUnknown
 {
-    HRESULT Initialize(IADsContainer pADsContainerObj, IADs pADsCopySource, const(wchar)* lpszClassName, IDsAdminNewObj pDsAdminNewObj, DSA_NEWOBJ_DISPINFO* pDispInfo);
+    HRESULT Initialize(IADsContainer pADsContainerObj, IADs pADsCopySource, const(wchar)* lpszClassName, 
+                       IDsAdminNewObj pDsAdminNewObj, DSA_NEWOBJ_DISPINFO* pDispInfo);
     HRESULT AddPages(LPFNADDPROPSHEETPAGE lpfnAddPage, LPARAM lParam);
     HRESULT SetObject(IADs pADsObj);
     HRESULT WriteData(HWND hWnd, uint uContext);
@@ -2040,1231 +3357,103 @@ interface IDsAdminNotifyHandler : IUnknown
     HRESULT End();
 }
 
-struct ADSPROPINITPARAMS
-{
-    uint dwSize;
-    uint dwFlags;
-    HRESULT hr;
-    IDirectoryObject pDsObj;
-    const(wchar)* pwzCN;
-    ADS_ATTR_INFO* pWritableAttrs;
-}
 
-struct ADSPROPERROR
-{
-    HWND hwndPage;
-    const(wchar)* pszPageTitle;
-    const(wchar)* pszObjPath;
-    const(wchar)* pszObjClass;
-    HRESULT hr;
-    const(wchar)* pszError;
-}
-
-struct SCHEDULE_HEADER
-{
-    uint Type;
-    uint Offset;
-}
-
-struct SCHEDULE
-{
-    uint Size;
-    uint Bandwidth;
-    uint NumberOfSchedules;
-    SCHEDULE_HEADER Schedules;
-}
-
-enum DS_MANGLE_FOR
-{
-    DS_MANGLE_UNKNOWN = 0,
-    DS_MANGLE_OBJECT_RDN_FOR_DELETION = 1,
-    DS_MANGLE_OBJECT_RDN_FOR_NAME_CONFLICT = 2,
-}
-
-enum DS_NAME_FORMAT
-{
-    DS_UNKNOWN_NAME = 0,
-    DS_FQDN_1779_NAME = 1,
-    DS_NT4_ACCOUNT_NAME = 2,
-    DS_DISPLAY_NAME = 3,
-    DS_UNIQUE_ID_NAME = 6,
-    DS_CANONICAL_NAME = 7,
-    DS_USER_PRINCIPAL_NAME = 8,
-    DS_CANONICAL_NAME_EX = 9,
-    DS_SERVICE_PRINCIPAL_NAME = 10,
-    DS_SID_OR_SID_HISTORY_NAME = 11,
-    DS_DNS_DOMAIN_NAME = 12,
-}
-
-enum DS_NAME_FLAGS
-{
-    DS_NAME_NO_FLAGS = 0,
-    DS_NAME_FLAG_SYNTACTICAL_ONLY = 1,
-    DS_NAME_FLAG_EVAL_AT_DC = 2,
-    DS_NAME_FLAG_GCVERIFY = 4,
-    DS_NAME_FLAG_TRUST_REFERRAL = 8,
-}
-
-enum DS_NAME_ERROR
-{
-    DS_NAME_NO_ERROR = 0,
-    DS_NAME_ERROR_RESOLVING = 1,
-    DS_NAME_ERROR_NOT_FOUND = 2,
-    DS_NAME_ERROR_NOT_UNIQUE = 3,
-    DS_NAME_ERROR_NO_MAPPING = 4,
-    DS_NAME_ERROR_DOMAIN_ONLY = 5,
-    DS_NAME_ERROR_NO_SYNTACTICAL_MAPPING = 6,
-    DS_NAME_ERROR_TRUST_REFERRAL = 7,
-}
-
-enum DS_SPN_NAME_TYPE
-{
-    DS_SPN_DNS_HOST = 0,
-    DS_SPN_DN_HOST = 1,
-    DS_SPN_NB_HOST = 2,
-    DS_SPN_DOMAIN = 3,
-    DS_SPN_NB_DOMAIN = 4,
-    DS_SPN_SERVICE = 5,
-}
-
-enum DS_SPN_WRITE_OP
-{
-    DS_SPN_ADD_SPN_OP = 0,
-    DS_SPN_REPLACE_SPN_OP = 1,
-    DS_SPN_DELETE_SPN_OP = 2,
-}
-
-struct DS_NAME_RESULT_ITEMA
-{
-    uint status;
-    const(char)* pDomain;
-    const(char)* pName;
-}
-
-struct DS_NAME_RESULTA
-{
-    uint cItems;
-    DS_NAME_RESULT_ITEMA* rItems;
-}
-
-struct DS_NAME_RESULT_ITEMW
-{
-    uint status;
-    const(wchar)* pDomain;
-    const(wchar)* pName;
-}
-
-struct DS_NAME_RESULTW
-{
-    uint cItems;
-    DS_NAME_RESULT_ITEMW* rItems;
-}
-
-enum DS_REPSYNCALL_ERROR
-{
-    DS_REPSYNCALL_WIN32_ERROR_CONTACTING_SERVER = 0,
-    DS_REPSYNCALL_WIN32_ERROR_REPLICATING = 1,
-    DS_REPSYNCALL_SERVER_UNREACHABLE = 2,
-}
-
-enum DS_REPSYNCALL_EVENT
-{
-    DS_REPSYNCALL_EVENT_ERROR = 0,
-    DS_REPSYNCALL_EVENT_SYNC_STARTED = 1,
-    DS_REPSYNCALL_EVENT_SYNC_COMPLETED = 2,
-    DS_REPSYNCALL_EVENT_FINISHED = 3,
-}
-
-struct DS_REPSYNCALL_SYNCA
-{
-    const(char)* pszSrcId;
-    const(char)* pszDstId;
-    const(char)* pszNC;
-    Guid* pguidSrc;
-    Guid* pguidDst;
-}
-
-struct DS_REPSYNCALL_SYNCW
-{
-    const(wchar)* pszSrcId;
-    const(wchar)* pszDstId;
-    const(wchar)* pszNC;
-    Guid* pguidSrc;
-    Guid* pguidDst;
-}
-
-struct DS_REPSYNCALL_ERRINFOA
-{
-    const(char)* pszSvrId;
-    DS_REPSYNCALL_ERROR error;
-    uint dwWin32Err;
-    const(char)* pszSrcId;
-}
-
-struct DS_REPSYNCALL_ERRINFOW
-{
-    const(wchar)* pszSvrId;
-    DS_REPSYNCALL_ERROR error;
-    uint dwWin32Err;
-    const(wchar)* pszSrcId;
-}
-
-struct DS_REPSYNCALL_UPDATEA
-{
-    DS_REPSYNCALL_EVENT event;
-    DS_REPSYNCALL_ERRINFOA* pErrInfo;
-    DS_REPSYNCALL_SYNCA* pSync;
-}
-
-struct DS_REPSYNCALL_UPDATEW
-{
-    DS_REPSYNCALL_EVENT event;
-    DS_REPSYNCALL_ERRINFOW* pErrInfo;
-    DS_REPSYNCALL_SYNCW* pSync;
-}
-
-struct DS_SITE_COST_INFO
-{
-    uint errorCode;
-    uint cost;
-}
-
-struct DS_SCHEMA_GUID_MAPA
-{
-    Guid guid;
-    uint guidType;
-    const(char)* pName;
-}
-
-struct DS_SCHEMA_GUID_MAPW
-{
-    Guid guid;
-    uint guidType;
-    const(wchar)* pName;
-}
-
-struct DS_DOMAIN_CONTROLLER_INFO_1A
-{
-    const(char)* NetbiosName;
-    const(char)* DnsHostName;
-    const(char)* SiteName;
-    const(char)* ComputerObjectName;
-    const(char)* ServerObjectName;
-    BOOL fIsPdc;
-    BOOL fDsEnabled;
-}
-
-struct DS_DOMAIN_CONTROLLER_INFO_1W
-{
-    const(wchar)* NetbiosName;
-    const(wchar)* DnsHostName;
-    const(wchar)* SiteName;
-    const(wchar)* ComputerObjectName;
-    const(wchar)* ServerObjectName;
-    BOOL fIsPdc;
-    BOOL fDsEnabled;
-}
-
-struct DS_DOMAIN_CONTROLLER_INFO_2A
-{
-    const(char)* NetbiosName;
-    const(char)* DnsHostName;
-    const(char)* SiteName;
-    const(char)* SiteObjectName;
-    const(char)* ComputerObjectName;
-    const(char)* ServerObjectName;
-    const(char)* NtdsDsaObjectName;
-    BOOL fIsPdc;
-    BOOL fDsEnabled;
-    BOOL fIsGc;
-    Guid SiteObjectGuid;
-    Guid ComputerObjectGuid;
-    Guid ServerObjectGuid;
-    Guid NtdsDsaObjectGuid;
-}
-
-struct DS_DOMAIN_CONTROLLER_INFO_2W
-{
-    const(wchar)* NetbiosName;
-    const(wchar)* DnsHostName;
-    const(wchar)* SiteName;
-    const(wchar)* SiteObjectName;
-    const(wchar)* ComputerObjectName;
-    const(wchar)* ServerObjectName;
-    const(wchar)* NtdsDsaObjectName;
-    BOOL fIsPdc;
-    BOOL fDsEnabled;
-    BOOL fIsGc;
-    Guid SiteObjectGuid;
-    Guid ComputerObjectGuid;
-    Guid ServerObjectGuid;
-    Guid NtdsDsaObjectGuid;
-}
-
-struct DS_DOMAIN_CONTROLLER_INFO_3A
-{
-    const(char)* NetbiosName;
-    const(char)* DnsHostName;
-    const(char)* SiteName;
-    const(char)* SiteObjectName;
-    const(char)* ComputerObjectName;
-    const(char)* ServerObjectName;
-    const(char)* NtdsDsaObjectName;
-    BOOL fIsPdc;
-    BOOL fDsEnabled;
-    BOOL fIsGc;
-    BOOL fIsRodc;
-    Guid SiteObjectGuid;
-    Guid ComputerObjectGuid;
-    Guid ServerObjectGuid;
-    Guid NtdsDsaObjectGuid;
-}
-
-struct DS_DOMAIN_CONTROLLER_INFO_3W
-{
-    const(wchar)* NetbiosName;
-    const(wchar)* DnsHostName;
-    const(wchar)* SiteName;
-    const(wchar)* SiteObjectName;
-    const(wchar)* ComputerObjectName;
-    const(wchar)* ServerObjectName;
-    const(wchar)* NtdsDsaObjectName;
-    BOOL fIsPdc;
-    BOOL fDsEnabled;
-    BOOL fIsGc;
-    BOOL fIsRodc;
-    Guid SiteObjectGuid;
-    Guid ComputerObjectGuid;
-    Guid ServerObjectGuid;
-    Guid NtdsDsaObjectGuid;
-}
-
-enum DS_KCC_TASKID
-{
-    DS_KCC_TASKID_UPDATE_TOPOLOGY = 0,
-}
-
-enum DS_REPL_INFO_TYPE
-{
-    DS_REPL_INFO_NEIGHBORS = 0,
-    DS_REPL_INFO_CURSORS_FOR_NC = 1,
-    DS_REPL_INFO_METADATA_FOR_OBJ = 2,
-    DS_REPL_INFO_KCC_DSA_CONNECT_FAILURES = 3,
-    DS_REPL_INFO_KCC_DSA_LINK_FAILURES = 4,
-    DS_REPL_INFO_PENDING_OPS = 5,
-    DS_REPL_INFO_METADATA_FOR_ATTR_VALUE = 6,
-    DS_REPL_INFO_CURSORS_2_FOR_NC = 7,
-    DS_REPL_INFO_CURSORS_3_FOR_NC = 8,
-    DS_REPL_INFO_METADATA_2_FOR_OBJ = 9,
-    DS_REPL_INFO_METADATA_2_FOR_ATTR_VALUE = 10,
-    DS_REPL_INFO_METADATA_EXT_FOR_ATTR_VALUE = 11,
-    DS_REPL_INFO_TYPE_MAX = 12,
-}
-
-struct DS_REPL_NEIGHBORW
-{
-    const(wchar)* pszNamingContext;
-    const(wchar)* pszSourceDsaDN;
-    const(wchar)* pszSourceDsaAddress;
-    const(wchar)* pszAsyncIntersiteTransportDN;
-    uint dwReplicaFlags;
-    uint dwReserved;
-    Guid uuidNamingContextObjGuid;
-    Guid uuidSourceDsaObjGuid;
-    Guid uuidSourceDsaInvocationID;
-    Guid uuidAsyncIntersiteTransportObjGuid;
-    long usnLastObjChangeSynced;
-    long usnAttributeFilter;
-    FILETIME ftimeLastSyncSuccess;
-    FILETIME ftimeLastSyncAttempt;
-    uint dwLastSyncResult;
-    uint cNumConsecutiveSyncFailures;
-}
-
-struct DS_REPL_NEIGHBORW_BLOB
-{
-    uint oszNamingContext;
-    uint oszSourceDsaDN;
-    uint oszSourceDsaAddress;
-    uint oszAsyncIntersiteTransportDN;
-    uint dwReplicaFlags;
-    uint dwReserved;
-    Guid uuidNamingContextObjGuid;
-    Guid uuidSourceDsaObjGuid;
-    Guid uuidSourceDsaInvocationID;
-    Guid uuidAsyncIntersiteTransportObjGuid;
-    long usnLastObjChangeSynced;
-    long usnAttributeFilter;
-    FILETIME ftimeLastSyncSuccess;
-    FILETIME ftimeLastSyncAttempt;
-    uint dwLastSyncResult;
-    uint cNumConsecutiveSyncFailures;
-}
-
-struct DS_REPL_NEIGHBORSW
-{
-    uint cNumNeighbors;
-    uint dwReserved;
-    DS_REPL_NEIGHBORW rgNeighbor;
-}
-
-struct DS_REPL_CURSOR
-{
-    Guid uuidSourceDsaInvocationID;
-    long usnAttributeFilter;
-}
-
-struct DS_REPL_CURSOR_2
-{
-    Guid uuidSourceDsaInvocationID;
-    long usnAttributeFilter;
-    FILETIME ftimeLastSyncSuccess;
-}
-
-struct DS_REPL_CURSOR_3W
-{
-    Guid uuidSourceDsaInvocationID;
-    long usnAttributeFilter;
-    FILETIME ftimeLastSyncSuccess;
-    const(wchar)* pszSourceDsaDN;
-}
-
-struct DS_REPL_CURSOR_BLOB
-{
-    Guid uuidSourceDsaInvocationID;
-    long usnAttributeFilter;
-    FILETIME ftimeLastSyncSuccess;
-    uint oszSourceDsaDN;
-}
-
-struct DS_REPL_CURSORS
-{
-    uint cNumCursors;
-    uint dwReserved;
-    DS_REPL_CURSOR rgCursor;
-}
-
-struct DS_REPL_CURSORS_2
-{
-    uint cNumCursors;
-    uint dwEnumerationContext;
-    DS_REPL_CURSOR_2 rgCursor;
-}
-
-struct DS_REPL_CURSORS_3W
-{
-    uint cNumCursors;
-    uint dwEnumerationContext;
-    DS_REPL_CURSOR_3W rgCursor;
-}
-
-struct DS_REPL_ATTR_META_DATA
-{
-    const(wchar)* pszAttributeName;
-    uint dwVersion;
-    FILETIME ftimeLastOriginatingChange;
-    Guid uuidLastOriginatingDsaInvocationID;
-    long usnOriginatingChange;
-    long usnLocalChange;
-}
-
-struct DS_REPL_ATTR_META_DATA_2
-{
-    const(wchar)* pszAttributeName;
-    uint dwVersion;
-    FILETIME ftimeLastOriginatingChange;
-    Guid uuidLastOriginatingDsaInvocationID;
-    long usnOriginatingChange;
-    long usnLocalChange;
-    const(wchar)* pszLastOriginatingDsaDN;
-}
-
-struct DS_REPL_ATTR_META_DATA_BLOB
-{
-    uint oszAttributeName;
-    uint dwVersion;
-    FILETIME ftimeLastOriginatingChange;
-    Guid uuidLastOriginatingDsaInvocationID;
-    long usnOriginatingChange;
-    long usnLocalChange;
-    uint oszLastOriginatingDsaDN;
-}
-
-struct DS_REPL_OBJ_META_DATA
-{
-    uint cNumEntries;
-    uint dwReserved;
-    DS_REPL_ATTR_META_DATA rgMetaData;
-}
-
-struct DS_REPL_OBJ_META_DATA_2
-{
-    uint cNumEntries;
-    uint dwReserved;
-    DS_REPL_ATTR_META_DATA_2 rgMetaData;
-}
-
-struct DS_REPL_KCC_DSA_FAILUREW
-{
-    const(wchar)* pszDsaDN;
-    Guid uuidDsaObjGuid;
-    FILETIME ftimeFirstFailure;
-    uint cNumFailures;
-    uint dwLastResult;
-}
-
-struct DS_REPL_KCC_DSA_FAILUREW_BLOB
-{
-    uint oszDsaDN;
-    Guid uuidDsaObjGuid;
-    FILETIME ftimeFirstFailure;
-    uint cNumFailures;
-    uint dwLastResult;
-}
-
-struct DS_REPL_KCC_DSA_FAILURESW
-{
-    uint cNumEntries;
-    uint dwReserved;
-    DS_REPL_KCC_DSA_FAILUREW rgDsaFailure;
-}
-
-enum DS_REPL_OP_TYPE
-{
-    DS_REPL_OP_TYPE_SYNC = 0,
-    DS_REPL_OP_TYPE_ADD = 1,
-    DS_REPL_OP_TYPE_DELETE = 2,
-    DS_REPL_OP_TYPE_MODIFY = 3,
-    DS_REPL_OP_TYPE_UPDATE_REFS = 4,
-}
-
-struct DS_REPL_OPW
-{
-    FILETIME ftimeEnqueued;
-    uint ulSerialNumber;
-    uint ulPriority;
-    DS_REPL_OP_TYPE OpType;
-    uint ulOptions;
-    const(wchar)* pszNamingContext;
-    const(wchar)* pszDsaDN;
-    const(wchar)* pszDsaAddress;
-    Guid uuidNamingContextObjGuid;
-    Guid uuidDsaObjGuid;
-}
-
-struct DS_REPL_OPW_BLOB
-{
-    FILETIME ftimeEnqueued;
-    uint ulSerialNumber;
-    uint ulPriority;
-    DS_REPL_OP_TYPE OpType;
-    uint ulOptions;
-    uint oszNamingContext;
-    uint oszDsaDN;
-    uint oszDsaAddress;
-    Guid uuidNamingContextObjGuid;
-    Guid uuidDsaObjGuid;
-}
-
-struct DS_REPL_PENDING_OPSW
-{
-    FILETIME ftimeCurrentOpStarted;
-    uint cNumPendingOps;
-    DS_REPL_OPW rgPendingOp;
-}
-
-struct DS_REPL_VALUE_META_DATA
-{
-    const(wchar)* pszAttributeName;
-    const(wchar)* pszObjectDn;
-    uint cbData;
-    ubyte* pbData;
-    FILETIME ftimeDeleted;
-    FILETIME ftimeCreated;
-    uint dwVersion;
-    FILETIME ftimeLastOriginatingChange;
-    Guid uuidLastOriginatingDsaInvocationID;
-    long usnOriginatingChange;
-    long usnLocalChange;
-}
-
-struct DS_REPL_VALUE_META_DATA_2
-{
-    const(wchar)* pszAttributeName;
-    const(wchar)* pszObjectDn;
-    uint cbData;
-    ubyte* pbData;
-    FILETIME ftimeDeleted;
-    FILETIME ftimeCreated;
-    uint dwVersion;
-    FILETIME ftimeLastOriginatingChange;
-    Guid uuidLastOriginatingDsaInvocationID;
-    long usnOriginatingChange;
-    long usnLocalChange;
-    const(wchar)* pszLastOriginatingDsaDN;
-}
-
-struct DS_REPL_VALUE_META_DATA_EXT
-{
-    const(wchar)* pszAttributeName;
-    const(wchar)* pszObjectDn;
-    uint cbData;
-    ubyte* pbData;
-    FILETIME ftimeDeleted;
-    FILETIME ftimeCreated;
-    uint dwVersion;
-    FILETIME ftimeLastOriginatingChange;
-    Guid uuidLastOriginatingDsaInvocationID;
-    long usnOriginatingChange;
-    long usnLocalChange;
-    const(wchar)* pszLastOriginatingDsaDN;
-    uint dwUserIdentifier;
-    uint dwPriorLinkState;
-    uint dwCurrentLinkState;
-}
-
-struct DS_REPL_VALUE_META_DATA_BLOB
-{
-    uint oszAttributeName;
-    uint oszObjectDn;
-    uint cbData;
-    uint obData;
-    FILETIME ftimeDeleted;
-    FILETIME ftimeCreated;
-    uint dwVersion;
-    FILETIME ftimeLastOriginatingChange;
-    Guid uuidLastOriginatingDsaInvocationID;
-    long usnOriginatingChange;
-    long usnLocalChange;
-    uint oszLastOriginatingDsaDN;
-}
-
-struct DS_REPL_VALUE_META_DATA_BLOB_EXT
-{
-    uint oszAttributeName;
-    uint oszObjectDn;
-    uint cbData;
-    uint obData;
-    FILETIME ftimeDeleted;
-    FILETIME ftimeCreated;
-    uint dwVersion;
-    FILETIME ftimeLastOriginatingChange;
-    Guid uuidLastOriginatingDsaInvocationID;
-    long usnOriginatingChange;
-    long usnLocalChange;
-    uint oszLastOriginatingDsaDN;
-    uint dwUserIdentifier;
-    uint dwPriorLinkState;
-    uint dwCurrentLinkState;
-}
-
-struct DS_REPL_ATTR_VALUE_META_DATA
-{
-    uint cNumEntries;
-    uint dwEnumerationContext;
-    DS_REPL_VALUE_META_DATA rgMetaData;
-}
-
-struct DS_REPL_ATTR_VALUE_META_DATA_2
-{
-    uint cNumEntries;
-    uint dwEnumerationContext;
-    DS_REPL_VALUE_META_DATA_2 rgMetaData;
-}
-
-struct DS_REPL_ATTR_VALUE_META_DATA_EXT
-{
-    uint cNumEntries;
-    uint dwEnumerationContext;
-    DS_REPL_VALUE_META_DATA_EXT rgMetaData;
-}
-
-struct DS_REPL_QUEUE_STATISTICSW
-{
-    FILETIME ftimeCurrentOpStarted;
-    uint cNumPendingOps;
-    FILETIME ftimeOldestSync;
-    FILETIME ftimeOldestAdd;
-    FILETIME ftimeOldestMod;
-    FILETIME ftimeOldestDel;
-    FILETIME ftimeOldestUpdRefs;
-}
-
-enum DSROLE_MACHINE_ROLE
-{
-    DsRole_RoleStandaloneWorkstation = 0,
-    DsRole_RoleMemberWorkstation = 1,
-    DsRole_RoleStandaloneServer = 2,
-    DsRole_RoleMemberServer = 3,
-    DsRole_RoleBackupDomainController = 4,
-    DsRole_RolePrimaryDomainController = 5,
-}
-
-enum DSROLE_SERVER_STATE
-{
-    DsRoleServerUnknown = 0,
-    DsRoleServerPrimary = 1,
-    DsRoleServerBackup = 2,
-}
-
-enum DSROLE_PRIMARY_DOMAIN_INFO_LEVEL
-{
-    DsRolePrimaryDomainInfoBasic = 1,
-    DsRoleUpgradeStatus = 2,
-    DsRoleOperationState = 3,
-}
-
-struct DSROLE_PRIMARY_DOMAIN_INFO_BASIC
-{
-    DSROLE_MACHINE_ROLE MachineRole;
-    uint Flags;
-    const(wchar)* DomainNameFlat;
-    const(wchar)* DomainNameDns;
-    const(wchar)* DomainForestName;
-    Guid DomainGuid;
-}
-
-struct DSROLE_UPGRADE_STATUS_INFO
-{
-    uint OperationState;
-    DSROLE_SERVER_STATE PreviousServerState;
-}
-
-enum DSROLE_OPERATION_STATE
-{
-    DsRoleOperationIdle = 0,
-    DsRoleOperationActive = 1,
-    DsRoleOperationNeedReboot = 2,
-}
-
-struct DSROLE_OPERATION_STATE_INFO
-{
-    DSROLE_OPERATION_STATE OperationState;
-}
-
-struct DOMAIN_CONTROLLER_INFOA
-{
-    const(char)* DomainControllerName;
-    const(char)* DomainControllerAddress;
-    uint DomainControllerAddressType;
-    Guid DomainGuid;
-    const(char)* DomainName;
-    const(char)* DnsForestName;
-    uint Flags;
-    const(char)* DcSiteName;
-    const(char)* ClientSiteName;
-}
-
-struct DOMAIN_CONTROLLER_INFOW
-{
-    const(wchar)* DomainControllerName;
-    const(wchar)* DomainControllerAddress;
-    uint DomainControllerAddressType;
-    Guid DomainGuid;
-    const(wchar)* DomainName;
-    const(wchar)* DnsForestName;
-    uint Flags;
-    const(wchar)* DcSiteName;
-    const(wchar)* ClientSiteName;
-}
-
-struct DS_DOMAIN_TRUSTSW
-{
-    const(wchar)* NetbiosDomainName;
-    const(wchar)* DnsDomainName;
-    uint Flags;
-    uint ParentIndex;
-    uint TrustType;
-    uint TrustAttributes;
-    void* DomainSid;
-    Guid DomainGuid;
-}
-
-struct DS_DOMAIN_TRUSTSA
-{
-    const(char)* NetbiosDomainName;
-    const(char)* DnsDomainName;
-    uint Flags;
-    uint ParentIndex;
-    uint TrustType;
-    uint TrustAttributes;
-    void* DomainSid;
-    Guid DomainGuid;
-}
-
-@DllImport("ACTIVEDS.dll")
-HRESULT ADsGetObject(const(wchar)* lpszPathName, const(Guid)* riid, void** ppObject);
-
-@DllImport("ACTIVEDS.dll")
-HRESULT ADsBuildEnumerator(IADsContainer pADsContainer, IEnumVARIANT* ppEnumVariant);
-
-@DllImport("ACTIVEDS.dll")
-HRESULT ADsFreeEnumerator(IEnumVARIANT pEnumVariant);
-
-@DllImport("ACTIVEDS.dll")
-HRESULT ADsEnumerateNext(IEnumVARIANT pEnumVariant, uint cElements, VARIANT* pvar, uint* pcElementsFetched);
-
-@DllImport("ACTIVEDS.dll")
-HRESULT ADsBuildVarArrayStr(char* lppPathNames, uint dwPathNames, VARIANT* pVar);
-
-@DllImport("ACTIVEDS.dll")
-HRESULT ADsBuildVarArrayInt(uint* lpdwObjectTypes, uint dwObjectTypes, VARIANT* pVar);
-
-@DllImport("ACTIVEDS.dll")
-HRESULT ADsOpenObject(const(wchar)* lpszPathName, const(wchar)* lpszUserName, const(wchar)* lpszPassword, uint dwReserved, const(Guid)* riid, void** ppObject);
-
-@DllImport("ACTIVEDS.dll")
-HRESULT ADsGetLastError(uint* lpError, const(wchar)* lpErrorBuf, uint dwErrorBufLen, const(wchar)* lpNameBuf, uint dwNameBufLen);
-
-@DllImport("ACTIVEDS.dll")
-void ADsSetLastError(uint dwErr, const(wchar)* pszError, const(wchar)* pszProvider);
-
-@DllImport("ACTIVEDS.dll")
-void* AllocADsMem(uint cb);
-
-@DllImport("ACTIVEDS.dll")
-BOOL FreeADsMem(void* pMem);
-
-@DllImport("ACTIVEDS.dll")
-void* ReallocADsMem(void* pOldMem, uint cbOld, uint cbNew);
-
-@DllImport("ACTIVEDS.dll")
-ushort* AllocADsStr(const(wchar)* pStr);
-
-@DllImport("ACTIVEDS.dll")
-BOOL FreeADsStr(const(wchar)* pStr);
-
-@DllImport("ACTIVEDS.dll")
-BOOL ReallocADsStr(ushort** ppStr, const(wchar)* pStr);
-
-@DllImport("ACTIVEDS.dll")
-HRESULT ADsEncodeBinaryData(ubyte* pbSrcData, uint dwSrcLen, ushort** ppszDestData);
-
-@DllImport("ACTIVEDS.dll")
-HRESULT ADsDecodeBinaryData(const(wchar)* szSrcData, ubyte** ppbDestData, uint* pdwDestLen);
-
-@DllImport("ACTIVEDS.dll")
-HRESULT PropVariantToAdsType(VARIANT* pVariant, uint dwNumVariant, ADSVALUE** ppAdsValues, uint* pdwNumValues);
-
-@DllImport("ACTIVEDS.dll")
-HRESULT AdsTypeToPropVariant(ADSVALUE* pAdsValues, uint dwNumValues, VARIANT* pVariant);
-
-@DllImport("ACTIVEDS.dll")
-void AdsFreeAdsValues(ADSVALUE* pAdsValues, uint dwNumValues);
-
-@DllImport("ACTIVEDS.dll")
-HRESULT BinarySDToSecurityDescriptor(void* pSecurityDescriptor, VARIANT* pVarsec, const(wchar)* pszServerName, const(wchar)* userName, const(wchar)* passWord, uint dwFlags);
-
-@DllImport("ACTIVEDS.dll")
-HRESULT SecurityDescriptorToBinarySD(VARIANT vVarSecDes, void** ppSecurityDescriptor, uint* pdwSDLength, const(wchar)* pszServerName, const(wchar)* userName, const(wchar)* passWord, uint dwFlags);
-
-@DllImport("dsuiext.dll")
-int DsBrowseForContainerW(DSBROWSEINFOW* pInfo);
-
-@DllImport("dsuiext.dll")
-int DsBrowseForContainerA(DSBROWSEINFOA* pInfo);
-
-@DllImport("dsuiext.dll")
-HICON DsGetIcon(uint dwFlags, const(wchar)* pszObjectClass, int cxImage, int cyImage);
-
-@DllImport("dsuiext.dll")
-HRESULT DsGetFriendlyClassName(const(wchar)* pszObjectClass, const(wchar)* pszBuffer, uint cchBuffer);
-
-@DllImport("dsprop.dll")
-HRESULT ADsPropCreateNotifyObj(IDataObject pAppThdDataObj, const(wchar)* pwzADsObjName, HWND* phNotifyObj);
-
-@DllImport("dsprop.dll")
-BOOL ADsPropGetInitInfo(HWND hNotifyObj, ADSPROPINITPARAMS* pInitParams);
-
-@DllImport("dsprop.dll")
-BOOL ADsPropSetHwndWithTitle(HWND hNotifyObj, HWND hPage, byte* ptzTitle);
-
-@DllImport("dsprop.dll")
-BOOL ADsPropSetHwnd(HWND hNotifyObj, HWND hPage);
-
-@DllImport("dsprop.dll")
-BOOL ADsPropCheckIfWritable(const(ushort)* pwzAttr, const(ADS_ATTR_INFO)* pWritableAttrs);
-
-@DllImport("dsprop.dll")
-BOOL ADsPropSendErrorMessage(HWND hNotifyObj, ADSPROPERROR* pError);
-
-@DllImport("dsprop.dll")
-BOOL ADsPropShowErrorDialog(HWND hNotifyObj, HWND hPage);
-
-@DllImport("DSPARSE.dll")
-uint DsMakeSpnW(const(wchar)* ServiceClass, const(wchar)* ServiceName, const(wchar)* InstanceName, ushort InstancePort, const(wchar)* Referrer, uint* pcSpnLength, const(wchar)* pszSpn);
-
-@DllImport("DSPARSE.dll")
-uint DsMakeSpnA(const(char)* ServiceClass, const(char)* ServiceName, const(char)* InstanceName, ushort InstancePort, const(char)* Referrer, uint* pcSpnLength, const(char)* pszSpn);
-
-@DllImport("DSPARSE.dll")
-uint DsCrackSpnA(const(char)* pszSpn, uint* pcServiceClass, const(char)* ServiceClass, uint* pcServiceName, const(char)* ServiceName, uint* pcInstanceName, const(char)* InstanceName, ushort* pInstancePort);
-
-@DllImport("DSPARSE.dll")
-uint DsCrackSpnW(const(wchar)* pszSpn, uint* pcServiceClass, const(wchar)* ServiceClass, uint* pcServiceName, const(wchar)* ServiceName, uint* pcInstanceName, const(wchar)* InstanceName, ushort* pInstancePort);
-
-@DllImport("DSPARSE.dll")
-uint DsQuoteRdnValueW(uint cUnquotedRdnValueLength, const(wchar)* psUnquotedRdnValue, uint* pcQuotedRdnValueLength, const(wchar)* psQuotedRdnValue);
-
-@DllImport("DSPARSE.dll")
-uint DsQuoteRdnValueA(uint cUnquotedRdnValueLength, const(char)* psUnquotedRdnValue, uint* pcQuotedRdnValueLength, const(char)* psQuotedRdnValue);
-
-@DllImport("DSPARSE.dll")
-uint DsUnquoteRdnValueW(uint cQuotedRdnValueLength, const(wchar)* psQuotedRdnValue, uint* pcUnquotedRdnValueLength, const(wchar)* psUnquotedRdnValue);
-
-@DllImport("DSPARSE.dll")
-uint DsUnquoteRdnValueA(uint cQuotedRdnValueLength, const(char)* psQuotedRdnValue, uint* pcUnquotedRdnValueLength, const(char)* psUnquotedRdnValue);
-
-@DllImport("DSPARSE.dll")
-uint DsGetRdnW(char* ppDN, uint* pcDN, ushort** ppKey, uint* pcKey, ushort** ppVal, uint* pcVal);
-
-@DllImport("DSPARSE.dll")
-BOOL DsCrackUnquotedMangledRdnW(const(wchar)* pszRDN, uint cchRDN, Guid* pGuid, DS_MANGLE_FOR* peDsMangleFor);
-
-@DllImport("DSPARSE.dll")
-BOOL DsCrackUnquotedMangledRdnA(const(char)* pszRDN, uint cchRDN, Guid* pGuid, DS_MANGLE_FOR* peDsMangleFor);
-
-@DllImport("DSPARSE.dll")
-BOOL DsIsMangledRdnValueW(const(wchar)* pszRdn, uint cRdn, DS_MANGLE_FOR eDsMangleForDesired);
-
-@DllImport("DSPARSE.dll")
-BOOL DsIsMangledRdnValueA(const(char)* pszRdn, uint cRdn, DS_MANGLE_FOR eDsMangleForDesired);
-
-@DllImport("DSPARSE.dll")
-BOOL DsIsMangledDnA(const(char)* pszDn, DS_MANGLE_FOR eDsMangleFor);
-
-@DllImport("DSPARSE.dll")
-BOOL DsIsMangledDnW(const(wchar)* pszDn, DS_MANGLE_FOR eDsMangleFor);
-
-@DllImport("DSPARSE.dll")
-uint DsCrackSpn2A(const(char)* pszSpn, uint cSpn, uint* pcServiceClass, const(char)* ServiceClass, uint* pcServiceName, const(char)* ServiceName, uint* pcInstanceName, const(char)* InstanceName, ushort* pInstancePort);
-
-@DllImport("DSPARSE.dll")
-uint DsCrackSpn2W(const(wchar)* pszSpn, uint cSpn, uint* pcServiceClass, const(wchar)* ServiceClass, uint* pcServiceName, const(wchar)* ServiceName, uint* pcInstanceName, const(wchar)* InstanceName, ushort* pInstancePort);
-
-@DllImport("DSPARSE.dll")
-uint DsCrackSpn3W(const(wchar)* pszSpn, uint cSpn, uint* pcHostName, const(wchar)* HostName, uint* pcInstanceName, const(wchar)* InstanceName, ushort* pPortNumber, uint* pcDomainName, const(wchar)* DomainName, uint* pcRealmName, const(wchar)* RealmName);
-
-@DllImport("DSPARSE.dll")
-uint DsCrackSpn4W(const(wchar)* pszSpn, uint cSpn, uint* pcHostName, const(wchar)* HostName, uint* pcInstanceName, const(wchar)* InstanceName, uint* pcPortName, const(wchar)* PortName, uint* pcDomainName, const(wchar)* DomainName, uint* pcRealmName, const(wchar)* RealmName);
-
-@DllImport("NTDSAPI.dll")
-uint DsBindW(const(wchar)* DomainControllerName, const(wchar)* DnsDomainName, HANDLE* phDS);
-
-@DllImport("NTDSAPI.dll")
-uint DsBindA(const(char)* DomainControllerName, const(char)* DnsDomainName, HANDLE* phDS);
-
-@DllImport("NTDSAPI.dll")
-uint DsBindWithCredW(const(wchar)* DomainControllerName, const(wchar)* DnsDomainName, void* AuthIdentity, HANDLE* phDS);
-
-@DllImport("NTDSAPI.dll")
-uint DsBindWithCredA(const(char)* DomainControllerName, const(char)* DnsDomainName, void* AuthIdentity, HANDLE* phDS);
-
-@DllImport("NTDSAPI.dll")
-uint DsBindWithSpnW(const(wchar)* DomainControllerName, const(wchar)* DnsDomainName, void* AuthIdentity, const(wchar)* ServicePrincipalName, HANDLE* phDS);
-
-@DllImport("NTDSAPI.dll")
-uint DsBindWithSpnA(const(char)* DomainControllerName, const(char)* DnsDomainName, void* AuthIdentity, const(char)* ServicePrincipalName, HANDLE* phDS);
-
-@DllImport("NTDSAPI.dll")
-uint DsBindWithSpnExW(const(wchar)* DomainControllerName, const(wchar)* DnsDomainName, void* AuthIdentity, const(wchar)* ServicePrincipalName, uint BindFlags, HANDLE* phDS);
-
-@DllImport("NTDSAPI.dll")
-uint DsBindWithSpnExA(const(char)* DomainControllerName, const(char)* DnsDomainName, void* AuthIdentity, const(char)* ServicePrincipalName, uint BindFlags, HANDLE* phDS);
-
-@DllImport("NTDSAPI.dll")
-uint DsBindByInstanceW(const(wchar)* ServerName, const(wchar)* Annotation, Guid* InstanceGuid, const(wchar)* DnsDomainName, void* AuthIdentity, const(wchar)* ServicePrincipalName, uint BindFlags, HANDLE* phDS);
-
-@DllImport("NTDSAPI.dll")
-uint DsBindByInstanceA(const(char)* ServerName, const(char)* Annotation, Guid* InstanceGuid, const(char)* DnsDomainName, void* AuthIdentity, const(char)* ServicePrincipalName, uint BindFlags, HANDLE* phDS);
-
-@DllImport("NTDSAPI.dll")
-uint DsBindToISTGW(const(wchar)* SiteName, HANDLE* phDS);
-
-@DllImport("NTDSAPI.dll")
-uint DsBindToISTGA(const(char)* SiteName, HANDLE* phDS);
-
-@DllImport("NTDSAPI.dll")
-uint DsBindingSetTimeout(HANDLE hDS, uint cTimeoutSecs);
-
-@DllImport("NTDSAPI.dll")
-uint DsUnBindW(HANDLE* phDS);
-
-@DllImport("NTDSAPI.dll")
-uint DsUnBindA(HANDLE* phDS);
-
-@DllImport("NTDSAPI.dll")
-uint DsMakePasswordCredentialsW(const(wchar)* User, const(wchar)* Domain, const(wchar)* Password, void** pAuthIdentity);
-
-@DllImport("NTDSAPI.dll")
-uint DsMakePasswordCredentialsA(const(char)* User, const(char)* Domain, const(char)* Password, void** pAuthIdentity);
-
-@DllImport("NTDSAPI.dll")
-void DsFreePasswordCredentials(void* AuthIdentity);
-
-@DllImport("NTDSAPI.dll")
-uint DsCrackNamesW(HANDLE hDS, DS_NAME_FLAGS flags, DS_NAME_FORMAT formatOffered, DS_NAME_FORMAT formatDesired, uint cNames, char* rpNames, DS_NAME_RESULTW** ppResult);
-
-@DllImport("NTDSAPI.dll")
-uint DsCrackNamesA(HANDLE hDS, DS_NAME_FLAGS flags, DS_NAME_FORMAT formatOffered, DS_NAME_FORMAT formatDesired, uint cNames, char* rpNames, DS_NAME_RESULTA** ppResult);
-
-@DllImport("NTDSAPI.dll")
-void DsFreeNameResultW(DS_NAME_RESULTW* pResult);
-
-@DllImport("NTDSAPI.dll")
-void DsFreeNameResultA(DS_NAME_RESULTA* pResult);
-
-@DllImport("NTDSAPI.dll")
-uint DsGetSpnA(DS_SPN_NAME_TYPE ServiceType, const(char)* ServiceClass, const(char)* ServiceName, ushort InstancePort, ushort cInstanceNames, char* pInstanceNames, char* pInstancePorts, uint* pcSpn, byte*** prpszSpn);
-
-@DllImport("NTDSAPI.dll")
-uint DsGetSpnW(DS_SPN_NAME_TYPE ServiceType, const(wchar)* ServiceClass, const(wchar)* ServiceName, ushort InstancePort, ushort cInstanceNames, char* pInstanceNames, char* pInstancePorts, uint* pcSpn, ushort*** prpszSpn);
-
-@DllImport("NTDSAPI.dll")
-void DsFreeSpnArrayA(uint cSpn, char* rpszSpn);
-
-@DllImport("NTDSAPI.dll")
-void DsFreeSpnArrayW(uint cSpn, char* rpszSpn);
-
-@DllImport("NTDSAPI.dll")
-uint DsWriteAccountSpnA(HANDLE hDS, DS_SPN_WRITE_OP Operation, const(char)* pszAccount, uint cSpn, char* rpszSpn);
-
-@DllImport("NTDSAPI.dll")
-uint DsWriteAccountSpnW(HANDLE hDS, DS_SPN_WRITE_OP Operation, const(wchar)* pszAccount, uint cSpn, char* rpszSpn);
-
-@DllImport("NTDSAPI.dll")
-uint DsClientMakeSpnForTargetServerW(const(wchar)* ServiceClass, const(wchar)* ServiceName, uint* pcSpnLength, const(wchar)* pszSpn);
-
-@DllImport("NTDSAPI.dll")
-uint DsClientMakeSpnForTargetServerA(const(char)* ServiceClass, const(char)* ServiceName, uint* pcSpnLength, const(char)* pszSpn);
-
-@DllImport("NTDSAPI.dll")
-uint DsServerRegisterSpnA(DS_SPN_WRITE_OP Operation, const(char)* ServiceClass, const(char)* UserObjectDN);
-
-@DllImport("NTDSAPI.dll")
-uint DsServerRegisterSpnW(DS_SPN_WRITE_OP Operation, const(wchar)* ServiceClass, const(wchar)* UserObjectDN);
-
-@DllImport("NTDSAPI.dll")
-uint DsReplicaSyncA(HANDLE hDS, const(char)* NameContext, const(Guid)* pUuidDsaSrc, uint Options);
-
-@DllImport("NTDSAPI.dll")
-uint DsReplicaSyncW(HANDLE hDS, const(wchar)* NameContext, const(Guid)* pUuidDsaSrc, uint Options);
-
-@DllImport("NTDSAPI.dll")
-uint DsReplicaAddA(HANDLE hDS, const(char)* NameContext, const(char)* SourceDsaDn, const(char)* TransportDn, const(char)* SourceDsaAddress, const(SCHEDULE)* pSchedule, uint Options);
-
-@DllImport("NTDSAPI.dll")
-uint DsReplicaAddW(HANDLE hDS, const(wchar)* NameContext, const(wchar)* SourceDsaDn, const(wchar)* TransportDn, const(wchar)* SourceDsaAddress, const(SCHEDULE)* pSchedule, uint Options);
-
-@DllImport("NTDSAPI.dll")
-uint DsReplicaDelA(HANDLE hDS, const(char)* NameContext, const(char)* DsaSrc, uint Options);
-
-@DllImport("NTDSAPI.dll")
-uint DsReplicaDelW(HANDLE hDS, const(wchar)* NameContext, const(wchar)* DsaSrc, uint Options);
-
-@DllImport("NTDSAPI.dll")
-uint DsReplicaModifyA(HANDLE hDS, const(char)* NameContext, const(Guid)* pUuidSourceDsa, const(char)* TransportDn, const(char)* SourceDsaAddress, const(SCHEDULE)* pSchedule, uint ReplicaFlags, uint ModifyFields, uint Options);
-
-@DllImport("NTDSAPI.dll")
-uint DsReplicaModifyW(HANDLE hDS, const(wchar)* NameContext, const(Guid)* pUuidSourceDsa, const(wchar)* TransportDn, const(wchar)* SourceDsaAddress, const(SCHEDULE)* pSchedule, uint ReplicaFlags, uint ModifyFields, uint Options);
-
-@DllImport("NTDSAPI.dll")
-uint DsReplicaUpdateRefsA(HANDLE hDS, const(char)* NameContext, const(char)* DsaDest, const(Guid)* pUuidDsaDest, uint Options);
-
-@DllImport("NTDSAPI.dll")
-uint DsReplicaUpdateRefsW(HANDLE hDS, const(wchar)* NameContext, const(wchar)* DsaDest, const(Guid)* pUuidDsaDest, uint Options);
-
-@DllImport("NTDSAPI.dll")
-uint DsReplicaSyncAllA(HANDLE hDS, const(char)* pszNameContext, uint ulFlags, BOOL*********** pFnCallBack, void* pCallbackData, DS_REPSYNCALL_ERRINFOA*** pErrors);
-
-@DllImport("NTDSAPI.dll")
-uint DsReplicaSyncAllW(HANDLE hDS, const(wchar)* pszNameContext, uint ulFlags, BOOL*********** pFnCallBack, void* pCallbackData, DS_REPSYNCALL_ERRINFOW*** pErrors);
-
-@DllImport("NTDSAPI.dll")
-uint DsRemoveDsServerW(HANDLE hDs, const(wchar)* ServerDN, const(wchar)* DomainDN, int* fLastDcInDomain, BOOL fCommit);
-
-@DllImport("NTDSAPI.dll")
-uint DsRemoveDsServerA(HANDLE hDs, const(char)* ServerDN, const(char)* DomainDN, int* fLastDcInDomain, BOOL fCommit);
-
-@DllImport("NTDSAPI.dll")
-uint DsRemoveDsDomainW(HANDLE hDs, const(wchar)* DomainDN);
-
-@DllImport("NTDSAPI.dll")
-uint DsRemoveDsDomainA(HANDLE hDs, const(char)* DomainDN);
-
-@DllImport("NTDSAPI.dll")
-uint DsListSitesA(HANDLE hDs, DS_NAME_RESULTA** ppSites);
-
-@DllImport("NTDSAPI.dll")
-uint DsListSitesW(HANDLE hDs, DS_NAME_RESULTW** ppSites);
-
-@DllImport("NTDSAPI.dll")
-uint DsListServersInSiteA(HANDLE hDs, const(char)* site, DS_NAME_RESULTA** ppServers);
-
-@DllImport("NTDSAPI.dll")
-uint DsListServersInSiteW(HANDLE hDs, const(wchar)* site, DS_NAME_RESULTW** ppServers);
-
-@DllImport("NTDSAPI.dll")
-uint DsListDomainsInSiteA(HANDLE hDs, const(char)* site, DS_NAME_RESULTA** ppDomains);
-
-@DllImport("NTDSAPI.dll")
-uint DsListDomainsInSiteW(HANDLE hDs, const(wchar)* site, DS_NAME_RESULTW** ppDomains);
-
-@DllImport("NTDSAPI.dll")
-uint DsListServersForDomainInSiteA(HANDLE hDs, const(char)* domain, const(char)* site, DS_NAME_RESULTA** ppServers);
-
-@DllImport("NTDSAPI.dll")
-uint DsListServersForDomainInSiteW(HANDLE hDs, const(wchar)* domain, const(wchar)* site, DS_NAME_RESULTW** ppServers);
-
-@DllImport("NTDSAPI.dll")
-uint DsListInfoForServerA(HANDLE hDs, const(char)* server, DS_NAME_RESULTA** ppInfo);
-
-@DllImport("NTDSAPI.dll")
-uint DsListInfoForServerW(HANDLE hDs, const(wchar)* server, DS_NAME_RESULTW** ppInfo);
-
-@DllImport("NTDSAPI.dll")
-uint DsListRolesA(HANDLE hDs, DS_NAME_RESULTA** ppRoles);
-
-@DllImport("NTDSAPI.dll")
-uint DsListRolesW(HANDLE hDs, DS_NAME_RESULTW** ppRoles);
-
-@DllImport("NTDSAPI.dll")
-uint DsQuerySitesByCostW(HANDLE hDS, const(wchar)* pwszFromSite, char* rgwszToSites, uint cToSites, uint dwFlags, DS_SITE_COST_INFO** prgSiteInfo);
-
-@DllImport("NTDSAPI.dll")
-uint DsQuerySitesByCostA(HANDLE hDS, const(char)* pszFromSite, char* rgszToSites, uint cToSites, uint dwFlags, DS_SITE_COST_INFO** prgSiteInfo);
-
-@DllImport("NTDSAPI.dll")
-void DsQuerySitesFree(DS_SITE_COST_INFO* rgSiteInfo);
-
-@DllImport("NTDSAPI.dll")
-uint DsMapSchemaGuidsA(HANDLE hDs, uint cGuids, char* rGuids, DS_SCHEMA_GUID_MAPA** ppGuidMap);
-
-@DllImport("NTDSAPI.dll")
-void DsFreeSchemaGuidMapA(DS_SCHEMA_GUID_MAPA* pGuidMap);
-
-@DllImport("NTDSAPI.dll")
-uint DsMapSchemaGuidsW(HANDLE hDs, uint cGuids, char* rGuids, DS_SCHEMA_GUID_MAPW** ppGuidMap);
-
-@DllImport("NTDSAPI.dll")
-void DsFreeSchemaGuidMapW(DS_SCHEMA_GUID_MAPW* pGuidMap);
-
-@DllImport("NTDSAPI.dll")
-uint DsGetDomainControllerInfoA(HANDLE hDs, const(char)* DomainName, uint InfoLevel, uint* pcOut, void** ppInfo);
-
-@DllImport("NTDSAPI.dll")
-uint DsGetDomainControllerInfoW(HANDLE hDs, const(wchar)* DomainName, uint InfoLevel, uint* pcOut, void** ppInfo);
-
-@DllImport("NTDSAPI.dll")
-void DsFreeDomainControllerInfoA(uint InfoLevel, uint cInfo, char* pInfo);
-
-@DllImport("NTDSAPI.dll")
-void DsFreeDomainControllerInfoW(uint InfoLevel, uint cInfo, char* pInfo);
-
-@DllImport("NTDSAPI.dll")
-uint DsReplicaConsistencyCheck(HANDLE hDS, DS_KCC_TASKID TaskID, uint dwFlags);
-
-@DllImport("NTDSAPI.dll")
-uint DsReplicaVerifyObjectsW(HANDLE hDS, const(wchar)* NameContext, const(Guid)* pUuidDsaSrc, uint ulOptions);
-
-@DllImport("NTDSAPI.dll")
-uint DsReplicaVerifyObjectsA(HANDLE hDS, const(char)* NameContext, const(Guid)* pUuidDsaSrc, uint ulOptions);
-
-@DllImport("NTDSAPI.dll")
-uint DsReplicaGetInfoW(HANDLE hDS, DS_REPL_INFO_TYPE InfoType, const(wchar)* pszObject, Guid* puuidForSourceDsaObjGuid, void** ppInfo);
-
-@DllImport("NTDSAPI.dll")
-uint DsReplicaGetInfo2W(HANDLE hDS, DS_REPL_INFO_TYPE InfoType, const(wchar)* pszObject, Guid* puuidForSourceDsaObjGuid, const(wchar)* pszAttributeName, const(wchar)* pszValue, uint dwFlags, uint dwEnumerationContext, void** ppInfo);
-
-@DllImport("NTDSAPI.dll")
-void DsReplicaFreeInfo(DS_REPL_INFO_TYPE InfoType, void* pInfo);
-
-@DllImport("NTDSAPI.dll")
-uint DsAddSidHistoryW(HANDLE hDS, uint Flags, const(wchar)* SrcDomain, const(wchar)* SrcPrincipal, const(wchar)* SrcDomainController, void* SrcDomainCreds, const(wchar)* DstDomain, const(wchar)* DstPrincipal);
-
-@DllImport("NTDSAPI.dll")
-uint DsAddSidHistoryA(HANDLE hDS, uint Flags, const(char)* SrcDomain, const(char)* SrcPrincipal, const(char)* SrcDomainController, void* SrcDomainCreds, const(char)* DstDomain, const(char)* DstPrincipal);
-
-@DllImport("NTDSAPI.dll")
-uint DsInheritSecurityIdentityW(HANDLE hDS, uint Flags, const(wchar)* SrcPrincipal, const(wchar)* DstPrincipal);
-
-@DllImport("NTDSAPI.dll")
-uint DsInheritSecurityIdentityA(HANDLE hDS, uint Flags, const(char)* SrcPrincipal, const(char)* DstPrincipal);
-
-@DllImport("DSROLE.dll")
-uint DsRoleGetPrimaryDomainInformation(const(wchar)* lpServer, DSROLE_PRIMARY_DOMAIN_INFO_LEVEL InfoLevel, ubyte** Buffer);
-
-@DllImport("DSROLE.dll")
-void DsRoleFreeMemory(void* Buffer);
-
-@DllImport("logoncli.dll")
-uint DsGetDcNameA(const(char)* ComputerName, const(char)* DomainName, Guid* DomainGuid, const(char)* SiteName, uint Flags, DOMAIN_CONTROLLER_INFOA** DomainControllerInfo);
-
-@DllImport("logoncli.dll")
-uint DsGetDcNameW(const(wchar)* ComputerName, const(wchar)* DomainName, Guid* DomainGuid, const(wchar)* SiteName, uint Flags, DOMAIN_CONTROLLER_INFOW** DomainControllerInfo);
-
-@DllImport("logoncli.dll")
-uint DsGetSiteNameA(const(char)* ComputerName, byte** SiteName);
-
-@DllImport("logoncli.dll")
-uint DsGetSiteNameW(const(wchar)* ComputerName, ushort** SiteName);
-
-@DllImport("logoncli.dll")
-uint DsValidateSubnetNameW(const(wchar)* SubnetName);
-
-@DllImport("logoncli.dll")
-uint DsValidateSubnetNameA(const(char)* SubnetName);
-
-@DllImport("logoncli.dll")
-uint DsAddressToSiteNamesW(const(wchar)* ComputerName, uint EntryCount, char* SocketAddresses, ushort*** SiteNames);
-
-@DllImport("logoncli.dll")
-uint DsAddressToSiteNamesA(const(char)* ComputerName, uint EntryCount, char* SocketAddresses, byte*** SiteNames);
-
-@DllImport("logoncli.dll")
-uint DsAddressToSiteNamesExW(const(wchar)* ComputerName, uint EntryCount, char* SocketAddresses, ushort*** SiteNames, ushort*** SubnetNames);
-
-@DllImport("logoncli.dll")
-uint DsAddressToSiteNamesExA(const(char)* ComputerName, uint EntryCount, char* SocketAddresses, byte*** SiteNames, byte*** SubnetNames);
-
-@DllImport("logoncli.dll")
-uint DsEnumerateDomainTrustsW(const(wchar)* ServerName, uint Flags, DS_DOMAIN_TRUSTSW** Domains, uint* DomainCount);
-
-@DllImport("logoncli.dll")
-uint DsEnumerateDomainTrustsA(const(char)* ServerName, uint Flags, DS_DOMAIN_TRUSTSA** Domains, uint* DomainCount);
-
-@DllImport("logoncli.dll")
-uint DsGetForestTrustInformationW(const(wchar)* ServerName, const(wchar)* TrustedDomainName, uint Flags, LSA_FOREST_TRUST_INFORMATION** ForestTrustInfo);
-
-@DllImport("logoncli.dll")
-uint DsMergeForestTrustInformationW(const(wchar)* DomainName, LSA_FOREST_TRUST_INFORMATION* NewForestTrustInfo, LSA_FOREST_TRUST_INFORMATION* OldForestTrustInfo, LSA_FOREST_TRUST_INFORMATION** MergedForestTrustInfo);
-
-@DllImport("logoncli.dll")
-uint DsGetDcSiteCoverageW(const(wchar)* ServerName, uint* EntryCount, ushort*** SiteNames);
-
-@DllImport("logoncli.dll")
-uint DsGetDcSiteCoverageA(const(char)* ServerName, uint* EntryCount, byte*** SiteNames);
-
-@DllImport("logoncli.dll")
-uint DsDeregisterDnsHostRecordsW(const(wchar)* ServerName, const(wchar)* DnsDomainName, Guid* DomainGuid, Guid* DsaGuid, const(wchar)* DnsHostName);
-
-@DllImport("logoncli.dll")
-uint DsDeregisterDnsHostRecordsA(const(char)* ServerName, const(char)* DnsDomainName, Guid* DomainGuid, Guid* DsaGuid, const(char)* DnsHostName);
-
-@DllImport("logoncli.dll")
-uint DsGetDcOpenW(const(wchar)* DnsName, uint OptionFlags, const(wchar)* SiteName, Guid* DomainGuid, const(wchar)* DnsForestName, uint DcFlags, GetDcContextHandle* RetGetDcContext);
-
-@DllImport("logoncli.dll")
-uint DsGetDcOpenA(const(char)* DnsName, uint OptionFlags, const(char)* SiteName, Guid* DomainGuid, const(char)* DnsForestName, uint DcFlags, GetDcContextHandle* RetGetDcContext);
-
-@DllImport("logoncli.dll")
-uint DsGetDcNextW(HANDLE GetDcContextHandle, uint* SockAddressCount, SOCKET_ADDRESS** SockAddresses, ushort** DnsHostName);
-
-@DllImport("logoncli.dll")
-uint DsGetDcNextA(HANDLE GetDcContextHandle, uint* SockAddressCount, SOCKET_ADDRESS** SockAddresses, byte** DnsHostName);
-
-@DllImport("logoncli.dll")
-void DsGetDcCloseW(HANDLE GetDcContextHandle);
-
-alias GetDcContextHandle = int;
-alias BFFCALLBACK = extern(Windows) int function(HWND hwnd, uint uMsg, LPARAM lParam, LPARAM lpData);
+// GUIDs
+
+const GUID CLSID_ADSystemInfo       = GUIDOF!ADSystemInfo;
+const GUID CLSID_ADsSecurityUtility = GUIDOF!ADsSecurityUtility;
+const GUID CLSID_AccessControlEntry = GUIDOF!AccessControlEntry;
+const GUID CLSID_AccessControlList  = GUIDOF!AccessControlList;
+const GUID CLSID_BackLink           = GUIDOF!BackLink;
+const GUID CLSID_CaseIgnoreList     = GUIDOF!CaseIgnoreList;
+const GUID CLSID_DNWithBinary       = GUIDOF!DNWithBinary;
+const GUID CLSID_DNWithString       = GUIDOF!DNWithString;
+const GUID CLSID_Email              = GUIDOF!Email;
+const GUID CLSID_FaxNumber          = GUIDOF!FaxNumber;
+const GUID CLSID_Hold               = GUIDOF!Hold;
+const GUID CLSID_LargeInteger       = GUIDOF!LargeInteger;
+const GUID CLSID_NameTranslate      = GUIDOF!NameTranslate;
+const GUID CLSID_NetAddress         = GUIDOF!NetAddress;
+const GUID CLSID_OctetList          = GUIDOF!OctetList;
+const GUID CLSID_Path               = GUIDOF!Path;
+const GUID CLSID_Pathname           = GUIDOF!Pathname;
+const GUID CLSID_PostalAddress      = GUIDOF!PostalAddress;
+const GUID CLSID_PropertyEntry      = GUIDOF!PropertyEntry;
+const GUID CLSID_PropertyValue      = GUIDOF!PropertyValue;
+const GUID CLSID_ReplicaPointer     = GUIDOF!ReplicaPointer;
+const GUID CLSID_SecurityDescriptor = GUIDOF!SecurityDescriptor;
+const GUID CLSID_Timestamp          = GUIDOF!Timestamp;
+const GUID CLSID_TypedName          = GUIDOF!TypedName;
+const GUID CLSID_WinNTSystemInfo    = GUIDOF!WinNTSystemInfo;
+
+const GUID IID_IADs                      = GUIDOF!IADs;
+const GUID IID_IADsADSystemInfo          = GUIDOF!IADsADSystemInfo;
+const GUID IID_IADsAccessControlEntry    = GUIDOF!IADsAccessControlEntry;
+const GUID IID_IADsAccessControlList     = GUIDOF!IADsAccessControlList;
+const GUID IID_IADsAcl                   = GUIDOF!IADsAcl;
+const GUID IID_IADsAggregatee            = GUIDOF!IADsAggregatee;
+const GUID IID_IADsAggregator            = GUIDOF!IADsAggregator;
+const GUID IID_IADsBackLink              = GUIDOF!IADsBackLink;
+const GUID IID_IADsCaseIgnoreList        = GUIDOF!IADsCaseIgnoreList;
+const GUID IID_IADsClass                 = GUIDOF!IADsClass;
+const GUID IID_IADsCollection            = GUIDOF!IADsCollection;
+const GUID IID_IADsComputer              = GUIDOF!IADsComputer;
+const GUID IID_IADsComputerOperations    = GUIDOF!IADsComputerOperations;
+const GUID IID_IADsContainer             = GUIDOF!IADsContainer;
+const GUID IID_IADsDNWithBinary          = GUIDOF!IADsDNWithBinary;
+const GUID IID_IADsDNWithString          = GUIDOF!IADsDNWithString;
+const GUID IID_IADsDeleteOps             = GUIDOF!IADsDeleteOps;
+const GUID IID_IADsDomain                = GUIDOF!IADsDomain;
+const GUID IID_IADsEmail                 = GUIDOF!IADsEmail;
+const GUID IID_IADsExtension             = GUIDOF!IADsExtension;
+const GUID IID_IADsFaxNumber             = GUIDOF!IADsFaxNumber;
+const GUID IID_IADsFileService           = GUIDOF!IADsFileService;
+const GUID IID_IADsFileServiceOperations = GUIDOF!IADsFileServiceOperations;
+const GUID IID_IADsFileShare             = GUIDOF!IADsFileShare;
+const GUID IID_IADsGroup                 = GUIDOF!IADsGroup;
+const GUID IID_IADsHold                  = GUIDOF!IADsHold;
+const GUID IID_IADsLargeInteger          = GUIDOF!IADsLargeInteger;
+const GUID IID_IADsLocality              = GUIDOF!IADsLocality;
+const GUID IID_IADsMembers               = GUIDOF!IADsMembers;
+const GUID IID_IADsNameTranslate         = GUIDOF!IADsNameTranslate;
+const GUID IID_IADsNamespaces            = GUIDOF!IADsNamespaces;
+const GUID IID_IADsNetAddress            = GUIDOF!IADsNetAddress;
+const GUID IID_IADsO                     = GUIDOF!IADsO;
+const GUID IID_IADsOU                    = GUIDOF!IADsOU;
+const GUID IID_IADsObjectOptions         = GUIDOF!IADsObjectOptions;
+const GUID IID_IADsOctetList             = GUIDOF!IADsOctetList;
+const GUID IID_IADsOpenDSObject          = GUIDOF!IADsOpenDSObject;
+const GUID IID_IADsPath                  = GUIDOF!IADsPath;
+const GUID IID_IADsPathname              = GUIDOF!IADsPathname;
+const GUID IID_IADsPostalAddress         = GUIDOF!IADsPostalAddress;
+const GUID IID_IADsPrintJob              = GUIDOF!IADsPrintJob;
+const GUID IID_IADsPrintJobOperations    = GUIDOF!IADsPrintJobOperations;
+const GUID IID_IADsPrintQueue            = GUIDOF!IADsPrintQueue;
+const GUID IID_IADsPrintQueueOperations  = GUIDOF!IADsPrintQueueOperations;
+const GUID IID_IADsProperty              = GUIDOF!IADsProperty;
+const GUID IID_IADsPropertyEntry         = GUIDOF!IADsPropertyEntry;
+const GUID IID_IADsPropertyList          = GUIDOF!IADsPropertyList;
+const GUID IID_IADsPropertyValue         = GUIDOF!IADsPropertyValue;
+const GUID IID_IADsPropertyValue2        = GUIDOF!IADsPropertyValue2;
+const GUID IID_IADsReplicaPointer        = GUIDOF!IADsReplicaPointer;
+const GUID IID_IADsResource              = GUIDOF!IADsResource;
+const GUID IID_IADsSecurityDescriptor    = GUIDOF!IADsSecurityDescriptor;
+const GUID IID_IADsSecurityUtility       = GUIDOF!IADsSecurityUtility;
+const GUID IID_IADsService               = GUIDOF!IADsService;
+const GUID IID_IADsServiceOperations     = GUIDOF!IADsServiceOperations;
+const GUID IID_IADsSession               = GUIDOF!IADsSession;
+const GUID IID_IADsSyntax                = GUIDOF!IADsSyntax;
+const GUID IID_IADsTimestamp             = GUIDOF!IADsTimestamp;
+const GUID IID_IADsTypedName             = GUIDOF!IADsTypedName;
+const GUID IID_IADsUser                  = GUIDOF!IADsUser;
+const GUID IID_IADsWinNTSystemInfo       = GUIDOF!IADsWinNTSystemInfo;
+const GUID IID_ICommonQuery              = GUIDOF!ICommonQuery;
+const GUID IID_IDirectoryObject          = GUIDOF!IDirectoryObject;
+const GUID IID_IDirectorySchemaMgmt      = GUIDOF!IDirectorySchemaMgmt;
+const GUID IID_IDirectorySearch          = GUIDOF!IDirectorySearch;
+const GUID IID_IDsBrowseDomainTree       = GUIDOF!IDsBrowseDomainTree;
+const GUID IID_IDsDisplaySpecifier       = GUIDOF!IDsDisplaySpecifier;
+const GUID IID_IPersistQuery             = GUIDOF!IPersistQuery;
+const GUID IID_IPrivateDispatch          = GUIDOF!IPrivateDispatch;
+const GUID IID_IPrivateUnknown           = GUIDOF!IPrivateUnknown;
+const GUID IID_IQueryForm                = GUIDOF!IQueryForm;

@@ -1,31 +1,47 @@
 module windows.power;
 
-public import system;
-public import windows.windowsprogramming;
+public import windows.core;
+public import windows.windowsprogramming : HKEY;
 
 extern(Windows):
 
-@DllImport("api-ms-win-power-setting-l1-1-0.dll")
-uint PowerWriteACValueIndex(HKEY RootPowerKey, const(Guid)* SchemeGuid, const(Guid)* SubGroupOfPowerSettingsGuid, const(Guid)* PowerSettingGuid, uint AcValueIndex);
 
-@DllImport("api-ms-win-power-setting-l1-1-0.dll")
-uint PowerWriteDCValueIndex(HKEY RootPowerKey, const(Guid)* SchemeGuid, const(Guid)* SubGroupOfPowerSettingsGuid, const(Guid)* PowerSettingGuid, uint DcValueIndex);
+// Functions
 
-@DllImport("POWRPROF.dll")
-uint PowerReadACValueIndex(HKEY RootPowerKey, const(Guid)* SchemeGuid, const(Guid)* SubGroupOfPowerSettingsGuid, const(Guid)* PowerSettingGuid, uint* AcValueIndex);
+@DllImport("api-ms-win-power-setting-l1-1-0")
+uint PowerWriteACValueIndex(HKEY RootPowerKey, const(GUID)* SchemeGuid, const(GUID)* SubGroupOfPowerSettingsGuid, 
+                            const(GUID)* PowerSettingGuid, uint AcValueIndex);
 
-@DllImport("POWRPROF.dll")
-uint PowerReadDCValueIndex(HKEY RootPowerKey, const(Guid)* SchemeGuid, const(Guid)* SubGroupOfPowerSettingsGuid, const(Guid)* PowerSettingGuid, uint* DcValueIndex);
+@DllImport("api-ms-win-power-setting-l1-1-0")
+uint PowerWriteDCValueIndex(HKEY RootPowerKey, const(GUID)* SchemeGuid, const(GUID)* SubGroupOfPowerSettingsGuid, 
+                            const(GUID)* PowerSettingGuid, uint DcValueIndex);
 
-@DllImport("POWRPROF.dll")
-uint PowerReadACDefaultIndex(HKEY RootPowerKey, const(Guid)* SchemePersonalityGuid, const(Guid)* SubGroupOfPowerSettingsGuid, const(Guid)* PowerSettingGuid, uint* AcDefaultIndex);
+@DllImport("POWRPROF")
+uint PowerReadACValueIndex(HKEY RootPowerKey, const(GUID)* SchemeGuid, const(GUID)* SubGroupOfPowerSettingsGuid, 
+                           const(GUID)* PowerSettingGuid, uint* AcValueIndex);
 
-@DllImport("POWRPROF.dll")
-uint PowerReadDCDefaultIndex(HKEY RootPowerKey, const(Guid)* SchemePersonalityGuid, const(Guid)* SubGroupOfPowerSettingsGuid, const(Guid)* PowerSettingGuid, uint* DcDefaultIndex);
+@DllImport("POWRPROF")
+uint PowerReadDCValueIndex(HKEY RootPowerKey, const(GUID)* SchemeGuid, const(GUID)* SubGroupOfPowerSettingsGuid, 
+                           const(GUID)* PowerSettingGuid, uint* DcValueIndex);
 
-@DllImport("POWRPROF.dll")
-uint PowerWriteACDefaultIndex(HKEY RootSystemPowerKey, const(Guid)* SchemePersonalityGuid, const(Guid)* SubGroupOfPowerSettingsGuid, const(Guid)* PowerSettingGuid, uint DefaultAcIndex);
+@DllImport("POWRPROF")
+uint PowerReadACDefaultIndex(HKEY RootPowerKey, const(GUID)* SchemePersonalityGuid, 
+                             const(GUID)* SubGroupOfPowerSettingsGuid, const(GUID)* PowerSettingGuid, 
+                             uint* AcDefaultIndex);
 
-@DllImport("POWRPROF.dll")
-uint PowerWriteDCDefaultIndex(HKEY RootSystemPowerKey, const(Guid)* SchemePersonalityGuid, const(Guid)* SubGroupOfPowerSettingsGuid, const(Guid)* PowerSettingGuid, uint DefaultDcIndex);
+@DllImport("POWRPROF")
+uint PowerReadDCDefaultIndex(HKEY RootPowerKey, const(GUID)* SchemePersonalityGuid, 
+                             const(GUID)* SubGroupOfPowerSettingsGuid, const(GUID)* PowerSettingGuid, 
+                             uint* DcDefaultIndex);
+
+@DllImport("POWRPROF")
+uint PowerWriteACDefaultIndex(HKEY RootSystemPowerKey, const(GUID)* SchemePersonalityGuid, 
+                              const(GUID)* SubGroupOfPowerSettingsGuid, const(GUID)* PowerSettingGuid, 
+                              uint DefaultAcIndex);
+
+@DllImport("POWRPROF")
+uint PowerWriteDCDefaultIndex(HKEY RootSystemPowerKey, const(GUID)* SchemePersonalityGuid, 
+                              const(GUID)* SubGroupOfPowerSettingsGuid, const(GUID)* PowerSettingGuid, 
+                              uint DefaultDcIndex);
+
 

@@ -1,18 +1,110 @@
 module windows.packaging;
 
-public import windows.com;
-public import windows.security;
-public import windows.structuredstorage;
-public import windows.systemservices;
+public import windows.core;
+public import windows.com : HRESULT, IUnknown, IUri;
+public import windows.security : CERT_CONTEXT;
+public import windows.structuredstorage : IStream;
+public import windows.systemservices : SECURITY_ATTRIBUTES;
 
 extern(Windows):
 
-const GUID CLSID_OpcFactory = {0x6B2D6BA0, 0x9F3E, 0x4F27, [0x92, 0x0B, 0x31, 0x3C, 0xC4, 0x26, 0xA3, 0x9E]};
-@GUID(0x6B2D6BA0, 0x9F3E, 0x4F27, [0x92, 0x0B, 0x31, 0x3C, 0xC4, 0x26, 0xA3, 0x9E]);
+
+// Enums
+
+
+enum : int
+{
+    OPC_URI_TARGET_MODE_INTERNAL = 0x00000000,
+    OPC_URI_TARGET_MODE_EXTERNAL = 0x00000001,
+}
+alias OPC_URI_TARGET_MODE = int;
+
+enum : int
+{
+    OPC_COMPRESSION_NONE      = 0xffffffff,
+    OPC_COMPRESSION_NORMAL    = 0x00000000,
+    OPC_COMPRESSION_MAXIMUM   = 0x00000001,
+    OPC_COMPRESSION_FAST      = 0x00000002,
+    OPC_COMPRESSION_SUPERFAST = 0x00000003,
+}
+alias OPC_COMPRESSION_OPTIONS = int;
+
+enum : int
+{
+    OPC_STREAM_IO_READ  = 0x00000001,
+    OPC_STREAM_IO_WRITE = 0x00000002,
+}
+alias OPC_STREAM_IO_MODE = int;
+
+enum : int
+{
+    OPC_READ_DEFAULT     = 0x00000000,
+    OPC_VALIDATE_ON_LOAD = 0x00000001,
+    OPC_CACHE_ON_ACCESS  = 0x00000002,
+}
+alias OPC_READ_FLAGS = int;
+
+enum : int
+{
+    OPC_WRITE_DEFAULT     = 0x00000000,
+    OPC_WRITE_FORCE_ZIP32 = 0x00000001,
+}
+alias OPC_WRITE_FLAGS = int;
+
+enum : int
+{
+    OPC_SIGNATURE_VALID   = 0x00000000,
+    OPC_SIGNATURE_INVALID = 0xffffffff,
+}
+alias OPC_SIGNATURE_VALIDATION_RESULT = int;
+
+enum : int
+{
+    OPC_CANONICALIZATION_NONE               = 0x00000000,
+    OPC_CANONICALIZATION_C14N               = 0x00000001,
+    OPC_CANONICALIZATION_C14N_WITH_COMMENTS = 0x00000002,
+}
+alias OPC_CANONICALIZATION_METHOD = int;
+
+enum : int
+{
+    OPC_RELATIONSHIP_SELECT_BY_ID   = 0x00000000,
+    OPC_RELATIONSHIP_SELECT_BY_TYPE = 0x00000001,
+}
+alias OPC_RELATIONSHIP_SELECTOR = int;
+
+enum : int
+{
+    OPC_RELATIONSHIP_SIGN_USING_SELECTORS = 0x00000000,
+    OPC_RELATIONSHIP_SIGN_PART            = 0x00000001,
+}
+alias OPC_RELATIONSHIPS_SIGNING_OPTION = int;
+
+enum : int
+{
+    OPC_CERTIFICATE_IN_CERTIFICATE_PART = 0x00000000,
+    OPC_CERTIFICATE_IN_SIGNATURE_PART   = 0x00000001,
+    OPC_CERTIFICATE_NOT_EMBEDDED        = 0x00000002,
+}
+alias OPC_CERTIFICATE_EMBEDDING_OPTION = int;
+
+enum : int
+{
+    OPC_SIGNATURE_TIME_FORMAT_MILLISECONDS = 0x00000000,
+    OPC_SIGNATURE_TIME_FORMAT_SECONDS      = 0x00000001,
+    OPC_SIGNATURE_TIME_FORMAT_MINUTES      = 0x00000002,
+    OPC_SIGNATURE_TIME_FORMAT_DAYS         = 0x00000003,
+    OPC_SIGNATURE_TIME_FORMAT_MONTHS       = 0x00000004,
+    OPC_SIGNATURE_TIME_FORMAT_YEARS        = 0x00000005,
+}
+alias OPC_SIGNATURE_TIME_FORMAT = int;
+
+// Interfaces
+
+@GUID("6B2D6BA0-9F3E-4F27-920B-313CC426A39E")
 struct OpcFactory;
 
-const GUID IID_IOpcUri = {0xBC9C1B9B, 0xD62C, 0x49EB, [0xAE, 0xF0, 0x3B, 0x4E, 0x0B, 0x28, 0xEB, 0xED]};
-@GUID(0xBC9C1B9B, 0xD62C, 0x49EB, [0xAE, 0xF0, 0x3B, 0x4E, 0x0B, 0x28, 0xEB, 0xED]);
+@GUID("BC9C1B9B-D62C-49EB-AEF0-3B4E0B28EBED")
 interface IOpcUri : IUri
 {
     HRESULT GetRelationshipsPartUri(IOpcPartUri* relationshipPartUri);
@@ -20,8 +112,7 @@ interface IOpcUri : IUri
     HRESULT CombinePartUri(IUri relativeUri, IOpcPartUri* combinedUri);
 }
 
-const GUID IID_IOpcPartUri = {0x7D3BABE7, 0x88B2, 0x46BA, [0x85, 0xCB, 0x42, 0x03, 0xCB, 0x01, 0x6C, 0x87]};
-@GUID(0x7D3BABE7, 0x88B2, 0x46BA, [0x85, 0xCB, 0x42, 0x03, 0xCB, 0x01, 0x6C, 0x87]);
+@GUID("7D3BABE7-88B2-46BA-85CB-4203CB016C87")
 interface IOpcPartUri : IOpcUri
 {
     HRESULT ComparePartUri(IOpcPartUri partUri, int* comparisonResult);
@@ -29,92 +120,14 @@ interface IOpcPartUri : IOpcUri
     HRESULT IsRelationshipsPartUri(int* isRelationshipUri);
 }
 
-enum OPC_URI_TARGET_MODE
-{
-    OPC_URI_TARGET_MODE_INTERNAL = 0,
-    OPC_URI_TARGET_MODE_EXTERNAL = 1,
-}
-
-enum OPC_COMPRESSION_OPTIONS
-{
-    OPC_COMPRESSION_NONE = -1,
-    OPC_COMPRESSION_NORMAL = 0,
-    OPC_COMPRESSION_MAXIMUM = 1,
-    OPC_COMPRESSION_FAST = 2,
-    OPC_COMPRESSION_SUPERFAST = 3,
-}
-
-enum OPC_STREAM_IO_MODE
-{
-    OPC_STREAM_IO_READ = 1,
-    OPC_STREAM_IO_WRITE = 2,
-}
-
-enum OPC_READ_FLAGS
-{
-    OPC_READ_DEFAULT = 0,
-    OPC_VALIDATE_ON_LOAD = 1,
-    OPC_CACHE_ON_ACCESS = 2,
-}
-
-enum OPC_WRITE_FLAGS
-{
-    OPC_WRITE_DEFAULT = 0,
-    OPC_WRITE_FORCE_ZIP32 = 1,
-}
-
-enum OPC_SIGNATURE_VALIDATION_RESULT
-{
-    OPC_SIGNATURE_VALID = 0,
-    OPC_SIGNATURE_INVALID = -1,
-}
-
-enum OPC_CANONICALIZATION_METHOD
-{
-    OPC_CANONICALIZATION_NONE = 0,
-    OPC_CANONICALIZATION_C14N = 1,
-    OPC_CANONICALIZATION_C14N_WITH_COMMENTS = 2,
-}
-
-enum OPC_RELATIONSHIP_SELECTOR
-{
-    OPC_RELATIONSHIP_SELECT_BY_ID = 0,
-    OPC_RELATIONSHIP_SELECT_BY_TYPE = 1,
-}
-
-enum OPC_RELATIONSHIPS_SIGNING_OPTION
-{
-    OPC_RELATIONSHIP_SIGN_USING_SELECTORS = 0,
-    OPC_RELATIONSHIP_SIGN_PART = 1,
-}
-
-enum OPC_CERTIFICATE_EMBEDDING_OPTION
-{
-    OPC_CERTIFICATE_IN_CERTIFICATE_PART = 0,
-    OPC_CERTIFICATE_IN_SIGNATURE_PART = 1,
-    OPC_CERTIFICATE_NOT_EMBEDDED = 2,
-}
-
-enum OPC_SIGNATURE_TIME_FORMAT
-{
-    OPC_SIGNATURE_TIME_FORMAT_MILLISECONDS = 0,
-    OPC_SIGNATURE_TIME_FORMAT_SECONDS = 1,
-    OPC_SIGNATURE_TIME_FORMAT_MINUTES = 2,
-    OPC_SIGNATURE_TIME_FORMAT_DAYS = 3,
-    OPC_SIGNATURE_TIME_FORMAT_MONTHS = 4,
-    OPC_SIGNATURE_TIME_FORMAT_YEARS = 5,
-}
-
-const GUID IID_IOpcPackage = {0x42195949, 0x3B79, 0x4FC8, [0x89, 0xC6, 0xFC, 0x7F, 0xB9, 0x79, 0xEE, 0x70]};
-@GUID(0x42195949, 0x3B79, 0x4FC8, [0x89, 0xC6, 0xFC, 0x7F, 0xB9, 0x79, 0xEE, 0x70]);
+@GUID("42195949-3B79-4FC8-89C6-FC7FB979EE70")
 interface IOpcPackage : IUnknown
 {
     HRESULT GetPartSet(IOpcPartSet* partSet);
     HRESULT GetRelationshipSet(IOpcRelationshipSet* relationshipSet);
 }
 
-const GUID IID_IOpcPart = {0x42195949, 0x3B79, 0x4FC8, [0x89, 0xC6, 0xFC, 0x7F, 0xB9, 0x79, 0xEE, 0x71]};
-@GUID(0x42195949, 0x3B79, 0x4FC8, [0x89, 0xC6, 0xFC, 0x7F, 0xB9, 0x79, 0xEE, 0x71]);
+@GUID("42195949-3B79-4FC8-89C6-FC7FB979EE71")
 interface IOpcPart : IUnknown
 {
     HRESULT GetRelationshipSet(IOpcRelationshipSet* relationshipSet);
@@ -124,8 +137,7 @@ interface IOpcPart : IUnknown
     HRESULT GetCompressionOptions(OPC_COMPRESSION_OPTIONS* compressionOptions);
 }
 
-const GUID IID_IOpcRelationship = {0x42195949, 0x3B79, 0x4FC8, [0x89, 0xC6, 0xFC, 0x7F, 0xB9, 0x79, 0xEE, 0x72]};
-@GUID(0x42195949, 0x3B79, 0x4FC8, [0x89, 0xC6, 0xFC, 0x7F, 0xB9, 0x79, 0xEE, 0x72]);
+@GUID("42195949-3B79-4FC8-89C6-FC7FB979EE72")
 interface IOpcRelationship : IUnknown
 {
     HRESULT GetId(ushort** relationshipIdentifier);
@@ -135,32 +147,32 @@ interface IOpcRelationship : IUnknown
     HRESULT GetTargetMode(OPC_URI_TARGET_MODE* targetMode);
 }
 
-const GUID IID_IOpcPartSet = {0x42195949, 0x3B79, 0x4FC8, [0x89, 0xC6, 0xFC, 0x7F, 0xB9, 0x79, 0xEE, 0x73]};
-@GUID(0x42195949, 0x3B79, 0x4FC8, [0x89, 0xC6, 0xFC, 0x7F, 0xB9, 0x79, 0xEE, 0x73]);
+@GUID("42195949-3B79-4FC8-89C6-FC7FB979EE73")
 interface IOpcPartSet : IUnknown
 {
     HRESULT GetPart(IOpcPartUri name, IOpcPart* part);
-    HRESULT CreatePart(IOpcPartUri name, const(wchar)* contentType, OPC_COMPRESSION_OPTIONS compressionOptions, IOpcPart* part);
+    HRESULT CreatePart(IOpcPartUri name, const(wchar)* contentType, OPC_COMPRESSION_OPTIONS compressionOptions, 
+                       IOpcPart* part);
     HRESULT DeletePart(IOpcPartUri name);
     HRESULT PartExists(IOpcPartUri name, int* partExists);
     HRESULT GetEnumerator(IOpcPartEnumerator* partEnumerator);
 }
 
-const GUID IID_IOpcRelationshipSet = {0x42195949, 0x3B79, 0x4FC8, [0x89, 0xC6, 0xFC, 0x7F, 0xB9, 0x79, 0xEE, 0x74]};
-@GUID(0x42195949, 0x3B79, 0x4FC8, [0x89, 0xC6, 0xFC, 0x7F, 0xB9, 0x79, 0xEE, 0x74]);
+@GUID("42195949-3B79-4FC8-89C6-FC7FB979EE74")
 interface IOpcRelationshipSet : IUnknown
 {
     HRESULT GetRelationship(const(wchar)* relationshipIdentifier, IOpcRelationship* relationship);
-    HRESULT CreateRelationship(const(wchar)* relationshipIdentifier, const(wchar)* relationshipType, IUri targetUri, OPC_URI_TARGET_MODE targetMode, IOpcRelationship* relationship);
+    HRESULT CreateRelationship(const(wchar)* relationshipIdentifier, const(wchar)* relationshipType, 
+                               IUri targetUri, OPC_URI_TARGET_MODE targetMode, IOpcRelationship* relationship);
     HRESULT DeleteRelationship(const(wchar)* relationshipIdentifier);
     HRESULT RelationshipExists(const(wchar)* relationshipIdentifier, int* relationshipExists);
     HRESULT GetEnumerator(IOpcRelationshipEnumerator* relationshipEnumerator);
-    HRESULT GetEnumeratorForType(const(wchar)* relationshipType, IOpcRelationshipEnumerator* relationshipEnumerator);
+    HRESULT GetEnumeratorForType(const(wchar)* relationshipType, 
+                                 IOpcRelationshipEnumerator* relationshipEnumerator);
     HRESULT GetRelationshipsContentStream(IStream* contents);
 }
 
-const GUID IID_IOpcPartEnumerator = {0x42195949, 0x3B79, 0x4FC8, [0x89, 0xC6, 0xFC, 0x7F, 0xB9, 0x79, 0xEE, 0x75]};
-@GUID(0x42195949, 0x3B79, 0x4FC8, [0x89, 0xC6, 0xFC, 0x7F, 0xB9, 0x79, 0xEE, 0x75]);
+@GUID("42195949-3B79-4FC8-89C6-FC7FB979EE75")
 interface IOpcPartEnumerator : IUnknown
 {
     HRESULT MoveNext(int* hasNext);
@@ -169,8 +181,7 @@ interface IOpcPartEnumerator : IUnknown
     HRESULT Clone(IOpcPartEnumerator* copy);
 }
 
-const GUID IID_IOpcRelationshipEnumerator = {0x42195949, 0x3B79, 0x4FC8, [0x89, 0xC6, 0xFC, 0x7F, 0xB9, 0x79, 0xEE, 0x76]};
-@GUID(0x42195949, 0x3B79, 0x4FC8, [0x89, 0xC6, 0xFC, 0x7F, 0xB9, 0x79, 0xEE, 0x76]);
+@GUID("42195949-3B79-4FC8-89C6-FC7FB979EE76")
 interface IOpcRelationshipEnumerator : IUnknown
 {
     HRESULT MoveNext(int* hasNext);
@@ -179,8 +190,7 @@ interface IOpcRelationshipEnumerator : IUnknown
     HRESULT Clone(IOpcRelationshipEnumerator* copy);
 }
 
-const GUID IID_IOpcSignaturePartReference = {0xE24231CA, 0x59F4, 0x484E, [0xB6, 0x4B, 0x36, 0xEE, 0xDA, 0x36, 0x07, 0x2C]};
-@GUID(0xE24231CA, 0x59F4, 0x484E, [0xB6, 0x4B, 0x36, 0xEE, 0xDA, 0x36, 0x07, 0x2C]);
+@GUID("E24231CA-59F4-484E-B64B-36EEDA36072C")
 interface IOpcSignaturePartReference : IUnknown
 {
     HRESULT GetPartName(IOpcPartUri* partName);
@@ -190,8 +200,7 @@ interface IOpcSignaturePartReference : IUnknown
     HRESULT GetTransformMethod(OPC_CANONICALIZATION_METHOD* transformMethod);
 }
 
-const GUID IID_IOpcSignatureRelationshipReference = {0x57BABAC6, 0x9D4A, 0x4E50, [0x8B, 0x86, 0xE5, 0xD4, 0x05, 0x1E, 0xAE, 0x7C]};
-@GUID(0x57BABAC6, 0x9D4A, 0x4E50, [0x8B, 0x86, 0xE5, 0xD4, 0x05, 0x1E, 0xAE, 0x7C]);
+@GUID("57BABAC6-9D4A-4E50-8B86-E5D4051EAE7C")
 interface IOpcSignatureRelationshipReference : IUnknown
 {
     HRESULT GetSourceUri(IOpcUri* sourceUri);
@@ -202,16 +211,14 @@ interface IOpcSignatureRelationshipReference : IUnknown
     HRESULT GetRelationshipSelectorEnumerator(IOpcRelationshipSelectorEnumerator* selectorEnumerator);
 }
 
-const GUID IID_IOpcRelationshipSelector = {0xF8F26C7F, 0xB28F, 0x4899, [0x84, 0xC8, 0x5D, 0x56, 0x39, 0xED, 0xE7, 0x5F]};
-@GUID(0xF8F26C7F, 0xB28F, 0x4899, [0x84, 0xC8, 0x5D, 0x56, 0x39, 0xED, 0xE7, 0x5F]);
+@GUID("F8F26C7F-B28F-4899-84C8-5D5639EDE75F")
 interface IOpcRelationshipSelector : IUnknown
 {
     HRESULT GetSelectorType(OPC_RELATIONSHIP_SELECTOR* selector);
     HRESULT GetSelectionCriterion(ushort** selectionCriterion);
 }
 
-const GUID IID_IOpcSignatureReference = {0x1B47005E, 0x3011, 0x4EDC, [0xBE, 0x6F, 0x0F, 0x65, 0xE5, 0xAB, 0x03, 0x42]};
-@GUID(0x1B47005E, 0x3011, 0x4EDC, [0xBE, 0x6F, 0x0F, 0x65, 0xE5, 0xAB, 0x03, 0x42]);
+@GUID("1B47005E-3011-4EDC-BE6F-0F65E5AB0342")
 interface IOpcSignatureReference : IUnknown
 {
     HRESULT GetId(ushort** referenceId);
@@ -222,15 +229,13 @@ interface IOpcSignatureReference : IUnknown
     HRESULT GetDigestValue(char* digestValue, uint* count);
 }
 
-const GUID IID_IOpcSignatureCustomObject = {0x5D77A19E, 0x62C1, 0x44E7, [0xBE, 0xCD, 0x45, 0xDA, 0x5A, 0xE5, 0x1A, 0x56]};
-@GUID(0x5D77A19E, 0x62C1, 0x44E7, [0xBE, 0xCD, 0x45, 0xDA, 0x5A, 0xE5, 0x1A, 0x56]);
+@GUID("5D77A19E-62C1-44E7-BECD-45DA5AE51A56")
 interface IOpcSignatureCustomObject : IUnknown
 {
     HRESULT GetXml(char* xmlMarkup, uint* count);
 }
 
-const GUID IID_IOpcDigitalSignature = {0x52AB21DD, 0x1CD0, 0x4949, [0xBC, 0x80, 0x0C, 0x12, 0x32, 0xD0, 0x0C, 0xB4]};
-@GUID(0x52AB21DD, 0x1CD0, 0x4949, [0xBC, 0x80, 0x0C, 0x12, 0x32, 0xD0, 0x0C, 0xB4]);
+@GUID("52AB21DD-1CD0-4949-BC80-0C1232D00CB4")
 interface IOpcDigitalSignature : IUnknown
 {
     HRESULT GetNamespaces(char* prefixes, char* namespaces, uint* count);
@@ -250,8 +255,7 @@ interface IOpcDigitalSignature : IUnknown
     HRESULT GetSignatureXml(ubyte** signatureXml, uint* count);
 }
 
-const GUID IID_IOpcSigningOptions = {0x50D2D6A5, 0x7AEB, 0x46C0, [0xB2, 0x41, 0x43, 0xAB, 0x0E, 0x9B, 0x40, 0x7E]};
-@GUID(0x50D2D6A5, 0x7AEB, 0x46C0, [0xB2, 0x41, 0x43, 0xAB, 0x0E, 0x9B, 0x40, 0x7E]);
+@GUID("50D2D6A5-7AEB-46C0-B241-43AB0E9B407E")
 interface IOpcSigningOptions : IUnknown
 {
     HRESULT GetSignatureId(ushort** signatureId);
@@ -273,8 +277,7 @@ interface IOpcSigningOptions : IUnknown
     HRESULT SetSignaturePartName(IOpcPartUri signaturePartName);
 }
 
-const GUID IID_IOpcDigitalSignatureManager = {0xD5E62A0B, 0x696D, 0x462F, [0x94, 0xDF, 0x72, 0xE3, 0x3C, 0xEF, 0x26, 0x59]};
-@GUID(0xD5E62A0B, 0x696D, 0x462F, [0x94, 0xDF, 0x72, 0xE3, 0x3C, 0xEF, 0x26, 0x59]);
+@GUID("D5E62A0B-696D-462F-94DF-72E33CEF2659")
 interface IOpcDigitalSignatureManager : IUnknown
 {
     HRESULT GetSignatureOriginPartName(IOpcPartUri* signatureOriginPartName);
@@ -282,13 +285,15 @@ interface IOpcDigitalSignatureManager : IUnknown
     HRESULT GetSignatureEnumerator(IOpcDigitalSignatureEnumerator* signatureEnumerator);
     HRESULT RemoveSignature(IOpcPartUri signaturePartName);
     HRESULT CreateSigningOptions(IOpcSigningOptions* signingOptions);
-    HRESULT Validate(IOpcDigitalSignature signature, const(CERT_CONTEXT)* certificate, OPC_SIGNATURE_VALIDATION_RESULT* validationResult);
-    HRESULT Sign(const(CERT_CONTEXT)* certificate, IOpcSigningOptions signingOptions, IOpcDigitalSignature* digitalSignature);
-    HRESULT ReplaceSignatureXml(IOpcPartUri signaturePartName, const(ubyte)* newSignatureXml, uint count, IOpcDigitalSignature* digitalSignature);
+    HRESULT Validate(IOpcDigitalSignature signature, const(CERT_CONTEXT)* certificate, 
+                     OPC_SIGNATURE_VALIDATION_RESULT* validationResult);
+    HRESULT Sign(const(CERT_CONTEXT)* certificate, IOpcSigningOptions signingOptions, 
+                 IOpcDigitalSignature* digitalSignature);
+    HRESULT ReplaceSignatureXml(IOpcPartUri signaturePartName, const(ubyte)* newSignatureXml, uint count, 
+                                IOpcDigitalSignature* digitalSignature);
 }
 
-const GUID IID_IOpcSignaturePartReferenceEnumerator = {0x80EB1561, 0x8C77, 0x49CF, [0x82, 0x66, 0x45, 0x9B, 0x35, 0x6E, 0xE9, 0x9A]};
-@GUID(0x80EB1561, 0x8C77, 0x49CF, [0x82, 0x66, 0x45, 0x9B, 0x35, 0x6E, 0xE9, 0x9A]);
+@GUID("80EB1561-8C77-49CF-8266-459B356EE99A")
 interface IOpcSignaturePartReferenceEnumerator : IUnknown
 {
     HRESULT MoveNext(int* hasNext);
@@ -297,8 +302,7 @@ interface IOpcSignaturePartReferenceEnumerator : IUnknown
     HRESULT Clone(IOpcSignaturePartReferenceEnumerator* copy);
 }
 
-const GUID IID_IOpcSignatureRelationshipReferenceEnumerator = {0x773BA3E4, 0xF021, 0x48E4, [0xAA, 0x04, 0x98, 0x16, 0xDB, 0x5D, 0x34, 0x95]};
-@GUID(0x773BA3E4, 0xF021, 0x48E4, [0xAA, 0x04, 0x98, 0x16, 0xDB, 0x5D, 0x34, 0x95]);
+@GUID("773BA3E4-F021-48E4-AA04-9816DB5D3495")
 interface IOpcSignatureRelationshipReferenceEnumerator : IUnknown
 {
     HRESULT MoveNext(int* hasNext);
@@ -307,8 +311,7 @@ interface IOpcSignatureRelationshipReferenceEnumerator : IUnknown
     HRESULT Clone(IOpcSignatureRelationshipReferenceEnumerator* copy);
 }
 
-const GUID IID_IOpcRelationshipSelectorEnumerator = {0x5E50A181, 0xA91B, 0x48AC, [0x88, 0xD2, 0xBC, 0xA3, 0xD8, 0xF8, 0xC0, 0xB1]};
-@GUID(0x5E50A181, 0xA91B, 0x48AC, [0x88, 0xD2, 0xBC, 0xA3, 0xD8, 0xF8, 0xC0, 0xB1]);
+@GUID("5E50A181-A91B-48AC-88D2-BCA3D8F8C0B1")
 interface IOpcRelationshipSelectorEnumerator : IUnknown
 {
     HRESULT MoveNext(int* hasNext);
@@ -317,8 +320,7 @@ interface IOpcRelationshipSelectorEnumerator : IUnknown
     HRESULT Clone(IOpcRelationshipSelectorEnumerator* copy);
 }
 
-const GUID IID_IOpcSignatureReferenceEnumerator = {0xCFA59A45, 0x28B1, 0x4868, [0x96, 0x9E, 0xFA, 0x80, 0x97, 0xFD, 0xC1, 0x2A]};
-@GUID(0xCFA59A45, 0x28B1, 0x4868, [0x96, 0x9E, 0xFA, 0x80, 0x97, 0xFD, 0xC1, 0x2A]);
+@GUID("CFA59A45-28B1-4868-969E-FA8097FDC12A")
 interface IOpcSignatureReferenceEnumerator : IUnknown
 {
     HRESULT MoveNext(int* hasNext);
@@ -327,8 +329,7 @@ interface IOpcSignatureReferenceEnumerator : IUnknown
     HRESULT Clone(IOpcSignatureReferenceEnumerator* copy);
 }
 
-const GUID IID_IOpcSignatureCustomObjectEnumerator = {0x5EE4FE1D, 0xE1B0, 0x4683, [0x80, 0x79, 0x7E, 0xA0, 0xFC, 0xF8, 0x0B, 0x4C]};
-@GUID(0x5EE4FE1D, 0xE1B0, 0x4683, [0x80, 0x79, 0x7E, 0xA0, 0xFC, 0xF8, 0x0B, 0x4C]);
+@GUID("5EE4FE1D-E1B0-4683-8079-7EA0FCF80B4C")
 interface IOpcSignatureCustomObjectEnumerator : IUnknown
 {
     HRESULT MoveNext(int* hasNext);
@@ -337,8 +338,7 @@ interface IOpcSignatureCustomObjectEnumerator : IUnknown
     HRESULT Clone(IOpcSignatureCustomObjectEnumerator* copy);
 }
 
-const GUID IID_IOpcCertificateEnumerator = {0x85131937, 0x8F24, 0x421F, [0xB4, 0x39, 0x59, 0xAB, 0x24, 0xD1, 0x40, 0xB8]};
-@GUID(0x85131937, 0x8F24, 0x421F, [0xB4, 0x39, 0x59, 0xAB, 0x24, 0xD1, 0x40, 0xB8]);
+@GUID("85131937-8F24-421F-B439-59AB24D140B8")
 interface IOpcCertificateEnumerator : IUnknown
 {
     HRESULT MoveNext(int* hasNext);
@@ -347,8 +347,7 @@ interface IOpcCertificateEnumerator : IUnknown
     HRESULT Clone(IOpcCertificateEnumerator* copy);
 }
 
-const GUID IID_IOpcDigitalSignatureEnumerator = {0x967B6882, 0x0BA3, 0x4358, [0xB9, 0xE7, 0xB6, 0x4C, 0x75, 0x06, 0x3C, 0x5E]};
-@GUID(0x967B6882, 0x0BA3, 0x4358, [0xB9, 0xE7, 0xB6, 0x4C, 0x75, 0x06, 0x3C, 0x5E]);
+@GUID("967B6882-0BA3-4358-B9E7-B64C75063C5E")
 interface IOpcDigitalSignatureEnumerator : IUnknown
 {
     HRESULT MoveNext(int* hasNext);
@@ -357,45 +356,46 @@ interface IOpcDigitalSignatureEnumerator : IUnknown
     HRESULT Clone(IOpcDigitalSignatureEnumerator* copy);
 }
 
-const GUID IID_IOpcSignaturePartReferenceSet = {0x6C9FE28C, 0xECD9, 0x4B22, [0x9D, 0x36, 0x7F, 0xDD, 0xE6, 0x70, 0xFE, 0xC0]};
-@GUID(0x6C9FE28C, 0xECD9, 0x4B22, [0x9D, 0x36, 0x7F, 0xDD, 0xE6, 0x70, 0xFE, 0xC0]);
+@GUID("6C9FE28C-ECD9-4B22-9D36-7FDDE670FEC0")
 interface IOpcSignaturePartReferenceSet : IUnknown
 {
-    HRESULT Create(IOpcPartUri partUri, const(wchar)* digestMethod, OPC_CANONICALIZATION_METHOD transformMethod, IOpcSignaturePartReference* partReference);
+    HRESULT Create(IOpcPartUri partUri, const(wchar)* digestMethod, OPC_CANONICALIZATION_METHOD transformMethod, 
+                   IOpcSignaturePartReference* partReference);
     HRESULT Delete(IOpcSignaturePartReference partReference);
     HRESULT GetEnumerator(IOpcSignaturePartReferenceEnumerator* partReferenceEnumerator);
 }
 
-const GUID IID_IOpcSignatureRelationshipReferenceSet = {0x9F863CA5, 0x3631, 0x404C, [0x82, 0x8D, 0x80, 0x7E, 0x07, 0x15, 0x06, 0x9B]};
-@GUID(0x9F863CA5, 0x3631, 0x404C, [0x82, 0x8D, 0x80, 0x7E, 0x07, 0x15, 0x06, 0x9B]);
+@GUID("9F863CA5-3631-404C-828D-807E0715069B")
 interface IOpcSignatureRelationshipReferenceSet : IUnknown
 {
-    HRESULT Create(IOpcUri sourceUri, const(wchar)* digestMethod, OPC_RELATIONSHIPS_SIGNING_OPTION relationshipSigningOption, IOpcRelationshipSelectorSet selectorSet, OPC_CANONICALIZATION_METHOD transformMethod, IOpcSignatureRelationshipReference* relationshipReference);
+    HRESULT Create(IOpcUri sourceUri, const(wchar)* digestMethod, 
+                   OPC_RELATIONSHIPS_SIGNING_OPTION relationshipSigningOption, 
+                   IOpcRelationshipSelectorSet selectorSet, OPC_CANONICALIZATION_METHOD transformMethod, 
+                   IOpcSignatureRelationshipReference* relationshipReference);
     HRESULT CreateRelationshipSelectorSet(IOpcRelationshipSelectorSet* selectorSet);
     HRESULT Delete(IOpcSignatureRelationshipReference relationshipReference);
     HRESULT GetEnumerator(IOpcSignatureRelationshipReferenceEnumerator* relationshipReferenceEnumerator);
 }
 
-const GUID IID_IOpcRelationshipSelectorSet = {0x6E34C269, 0xA4D3, 0x47C0, [0xB5, 0xC4, 0x87, 0xFF, 0x2B, 0x3B, 0x61, 0x36]};
-@GUID(0x6E34C269, 0xA4D3, 0x47C0, [0xB5, 0xC4, 0x87, 0xFF, 0x2B, 0x3B, 0x61, 0x36]);
+@GUID("6E34C269-A4D3-47C0-B5C4-87FF2B3B6136")
 interface IOpcRelationshipSelectorSet : IUnknown
 {
-    HRESULT Create(OPC_RELATIONSHIP_SELECTOR selector, const(wchar)* selectionCriterion, IOpcRelationshipSelector* relationshipSelector);
+    HRESULT Create(OPC_RELATIONSHIP_SELECTOR selector, const(wchar)* selectionCriterion, 
+                   IOpcRelationshipSelector* relationshipSelector);
     HRESULT Delete(IOpcRelationshipSelector relationshipSelector);
     HRESULT GetEnumerator(IOpcRelationshipSelectorEnumerator* relationshipSelectorEnumerator);
 }
 
-const GUID IID_IOpcSignatureReferenceSet = {0xF3B02D31, 0xAB12, 0x42DD, [0x9E, 0x2F, 0x2B, 0x16, 0x76, 0x1C, 0x3C, 0x1E]};
-@GUID(0xF3B02D31, 0xAB12, 0x42DD, [0x9E, 0x2F, 0x2B, 0x16, 0x76, 0x1C, 0x3C, 0x1E]);
+@GUID("F3B02D31-AB12-42DD-9E2F-2B16761C3C1E")
 interface IOpcSignatureReferenceSet : IUnknown
 {
-    HRESULT Create(IUri referenceUri, const(wchar)* referenceId, const(wchar)* type, const(wchar)* digestMethod, OPC_CANONICALIZATION_METHOD transformMethod, IOpcSignatureReference* reference);
+    HRESULT Create(IUri referenceUri, const(wchar)* referenceId, const(wchar)* type, const(wchar)* digestMethod, 
+                   OPC_CANONICALIZATION_METHOD transformMethod, IOpcSignatureReference* reference);
     HRESULT Delete(IOpcSignatureReference reference);
     HRESULT GetEnumerator(IOpcSignatureReferenceEnumerator* referenceEnumerator);
 }
 
-const GUID IID_IOpcSignatureCustomObjectSet = {0x8F792AC5, 0x7947, 0x4E11, [0xBC, 0x3D, 0x26, 0x59, 0xFF, 0x04, 0x6A, 0xE1]};
-@GUID(0x8F792AC5, 0x7947, 0x4E11, [0xBC, 0x3D, 0x26, 0x59, 0xFF, 0x04, 0x6A, 0xE1]);
+@GUID("8F792AC5-7947-4E11-BC3D-2659FF046AE1")
 interface IOpcSignatureCustomObjectSet : IUnknown
 {
     HRESULT Create(char* xmlMarkup, uint count, IOpcSignatureCustomObject* customObject);
@@ -403,8 +403,7 @@ interface IOpcSignatureCustomObjectSet : IUnknown
     HRESULT GetEnumerator(IOpcSignatureCustomObjectEnumerator* customObjectEnumerator);
 }
 
-const GUID IID_IOpcCertificateSet = {0x56EA4325, 0x8E2D, 0x4167, [0xB1, 0xA4, 0xE4, 0x86, 0xD2, 0x4C, 0x8F, 0xA7]};
-@GUID(0x56EA4325, 0x8E2D, 0x4167, [0xB1, 0xA4, 0xE4, 0x86, 0xD2, 0x4C, 0x8F, 0xA7]);
+@GUID("56EA4325-8E2D-4167-B1A4-E486D24C8FA7")
 interface IOpcCertificateSet : IUnknown
 {
     HRESULT Add(const(CERT_CONTEXT)* certificate);
@@ -412,16 +411,52 @@ interface IOpcCertificateSet : IUnknown
     HRESULT GetEnumerator(IOpcCertificateEnumerator* certificateEnumerator);
 }
 
-const GUID IID_IOpcFactory = {0x6D0B4446, 0xCD73, 0x4AB3, [0x94, 0xF4, 0x8C, 0xCD, 0xF6, 0x11, 0x61, 0x54]};
-@GUID(0x6D0B4446, 0xCD73, 0x4AB3, [0x94, 0xF4, 0x8C, 0xCD, 0xF6, 0x11, 0x61, 0x54]);
+@GUID("6D0B4446-CD73-4AB3-94F4-8CCDF6116154")
 interface IOpcFactory : IUnknown
 {
     HRESULT CreatePackageRootUri(IOpcUri* rootUri);
     HRESULT CreatePartUri(const(wchar)* pwzUri, IOpcPartUri* partUri);
-    HRESULT CreateStreamOnFile(const(wchar)* filename, OPC_STREAM_IO_MODE ioMode, SECURITY_ATTRIBUTES* securityAttributes, uint dwFlagsAndAttributes, IStream* stream);
-    HRESULT CreatePackage(IOpcPackage* package);
-    HRESULT ReadPackageFromStream(IStream stream, OPC_READ_FLAGS flags, IOpcPackage* package);
-    HRESULT WritePackageToStream(IOpcPackage package, OPC_WRITE_FLAGS flags, IStream stream);
-    HRESULT CreateDigitalSignatureManager(IOpcPackage package, IOpcDigitalSignatureManager* signatureManager);
+    HRESULT CreateStreamOnFile(const(wchar)* filename, OPC_STREAM_IO_MODE ioMode, 
+                               SECURITY_ATTRIBUTES* securityAttributes, uint dwFlagsAndAttributes, IStream* stream);
+    HRESULT CreatePackage(IOpcPackage* package_);
+    HRESULT ReadPackageFromStream(IStream stream, OPC_READ_FLAGS flags, IOpcPackage* package_);
+    HRESULT WritePackageToStream(IOpcPackage package_, OPC_WRITE_FLAGS flags, IStream stream);
+    HRESULT CreateDigitalSignatureManager(IOpcPackage package_, IOpcDigitalSignatureManager* signatureManager);
 }
 
+
+// GUIDs
+
+const GUID CLSID_OpcFactory = GUIDOF!OpcFactory;
+
+const GUID IID_IOpcCertificateEnumerator                    = GUIDOF!IOpcCertificateEnumerator;
+const GUID IID_IOpcCertificateSet                           = GUIDOF!IOpcCertificateSet;
+const GUID IID_IOpcDigitalSignature                         = GUIDOF!IOpcDigitalSignature;
+const GUID IID_IOpcDigitalSignatureEnumerator               = GUIDOF!IOpcDigitalSignatureEnumerator;
+const GUID IID_IOpcDigitalSignatureManager                  = GUIDOF!IOpcDigitalSignatureManager;
+const GUID IID_IOpcFactory                                  = GUIDOF!IOpcFactory;
+const GUID IID_IOpcPackage                                  = GUIDOF!IOpcPackage;
+const GUID IID_IOpcPart                                     = GUIDOF!IOpcPart;
+const GUID IID_IOpcPartEnumerator                           = GUIDOF!IOpcPartEnumerator;
+const GUID IID_IOpcPartSet                                  = GUIDOF!IOpcPartSet;
+const GUID IID_IOpcPartUri                                  = GUIDOF!IOpcPartUri;
+const GUID IID_IOpcRelationship                             = GUIDOF!IOpcRelationship;
+const GUID IID_IOpcRelationshipEnumerator                   = GUIDOF!IOpcRelationshipEnumerator;
+const GUID IID_IOpcRelationshipSelector                     = GUIDOF!IOpcRelationshipSelector;
+const GUID IID_IOpcRelationshipSelectorEnumerator           = GUIDOF!IOpcRelationshipSelectorEnumerator;
+const GUID IID_IOpcRelationshipSelectorSet                  = GUIDOF!IOpcRelationshipSelectorSet;
+const GUID IID_IOpcRelationshipSet                          = GUIDOF!IOpcRelationshipSet;
+const GUID IID_IOpcSignatureCustomObject                    = GUIDOF!IOpcSignatureCustomObject;
+const GUID IID_IOpcSignatureCustomObjectEnumerator          = GUIDOF!IOpcSignatureCustomObjectEnumerator;
+const GUID IID_IOpcSignatureCustomObjectSet                 = GUIDOF!IOpcSignatureCustomObjectSet;
+const GUID IID_IOpcSignaturePartReference                   = GUIDOF!IOpcSignaturePartReference;
+const GUID IID_IOpcSignaturePartReferenceEnumerator         = GUIDOF!IOpcSignaturePartReferenceEnumerator;
+const GUID IID_IOpcSignaturePartReferenceSet                = GUIDOF!IOpcSignaturePartReferenceSet;
+const GUID IID_IOpcSignatureReference                       = GUIDOF!IOpcSignatureReference;
+const GUID IID_IOpcSignatureReferenceEnumerator             = GUIDOF!IOpcSignatureReferenceEnumerator;
+const GUID IID_IOpcSignatureReferenceSet                    = GUIDOF!IOpcSignatureReferenceSet;
+const GUID IID_IOpcSignatureRelationshipReference           = GUIDOF!IOpcSignatureRelationshipReference;
+const GUID IID_IOpcSignatureRelationshipReferenceEnumerator = GUIDOF!IOpcSignatureRelationshipReferenceEnumerator;
+const GUID IID_IOpcSignatureRelationshipReferenceSet        = GUIDOF!IOpcSignatureRelationshipReferenceSet;
+const GUID IID_IOpcSigningOptions                           = GUIDOF!IOpcSigningOptions;
+const GUID IID_IOpcUri                                      = GUIDOF!IOpcUri;

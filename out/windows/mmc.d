@@ -1,40 +1,550 @@
 module windows.mmc;
 
-public import system;
-public import windows.automation;
-public import windows.com;
-public import windows.controls;
-public import windows.gdi;
-public import windows.legacywindowsenvironmentfeatures;
-public import windows.systemservices;
-public import windows.windowsandmessaging;
+public import windows.core;
+public import windows.automation : BSTR, IDispatch, VARIANT;
+public import windows.com : HRESULT, IDataObject, IEnumString, IUnknown;
+public import windows.controls : HPROPSHEETPAGE;
+public import windows.gdi : HBITMAP, HICON, HPALETTE;
+public import windows.legacywindowsenvironmentfeatures : _ColumnSortOrder;
+public import windows.systemservices : BOOL, LRESULT;
+public import windows.windowsandmessaging : HWND, LPARAM;
 
 extern(Windows):
 
-const GUID CLSID_Application = {0x49B2791A, 0xB1AE, 0x4C90, [0x9B, 0x8E, 0xE8, 0x60, 0xBA, 0x07, 0xF8, 0x89]};
-@GUID(0x49B2791A, 0xB1AE, 0x4C90, [0x9B, 0x8E, 0xE8, 0x60, 0xBA, 0x07, 0xF8, 0x89]);
-struct Application;
 
-const GUID CLSID_AppEventsDHTMLConnector = {0xADE6444B, 0xC91F, 0x4E37, [0x92, 0xA4, 0x5B, 0xB4, 0x30, 0xA3, 0x33, 0x40]};
-@GUID(0xADE6444B, 0xC91F, 0x4E37, [0x92, 0xA4, 0x5B, 0xB4, 0x30, 0xA3, 0x33, 0x40]);
-struct AppEventsDHTMLConnector;
+// Enums
 
-enum MMC_PROPERTY_ACTION
+
+enum : int
 {
-    MMC_PROPACT_DELETING = 1,
-    MMC_PROPACT_CHANGING = 2,
-    MMC_PROPACT_INITIALIZED = 3,
+    MMC_PROPACT_DELETING    = 0x00000001,
+    MMC_PROPACT_CHANGING    = 0x00000002,
+    MMC_PROPACT_INITIALIZED = 0x00000003,
 }
+alias MMC_PROPERTY_ACTION = int;
+
+enum : int
+{
+    DocumentMode_Author   = 0x00000000,
+    DocumentMode_User     = 0x00000001,
+    DocumentMode_User_MDI = 0x00000002,
+    DocumentMode_User_SDI = 0x00000003,
+}
+alias _DocumentMode = int;
+
+enum : int
+{
+    ListMode_Small_Icons = 0x00000000,
+    ListMode_Large_Icons = 0x00000001,
+    ListMode_List        = 0x00000002,
+    ListMode_Detail      = 0x00000003,
+    ListMode_Filtered    = 0x00000004,
+}
+alias _ListViewMode = int;
+
+enum : int
+{
+    ViewOption_Default          = 0x00000000,
+    ViewOption_ScopeTreeHidden  = 0x00000001,
+    ViewOption_NoToolBars       = 0x00000002,
+    ViewOption_NotPersistable   = 0x00000004,
+    ViewOption_ActionPaneHidden = 0x00000008,
+}
+alias _ViewOptions = int;
+
+enum : int
+{
+    ExportListOptions_Default           = 0x00000000,
+    ExportListOptions_Unicode           = 0x00000001,
+    ExportListOptions_TabDelimited      = 0x00000002,
+    ExportListOptions_SelectedItemsOnly = 0x00000004,
+}
+alias _ExportListOptions = int;
+
+enum : int
+{
+    MMC_SINGLESEL          = 0x00000001,
+    MMC_SHOWSELALWAYS      = 0x00000002,
+    MMC_NOSORTHEADER       = 0x00000004,
+    MMC_ENSUREFOCUSVISIBLE = 0x00000008,
+}
+alias MMC_RESULT_VIEW_STYLE = int;
+
+enum : int
+{
+    TOOLBAR     = 0x00000000,
+    MENUBUTTON  = 0x00000001,
+    COMBOBOXBAR = 0x00000002,
+}
+alias MMC_CONTROL_TYPE = int;
+
+enum : int
+{
+    MMC_VERB_NONE       = 0x00000000,
+    MMC_VERB_OPEN       = 0x00008000,
+    MMC_VERB_COPY       = 0x00008001,
+    MMC_VERB_PASTE      = 0x00008002,
+    MMC_VERB_DELETE     = 0x00008003,
+    MMC_VERB_PROPERTIES = 0x00008004,
+    MMC_VERB_RENAME     = 0x00008005,
+    MMC_VERB_REFRESH    = 0x00008006,
+    MMC_VERB_PRINT      = 0x00008007,
+    MMC_VERB_CUT        = 0x00008008,
+    MMC_VERB_MAX        = 0x00008009,
+    MMC_VERB_FIRST      = 0x00008000,
+    MMC_VERB_LAST       = 0x00008008,
+}
+alias MMC_CONSOLE_VERB = int;
+
+enum : int
+{
+    ENABLED       = 0x00000001,
+    CHECKED       = 0x00000002,
+    HIDDEN        = 0x00000004,
+    INDETERMINATE = 0x00000008,
+    BUTTONPRESSED = 0x00000010,
+}
+alias MMC_BUTTON_STATE = int;
+
+enum : int
+{
+    MMC_SCOPE_ITEM_STATE_NORMAL       = 0x00000001,
+    MMC_SCOPE_ITEM_STATE_BOLD         = 0x00000002,
+    MMC_SCOPE_ITEM_STATE_EXPANDEDONCE = 0x00000003,
+}
+alias MMC_SCOPE_ITEM_STATE = int;
+
+enum : int
+{
+    MMCC_STANDARD_VIEW_SELECT = 0xffffffff,
+}
+alias MMC_MENU_COMMAND_IDS = int;
+
+enum : int
+{
+    MMC_STRING_FILTER  = 0x00000000,
+    MMC_INT_FILTER     = 0x00000001,
+    MMC_FILTER_NOVALUE = 0x00008000,
+}
+alias MMC_FILTER_TYPE = int;
+
+enum : int
+{
+    MFCC_DISABLE      = 0x00000000,
+    MFCC_ENABLE       = 0x00000001,
+    MFCC_VALUE_CHANGE = 0x00000002,
+}
+alias MMC_FILTER_CHANGE_CODE = int;
+
+enum : int
+{
+    MMCN_ACTIVATE           = 0x00008001,
+    MMCN_ADD_IMAGES         = 0x00008002,
+    MMCN_BTN_CLICK          = 0x00008003,
+    MMCN_CLICK              = 0x00008004,
+    MMCN_COLUMN_CLICK       = 0x00008005,
+    MMCN_CONTEXTMENU        = 0x00008006,
+    MMCN_CUTORMOVE          = 0x00008007,
+    MMCN_DBLCLICK           = 0x00008008,
+    MMCN_DELETE             = 0x00008009,
+    MMCN_DESELECT_ALL       = 0x0000800a,
+    MMCN_EXPAND             = 0x0000800b,
+    MMCN_HELP               = 0x0000800c,
+    MMCN_MENU_BTNCLICK      = 0x0000800d,
+    MMCN_MINIMIZED          = 0x0000800e,
+    MMCN_PASTE              = 0x0000800f,
+    MMCN_PROPERTY_CHANGE    = 0x00008010,
+    MMCN_QUERY_PASTE        = 0x00008011,
+    MMCN_REFRESH            = 0x00008012,
+    MMCN_REMOVE_CHILDREN    = 0x00008013,
+    MMCN_RENAME             = 0x00008014,
+    MMCN_SELECT             = 0x00008015,
+    MMCN_SHOW               = 0x00008016,
+    MMCN_VIEW_CHANGE        = 0x00008017,
+    MMCN_SNAPINHELP         = 0x00008018,
+    MMCN_CONTEXTHELP        = 0x00008019,
+    MMCN_INITOCX            = 0x0000801a,
+    MMCN_FILTER_CHANGE      = 0x0000801b,
+    MMCN_FILTERBTN_CLICK    = 0x0000801c,
+    MMCN_RESTORE_VIEW       = 0x0000801d,
+    MMCN_PRINT              = 0x0000801e,
+    MMCN_PRELOAD            = 0x0000801f,
+    MMCN_LISTPAD            = 0x00008020,
+    MMCN_EXPANDSYNC         = 0x00008021,
+    MMCN_COLUMNS_CHANGED    = 0x00008022,
+    MMCN_CANPASTE_OUTOFPROC = 0x00008023,
+}
+alias MMC_NOTIFY_TYPE = int;
+
+enum : int
+{
+    CCT_SCOPE          = 0x00008000,
+    CCT_RESULT         = 0x00008001,
+    CCT_SNAPIN_MANAGER = 0x00008002,
+    CCT_UNINITIALIZED  = 0x0000ffff,
+}
+alias DATA_OBJECT_TYPES = int;
+
+enum : int
+{
+    CCM_INSERTIONPOINTID_MASK_SPECIAL        = 0xffff0000,
+    CCM_INSERTIONPOINTID_MASK_SHARED         = 0x80000000,
+    CCM_INSERTIONPOINTID_MASK_CREATE_PRIMARY = 0x40000000,
+    CCM_INSERTIONPOINTID_MASK_ADD_PRIMARY    = 0x20000000,
+    CCM_INSERTIONPOINTID_MASK_ADD_3RDPARTY   = 0x10000000,
+    CCM_INSERTIONPOINTID_MASK_RESERVED       = 0x0fff0000,
+    CCM_INSERTIONPOINTID_MASK_FLAGINDEX      = 0x0000001f,
+    CCM_INSERTIONPOINTID_PRIMARY_TOP         = 0xa0000000,
+    CCM_INSERTIONPOINTID_PRIMARY_NEW         = 0xa0000001,
+    CCM_INSERTIONPOINTID_PRIMARY_TASK        = 0xa0000002,
+    CCM_INSERTIONPOINTID_PRIMARY_VIEW        = 0xa0000003,
+    CCM_INSERTIONPOINTID_PRIMARY_HELP        = 0xa0000004,
+    CCM_INSERTIONPOINTID_3RDPARTY_NEW        = 0x90000001,
+    CCM_INSERTIONPOINTID_3RDPARTY_TASK       = 0x90000002,
+    CCM_INSERTIONPOINTID_ROOT_MENU           = 0x80000000,
+}
+alias __MIDL___MIDL_itf_mmc_0000_0006_0001 = int;
+
+enum : int
+{
+    CCM_INSERTIONALLOWED_TOP  = 0x00000001,
+    CCM_INSERTIONALLOWED_NEW  = 0x00000002,
+    CCM_INSERTIONALLOWED_TASK = 0x00000004,
+    CCM_INSERTIONALLOWED_VIEW = 0x00000008,
+}
+alias __MIDL___MIDL_itf_mmc_0000_0006_0002 = int;
+
+enum : int
+{
+    CCM_COMMANDID_MASK_RESERVED = 0xffff0000,
+}
+alias __MIDL___MIDL_itf_mmc_0000_0006_0003 = int;
+
+enum : int
+{
+    CCM_SPECIAL_SEPARATOR       = 0x00000001,
+    CCM_SPECIAL_SUBMENU         = 0x00000002,
+    CCM_SPECIAL_DEFAULT_ITEM    = 0x00000004,
+    CCM_SPECIAL_INSERTION_POINT = 0x00000008,
+    CCM_SPECIAL_TESTONLY        = 0x00000010,
+}
+alias __MIDL___MIDL_itf_mmc_0000_0006_0004 = int;
+
+enum : int
+{
+    MMC_TASK_DISPLAY_UNINITIALIZED      = 0x00000000,
+    MMC_TASK_DISPLAY_TYPE_SYMBOL        = 0x00000001,
+    MMC_TASK_DISPLAY_TYPE_VANILLA_GIF   = 0x00000002,
+    MMC_TASK_DISPLAY_TYPE_CHOCOLATE_GIF = 0x00000003,
+    MMC_TASK_DISPLAY_TYPE_BITMAP        = 0x00000004,
+}
+alias MMC_TASK_DISPLAY_TYPE = int;
+
+enum : int
+{
+    MMC_ACTION_UNINITIALIZED = 0xffffffff,
+    MMC_ACTION_ID            = 0x00000000,
+    MMC_ACTION_LINK          = 0x00000001,
+    MMC_ACTION_SCRIPT        = 0x00000002,
+}
+alias MMC_ACTION_TYPE = int;
+
+enum IconIdentifier : int
+{
+    Icon_None        = 0x00000000,
+    Icon_Error       = 0x00007f01,
+    Icon_Question    = 0x00007f02,
+    Icon_Warning     = 0x00007f03,
+    Icon_Information = 0x00007f04,
+    Icon_First       = 0x00007f01,
+    Icon_Last        = 0x00007f04,
+}
+
+enum : int
+{
+    MMC_VIEW_TYPE_LIST = 0x00000000,
+    MMC_VIEW_TYPE_HTML = 0x00000001,
+    MMC_VIEW_TYPE_OCX  = 0x00000002,
+}
+alias MMC_VIEW_TYPE = int;
+
+// Structs
+
 
 struct MMC_SNAPIN_PROPERTY
 {
-    ushort* pszPropName;
-    VARIANT varValue;
+    ushort*             pszPropName;
+    VARIANT             varValue;
     MMC_PROPERTY_ACTION eAction;
 }
 
-const GUID IID_ISnapinProperties = {0xF7889DA9, 0x4A02, 0x4837, [0xBF, 0x89, 0x1A, 0x6F, 0x2A, 0x02, 0x10, 0x10]};
-@GUID(0xF7889DA9, 0x4A02, 0x4837, [0xBF, 0x89, 0x1A, 0x6F, 0x2A, 0x02, 0x10, 0x10]);
+struct MMCBUTTON
+{
+    int     nBitmap;
+    int     idCommand;
+    ubyte   fsState;
+    ubyte   fsType;
+    ushort* lpButtonText;
+    ushort* lpTooltipText;
+}
+
+struct RESULTDATAITEM
+{
+    uint      mask;
+    BOOL      bScopeItem;
+    ptrdiff_t itemID;
+    int       nIndex;
+    int       nCol;
+    ushort*   str;
+    int       nImage;
+    uint      nState;
+    LPARAM    lParam;
+    int       iIndent;
+}
+
+struct RESULTFINDINFO
+{
+    ushort* psz;
+    int     nStart;
+    uint    dwOptions;
+}
+
+struct SCOPEDATAITEM
+{
+    uint      mask;
+    ushort*   displayname;
+    int       nImage;
+    int       nOpenImage;
+    uint      nState;
+    int       cChildren;
+    LPARAM    lParam;
+    ptrdiff_t relativeID;
+    ptrdiff_t ID;
+}
+
+struct CONTEXTMENUITEM
+{
+    const(wchar)* strName;
+    const(wchar)* strStatusBarText;
+    int           lCommandID;
+    int           lInsertionPointID;
+    int           fFlags;
+    int           fSpecialFlags;
+}
+
+struct MENUBUTTONDATA
+{
+    int idCommand;
+    int x;
+    int y;
+}
+
+struct MMC_FILTERDATA
+{
+    ushort* pszText;
+    int     cchTextMax;
+    int     lValue;
+}
+
+struct MMC_RESTORE_VIEW
+{
+    uint      dwSize;
+    ptrdiff_t cookie;
+    ushort*   pViewType;
+    int       lViewOptions;
+}
+
+struct MMC_EXPANDSYNC_STRUCT
+{
+    BOOL      bHandled;
+    BOOL      bExpanding;
+    ptrdiff_t hItem;
+}
+
+struct MMC_VISIBLE_COLUMNS
+{
+    int    nVisibleColumns;
+    int[1] rgVisibleCols;
+}
+
+struct SMMCDataObjects
+{
+    uint           count;
+    IDataObject[1] lpDataObject;
+}
+
+struct SMMCObjectTypes
+{
+    uint    count;
+    GUID[1] guid;
+}
+
+struct SNodeID
+{
+    uint     cBytes;
+    ubyte[1] id;
+}
+
+struct SNodeID2
+{
+    uint     dwFlags;
+    uint     cBytes;
+    ubyte[1] id;
+}
+
+struct SColumnSetID
+{
+    uint     dwFlags;
+    uint     cBytes;
+    ubyte[1] id;
+}
+
+struct MMC_TASK_DISPLAY_SYMBOL
+{
+    ushort* szFontFamilyName;
+    ushort* szURLtoEOT;
+    ushort* szSymbolString;
+}
+
+struct MMC_TASK_DISPLAY_BITMAP
+{
+    ushort* szMouseOverBitmap;
+    ushort* szMouseOffBitmap;
+}
+
+struct MMC_TASK_DISPLAY_OBJECT
+{
+    MMC_TASK_DISPLAY_TYPE eDisplayType;
+    union
+    {
+        MMC_TASK_DISPLAY_BITMAP uBitmap;
+        MMC_TASK_DISPLAY_SYMBOL uSymbol;
+    }
+}
+
+struct MMC_TASK
+{
+    MMC_TASK_DISPLAY_OBJECT sDisplayObject;
+    ushort*         szText;
+    ushort*         szHelpString;
+    MMC_ACTION_TYPE eActionType;
+    union
+    {
+        ptrdiff_t nCommandID;
+        ushort*   szActionURL;
+        ushort*   szScript;
+    }
+}
+
+struct MMC_LISTPAD_INFO
+{
+    ushort*   szTitle;
+    ushort*   szButtonText;
+    ptrdiff_t nCommandID;
+}
+
+struct MMC_COLUMN_DATA
+{
+    int    nColIndex;
+    uint   dwFlags;
+    int    nWidth;
+    size_t ulReserved;
+}
+
+struct MMC_COLUMN_SET_DATA
+{
+    int              cbSize;
+    int              nNumCols;
+    MMC_COLUMN_DATA* pColData;
+}
+
+struct MMC_SORT_DATA
+{
+    int    nColIndex;
+    uint   dwSortOptions;
+    size_t ulReserved;
+}
+
+struct MMC_SORT_SET_DATA
+{
+    int            cbSize;
+    int            nNumItems;
+    MMC_SORT_DATA* pSortData;
+}
+
+struct RDITEMHDR
+{
+    uint      dwFlags;
+    ptrdiff_t cookie;
+    LPARAM    lpReserved;
+}
+
+struct RDCOMPARE
+{
+    uint       cbSize;
+    uint       dwFlags;
+    int        nColumn;
+    LPARAM     lUserParam;
+    RDITEMHDR* prdch1;
+    RDITEMHDR* prdch2;
+}
+
+struct RESULT_VIEW_TYPE_INFO
+{
+    ushort*       pstrPersistableViewDescription;
+    MMC_VIEW_TYPE eViewType;
+    uint          dwMiscOptions;
+    union
+    {
+        uint dwListOptions;
+        struct
+        {
+            uint    dwHTMLOptions;
+            ushort* pstrURL;
+        }
+        struct
+        {
+            uint     dwOCXOptions;
+            IUnknown pUnkControl;
+        }
+    }
+}
+
+struct CONTEXTMENUITEM2
+{
+    const(wchar)* strName;
+    const(wchar)* strStatusBarText;
+    int           lCommandID;
+    int           lInsertionPointID;
+    int           fFlags;
+    int           fSpecialFlags;
+    const(wchar)* strLanguageIndependentName;
+}
+
+struct MMC_EXT_VIEW_DATA
+{
+    GUID    viewID;
+    ushort* pszURL;
+    ushort* pszViewTitle;
+    ushort* pszTooltipText;
+    BOOL    bReplacesDefaultView;
+}
+
+// Interfaces
+
+@GUID("49B2791A-B1AE-4C90-9B8E-E860BA07F889")
+struct Application;
+
+@GUID("ADE6444B-C91F-4E37-92A4-5BB430A33340")
+struct AppEventsDHTMLConnector;
+
+@GUID("D6FEDB1D-CF21-4BD9-AF3B-C5468E9C6684")
+struct MMCVersionInfo;
+
+@GUID("F0285374-DFF1-11D3-B433-00C04F8ECD78")
+struct ConsolePower;
+
+@GUID("F7889DA9-4A02-4837-BF89-1A6F2A021010")
 interface ISnapinProperties : IUnknown
 {
     HRESULT Initialize(Properties pProperties);
@@ -42,53 +552,17 @@ interface ISnapinProperties : IUnknown
     HRESULT PropertiesChanged(int cProperties, char* pProperties);
 }
 
-const GUID IID_ISnapinPropertiesCallback = {0xA50FA2E5, 0x7E61, 0x45EB, [0xA8, 0xD4, 0x9A, 0x07, 0xB3, 0xE8, 0x51, 0xA8]};
-@GUID(0xA50FA2E5, 0x7E61, 0x45EB, [0xA8, 0xD4, 0x9A, 0x07, 0xB3, 0xE8, 0x51, 0xA8]);
+@GUID("A50FA2E5-7E61-45EB-A8D4-9A07B3E851A8")
 interface ISnapinPropertiesCallback : IUnknown
 {
     HRESULT AddPropertyName(ushort* pszPropName, uint dwFlags);
 }
 
-enum _DocumentMode
-{
-    DocumentMode_Author = 0,
-    DocumentMode_User = 1,
-    DocumentMode_User_MDI = 2,
-    DocumentMode_User_SDI = 3,
-}
-
-enum _ListViewMode
-{
-    ListMode_Small_Icons = 0,
-    ListMode_Large_Icons = 1,
-    ListMode_List = 2,
-    ListMode_Detail = 3,
-    ListMode_Filtered = 4,
-}
-
-enum _ViewOptions
-{
-    ViewOption_Default = 0,
-    ViewOption_ScopeTreeHidden = 1,
-    ViewOption_NoToolBars = 2,
-    ViewOption_NotPersistable = 4,
-    ViewOption_ActionPaneHidden = 8,
-}
-
-enum _ExportListOptions
-{
-    ExportListOptions_Default = 0,
-    ExportListOptions_Unicode = 1,
-    ExportListOptions_TabDelimited = 2,
-    ExportListOptions_SelectedItemsOnly = 4,
-}
-
-const GUID IID__Application = {0xA3AFB9CC, 0xB653, 0x4741, [0x86, 0xAB, 0xF0, 0x47, 0x0E, 0xC1, 0x38, 0x4C]};
-@GUID(0xA3AFB9CC, 0xB653, 0x4741, [0x86, 0xAB, 0xF0, 0x47, 0x0E, 0xC1, 0x38, 0x4C]);
+@GUID("A3AFB9CC-B653-4741-86AB-F0470EC1384C")
 interface _Application : IDispatch
 {
-    void Help();
-    void Quit();
+    void    Help();
+    void    Quit();
     HRESULT get_Document(Document* Document);
     HRESULT Load(BSTR Filename);
     HRESULT get_Frame(Frame* Frame);
@@ -101,8 +575,7 @@ interface _Application : IDispatch
     HRESULT get_VersionMinor(int* VersionMinor);
 }
 
-const GUID IID__AppEvents = {0xDE46CBDD, 0x53F5, 0x4635, [0xAF, 0x54, 0x4F, 0xE7, 0x1E, 0x92, 0x3D, 0x3F]};
-@GUID(0xDE46CBDD, 0x53F5, 0x4635, [0xAF, 0x54, 0x4F, 0xE7, 0x1E, 0x92, 0x3D, 0x3F]);
+@GUID("DE46CBDD-53F5-4635-AF54-4FE71E923D3F")
 interface _AppEvents : IDispatch
 {
     HRESULT OnQuit(_Application Application);
@@ -119,22 +592,19 @@ interface _AppEvents : IDispatch
     HRESULT OnListUpdated(View View);
 }
 
-const GUID IID_AppEvents = {0xFC7A4252, 0x78AC, 0x4532, [0x8C, 0x5A, 0x56, 0x3C, 0xFE, 0x13, 0x88, 0x63]};
-@GUID(0xFC7A4252, 0x78AC, 0x4532, [0x8C, 0x5A, 0x56, 0x3C, 0xFE, 0x13, 0x88, 0x63]);
+@GUID("FC7A4252-78AC-4532-8C5A-563CFE138863")
 interface AppEvents : IDispatch
 {
 }
 
-const GUID IID__EventConnector = {0xC0BCCD30, 0xDE44, 0x4528, [0x84, 0x03, 0xA0, 0x5A, 0x6A, 0x1C, 0xC8, 0xEA]};
-@GUID(0xC0BCCD30, 0xDE44, 0x4528, [0x84, 0x03, 0xA0, 0x5A, 0x6A, 0x1C, 0xC8, 0xEA]);
+@GUID("C0BCCD30-DE44-4528-8403-A05A6A1CC8EA")
 interface _EventConnector : IDispatch
 {
     HRESULT ConnectTo(_Application Application);
     HRESULT Disconnect();
 }
 
-const GUID IID_Frame = {0xE5E2D970, 0x5BB3, 0x4306, [0x88, 0x04, 0xB0, 0x96, 0x8A, 0x31, 0xC8, 0xE6]};
-@GUID(0xE5E2D970, 0x5BB3, 0x4306, [0x88, 0x04, 0xB0, 0x96, 0x8A, 0x31, 0xC8, 0xE6]);
+@GUID("E5E2D970-5BB3-4306-8804-B0968A31C8E6")
 interface Frame : IDispatch
 {
     HRESULT Maximize();
@@ -150,8 +620,7 @@ interface Frame : IDispatch
     HRESULT put_Right(int right);
 }
 
-const GUID IID_Node = {0xF81ED800, 0x7839, 0x4447, [0x94, 0x5D, 0x8E, 0x15, 0xDA, 0x59, 0xCA, 0x55]};
-@GUID(0xF81ED800, 0x7839, 0x4447, [0x94, 0x5D, 0x8E, 0x15, 0xDA, 0x59, 0xCA, 0x55]);
+@GUID("F81ED800-7839-4447-945D-8E15DA59CA55")
 interface Node : IDispatch
 {
     HRESULT get_Name(ushort** Name);
@@ -161,8 +630,7 @@ interface Node : IDispatch
     HRESULT get_Nodetype(ushort** Nodetype);
 }
 
-const GUID IID_ScopeNamespace = {0xEBBB48DC, 0x1A3B, 0x4D86, [0xB7, 0x86, 0xC2, 0x1B, 0x28, 0x38, 0x90, 0x12]};
-@GUID(0xEBBB48DC, 0x1A3B, 0x4D86, [0xB7, 0x86, 0xC2, 0x1B, 0x28, 0x38, 0x90, 0x12]);
+@GUID("EBBB48DC-1A3B-4D86-B786-C21B28389012")
 interface ScopeNamespace : IDispatch
 {
     HRESULT GetParent(Node Node, Node* Parent);
@@ -172,8 +640,7 @@ interface ScopeNamespace : IDispatch
     HRESULT Expand(Node Node);
 }
 
-const GUID IID_Document = {0x225120D6, 0x1E0F, 0x40A3, [0x93, 0xFE, 0x10, 0x79, 0xE6, 0xA8, 0x01, 0x7B]};
-@GUID(0x225120D6, 0x1E0F, 0x40A3, [0x93, 0xFE, 0x10, 0x79, 0xE6, 0xA8, 0x01, 0x7B]);
+@GUID("225120D6-1E0F-40A3-93FE-1079E6A8017B")
 interface Document : IDispatch
 {
     HRESULT Save();
@@ -194,8 +661,7 @@ interface Document : IDispatch
     HRESULT get_Application(_Application* Application);
 }
 
-const GUID IID_SnapIn = {0x3BE910F6, 0x3459, 0x49C6, [0xA1, 0xBB, 0x41, 0xE6, 0xBE, 0x9D, 0xF3, 0xEA]};
-@GUID(0x3BE910F6, 0x3459, 0x49C6, [0xA1, 0xBB, 0x41, 0xE6, 0xBE, 0x9D, 0xF3, 0xEA]);
+@GUID("3BE910F6-3459-49C6-A1BB-41E6BE9DF3EA")
 interface SnapIn : IDispatch
 {
     HRESULT get_Name(ushort** Name);
@@ -207,8 +673,7 @@ interface SnapIn : IDispatch
     HRESULT EnableAllExtensions(BOOL Enable);
 }
 
-const GUID IID_SnapIns = {0x2EF3DE1D, 0xB12A, 0x49D1, [0x92, 0xC5, 0x0B, 0x00, 0x79, 0x87, 0x68, 0xF1]};
-@GUID(0x2EF3DE1D, 0xB12A, 0x49D1, [0x92, 0xC5, 0x0B, 0x00, 0x79, 0x87, 0x68, 0xF1]);
+@GUID("2EF3DE1D-B12A-49D1-92C5-0B00798768F1")
 interface SnapIns : IDispatch
 {
     HRESULT get__NewEnum(IUnknown* retval);
@@ -218,8 +683,7 @@ interface SnapIns : IDispatch
     HRESULT Remove(SnapIn SnapIn);
 }
 
-const GUID IID_Extension = {0xAD4D6CA6, 0x912F, 0x409B, [0xA2, 0x6E, 0x7F, 0xD2, 0x34, 0xAE, 0xF5, 0x42]};
-@GUID(0xAD4D6CA6, 0x912F, 0x409B, [0xA2, 0x6E, 0x7F, 0xD2, 0x34, 0xAE, 0xF5, 0x42]);
+@GUID("AD4D6CA6-912F-409B-A26E-7FD234AEF542")
 interface Extension : IDispatch
 {
     HRESULT get_Name(ushort** Name);
@@ -231,8 +695,7 @@ interface Extension : IDispatch
     HRESULT Enable(BOOL Enable);
 }
 
-const GUID IID_Extensions = {0x82DBEA43, 0x8CA4, 0x44BC, [0xA2, 0xCA, 0xD1, 0x87, 0x41, 0x05, 0x9E, 0xC8]};
-@GUID(0x82DBEA43, 0x8CA4, 0x44BC, [0xA2, 0xCA, 0xD1, 0x87, 0x41, 0x05, 0x9E, 0xC8]);
+@GUID("82DBEA43-8CA4-44BC-A2CA-D18741059EC8")
 interface Extensions : IDispatch
 {
     HRESULT get__NewEnum(IUnknown* retval);
@@ -240,8 +703,7 @@ interface Extensions : IDispatch
     HRESULT get_Count(int* Count);
 }
 
-const GUID IID_Columns = {0x383D4D97, 0xFC44, 0x478B, [0xB1, 0x39, 0x63, 0x23, 0xDC, 0x48, 0x61, 0x1C]};
-@GUID(0x383D4D97, 0xFC44, 0x478B, [0xB1, 0x39, 0x63, 0x23, 0xDC, 0x48, 0x61, 0x1C]);
+@GUID("383D4D97-FC44-478B-B139-6323DC48611C")
 interface Columns : IDispatch
 {
     HRESULT Item(int Index, Column* Column);
@@ -249,8 +711,7 @@ interface Columns : IDispatch
     HRESULT get__NewEnum(IUnknown* retval);
 }
 
-const GUID IID_Column = {0xFD1C5F63, 0x2B16, 0x4D06, [0x9A, 0xB3, 0xF4, 0x53, 0x50, 0xB9, 0x40, 0xAB]};
-@GUID(0xFD1C5F63, 0x2B16, 0x4D06, [0x9A, 0xB3, 0xF4, 0x53, 0x50, 0xB9, 0x40, 0xAB]);
+@GUID("FD1C5F63-2B16-4D06-9AB3-F45350B940AB")
 interface Column : IDispatch
 {
     HRESULT Name(BSTR* Name);
@@ -264,8 +725,7 @@ interface Column : IDispatch
     HRESULT IsSortColumn(int* IsSortColumn);
 }
 
-const GUID IID_Views = {0xD6B8C29D, 0xA1FF, 0x4D72, [0xAA, 0xB0, 0xE3, 0x81, 0xE9, 0xB9, 0x33, 0x8D]};
-@GUID(0xD6B8C29D, 0xA1FF, 0x4D72, [0xAA, 0xB0, 0xE3, 0x81, 0xE9, 0xB9, 0x33, 0x8D]);
+@GUID("D6B8C29D-A1FF-4D72-AAB0-E381E9B9338D")
 interface Views : IDispatch
 {
     HRESULT Item(int Index, View* View);
@@ -274,8 +734,7 @@ interface Views : IDispatch
     HRESULT get__NewEnum(IUnknown* retval);
 }
 
-const GUID IID_View = {0x6EFC2DA2, 0xB38C, 0x457E, [0x9A, 0xBB, 0xED, 0x2D, 0x18, 0x9B, 0x8C, 0x38]};
-@GUID(0x6EFC2DA2, 0xB38C, 0x457E, [0x9A, 0xBB, 0xED, 0x2D, 0x18, 0x9B, 0x8C, 0x38]);
+@GUID("6EFC2DA2-B38C-457E-9ABB-ED2D189B8C38")
 interface View : IDispatch
 {
     HRESULT get_ActiveScopeNode(Node* Node);
@@ -322,8 +781,7 @@ interface View : IDispatch
     HRESULT get_ControlObject(IDispatch* Control);
 }
 
-const GUID IID_Nodes = {0x313B01DF, 0xB22F, 0x4D42, [0xB1, 0xB8, 0x48, 0x3C, 0xDC, 0xF5, 0x1D, 0x35]};
-@GUID(0x313B01DF, 0xB22F, 0x4D42, [0xB1, 0xB8, 0x48, 0x3C, 0xDC, 0xF5, 0x1D, 0x35]);
+@GUID("313B01DF-B22F-4D42-B1B8-483CDCF51D35")
 interface Nodes : IDispatch
 {
     HRESULT get__NewEnum(IUnknown* retval);
@@ -331,8 +789,7 @@ interface Nodes : IDispatch
     HRESULT get_Count(int* Count);
 }
 
-const GUID IID_ContextMenu = {0xDAB39CE0, 0x25E6, 0x4E07, [0x83, 0x62, 0xBA, 0x9C, 0x95, 0x70, 0x65, 0x45]};
-@GUID(0xDAB39CE0, 0x25E6, 0x4E07, [0x83, 0x62, 0xBA, 0x9C, 0x95, 0x70, 0x65, 0x45]);
+@GUID("DAB39CE0-25E6-4E07-8362-BA9C95706545")
 interface ContextMenu : IDispatch
 {
     HRESULT get__NewEnum(IUnknown* retval);
@@ -340,8 +797,7 @@ interface ContextMenu : IDispatch
     HRESULT get_Count(int* Count);
 }
 
-const GUID IID_MenuItem = {0x0178FAD1, 0xB361, 0x4B27, [0x96, 0xAD, 0x67, 0xC5, 0x7E, 0xBF, 0x2E, 0x1D]};
-@GUID(0x0178FAD1, 0xB361, 0x4B27, [0x96, 0xAD, 0x67, 0xC5, 0x7E, 0xBF, 0x2E, 0x1D]);
+@GUID("0178FAD1-B361-4B27-96AD-67C57EBF2E1D")
 interface MenuItem : IDispatch
 {
     HRESULT get_DisplayName(ushort** DisplayName);
@@ -352,8 +808,7 @@ interface MenuItem : IDispatch
     HRESULT get_Enabled(int* Enabled);
 }
 
-const GUID IID_Properties = {0x2886ABC2, 0xA425, 0x42B2, [0x91, 0xC6, 0xE2, 0x5C, 0x0E, 0x04, 0x58, 0x1C]};
-@GUID(0x2886ABC2, 0xA425, 0x42B2, [0x91, 0xC6, 0xE2, 0x5C, 0x0E, 0x04, 0x58, 0x1C]);
+@GUID("2886ABC2-A425-42B2-91C6-E25C0E04581C")
 interface Properties : IDispatch
 {
     HRESULT get__NewEnum(IUnknown* retval);
@@ -362,8 +817,7 @@ interface Properties : IDispatch
     HRESULT Remove(BSTR Name);
 }
 
-const GUID IID_Property = {0x4600C3A5, 0xE301, 0x41D8, [0xB6, 0xD0, 0xEF, 0x2E, 0x42, 0x12, 0xE0, 0xCA]};
-@GUID(0x4600C3A5, 0xE301, 0x41D8, [0xB6, 0xD0, 0xEF, 0x2E, 0x42, 0x12, 0xE0, 0xCA]);
+@GUID("4600C3A5-E301-41D8-B6D0-EF2E4212E0CA")
 interface Property : IDispatch
 {
     HRESULT get_Value(VARIANT* Value);
@@ -371,284 +825,37 @@ interface Property : IDispatch
     HRESULT get_Name(ushort** Name);
 }
 
-const GUID CLSID_MMCVersionInfo = {0xD6FEDB1D, 0xCF21, 0x4BD9, [0xAF, 0x3B, 0xC5, 0x46, 0x8E, 0x9C, 0x66, 0x84]};
-@GUID(0xD6FEDB1D, 0xCF21, 0x4BD9, [0xAF, 0x3B, 0xC5, 0x46, 0x8E, 0x9C, 0x66, 0x84]);
-struct MMCVersionInfo;
-
-const GUID CLSID_ConsolePower = {0xF0285374, 0xDFF1, 0x11D3, [0xB4, 0x33, 0x00, 0xC0, 0x4F, 0x8E, 0xCD, 0x78]};
-@GUID(0xF0285374, 0xDFF1, 0x11D3, [0xB4, 0x33, 0x00, 0xC0, 0x4F, 0x8E, 0xCD, 0x78]);
-struct ConsolePower;
-
-enum MMC_RESULT_VIEW_STYLE
-{
-    MMC_SINGLESEL = 1,
-    MMC_SHOWSELALWAYS = 2,
-    MMC_NOSORTHEADER = 4,
-    MMC_ENSUREFOCUSVISIBLE = 8,
-}
-
-enum MMC_CONTROL_TYPE
-{
-    TOOLBAR = 0,
-    MENUBUTTON = 1,
-    COMBOBOXBAR = 2,
-}
-
-enum MMC_CONSOLE_VERB
-{
-    MMC_VERB_NONE = 0,
-    MMC_VERB_OPEN = 32768,
-    MMC_VERB_COPY = 32769,
-    MMC_VERB_PASTE = 32770,
-    MMC_VERB_DELETE = 32771,
-    MMC_VERB_PROPERTIES = 32772,
-    MMC_VERB_RENAME = 32773,
-    MMC_VERB_REFRESH = 32774,
-    MMC_VERB_PRINT = 32775,
-    MMC_VERB_CUT = 32776,
-    MMC_VERB_MAX = 32777,
-    MMC_VERB_FIRST = 32768,
-    MMC_VERB_LAST = 32776,
-}
-
-struct MMCBUTTON
-{
-    int nBitmap;
-    int idCommand;
-    ubyte fsState;
-    ubyte fsType;
-    ushort* lpButtonText;
-    ushort* lpTooltipText;
-}
-
-enum MMC_BUTTON_STATE
-{
-    ENABLED = 1,
-    CHECKED = 2,
-    HIDDEN = 4,
-    INDETERMINATE = 8,
-    BUTTONPRESSED = 16,
-}
-
-struct RESULTDATAITEM
-{
-    uint mask;
-    BOOL bScopeItem;
-    int itemID;
-    int nIndex;
-    int nCol;
-    ushort* str;
-    int nImage;
-    uint nState;
-    LPARAM lParam;
-    int iIndent;
-}
-
-struct RESULTFINDINFO
-{
-    ushort* psz;
-    int nStart;
-    uint dwOptions;
-}
-
-struct SCOPEDATAITEM
-{
-    uint mask;
-    ushort* displayname;
-    int nImage;
-    int nOpenImage;
-    uint nState;
-    int cChildren;
-    LPARAM lParam;
-    int relativeID;
-    int ID;
-}
-
-enum MMC_SCOPE_ITEM_STATE
-{
-    MMC_SCOPE_ITEM_STATE_NORMAL = 1,
-    MMC_SCOPE_ITEM_STATE_BOLD = 2,
-    MMC_SCOPE_ITEM_STATE_EXPANDEDONCE = 3,
-}
-
-struct CONTEXTMENUITEM
-{
-    const(wchar)* strName;
-    const(wchar)* strStatusBarText;
-    int lCommandID;
-    int lInsertionPointID;
-    int fFlags;
-    int fSpecialFlags;
-}
-
-enum MMC_MENU_COMMAND_IDS
-{
-    MMCC_STANDARD_VIEW_SELECT = -1,
-}
-
-struct MENUBUTTONDATA
-{
-    int idCommand;
-    int x;
-    int y;
-}
-
-enum MMC_FILTER_TYPE
-{
-    MMC_STRING_FILTER = 0,
-    MMC_INT_FILTER = 1,
-    MMC_FILTER_NOVALUE = 32768,
-}
-
-struct MMC_FILTERDATA
-{
-    ushort* pszText;
-    int cchTextMax;
-    int lValue;
-}
-
-enum MMC_FILTER_CHANGE_CODE
-{
-    MFCC_DISABLE = 0,
-    MFCC_ENABLE = 1,
-    MFCC_VALUE_CHANGE = 2,
-}
-
-struct MMC_RESTORE_VIEW
-{
-    uint dwSize;
-    int cookie;
-    ushort* pViewType;
-    int lViewOptions;
-}
-
-struct MMC_EXPANDSYNC_STRUCT
-{
-    BOOL bHandled;
-    BOOL bExpanding;
-    int hItem;
-}
-
-struct MMC_VISIBLE_COLUMNS
-{
-    int nVisibleColumns;
-    int rgVisibleCols;
-}
-
-enum MMC_NOTIFY_TYPE
-{
-    MMCN_ACTIVATE = 32769,
-    MMCN_ADD_IMAGES = 32770,
-    MMCN_BTN_CLICK = 32771,
-    MMCN_CLICK = 32772,
-    MMCN_COLUMN_CLICK = 32773,
-    MMCN_CONTEXTMENU = 32774,
-    MMCN_CUTORMOVE = 32775,
-    MMCN_DBLCLICK = 32776,
-    MMCN_DELETE = 32777,
-    MMCN_DESELECT_ALL = 32778,
-    MMCN_EXPAND = 32779,
-    MMCN_HELP = 32780,
-    MMCN_MENU_BTNCLICK = 32781,
-    MMCN_MINIMIZED = 32782,
-    MMCN_PASTE = 32783,
-    MMCN_PROPERTY_CHANGE = 32784,
-    MMCN_QUERY_PASTE = 32785,
-    MMCN_REFRESH = 32786,
-    MMCN_REMOVE_CHILDREN = 32787,
-    MMCN_RENAME = 32788,
-    MMCN_SELECT = 32789,
-    MMCN_SHOW = 32790,
-    MMCN_VIEW_CHANGE = 32791,
-    MMCN_SNAPINHELP = 32792,
-    MMCN_CONTEXTHELP = 32793,
-    MMCN_INITOCX = 32794,
-    MMCN_FILTER_CHANGE = 32795,
-    MMCN_FILTERBTN_CLICK = 32796,
-    MMCN_RESTORE_VIEW = 32797,
-    MMCN_PRINT = 32798,
-    MMCN_PRELOAD = 32799,
-    MMCN_LISTPAD = 32800,
-    MMCN_EXPANDSYNC = 32801,
-    MMCN_COLUMNS_CHANGED = 32802,
-    MMCN_CANPASTE_OUTOFPROC = 32803,
-}
-
-enum DATA_OBJECT_TYPES
-{
-    CCT_SCOPE = 32768,
-    CCT_RESULT = 32769,
-    CCT_SNAPIN_MANAGER = 32770,
-    CCT_UNINITIALIZED = 65535,
-}
-
-struct SMMCDataObjects
-{
-    uint count;
-    IDataObject lpDataObject;
-}
-
-struct SMMCObjectTypes
-{
-    uint count;
-    Guid guid;
-}
-
-struct SNodeID
-{
-    uint cBytes;
-    ubyte id;
-}
-
-struct SNodeID2
-{
-    uint dwFlags;
-    uint cBytes;
-    ubyte id;
-}
-
-struct SColumnSetID
-{
-    uint dwFlags;
-    uint cBytes;
-    ubyte id;
-}
-
-const GUID IID_IComponentData = {0x955AB28A, 0x5218, 0x11D0, [0xA9, 0x85, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x65]};
-@GUID(0x955AB28A, 0x5218, 0x11D0, [0xA9, 0x85, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x65]);
+@GUID("955AB28A-5218-11D0-A985-00C04FD8D565")
 interface IComponentData : IUnknown
 {
     HRESULT Initialize(IUnknown pUnknown);
     HRESULT CreateComponent(IComponent* ppComponent);
     HRESULT Notify(IDataObject lpDataObject, MMC_NOTIFY_TYPE event, LPARAM arg, LPARAM param3);
     HRESULT Destroy();
-    HRESULT QueryDataObject(int cookie, DATA_OBJECT_TYPES type, IDataObject* ppDataObject);
+    HRESULT QueryDataObject(ptrdiff_t cookie, DATA_OBJECT_TYPES type, IDataObject* ppDataObject);
     HRESULT GetDisplayInfo(SCOPEDATAITEM* pScopeDataItem);
     HRESULT CompareObjects(IDataObject lpDataObjectA, IDataObject lpDataObjectB);
 }
 
-const GUID IID_IComponent = {0x43136EB2, 0xD36C, 0x11CF, [0xAD, 0xBC, 0x00, 0xAA, 0x00, 0xA8, 0x00, 0x33]};
-@GUID(0x43136EB2, 0xD36C, 0x11CF, [0xAD, 0xBC, 0x00, 0xAA, 0x00, 0xA8, 0x00, 0x33]);
+@GUID("43136EB2-D36C-11CF-ADBC-00AA00A80033")
 interface IComponent : IUnknown
 {
     HRESULT Initialize(IConsole lpConsole);
     HRESULT Notify(IDataObject lpDataObject, MMC_NOTIFY_TYPE event, LPARAM arg, LPARAM param3);
-    HRESULT Destroy(int cookie);
-    HRESULT QueryDataObject(int cookie, DATA_OBJECT_TYPES type, IDataObject* ppDataObject);
-    HRESULT GetResultViewType(int cookie, ushort** ppViewType, int* pViewOptions);
+    HRESULT Destroy(ptrdiff_t cookie);
+    HRESULT QueryDataObject(ptrdiff_t cookie, DATA_OBJECT_TYPES type, IDataObject* ppDataObject);
+    HRESULT GetResultViewType(ptrdiff_t cookie, ushort** ppViewType, int* pViewOptions);
     HRESULT GetDisplayInfo(RESULTDATAITEM* pResultDataItem);
     HRESULT CompareObjects(IDataObject lpDataObjectA, IDataObject lpDataObjectB);
 }
 
-const GUID IID_IResultDataCompare = {0xE8315A52, 0x7A1A, 0x11D0, [0xA2, 0xD2, 0x00, 0xC0, 0x4F, 0xD9, 0x09, 0xDD]};
-@GUID(0xE8315A52, 0x7A1A, 0x11D0, [0xA2, 0xD2, 0x00, 0xC0, 0x4F, 0xD9, 0x09, 0xDD]);
+@GUID("E8315A52-7A1A-11D0-A2D2-00C04FD909DD")
 interface IResultDataCompare : IUnknown
 {
-    HRESULT Compare(LPARAM lUserParam, int cookieA, int cookieB, int* pnResult);
+    HRESULT Compare(LPARAM lUserParam, ptrdiff_t cookieA, ptrdiff_t cookieB, int* pnResult);
 }
 
-const GUID IID_IResultOwnerData = {0x9CB396D8, 0xEA83, 0x11D0, [0xAE, 0xF1, 0x00, 0xC0, 0x4F, 0xB6, 0xDD, 0x2C]};
-@GUID(0x9CB396D8, 0xEA83, 0x11D0, [0xAE, 0xF1, 0x00, 0xC0, 0x4F, 0xB6, 0xDD, 0x2C]);
+@GUID("9CB396D8-EA83-11D0-AEF1-00C04FB6DD2C")
 interface IResultOwnerData : IUnknown
 {
     HRESULT FindItem(RESULTFINDINFO* pFindInfo, int* pnFoundIndex);
@@ -656,8 +863,7 @@ interface IResultOwnerData : IUnknown
     HRESULT SortItems(int nColumn, uint dwSortOptions, LPARAM lUserParam);
 }
 
-const GUID IID_IConsole = {0x43136EB1, 0xD36C, 0x11CF, [0xAD, 0xBC, 0x00, 0xAA, 0x00, 0xA8, 0x00, 0x33]};
-@GUID(0x43136EB1, 0xD36C, 0x11CF, [0xAD, 0xBC, 0x00, 0xAA, 0x00, 0xA8, 0x00, 0x33]);
+@GUID("43136EB1-D36C-11CF-ADBC-00AA00A80033")
 interface IConsole : IUnknown
 {
     HRESULT SetHeader(IHeaderCtrl pHeader);
@@ -665,16 +871,15 @@ interface IConsole : IUnknown
     HRESULT QueryResultView(IUnknown* pUnknown);
     HRESULT QueryScopeImageList(IImageList* ppImageList);
     HRESULT QueryResultImageList(IImageList* ppImageList);
-    HRESULT UpdateAllViews(IDataObject lpDataObject, LPARAM data, int hint);
+    HRESULT UpdateAllViews(IDataObject lpDataObject, LPARAM data, ptrdiff_t hint);
     HRESULT MessageBoxA(const(wchar)* lpszText, const(wchar)* lpszTitle, uint fuStyle, int* piRetval);
     HRESULT QueryConsoleVerb(IConsoleVerb* ppConsoleVerb);
-    HRESULT SelectScopeItem(int hScopeItem);
+    HRESULT SelectScopeItem(ptrdiff_t hScopeItem);
     HRESULT GetMainWindow(HWND* phwnd);
-    HRESULT NewWindow(int hScopeItem, uint lOptions);
+    HRESULT NewWindow(ptrdiff_t hScopeItem, uint lOptions);
 }
 
-const GUID IID_IHeaderCtrl = {0x43136EB3, 0xD36C, 0x11CF, [0xAD, 0xBC, 0x00, 0xAA, 0x00, 0xA8, 0x00, 0x33]};
-@GUID(0x43136EB3, 0xD36C, 0x11CF, [0xAD, 0xBC, 0x00, 0xAA, 0x00, 0xA8, 0x00, 0x33]);
+@GUID("43136EB3-D36C-11CF-ADBC-00AA00A80033")
 interface IHeaderCtrl : IUnknown
 {
     HRESULT InsertColumn(int nCol, const(wchar)* title, int nFormat, int nWidth);
@@ -685,56 +890,13 @@ interface IHeaderCtrl : IUnknown
     HRESULT GetColumnWidth(int nCol, int* pWidth);
 }
 
-enum __MIDL___MIDL_itf_mmc_0000_0006_0001
-{
-    CCM_INSERTIONPOINTID_MASK_SPECIAL = -65536,
-    CCM_INSERTIONPOINTID_MASK_SHARED = -2147483648,
-    CCM_INSERTIONPOINTID_MASK_CREATE_PRIMARY = 1073741824,
-    CCM_INSERTIONPOINTID_MASK_ADD_PRIMARY = 536870912,
-    CCM_INSERTIONPOINTID_MASK_ADD_3RDPARTY = 268435456,
-    CCM_INSERTIONPOINTID_MASK_RESERVED = 268369920,
-    CCM_INSERTIONPOINTID_MASK_FLAGINDEX = 31,
-    CCM_INSERTIONPOINTID_PRIMARY_TOP = -1610612736,
-    CCM_INSERTIONPOINTID_PRIMARY_NEW = -1610612735,
-    CCM_INSERTIONPOINTID_PRIMARY_TASK = -1610612734,
-    CCM_INSERTIONPOINTID_PRIMARY_VIEW = -1610612733,
-    CCM_INSERTIONPOINTID_PRIMARY_HELP = -1610612732,
-    CCM_INSERTIONPOINTID_3RDPARTY_NEW = -1879048191,
-    CCM_INSERTIONPOINTID_3RDPARTY_TASK = -1879048190,
-    CCM_INSERTIONPOINTID_ROOT_MENU = -2147483648,
-}
-
-enum __MIDL___MIDL_itf_mmc_0000_0006_0002
-{
-    CCM_INSERTIONALLOWED_TOP = 1,
-    CCM_INSERTIONALLOWED_NEW = 2,
-    CCM_INSERTIONALLOWED_TASK = 4,
-    CCM_INSERTIONALLOWED_VIEW = 8,
-}
-
-enum __MIDL___MIDL_itf_mmc_0000_0006_0003
-{
-    CCM_COMMANDID_MASK_RESERVED = -65536,
-}
-
-enum __MIDL___MIDL_itf_mmc_0000_0006_0004
-{
-    CCM_SPECIAL_SEPARATOR = 1,
-    CCM_SPECIAL_SUBMENU = 2,
-    CCM_SPECIAL_DEFAULT_ITEM = 4,
-    CCM_SPECIAL_INSERTION_POINT = 8,
-    CCM_SPECIAL_TESTONLY = 16,
-}
-
-const GUID IID_IContextMenuCallback = {0x43136EB7, 0xD36C, 0x11CF, [0xAD, 0xBC, 0x00, 0xAA, 0x00, 0xA8, 0x00, 0x33]};
-@GUID(0x43136EB7, 0xD36C, 0x11CF, [0xAD, 0xBC, 0x00, 0xAA, 0x00, 0xA8, 0x00, 0x33]);
+@GUID("43136EB7-D36C-11CF-ADBC-00AA00A80033")
 interface IContextMenuCallback : IUnknown
 {
     HRESULT AddItem(CONTEXTMENUITEM* pItem);
 }
 
-const GUID IID_IContextMenuProvider = {0x43136EB6, 0xD36C, 0x11CF, [0xAD, 0xBC, 0x00, 0xAA, 0x00, 0xA8, 0x00, 0x33]};
-@GUID(0x43136EB6, 0xD36C, 0x11CF, [0xAD, 0xBC, 0x00, 0xAA, 0x00, 0xA8, 0x00, 0x33]);
+@GUID("43136EB6-D36C-11CF-ADBC-00AA00A80033")
 interface IContextMenuProvider : IContextMenuCallback
 {
     HRESULT EmptyMenuList();
@@ -743,93 +905,85 @@ interface IContextMenuProvider : IContextMenuCallback
     HRESULT ShowContextMenu(HWND hwndParent, int xPos, int yPos, int* plSelected);
 }
 
-const GUID IID_IExtendContextMenu = {0x4F3B7A4F, 0xCFAC, 0x11CF, [0xB8, 0xE3, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0xB0]};
-@GUID(0x4F3B7A4F, 0xCFAC, 0x11CF, [0xB8, 0xE3, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0xB0]);
+@GUID("4F3B7A4F-CFAC-11CF-B8E3-00C04FD8D5B0")
 interface IExtendContextMenu : IUnknown
 {
     HRESULT AddMenuItems(IDataObject piDataObject, IContextMenuCallback piCallback, int* pInsertionAllowed);
     HRESULT Command(int lCommandID, IDataObject piDataObject);
 }
 
-const GUID IID_IImageList = {0x43136EB8, 0xD36C, 0x11CF, [0xAD, 0xBC, 0x00, 0xAA, 0x00, 0xA8, 0x00, 0x33]};
-@GUID(0x43136EB8, 0xD36C, 0x11CF, [0xAD, 0xBC, 0x00, 0xAA, 0x00, 0xA8, 0x00, 0x33]);
+@GUID("43136EB8-D36C-11CF-ADBC-00AA00A80033")
 interface IImageList : IUnknown
 {
-    HRESULT ImageListSetIcon(int* pIcon, int nLoc);
-    HRESULT ImageListSetStrip(int* pBMapSm, int* pBMapLg, int nStartLoc, uint cMask);
+    HRESULT ImageListSetIcon(ptrdiff_t* pIcon, int nLoc);
+    HRESULT ImageListSetStrip(ptrdiff_t* pBMapSm, ptrdiff_t* pBMapLg, int nStartLoc, uint cMask);
 }
 
-const GUID IID_IResultData = {0x31DA5FA0, 0xE0EB, 0x11CF, [0x9F, 0x21, 0x00, 0xAA, 0x00, 0x3C, 0xA9, 0xF6]};
-@GUID(0x31DA5FA0, 0xE0EB, 0x11CF, [0x9F, 0x21, 0x00, 0xAA, 0x00, 0x3C, 0xA9, 0xF6]);
+@GUID("31DA5FA0-E0EB-11CF-9F21-00AA003CA9F6")
 interface IResultData : IUnknown
 {
     HRESULT InsertItem(RESULTDATAITEM* item);
-    HRESULT DeleteItem(int itemID, int nCol);
-    HRESULT FindItemByLParam(LPARAM lParam, int* pItemID);
+    HRESULT DeleteItem(ptrdiff_t itemID, int nCol);
+    HRESULT FindItemByLParam(LPARAM lParam, ptrdiff_t* pItemID);
     HRESULT DeleteAllRsltItems();
     HRESULT SetItem(RESULTDATAITEM* item);
     HRESULT GetItem(RESULTDATAITEM* item);
     HRESULT GetNextItem(RESULTDATAITEM* item);
-    HRESULT ModifyItemState(int nIndex, int itemID, uint uAdd, uint uRemove);
+    HRESULT ModifyItemState(int nIndex, ptrdiff_t itemID, uint uAdd, uint uRemove);
     HRESULT ModifyViewStyle(MMC_RESULT_VIEW_STYLE add, MMC_RESULT_VIEW_STYLE remove);
     HRESULT SetViewMode(int lViewMode);
     HRESULT GetViewMode(int* lViewMode);
-    HRESULT UpdateItem(int itemID);
+    HRESULT UpdateItem(ptrdiff_t itemID);
     HRESULT Sort(int nColumn, uint dwSortOptions, LPARAM lUserParam);
     HRESULT SetDescBarText(ushort* DescText);
     HRESULT SetItemCount(int nItemCount, uint dwOptions);
 }
 
-const GUID IID_IConsoleNameSpace = {0xBEDEB620, 0xF24D, 0x11CF, [0x8A, 0xFC, 0x00, 0xAA, 0x00, 0x3C, 0xA9, 0xF6]};
-@GUID(0xBEDEB620, 0xF24D, 0x11CF, [0x8A, 0xFC, 0x00, 0xAA, 0x00, 0x3C, 0xA9, 0xF6]);
+@GUID("BEDEB620-F24D-11CF-8AFC-00AA003CA9F6")
 interface IConsoleNameSpace : IUnknown
 {
     HRESULT InsertItem(SCOPEDATAITEM* item);
-    HRESULT DeleteItem(int hItem, int fDeleteThis);
+    HRESULT DeleteItem(ptrdiff_t hItem, int fDeleteThis);
     HRESULT SetItem(SCOPEDATAITEM* item);
     HRESULT GetItem(SCOPEDATAITEM* item);
-    HRESULT GetChildItem(int item, int* pItemChild, int* pCookie);
-    HRESULT GetNextItem(int item, int* pItemNext, int* pCookie);
-    HRESULT GetParentItem(int item, int* pItemParent, int* pCookie);
+    HRESULT GetChildItem(ptrdiff_t item, ptrdiff_t* pItemChild, ptrdiff_t* pCookie);
+    HRESULT GetNextItem(ptrdiff_t item, ptrdiff_t* pItemNext, ptrdiff_t* pCookie);
+    HRESULT GetParentItem(ptrdiff_t item, ptrdiff_t* pItemParent, ptrdiff_t* pCookie);
 }
 
-const GUID IID_IConsoleNameSpace2 = {0x255F18CC, 0x65DB, 0x11D1, [0xA7, 0xDC, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x65]};
-@GUID(0x255F18CC, 0x65DB, 0x11D1, [0xA7, 0xDC, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x65]);
+@GUID("255F18CC-65DB-11D1-A7DC-00C04FD8D565")
 interface IConsoleNameSpace2 : IConsoleNameSpace
 {
-    HRESULT Expand(int hItem);
-    HRESULT AddExtension(int hItem, Guid* lpClsid);
+    HRESULT Expand(ptrdiff_t hItem);
+    HRESULT AddExtension(ptrdiff_t hItem, GUID* lpClsid);
 }
 
-const GUID IID_IPropertySheetCallback = {0x85DE64DD, 0xEF21, 0x11CF, [0xA2, 0x85, 0x00, 0xC0, 0x4F, 0xD8, 0xDB, 0xE6]};
-@GUID(0x85DE64DD, 0xEF21, 0x11CF, [0xA2, 0x85, 0x00, 0xC0, 0x4F, 0xD8, 0xDB, 0xE6]);
+@GUID("85DE64DD-EF21-11CF-A285-00C04FD8DBE6")
 interface IPropertySheetCallback : IUnknown
 {
     HRESULT AddPage(HPROPSHEETPAGE hPage);
     HRESULT RemovePage(HPROPSHEETPAGE hPage);
 }
 
-const GUID IID_IPropertySheetProvider = {0x85DE64DE, 0xEF21, 0x11CF, [0xA2, 0x85, 0x00, 0xC0, 0x4F, 0xD8, 0xDB, 0xE6]};
-@GUID(0x85DE64DE, 0xEF21, 0x11CF, [0xA2, 0x85, 0x00, 0xC0, 0x4F, 0xD8, 0xDB, 0xE6]);
+@GUID("85DE64DE-EF21-11CF-A285-00C04FD8DBE6")
 interface IPropertySheetProvider : IUnknown
 {
-    HRESULT CreatePropertySheet(const(wchar)* title, ubyte type, int cookie, IDataObject pIDataObjectm, uint dwOptions);
-    HRESULT FindPropertySheet(int hItem, IComponent lpComponent, IDataObject lpDataObject);
+    HRESULT CreatePropertySheet(const(wchar)* title, ubyte type, ptrdiff_t cookie, IDataObject pIDataObjectm, 
+                                uint dwOptions);
+    HRESULT FindPropertySheet(ptrdiff_t hItem, IComponent lpComponent, IDataObject lpDataObject);
     HRESULT AddPrimaryPages(IUnknown lpUnknown, BOOL bCreateHandle, HWND hNotifyWindow, BOOL bScopePane);
     HRESULT AddExtensionPages();
-    HRESULT Show(int window, int page);
+    HRESULT Show(ptrdiff_t window, int page);
 }
 
-const GUID IID_IExtendPropertySheet = {0x85DE64DC, 0xEF21, 0x11CF, [0xA2, 0x85, 0x00, 0xC0, 0x4F, 0xD8, 0xDB, 0xE6]};
-@GUID(0x85DE64DC, 0xEF21, 0x11CF, [0xA2, 0x85, 0x00, 0xC0, 0x4F, 0xD8, 0xDB, 0xE6]);
+@GUID("85DE64DC-EF21-11CF-A285-00C04FD8DBE6")
 interface IExtendPropertySheet : IUnknown
 {
-    HRESULT CreatePropertyPages(IPropertySheetCallback lpProvider, int handle, IDataObject lpIDataObject);
+    HRESULT CreatePropertyPages(IPropertySheetCallback lpProvider, ptrdiff_t handle, IDataObject lpIDataObject);
     HRESULT QueryPagesFor(IDataObject lpDataObject);
 }
 
-const GUID IID_IControlbar = {0x69FB811E, 0x6C1C, 0x11D0, [0xA2, 0xCB, 0x00, 0xC0, 0x4F, 0xD9, 0x09, 0xDD]};
-@GUID(0x69FB811E, 0x6C1C, 0x11D0, [0xA2, 0xCB, 0x00, 0xC0, 0x4F, 0xD9, 0x09, 0xDD]);
+@GUID("69FB811E-6C1C-11D0-A2CB-00C04FD909DD")
 interface IControlbar : IUnknown
 {
     HRESULT Create(MMC_CONTROL_TYPE nType, IExtendControlbar pExtendControlbar, IUnknown* ppUnknown);
@@ -837,16 +991,14 @@ interface IControlbar : IUnknown
     HRESULT Detach(IUnknown lpUnknown);
 }
 
-const GUID IID_IExtendControlbar = {0x49506520, 0x6F40, 0x11D0, [0xA9, 0x8B, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x65]};
-@GUID(0x49506520, 0x6F40, 0x11D0, [0xA9, 0x8B, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x65]);
+@GUID("49506520-6F40-11D0-A98B-00C04FD8D565")
 interface IExtendControlbar : IUnknown
 {
     HRESULT SetControlbar(IControlbar pControlbar);
     HRESULT ControlbarNotify(MMC_NOTIFY_TYPE event, LPARAM arg, LPARAM param2);
 }
 
-const GUID IID_IToolbar = {0x43136EB9, 0xD36C, 0x11CF, [0xAD, 0xBC, 0x00, 0xAA, 0x00, 0xA8, 0x00, 0x33]};
-@GUID(0x43136EB9, 0xD36C, 0x11CF, [0xAD, 0xBC, 0x00, 0xAA, 0x00, 0xA8, 0x00, 0x33]);
+@GUID("43136EB9-D36C-11CF-ADBC-00AA00A80033")
 interface IToolbar : IUnknown
 {
     HRESULT AddBitmap(int nImages, HBITMAP hbmp, int cxSize, int cySize, uint crMask);
@@ -857,8 +1009,7 @@ interface IToolbar : IUnknown
     HRESULT SetButtonState(int idCommand, MMC_BUTTON_STATE nState, BOOL bState);
 }
 
-const GUID IID_IConsoleVerb = {0xE49F7A60, 0x74AF, 0x11D0, [0xA2, 0x86, 0x00, 0xC0, 0x4F, 0xD8, 0xFE, 0x93]};
-@GUID(0xE49F7A60, 0x74AF, 0x11D0, [0xA2, 0x86, 0x00, 0xC0, 0x4F, 0xD8, 0xFE, 0x93]);
+@GUID("E49F7A60-74AF-11D0-A286-00C04FD8FE93")
 interface IConsoleVerb : IUnknown
 {
     HRESULT GetVerbState(MMC_CONSOLE_VERB eCmdID, MMC_BUTTON_STATE nState, int* pState);
@@ -867,8 +1018,7 @@ interface IConsoleVerb : IUnknown
     HRESULT GetDefaultVerb(MMC_CONSOLE_VERB* peCmdID);
 }
 
-const GUID IID_ISnapinAbout = {0x1245208C, 0xA151, 0x11D0, [0xA7, 0xD7, 0x00, 0xC0, 0x4F, 0xD9, 0x09, 0xDD]};
-@GUID(0x1245208C, 0xA151, 0x11D0, [0xA7, 0xD7, 0x00, 0xC0, 0x4F, 0xD9, 0x09, 0xDD]);
+@GUID("1245208C-A151-11D0-A7D7-00C04FD909DD")
 interface ISnapinAbout : IUnknown
 {
     HRESULT GetSnapinDescription(ushort** lpDescription);
@@ -878,8 +1028,7 @@ interface ISnapinAbout : IUnknown
     HRESULT GetStaticFolderImage(HBITMAP* hSmallImage, HBITMAP* hSmallImageOpen, HBITMAP* hLargeImage, uint* cMask);
 }
 
-const GUID IID_IMenuButton = {0x951ED750, 0xD080, 0x11D0, [0xB1, 0x97, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]};
-@GUID(0x951ED750, 0xD080, 0x11D0, [0xB1, 0x97, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
+@GUID("951ED750-D080-11D0-B197-000000000000")
 interface IMenuButton : IUnknown
 {
     HRESULT AddButton(int idCommand, ushort* lpButtonText, ushort* lpTooltipText);
@@ -887,22 +1036,20 @@ interface IMenuButton : IUnknown
     HRESULT SetButtonState(int idCommand, MMC_BUTTON_STATE nState, BOOL bState);
 }
 
-const GUID IID_ISnapinHelp = {0xA6B15ACE, 0xDF59, 0x11D0, [0xA7, 0xDD, 0x00, 0xC0, 0x4F, 0xD9, 0x09, 0xDD]};
-@GUID(0xA6B15ACE, 0xDF59, 0x11D0, [0xA7, 0xDD, 0x00, 0xC0, 0x4F, 0xD9, 0x09, 0xDD]);
+@GUID("A6B15ACE-DF59-11D0-A7DD-00C04FD909DD")
 interface ISnapinHelp : IUnknown
 {
     HRESULT GetHelpTopic(ushort** lpCompiledHelpFile);
 }
 
-const GUID IID_IExtendPropertySheet2 = {0xB7A87232, 0x4A51, 0x11D1, [0xA7, 0xEA, 0x00, 0xC0, 0x4F, 0xD9, 0x09, 0xDD]};
-@GUID(0xB7A87232, 0x4A51, 0x11D1, [0xA7, 0xEA, 0x00, 0xC0, 0x4F, 0xD9, 0x09, 0xDD]);
+@GUID("B7A87232-4A51-11D1-A7EA-00C04FD909DD")
 interface IExtendPropertySheet2 : IExtendPropertySheet
 {
-    HRESULT GetWatermarks(IDataObject lpIDataObject, HBITMAP* lphWatermark, HBITMAP* lphHeader, HPALETTE* lphPalette, int* bStretch);
+    HRESULT GetWatermarks(IDataObject lpIDataObject, HBITMAP* lphWatermark, HBITMAP* lphHeader, 
+                          HPALETTE* lphPalette, int* bStretch);
 }
 
-const GUID IID_IHeaderCtrl2 = {0x9757ABB8, 0x1B32, 0x11D1, [0xA7, 0xCE, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x65]};
-@GUID(0x9757ABB8, 0x1B32, 0x11D1, [0xA7, 0xCE, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x65]);
+@GUID("9757ABB8-1B32-11D1-A7CE-00C04FD8D565")
 interface IHeaderCtrl2 : IHeaderCtrl
 {
     HRESULT SetChangeTimeOut(uint uTimeout);
@@ -910,67 +1057,13 @@ interface IHeaderCtrl2 : IHeaderCtrl
     HRESULT GetColumnFilter(uint nColumn, uint* pdwType, MMC_FILTERDATA* pFilterData);
 }
 
-const GUID IID_ISnapinHelp2 = {0x4861A010, 0x20F9, 0x11D2, [0xA5, 0x10, 0x00, 0xC0, 0x4F, 0xB6, 0xDD, 0x2C]};
-@GUID(0x4861A010, 0x20F9, 0x11D2, [0xA5, 0x10, 0x00, 0xC0, 0x4F, 0xB6, 0xDD, 0x2C]);
+@GUID("4861A010-20F9-11D2-A510-00C04FB6DD2C")
 interface ISnapinHelp2 : ISnapinHelp
 {
     HRESULT GetLinkedTopics(ushort** lpCompiledHelpFiles);
 }
 
-enum MMC_TASK_DISPLAY_TYPE
-{
-    MMC_TASK_DISPLAY_UNINITIALIZED = 0,
-    MMC_TASK_DISPLAY_TYPE_SYMBOL = 1,
-    MMC_TASK_DISPLAY_TYPE_VANILLA_GIF = 2,
-    MMC_TASK_DISPLAY_TYPE_CHOCOLATE_GIF = 3,
-    MMC_TASK_DISPLAY_TYPE_BITMAP = 4,
-}
-
-struct MMC_TASK_DISPLAY_SYMBOL
-{
-    ushort* szFontFamilyName;
-    ushort* szURLtoEOT;
-    ushort* szSymbolString;
-}
-
-struct MMC_TASK_DISPLAY_BITMAP
-{
-    ushort* szMouseOverBitmap;
-    ushort* szMouseOffBitmap;
-}
-
-struct MMC_TASK_DISPLAY_OBJECT
-{
-    MMC_TASK_DISPLAY_TYPE eDisplayType;
-    _Anonymous_e__Union Anonymous;
-}
-
-enum MMC_ACTION_TYPE
-{
-    MMC_ACTION_UNINITIALIZED = -1,
-    MMC_ACTION_ID = 0,
-    MMC_ACTION_LINK = 1,
-    MMC_ACTION_SCRIPT = 2,
-}
-
-struct MMC_TASK
-{
-    MMC_TASK_DISPLAY_OBJECT sDisplayObject;
-    ushort* szText;
-    ushort* szHelpString;
-    MMC_ACTION_TYPE eActionType;
-    _Anonymous_e__Union Anonymous;
-}
-
-struct MMC_LISTPAD_INFO
-{
-    ushort* szTitle;
-    ushort* szButtonText;
-    int nCommandID;
-}
-
-const GUID IID_IEnumTASK = {0x338698B1, 0x5A02, 0x11D1, [0x9F, 0xEC, 0x00, 0x60, 0x08, 0x32, 0xDB, 0x4A]};
-@GUID(0x338698B1, 0x5A02, 0x11D1, [0x9F, 0xEC, 0x00, 0x60, 0x08, 0x32, 0xDB, 0x4A]);
+@GUID("338698B1-5A02-11D1-9FEC-00600832DB4A")
 interface IEnumTASK : IUnknown
 {
     HRESULT Next(uint celt, MMC_TASK* rgelt, uint* pceltFetched);
@@ -979,8 +1072,7 @@ interface IEnumTASK : IUnknown
     HRESULT Clone(IEnumTASK* ppenum);
 }
 
-const GUID IID_IExtendTaskPad = {0x8DEE6511, 0x554D, 0x11D1, [0x9F, 0xEA, 0x00, 0x60, 0x08, 0x32, 0xDB, 0x4A]};
-@GUID(0x8DEE6511, 0x554D, 0x11D1, [0x9F, 0xEA, 0x00, 0x60, 0x08, 0x32, 0xDB, 0x4A]);
+@GUID("8DEE6511-554D-11D1-9FEA-00600832DB4A")
 interface IExtendTaskPad : IUnknown
 {
     HRESULT TaskNotify(IDataObject pdo, VARIANT* arg, VARIANT* param2);
@@ -991,33 +1083,29 @@ interface IExtendTaskPad : IUnknown
     HRESULT GetListPadInfo(ushort* pszGroup, MMC_LISTPAD_INFO* lpListPadInfo);
 }
 
-const GUID IID_IConsole2 = {0x103D842A, 0xAA63, 0x11D1, [0xA7, 0xE1, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x65]};
-@GUID(0x103D842A, 0xAA63, 0x11D1, [0xA7, 0xE1, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x65]);
+@GUID("103D842A-AA63-11D1-A7E1-00C04FD8D565")
 interface IConsole2 : IConsole
 {
-    HRESULT Expand(int hItem, BOOL bExpand);
+    HRESULT Expand(ptrdiff_t hItem, BOOL bExpand);
     HRESULT IsTaskpadViewPreferred();
     HRESULT SetStatusText(ushort* pszStatusText);
 }
 
-const GUID IID_IDisplayHelp = {0xCC593830, 0xB926, 0x11D1, [0x80, 0x63, 0x00, 0x00, 0xF8, 0x75, 0xA9, 0xCE]};
-@GUID(0xCC593830, 0xB926, 0x11D1, [0x80, 0x63, 0x00, 0x00, 0xF8, 0x75, 0xA9, 0xCE]);
+@GUID("CC593830-B926-11D1-8063-0000F875A9CE")
 interface IDisplayHelp : IUnknown
 {
     HRESULT ShowTopic(ushort* pszHelpTopic);
 }
 
-const GUID IID_IRequiredExtensions = {0x72782D7A, 0xA4A0, 0x11D1, [0xAF, 0x0F, 0x00, 0xC0, 0x4F, 0xB6, 0xDD, 0x2C]};
-@GUID(0x72782D7A, 0xA4A0, 0x11D1, [0xAF, 0x0F, 0x00, 0xC0, 0x4F, 0xB6, 0xDD, 0x2C]);
+@GUID("72782D7A-A4A0-11D1-AF0F-00C04FB6DD2C")
 interface IRequiredExtensions : IUnknown
 {
     HRESULT EnableAllExtensions();
-    HRESULT GetFirstExtension(Guid* pExtCLSID);
-    HRESULT GetNextExtension(Guid* pExtCLSID);
+    HRESULT GetFirstExtension(GUID* pExtCLSID);
+    HRESULT GetNextExtension(GUID* pExtCLSID);
 }
 
-const GUID IID_IStringTable = {0xDE40B7A4, 0x0F65, 0x11D2, [0x8E, 0x25, 0x00, 0xC0, 0x4F, 0x8E, 0xCD, 0x78]};
-@GUID(0xDE40B7A4, 0x0F65, 0x11D2, [0x8E, 0x25, 0x00, 0xC0, 0x4F, 0x8E, 0xCD, 0x78]);
+@GUID("DE40B7A4-0F65-11D2-8E25-00C04F8ECD78")
 interface IStringTable : IUnknown
 {
     HRESULT AddString(ushort* pszAdd, uint* pStringID);
@@ -1029,37 +1117,7 @@ interface IStringTable : IUnknown
     HRESULT Enumerate(IEnumString* ppEnum);
 }
 
-struct MMC_COLUMN_DATA
-{
-    int nColIndex;
-    uint dwFlags;
-    int nWidth;
-    uint ulReserved;
-}
-
-struct MMC_COLUMN_SET_DATA
-{
-    int cbSize;
-    int nNumCols;
-    MMC_COLUMN_DATA* pColData;
-}
-
-struct MMC_SORT_DATA
-{
-    int nColIndex;
-    uint dwSortOptions;
-    uint ulReserved;
-}
-
-struct MMC_SORT_SET_DATA
-{
-    int cbSize;
-    int nNumItems;
-    MMC_SORT_DATA* pSortData;
-}
-
-const GUID IID_IColumnData = {0x547C1354, 0x024D, 0x11D3, [0xA7, 0x07, 0x00, 0xC0, 0x4F, 0x8E, 0xF4, 0xCB]};
-@GUID(0x547C1354, 0x024D, 0x11D3, [0xA7, 0x07, 0x00, 0xC0, 0x4F, 0x8E, 0xF4, 0xCB]);
+@GUID("547C1354-024D-11D3-A707-00C04F8EF4CB")
 interface IColumnData : IUnknown
 {
     HRESULT SetColumnConfigData(SColumnSetID* pColID, MMC_COLUMN_SET_DATA* pColSetData);
@@ -1068,19 +1126,7 @@ interface IColumnData : IUnknown
     HRESULT GetColumnSortData(SColumnSetID* pColID, MMC_SORT_SET_DATA** ppColSortData);
 }
 
-enum IconIdentifier
-{
-    Icon_None = 0,
-    Icon_Error = 32513,
-    Icon_Question = 32514,
-    Icon_Warning = 32515,
-    Icon_Information = 32516,
-    Icon_First = 32513,
-    Icon_Last = 32516,
-}
-
-const GUID IID_IMessageView = {0x80F94174, 0xFCCC, 0x11D2, [0xB9, 0x91, 0x00, 0xC0, 0x4F, 0x8E, 0xCD, 0x78]};
-@GUID(0x80F94174, 0xFCCC, 0x11D2, [0xB9, 0x91, 0x00, 0xC0, 0x4F, 0x8E, 0xCD, 0x78]);
+@GUID("80F94174-FCCC-11D2-B991-00C04F8ECD78")
 interface IMessageView : IUnknown
 {
     HRESULT SetTitleText(ushort* pszTitleText);
@@ -1089,142 +1135,155 @@ interface IMessageView : IUnknown
     HRESULT Clear();
 }
 
-struct RDITEMHDR
-{
-    uint dwFlags;
-    int cookie;
-    LPARAM lpReserved;
-}
-
-struct RDCOMPARE
-{
-    uint cbSize;
-    uint dwFlags;
-    int nColumn;
-    LPARAM lUserParam;
-    RDITEMHDR* prdch1;
-    RDITEMHDR* prdch2;
-}
-
-const GUID IID_IResultDataCompareEx = {0x96933476, 0x0251, 0x11D3, [0xAE, 0xB0, 0x00, 0xC0, 0x4F, 0x8E, 0xCD, 0x78]};
-@GUID(0x96933476, 0x0251, 0x11D3, [0xAE, 0xB0, 0x00, 0xC0, 0x4F, 0x8E, 0xCD, 0x78]);
+@GUID("96933476-0251-11D3-AEB0-00C04F8ECD78")
 interface IResultDataCompareEx : IUnknown
 {
     HRESULT Compare(RDCOMPARE* prdc, int* pnResult);
 }
 
-enum MMC_VIEW_TYPE
-{
-    MMC_VIEW_TYPE_LIST = 0,
-    MMC_VIEW_TYPE_HTML = 1,
-    MMC_VIEW_TYPE_OCX = 2,
-}
-
-struct RESULT_VIEW_TYPE_INFO
-{
-    ushort* pstrPersistableViewDescription;
-    MMC_VIEW_TYPE eViewType;
-    uint dwMiscOptions;
-    _Anonymous_e__Union Anonymous;
-}
-
-struct CONTEXTMENUITEM2
-{
-    const(wchar)* strName;
-    const(wchar)* strStatusBarText;
-    int lCommandID;
-    int lInsertionPointID;
-    int fFlags;
-    int fSpecialFlags;
-    const(wchar)* strLanguageIndependentName;
-}
-
-struct MMC_EXT_VIEW_DATA
-{
-    Guid viewID;
-    ushort* pszURL;
-    ushort* pszViewTitle;
-    ushort* pszTooltipText;
-    BOOL bReplacesDefaultView;
-}
-
-const GUID IID_IComponentData2 = {0xCCA0F2D2, 0x82DE, 0x41B5, [0xBF, 0x47, 0x3B, 0x20, 0x76, 0x27, 0x3D, 0x5C]};
-@GUID(0xCCA0F2D2, 0x82DE, 0x41B5, [0xBF, 0x47, 0x3B, 0x20, 0x76, 0x27, 0x3D, 0x5C]);
+@GUID("CCA0F2D2-82DE-41B5-BF47-3B2076273D5C")
 interface IComponentData2 : IComponentData
 {
-    HRESULT QueryDispatch(int cookie, DATA_OBJECT_TYPES type, IDispatch* ppDispatch);
+    HRESULT QueryDispatch(ptrdiff_t cookie, DATA_OBJECT_TYPES type, IDispatch* ppDispatch);
 }
 
-const GUID IID_IComponent2 = {0x79A2D615, 0x4A10, 0x4ED4, [0x8C, 0x65, 0x86, 0x33, 0xF9, 0x33, 0x50, 0x95]};
-@GUID(0x79A2D615, 0x4A10, 0x4ED4, [0x8C, 0x65, 0x86, 0x33, 0xF9, 0x33, 0x50, 0x95]);
+@GUID("79A2D615-4A10-4ED4-8C65-8633F9335095")
 interface IComponent2 : IComponent
 {
-    HRESULT QueryDispatch(int cookie, DATA_OBJECT_TYPES type, IDispatch* ppDispatch);
-    HRESULT GetResultViewType2(int cookie, RESULT_VIEW_TYPE_INFO* pResultViewType);
-    HRESULT RestoreResultView(int cookie, RESULT_VIEW_TYPE_INFO* pResultViewType);
+    HRESULT QueryDispatch(ptrdiff_t cookie, DATA_OBJECT_TYPES type, IDispatch* ppDispatch);
+    HRESULT GetResultViewType2(ptrdiff_t cookie, RESULT_VIEW_TYPE_INFO* pResultViewType);
+    HRESULT RestoreResultView(ptrdiff_t cookie, RESULT_VIEW_TYPE_INFO* pResultViewType);
 }
 
-const GUID IID_IContextMenuCallback2 = {0xE178BC0E, 0x2ED0, 0x4B5E, [0x80, 0x97, 0x42, 0xC9, 0x08, 0x7E, 0x8B, 0x33]};
-@GUID(0xE178BC0E, 0x2ED0, 0x4B5E, [0x80, 0x97, 0x42, 0xC9, 0x08, 0x7E, 0x8B, 0x33]);
+@GUID("E178BC0E-2ED0-4B5E-8097-42C9087E8B33")
 interface IContextMenuCallback2 : IUnknown
 {
     HRESULT AddItem(CONTEXTMENUITEM2* pItem);
 }
 
-const GUID IID_IMMCVersionInfo = {0xA8D2C5FE, 0xCDCB, 0x4B9D, [0xBD, 0xE5, 0xA2, 0x73, 0x43, 0xFF, 0x54, 0xBC]};
-@GUID(0xA8D2C5FE, 0xCDCB, 0x4B9D, [0xBD, 0xE5, 0xA2, 0x73, 0x43, 0xFF, 0x54, 0xBC]);
+@GUID("A8D2C5FE-CDCB-4B9D-BDE5-A27343FF54BC")
 interface IMMCVersionInfo : IUnknown
 {
     HRESULT GetMMCVersion(int* pVersionMajor, int* pVersionMinor);
 }
 
-const GUID IID_IExtendView = {0x89995CEE, 0xD2ED, 0x4C0E, [0xAE, 0x5E, 0xDF, 0x7E, 0x76, 0xF3, 0xFA, 0x53]};
-@GUID(0x89995CEE, 0xD2ED, 0x4C0E, [0xAE, 0x5E, 0xDF, 0x7E, 0x76, 0xF3, 0xFA, 0x53]);
+@GUID("89995CEE-D2ED-4C0E-AE5E-DF7E76F3FA53")
 interface IExtendView : IUnknown
 {
     HRESULT GetViews(IDataObject pDataObject, IViewExtensionCallback pViewExtensionCallback);
 }
 
-const GUID IID_IViewExtensionCallback = {0x34DD928A, 0x7599, 0x41E5, [0x9F, 0x5E, 0xD6, 0xBC, 0x30, 0x62, 0xC2, 0xDA]};
-@GUID(0x34DD928A, 0x7599, 0x41E5, [0x9F, 0x5E, 0xD6, 0xBC, 0x30, 0x62, 0xC2, 0xDA]);
+@GUID("34DD928A-7599-41E5-9F5E-D6BC3062C2DA")
 interface IViewExtensionCallback : IUnknown
 {
     HRESULT AddView(MMC_EXT_VIEW_DATA* pExtViewData);
 }
 
-const GUID IID_IConsolePower = {0x1CFBDD0E, 0x62CA, 0x49CE, [0xA3, 0xAF, 0xDB, 0xB2, 0xDE, 0x61, 0xB0, 0x68]};
-@GUID(0x1CFBDD0E, 0x62CA, 0x49CE, [0xA3, 0xAF, 0xDB, 0xB2, 0xDE, 0x61, 0xB0, 0x68]);
+@GUID("1CFBDD0E-62CA-49CE-A3AF-DBB2DE61B068")
 interface IConsolePower : IUnknown
 {
     HRESULT SetExecutionState(uint dwAdd, uint dwRemove);
     HRESULT ResetIdleTimer(uint dwFlags);
 }
 
-const GUID IID_IConsolePowerSink = {0x3333759F, 0xFE4F, 0x4975, [0xB1, 0x43, 0xFE, 0xC0, 0xA5, 0xDD, 0x6D, 0x65]};
-@GUID(0x3333759F, 0xFE4F, 0x4975, [0xB1, 0x43, 0xFE, 0xC0, 0xA5, 0xDD, 0x6D, 0x65]);
+@GUID("3333759F-FE4F-4975-B143-FEC0A5DD6D65")
 interface IConsolePowerSink : IUnknown
 {
     HRESULT OnPowerBroadcast(uint nEvent, LPARAM lParam, LRESULT* plReturn);
 }
 
-const GUID IID_INodeProperties = {0x15BC4D24, 0xA522, 0x4406, [0xAA, 0x55, 0x07, 0x49, 0x53, 0x7A, 0x68, 0x65]};
-@GUID(0x15BC4D24, 0xA522, 0x4406, [0xAA, 0x55, 0x07, 0x49, 0x53, 0x7A, 0x68, 0x65]);
+@GUID("15BC4D24-A522-4406-AA55-0749537A6865")
 interface INodeProperties : IUnknown
 {
     HRESULT GetProperty(IDataObject pDataObject, BSTR szPropertyName, ushort** pbstrProperty);
 }
 
-const GUID IID_IConsole3 = {0x4F85EFDB, 0xD0E1, 0x498C, [0x8D, 0x4A, 0xD0, 0x10, 0xDF, 0xDD, 0x40, 0x4F]};
-@GUID(0x4F85EFDB, 0xD0E1, 0x498C, [0x8D, 0x4A, 0xD0, 0x10, 0xDF, 0xDD, 0x40, 0x4F]);
+@GUID("4F85EFDB-D0E1-498C-8D4A-D010DFDD404F")
 interface IConsole3 : IConsole2
 {
-    HRESULT RenameScopeItem(int hScopeItem);
+    HRESULT RenameScopeItem(ptrdiff_t hScopeItem);
 }
 
-const GUID IID_IResultData2 = {0x0F36E0EB, 0xA7F1, 0x4A81, [0xBE, 0x5A, 0x92, 0x47, 0xF7, 0xDE, 0x4B, 0x1B]};
-@GUID(0x0F36E0EB, 0xA7F1, 0x4A81, [0xBE, 0x5A, 0x92, 0x47, 0xF7, 0xDE, 0x4B, 0x1B]);
+@GUID("0F36E0EB-A7F1-4A81-BE5A-9247F7DE4B1B")
 interface IResultData2 : IResultData
 {
-    HRESULT RenameResultItem(int itemID);
+    HRESULT RenameResultItem(ptrdiff_t itemID);
 }
 
+
+// GUIDs
+
+const GUID CLSID_AppEventsDHTMLConnector = GUIDOF!AppEventsDHTMLConnector;
+const GUID CLSID_Application             = GUIDOF!Application;
+const GUID CLSID_ConsolePower            = GUIDOF!ConsolePower;
+const GUID CLSID_MMCVersionInfo          = GUIDOF!MMCVersionInfo;
+
+const GUID IID_AppEvents                 = GUIDOF!AppEvents;
+const GUID IID_Column                    = GUIDOF!Column;
+const GUID IID_Columns                   = GUIDOF!Columns;
+const GUID IID_ContextMenu               = GUIDOF!ContextMenu;
+const GUID IID_Document                  = GUIDOF!Document;
+const GUID IID_Extension                 = GUIDOF!Extension;
+const GUID IID_Extensions                = GUIDOF!Extensions;
+const GUID IID_Frame                     = GUIDOF!Frame;
+const GUID IID_IColumnData               = GUIDOF!IColumnData;
+const GUID IID_IComponent                = GUIDOF!IComponent;
+const GUID IID_IComponent2               = GUIDOF!IComponent2;
+const GUID IID_IComponentData            = GUIDOF!IComponentData;
+const GUID IID_IComponentData2           = GUIDOF!IComponentData2;
+const GUID IID_IConsole                  = GUIDOF!IConsole;
+const GUID IID_IConsole2                 = GUIDOF!IConsole2;
+const GUID IID_IConsole3                 = GUIDOF!IConsole3;
+const GUID IID_IConsoleNameSpace         = GUIDOF!IConsoleNameSpace;
+const GUID IID_IConsoleNameSpace2        = GUIDOF!IConsoleNameSpace2;
+const GUID IID_IConsolePower             = GUIDOF!IConsolePower;
+const GUID IID_IConsolePowerSink         = GUIDOF!IConsolePowerSink;
+const GUID IID_IConsoleVerb              = GUIDOF!IConsoleVerb;
+const GUID IID_IContextMenuCallback      = GUIDOF!IContextMenuCallback;
+const GUID IID_IContextMenuCallback2     = GUIDOF!IContextMenuCallback2;
+const GUID IID_IContextMenuProvider      = GUIDOF!IContextMenuProvider;
+const GUID IID_IControlbar               = GUIDOF!IControlbar;
+const GUID IID_IDisplayHelp              = GUIDOF!IDisplayHelp;
+const GUID IID_IEnumTASK                 = GUIDOF!IEnumTASK;
+const GUID IID_IExtendContextMenu        = GUIDOF!IExtendContextMenu;
+const GUID IID_IExtendControlbar         = GUIDOF!IExtendControlbar;
+const GUID IID_IExtendPropertySheet      = GUIDOF!IExtendPropertySheet;
+const GUID IID_IExtendPropertySheet2     = GUIDOF!IExtendPropertySheet2;
+const GUID IID_IExtendTaskPad            = GUIDOF!IExtendTaskPad;
+const GUID IID_IExtendView               = GUIDOF!IExtendView;
+const GUID IID_IHeaderCtrl               = GUIDOF!IHeaderCtrl;
+const GUID IID_IHeaderCtrl2              = GUIDOF!IHeaderCtrl2;
+const GUID IID_IImageList                = GUIDOF!IImageList;
+const GUID IID_IMMCVersionInfo           = GUIDOF!IMMCVersionInfo;
+const GUID IID_IMenuButton               = GUIDOF!IMenuButton;
+const GUID IID_IMessageView              = GUIDOF!IMessageView;
+const GUID IID_INodeProperties           = GUIDOF!INodeProperties;
+const GUID IID_IPropertySheetCallback    = GUIDOF!IPropertySheetCallback;
+const GUID IID_IPropertySheetProvider    = GUIDOF!IPropertySheetProvider;
+const GUID IID_IRequiredExtensions       = GUIDOF!IRequiredExtensions;
+const GUID IID_IResultData               = GUIDOF!IResultData;
+const GUID IID_IResultData2              = GUIDOF!IResultData2;
+const GUID IID_IResultDataCompare        = GUIDOF!IResultDataCompare;
+const GUID IID_IResultDataCompareEx      = GUIDOF!IResultDataCompareEx;
+const GUID IID_IResultOwnerData          = GUIDOF!IResultOwnerData;
+const GUID IID_ISnapinAbout              = GUIDOF!ISnapinAbout;
+const GUID IID_ISnapinHelp               = GUIDOF!ISnapinHelp;
+const GUID IID_ISnapinHelp2              = GUIDOF!ISnapinHelp2;
+const GUID IID_ISnapinProperties         = GUIDOF!ISnapinProperties;
+const GUID IID_ISnapinPropertiesCallback = GUIDOF!ISnapinPropertiesCallback;
+const GUID IID_IStringTable              = GUIDOF!IStringTable;
+const GUID IID_IToolbar                  = GUIDOF!IToolbar;
+const GUID IID_IViewExtensionCallback    = GUIDOF!IViewExtensionCallback;
+const GUID IID_MenuItem                  = GUIDOF!MenuItem;
+const GUID IID_Node                      = GUIDOF!Node;
+const GUID IID_Nodes                     = GUIDOF!Nodes;
+const GUID IID_Properties                = GUIDOF!Properties;
+const GUID IID_Property                  = GUIDOF!Property;
+const GUID IID_ScopeNamespace            = GUIDOF!ScopeNamespace;
+const GUID IID_SnapIn                    = GUIDOF!SnapIn;
+const GUID IID_SnapIns                   = GUIDOF!SnapIns;
+const GUID IID_View                      = GUIDOF!View;
+const GUID IID_Views                     = GUIDOF!Views;
+const GUID IID__AppEvents                = GUIDOF!_AppEvents;
+const GUID IID__Application              = GUIDOF!_Application;
+const GUID IID__EventConnector           = GUIDOF!_EventConnector;

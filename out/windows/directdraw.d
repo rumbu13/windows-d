@@ -1,34 +1,46 @@
 module windows.directdraw;
 
-public import system;
-public import windows.com;
-public import windows.direct2d;
-public import windows.directshow;
-public import windows.displaydevices;
-public import windows.gdi;
-public import windows.systemservices;
-public import windows.windowsandmessaging;
+public import windows.core;
+public import windows.com : HRESULT, IUnknown;
+public import windows.direct2d : PALETTEENTRY;
+public import windows.directshow : DDCOLORKEY;
+public import windows.displaydevices : RECT, SIZE;
+public import windows.gdi : HDC, RGNDATA;
+public import windows.systemservices : BOOL, HANDLE, LARGE_INTEGER;
+public import windows.windowsandmessaging : HWND;
 
 extern(Windows):
+
+
+// Callbacks
+
+alias LPDDENUMCALLBACKA = BOOL function(GUID* param0, const(char)* param1, const(char)* param2, void* param3);
+alias LPDDENUMCALLBACKW = BOOL function(GUID* param0, const(wchar)* param1, const(wchar)* param2, void* param3);
+alias LPDDENUMCALLBACKEXA = BOOL function(GUID* param0, const(char)* param1, const(char)* param2, void* param3, 
+                                          ptrdiff_t param4);
+alias LPDDENUMCALLBACKEXW = BOOL function(GUID* param0, const(wchar)* param1, const(wchar)* param2, void* param3, 
+                                          ptrdiff_t param4);
+alias LPDIRECTDRAWENUMERATEEXA = HRESULT function(LPDDENUMCALLBACKEXA lpCallback, void* lpContext, uint dwFlags);
+alias LPDIRECTDRAWENUMERATEEXW = HRESULT function(LPDDENUMCALLBACKEXW lpCallback, void* lpContext, uint dwFlags);
+alias LPDDENUMCALLBACK = BOOL function();
+alias LPDDENUMCALLBACKEX = BOOL function();
+alias LPDIRECTDRAWENUMERATEEX = HRESULT function();
+alias LPDDENUMMODESCALLBACK = HRESULT function(DDSURFACEDESC* param0, void* param1);
+alias LPDDENUMMODESCALLBACK2 = HRESULT function(DDSURFACEDESC2* param0, void* param1);
+alias LPDDENUMSURFACESCALLBACK = HRESULT function(IDirectDrawSurface param0, DDSURFACEDESC* param1, void* param2);
+alias LPDDENUMSURFACESCALLBACK2 = HRESULT function(IDirectDrawSurface4 param0, DDSURFACEDESC2* param1, 
+                                                   void* param2);
+alias LPDDENUMSURFACESCALLBACK7 = HRESULT function(IDirectDrawSurface7 param0, DDSURFACEDESC2* param1, 
+                                                   void* param2);
+alias LPCLIPPERCALLBACK = uint function(IDirectDrawClipper lpDDClipper, HWND hWnd, uint code, void* lpContext);
+
+// Structs
+
 
 struct _DDFXROP
 {
 }
 
-alias LPDDENUMCALLBACKA = extern(Windows) BOOL function(Guid* param0, const(char)* param1, const(char)* param2, void* param3);
-alias LPDDENUMCALLBACKW = extern(Windows) BOOL function(Guid* param0, const(wchar)* param1, const(wchar)* param2, void* param3);
-alias LPDDENUMCALLBACKEXA = extern(Windows) BOOL function(Guid* param0, const(char)* param1, const(char)* param2, void* param3, int param4);
-alias LPDDENUMCALLBACKEXW = extern(Windows) BOOL function(Guid* param0, const(wchar)* param1, const(wchar)* param2, void* param3, int param4);
-alias LPDIRECTDRAWENUMERATEEXA = extern(Windows) HRESULT function(LPDDENUMCALLBACKEXA lpCallback, void* lpContext, uint dwFlags);
-alias LPDIRECTDRAWENUMERATEEXW = extern(Windows) HRESULT function(LPDDENUMCALLBACKEXW lpCallback, void* lpContext, uint dwFlags);
-alias LPDDENUMCALLBACK = extern(Windows) BOOL function();
-alias LPDDENUMCALLBACKEX = extern(Windows) BOOL function();
-alias LPDIRECTDRAWENUMERATEEX = extern(Windows) HRESULT function();
-alias LPDDENUMMODESCALLBACK = extern(Windows) HRESULT function(DDSURFACEDESC* param0, void* param1);
-alias LPDDENUMMODESCALLBACK2 = extern(Windows) HRESULT function(DDSURFACEDESC2* param0, void* param1);
-alias LPDDENUMSURFACESCALLBACK = extern(Windows) HRESULT function(IDirectDrawSurface param0, DDSURFACEDESC* param1, void* param2);
-alias LPDDENUMSURFACESCALLBACK2 = extern(Windows) HRESULT function(IDirectDrawSurface4 param0, DDSURFACEDESC2* param1, void* param2);
-alias LPDDENUMSURFACESCALLBACK7 = extern(Windows) HRESULT function(IDirectDrawSurface7 param0, DDSURFACEDESC2* param1, void* param2);
 struct DDARGB
 {
     ubyte blue;
@@ -47,27 +59,49 @@ struct DDRGBA
 
 struct DDBLTFX
 {
-    uint dwSize;
-    uint dwDDFX;
-    uint dwROP;
-    uint dwDDROP;
-    uint dwRotationAngle;
-    uint dwZBufferOpCode;
-    uint dwZBufferLow;
-    uint dwZBufferHigh;
-    uint dwZBufferBaseDest;
-    uint dwZDestConstBitDepth;
-    _Anonymous1_e__Union Anonymous1;
-    uint dwZSrcConstBitDepth;
-    _Anonymous2_e__Union Anonymous2;
-    uint dwAlphaEdgeBlendBitDepth;
-    uint dwAlphaEdgeBlend;
-    uint dwReserved;
-    uint dwAlphaDestConstBitDepth;
-    _Anonymous3_e__Union Anonymous3;
-    uint dwAlphaSrcConstBitDepth;
-    _Anonymous4_e__Union Anonymous4;
-    _Anonymous5_e__Union Anonymous5;
+    uint       dwSize;
+    uint       dwDDFX;
+    uint       dwROP;
+    uint       dwDDROP;
+    uint       dwRotationAngle;
+    uint       dwZBufferOpCode;
+    uint       dwZBufferLow;
+    uint       dwZBufferHigh;
+    uint       dwZBufferBaseDest;
+    uint       dwZDestConstBitDepth;
+    union
+    {
+        uint               dwZDestConst;
+        IDirectDrawSurface lpDDSZBufferDest;
+    }
+    uint       dwZSrcConstBitDepth;
+    union
+    {
+        uint               dwZSrcConst;
+        IDirectDrawSurface lpDDSZBufferSrc;
+    }
+    uint       dwAlphaEdgeBlendBitDepth;
+    uint       dwAlphaEdgeBlend;
+    uint       dwReserved;
+    uint       dwAlphaDestConstBitDepth;
+    union
+    {
+        uint               dwAlphaDestConst;
+        IDirectDrawSurface lpDDSAlphaDest;
+    }
+    uint       dwAlphaSrcConstBitDepth;
+    union
+    {
+        uint               dwAlphaSrcConst;
+        IDirectDrawSurface lpDDSAlphaSrc;
+    }
+    union
+    {
+        uint               dwFillColor;
+        uint               dwFillDepth;
+        uint               dwFillPixel;
+        IDirectDrawSurface lpDDSPattern;
+    }
     DDCOLORKEY ddckDestColorkey;
     DDCOLORKEY ddckSrcColorkey;
 }
@@ -86,7 +120,11 @@ struct DDSCAPSEX
 {
     uint dwCaps2;
     uint dwCaps3;
-    _Anonymous_e__Union Anonymous;
+    union
+    {
+        uint dwCaps4;
+        uint dwVolumeDepth;
+    }
 }
 
 struct DDSCAPS2
@@ -94,283 +132,287 @@ struct DDSCAPS2
     uint dwCaps;
     uint dwCaps2;
     uint dwCaps3;
-    _Anonymous_e__Union Anonymous;
+    union
+    {
+        uint dwCaps4;
+        uint dwVolumeDepth;
+    }
 }
 
 struct DDCAPS_DX1
 {
-    uint dwSize;
-    uint dwCaps;
-    uint dwCaps2;
-    uint dwCKeyCaps;
-    uint dwFXCaps;
-    uint dwFXAlphaCaps;
-    uint dwPalCaps;
-    uint dwSVCaps;
-    uint dwAlphaBltConstBitDepths;
-    uint dwAlphaBltPixelBitDepths;
-    uint dwAlphaBltSurfaceBitDepths;
-    uint dwAlphaOverlayConstBitDepths;
-    uint dwAlphaOverlayPixelBitDepths;
-    uint dwAlphaOverlaySurfaceBitDepths;
-    uint dwZBufferBitDepths;
-    uint dwVidMemTotal;
-    uint dwVidMemFree;
-    uint dwMaxVisibleOverlays;
-    uint dwCurrVisibleOverlays;
-    uint dwNumFourCCCodes;
-    uint dwAlignBoundarySrc;
-    uint dwAlignSizeSrc;
-    uint dwAlignBoundaryDest;
-    uint dwAlignSizeDest;
-    uint dwAlignStrideAlign;
-    uint dwRops;
+    uint    dwSize;
+    uint    dwCaps;
+    uint    dwCaps2;
+    uint    dwCKeyCaps;
+    uint    dwFXCaps;
+    uint    dwFXAlphaCaps;
+    uint    dwPalCaps;
+    uint    dwSVCaps;
+    uint    dwAlphaBltConstBitDepths;
+    uint    dwAlphaBltPixelBitDepths;
+    uint    dwAlphaBltSurfaceBitDepths;
+    uint    dwAlphaOverlayConstBitDepths;
+    uint    dwAlphaOverlayPixelBitDepths;
+    uint    dwAlphaOverlaySurfaceBitDepths;
+    uint    dwZBufferBitDepths;
+    uint    dwVidMemTotal;
+    uint    dwVidMemFree;
+    uint    dwMaxVisibleOverlays;
+    uint    dwCurrVisibleOverlays;
+    uint    dwNumFourCCCodes;
+    uint    dwAlignBoundarySrc;
+    uint    dwAlignSizeSrc;
+    uint    dwAlignBoundaryDest;
+    uint    dwAlignSizeDest;
+    uint    dwAlignStrideAlign;
+    uint[8] dwRops;
     DDSCAPS ddsCaps;
-    uint dwMinOverlayStretch;
-    uint dwMaxOverlayStretch;
-    uint dwMinLiveVideoStretch;
-    uint dwMaxLiveVideoStretch;
-    uint dwMinHwCodecStretch;
-    uint dwMaxHwCodecStretch;
-    uint dwReserved1;
-    uint dwReserved2;
-    uint dwReserved3;
+    uint    dwMinOverlayStretch;
+    uint    dwMaxOverlayStretch;
+    uint    dwMinLiveVideoStretch;
+    uint    dwMaxLiveVideoStretch;
+    uint    dwMinHwCodecStretch;
+    uint    dwMaxHwCodecStretch;
+    uint    dwReserved1;
+    uint    dwReserved2;
+    uint    dwReserved3;
 }
 
 struct DDCAPS_DX3
 {
-    uint dwSize;
-    uint dwCaps;
-    uint dwCaps2;
-    uint dwCKeyCaps;
-    uint dwFXCaps;
-    uint dwFXAlphaCaps;
-    uint dwPalCaps;
-    uint dwSVCaps;
-    uint dwAlphaBltConstBitDepths;
-    uint dwAlphaBltPixelBitDepths;
-    uint dwAlphaBltSurfaceBitDepths;
-    uint dwAlphaOverlayConstBitDepths;
-    uint dwAlphaOverlayPixelBitDepths;
-    uint dwAlphaOverlaySurfaceBitDepths;
-    uint dwZBufferBitDepths;
-    uint dwVidMemTotal;
-    uint dwVidMemFree;
-    uint dwMaxVisibleOverlays;
-    uint dwCurrVisibleOverlays;
-    uint dwNumFourCCCodes;
-    uint dwAlignBoundarySrc;
-    uint dwAlignSizeSrc;
-    uint dwAlignBoundaryDest;
-    uint dwAlignSizeDest;
-    uint dwAlignStrideAlign;
-    uint dwRops;
+    uint    dwSize;
+    uint    dwCaps;
+    uint    dwCaps2;
+    uint    dwCKeyCaps;
+    uint    dwFXCaps;
+    uint    dwFXAlphaCaps;
+    uint    dwPalCaps;
+    uint    dwSVCaps;
+    uint    dwAlphaBltConstBitDepths;
+    uint    dwAlphaBltPixelBitDepths;
+    uint    dwAlphaBltSurfaceBitDepths;
+    uint    dwAlphaOverlayConstBitDepths;
+    uint    dwAlphaOverlayPixelBitDepths;
+    uint    dwAlphaOverlaySurfaceBitDepths;
+    uint    dwZBufferBitDepths;
+    uint    dwVidMemTotal;
+    uint    dwVidMemFree;
+    uint    dwMaxVisibleOverlays;
+    uint    dwCurrVisibleOverlays;
+    uint    dwNumFourCCCodes;
+    uint    dwAlignBoundarySrc;
+    uint    dwAlignSizeSrc;
+    uint    dwAlignBoundaryDest;
+    uint    dwAlignSizeDest;
+    uint    dwAlignStrideAlign;
+    uint[8] dwRops;
     DDSCAPS ddsCaps;
-    uint dwMinOverlayStretch;
-    uint dwMaxOverlayStretch;
-    uint dwMinLiveVideoStretch;
-    uint dwMaxLiveVideoStretch;
-    uint dwMinHwCodecStretch;
-    uint dwMaxHwCodecStretch;
-    uint dwReserved1;
-    uint dwReserved2;
-    uint dwReserved3;
-    uint dwSVBCaps;
-    uint dwSVBCKeyCaps;
-    uint dwSVBFXCaps;
-    uint dwSVBRops;
-    uint dwVSBCaps;
-    uint dwVSBCKeyCaps;
-    uint dwVSBFXCaps;
-    uint dwVSBRops;
-    uint dwSSBCaps;
-    uint dwSSBCKeyCaps;
-    uint dwSSBFXCaps;
-    uint dwSSBRops;
-    uint dwReserved4;
-    uint dwReserved5;
-    uint dwReserved6;
+    uint    dwMinOverlayStretch;
+    uint    dwMaxOverlayStretch;
+    uint    dwMinLiveVideoStretch;
+    uint    dwMaxLiveVideoStretch;
+    uint    dwMinHwCodecStretch;
+    uint    dwMaxHwCodecStretch;
+    uint    dwReserved1;
+    uint    dwReserved2;
+    uint    dwReserved3;
+    uint    dwSVBCaps;
+    uint    dwSVBCKeyCaps;
+    uint    dwSVBFXCaps;
+    uint[8] dwSVBRops;
+    uint    dwVSBCaps;
+    uint    dwVSBCKeyCaps;
+    uint    dwVSBFXCaps;
+    uint[8] dwVSBRops;
+    uint    dwSSBCaps;
+    uint    dwSSBCKeyCaps;
+    uint    dwSSBFXCaps;
+    uint[8] dwSSBRops;
+    uint    dwReserved4;
+    uint    dwReserved5;
+    uint    dwReserved6;
 }
 
 struct DDCAPS_DX5
 {
-    uint dwSize;
-    uint dwCaps;
-    uint dwCaps2;
-    uint dwCKeyCaps;
-    uint dwFXCaps;
-    uint dwFXAlphaCaps;
-    uint dwPalCaps;
-    uint dwSVCaps;
-    uint dwAlphaBltConstBitDepths;
-    uint dwAlphaBltPixelBitDepths;
-    uint dwAlphaBltSurfaceBitDepths;
-    uint dwAlphaOverlayConstBitDepths;
-    uint dwAlphaOverlayPixelBitDepths;
-    uint dwAlphaOverlaySurfaceBitDepths;
-    uint dwZBufferBitDepths;
-    uint dwVidMemTotal;
-    uint dwVidMemFree;
-    uint dwMaxVisibleOverlays;
-    uint dwCurrVisibleOverlays;
-    uint dwNumFourCCCodes;
-    uint dwAlignBoundarySrc;
-    uint dwAlignSizeSrc;
-    uint dwAlignBoundaryDest;
-    uint dwAlignSizeDest;
-    uint dwAlignStrideAlign;
-    uint dwRops;
+    uint    dwSize;
+    uint    dwCaps;
+    uint    dwCaps2;
+    uint    dwCKeyCaps;
+    uint    dwFXCaps;
+    uint    dwFXAlphaCaps;
+    uint    dwPalCaps;
+    uint    dwSVCaps;
+    uint    dwAlphaBltConstBitDepths;
+    uint    dwAlphaBltPixelBitDepths;
+    uint    dwAlphaBltSurfaceBitDepths;
+    uint    dwAlphaOverlayConstBitDepths;
+    uint    dwAlphaOverlayPixelBitDepths;
+    uint    dwAlphaOverlaySurfaceBitDepths;
+    uint    dwZBufferBitDepths;
+    uint    dwVidMemTotal;
+    uint    dwVidMemFree;
+    uint    dwMaxVisibleOverlays;
+    uint    dwCurrVisibleOverlays;
+    uint    dwNumFourCCCodes;
+    uint    dwAlignBoundarySrc;
+    uint    dwAlignSizeSrc;
+    uint    dwAlignBoundaryDest;
+    uint    dwAlignSizeDest;
+    uint    dwAlignStrideAlign;
+    uint[8] dwRops;
     DDSCAPS ddsCaps;
-    uint dwMinOverlayStretch;
-    uint dwMaxOverlayStretch;
-    uint dwMinLiveVideoStretch;
-    uint dwMaxLiveVideoStretch;
-    uint dwMinHwCodecStretch;
-    uint dwMaxHwCodecStretch;
-    uint dwReserved1;
-    uint dwReserved2;
-    uint dwReserved3;
-    uint dwSVBCaps;
-    uint dwSVBCKeyCaps;
-    uint dwSVBFXCaps;
-    uint dwSVBRops;
-    uint dwVSBCaps;
-    uint dwVSBCKeyCaps;
-    uint dwVSBFXCaps;
-    uint dwVSBRops;
-    uint dwSSBCaps;
-    uint dwSSBCKeyCaps;
-    uint dwSSBFXCaps;
-    uint dwSSBRops;
-    uint dwMaxVideoPorts;
-    uint dwCurrVideoPorts;
-    uint dwSVBCaps2;
-    uint dwNLVBCaps;
-    uint dwNLVBCaps2;
-    uint dwNLVBCKeyCaps;
-    uint dwNLVBFXCaps;
-    uint dwNLVBRops;
+    uint    dwMinOverlayStretch;
+    uint    dwMaxOverlayStretch;
+    uint    dwMinLiveVideoStretch;
+    uint    dwMaxLiveVideoStretch;
+    uint    dwMinHwCodecStretch;
+    uint    dwMaxHwCodecStretch;
+    uint    dwReserved1;
+    uint    dwReserved2;
+    uint    dwReserved3;
+    uint    dwSVBCaps;
+    uint    dwSVBCKeyCaps;
+    uint    dwSVBFXCaps;
+    uint[8] dwSVBRops;
+    uint    dwVSBCaps;
+    uint    dwVSBCKeyCaps;
+    uint    dwVSBFXCaps;
+    uint[8] dwVSBRops;
+    uint    dwSSBCaps;
+    uint    dwSSBCKeyCaps;
+    uint    dwSSBFXCaps;
+    uint[8] dwSSBRops;
+    uint    dwMaxVideoPorts;
+    uint    dwCurrVideoPorts;
+    uint    dwSVBCaps2;
+    uint    dwNLVBCaps;
+    uint    dwNLVBCaps2;
+    uint    dwNLVBCKeyCaps;
+    uint    dwNLVBFXCaps;
+    uint[8] dwNLVBRops;
 }
 
 struct DDCAPS_DX6
 {
-    uint dwSize;
-    uint dwCaps;
-    uint dwCaps2;
-    uint dwCKeyCaps;
-    uint dwFXCaps;
-    uint dwFXAlphaCaps;
-    uint dwPalCaps;
-    uint dwSVCaps;
-    uint dwAlphaBltConstBitDepths;
-    uint dwAlphaBltPixelBitDepths;
-    uint dwAlphaBltSurfaceBitDepths;
-    uint dwAlphaOverlayConstBitDepths;
-    uint dwAlphaOverlayPixelBitDepths;
-    uint dwAlphaOverlaySurfaceBitDepths;
-    uint dwZBufferBitDepths;
-    uint dwVidMemTotal;
-    uint dwVidMemFree;
-    uint dwMaxVisibleOverlays;
-    uint dwCurrVisibleOverlays;
-    uint dwNumFourCCCodes;
-    uint dwAlignBoundarySrc;
-    uint dwAlignSizeSrc;
-    uint dwAlignBoundaryDest;
-    uint dwAlignSizeDest;
-    uint dwAlignStrideAlign;
-    uint dwRops;
-    DDSCAPS ddsOldCaps;
-    uint dwMinOverlayStretch;
-    uint dwMaxOverlayStretch;
-    uint dwMinLiveVideoStretch;
-    uint dwMaxLiveVideoStretch;
-    uint dwMinHwCodecStretch;
-    uint dwMaxHwCodecStretch;
-    uint dwReserved1;
-    uint dwReserved2;
-    uint dwReserved3;
-    uint dwSVBCaps;
-    uint dwSVBCKeyCaps;
-    uint dwSVBFXCaps;
-    uint dwSVBRops;
-    uint dwVSBCaps;
-    uint dwVSBCKeyCaps;
-    uint dwVSBFXCaps;
-    uint dwVSBRops;
-    uint dwSSBCaps;
-    uint dwSSBCKeyCaps;
-    uint dwSSBFXCaps;
-    uint dwSSBRops;
-    uint dwMaxVideoPorts;
-    uint dwCurrVideoPorts;
-    uint dwSVBCaps2;
-    uint dwNLVBCaps;
-    uint dwNLVBCaps2;
-    uint dwNLVBCKeyCaps;
-    uint dwNLVBFXCaps;
-    uint dwNLVBRops;
+    uint     dwSize;
+    uint     dwCaps;
+    uint     dwCaps2;
+    uint     dwCKeyCaps;
+    uint     dwFXCaps;
+    uint     dwFXAlphaCaps;
+    uint     dwPalCaps;
+    uint     dwSVCaps;
+    uint     dwAlphaBltConstBitDepths;
+    uint     dwAlphaBltPixelBitDepths;
+    uint     dwAlphaBltSurfaceBitDepths;
+    uint     dwAlphaOverlayConstBitDepths;
+    uint     dwAlphaOverlayPixelBitDepths;
+    uint     dwAlphaOverlaySurfaceBitDepths;
+    uint     dwZBufferBitDepths;
+    uint     dwVidMemTotal;
+    uint     dwVidMemFree;
+    uint     dwMaxVisibleOverlays;
+    uint     dwCurrVisibleOverlays;
+    uint     dwNumFourCCCodes;
+    uint     dwAlignBoundarySrc;
+    uint     dwAlignSizeSrc;
+    uint     dwAlignBoundaryDest;
+    uint     dwAlignSizeDest;
+    uint     dwAlignStrideAlign;
+    uint[8]  dwRops;
+    DDSCAPS  ddsOldCaps;
+    uint     dwMinOverlayStretch;
+    uint     dwMaxOverlayStretch;
+    uint     dwMinLiveVideoStretch;
+    uint     dwMaxLiveVideoStretch;
+    uint     dwMinHwCodecStretch;
+    uint     dwMaxHwCodecStretch;
+    uint     dwReserved1;
+    uint     dwReserved2;
+    uint     dwReserved3;
+    uint     dwSVBCaps;
+    uint     dwSVBCKeyCaps;
+    uint     dwSVBFXCaps;
+    uint[8]  dwSVBRops;
+    uint     dwVSBCaps;
+    uint     dwVSBCKeyCaps;
+    uint     dwVSBFXCaps;
+    uint[8]  dwVSBRops;
+    uint     dwSSBCaps;
+    uint     dwSSBCKeyCaps;
+    uint     dwSSBFXCaps;
+    uint[8]  dwSSBRops;
+    uint     dwMaxVideoPorts;
+    uint     dwCurrVideoPorts;
+    uint     dwSVBCaps2;
+    uint     dwNLVBCaps;
+    uint     dwNLVBCaps2;
+    uint     dwNLVBCKeyCaps;
+    uint     dwNLVBFXCaps;
+    uint[8]  dwNLVBRops;
     DDSCAPS2 ddsCaps;
 }
 
 struct DDCAPS_DX7
 {
-    uint dwSize;
-    uint dwCaps;
-    uint dwCaps2;
-    uint dwCKeyCaps;
-    uint dwFXCaps;
-    uint dwFXAlphaCaps;
-    uint dwPalCaps;
-    uint dwSVCaps;
-    uint dwAlphaBltConstBitDepths;
-    uint dwAlphaBltPixelBitDepths;
-    uint dwAlphaBltSurfaceBitDepths;
-    uint dwAlphaOverlayConstBitDepths;
-    uint dwAlphaOverlayPixelBitDepths;
-    uint dwAlphaOverlaySurfaceBitDepths;
-    uint dwZBufferBitDepths;
-    uint dwVidMemTotal;
-    uint dwVidMemFree;
-    uint dwMaxVisibleOverlays;
-    uint dwCurrVisibleOverlays;
-    uint dwNumFourCCCodes;
-    uint dwAlignBoundarySrc;
-    uint dwAlignSizeSrc;
-    uint dwAlignBoundaryDest;
-    uint dwAlignSizeDest;
-    uint dwAlignStrideAlign;
-    uint dwRops;
-    DDSCAPS ddsOldCaps;
-    uint dwMinOverlayStretch;
-    uint dwMaxOverlayStretch;
-    uint dwMinLiveVideoStretch;
-    uint dwMaxLiveVideoStretch;
-    uint dwMinHwCodecStretch;
-    uint dwMaxHwCodecStretch;
-    uint dwReserved1;
-    uint dwReserved2;
-    uint dwReserved3;
-    uint dwSVBCaps;
-    uint dwSVBCKeyCaps;
-    uint dwSVBFXCaps;
-    uint dwSVBRops;
-    uint dwVSBCaps;
-    uint dwVSBCKeyCaps;
-    uint dwVSBFXCaps;
-    uint dwVSBRops;
-    uint dwSSBCaps;
-    uint dwSSBCKeyCaps;
-    uint dwSSBFXCaps;
-    uint dwSSBRops;
-    uint dwMaxVideoPorts;
-    uint dwCurrVideoPorts;
-    uint dwSVBCaps2;
-    uint dwNLVBCaps;
-    uint dwNLVBCaps2;
-    uint dwNLVBCKeyCaps;
-    uint dwNLVBFXCaps;
-    uint dwNLVBRops;
+    uint     dwSize;
+    uint     dwCaps;
+    uint     dwCaps2;
+    uint     dwCKeyCaps;
+    uint     dwFXCaps;
+    uint     dwFXAlphaCaps;
+    uint     dwPalCaps;
+    uint     dwSVCaps;
+    uint     dwAlphaBltConstBitDepths;
+    uint     dwAlphaBltPixelBitDepths;
+    uint     dwAlphaBltSurfaceBitDepths;
+    uint     dwAlphaOverlayConstBitDepths;
+    uint     dwAlphaOverlayPixelBitDepths;
+    uint     dwAlphaOverlaySurfaceBitDepths;
+    uint     dwZBufferBitDepths;
+    uint     dwVidMemTotal;
+    uint     dwVidMemFree;
+    uint     dwMaxVisibleOverlays;
+    uint     dwCurrVisibleOverlays;
+    uint     dwNumFourCCCodes;
+    uint     dwAlignBoundarySrc;
+    uint     dwAlignSizeSrc;
+    uint     dwAlignBoundaryDest;
+    uint     dwAlignSizeDest;
+    uint     dwAlignStrideAlign;
+    uint[8]  dwRops;
+    DDSCAPS  ddsOldCaps;
+    uint     dwMinOverlayStretch;
+    uint     dwMaxOverlayStretch;
+    uint     dwMinLiveVideoStretch;
+    uint     dwMaxLiveVideoStretch;
+    uint     dwMinHwCodecStretch;
+    uint     dwMaxHwCodecStretch;
+    uint     dwReserved1;
+    uint     dwReserved2;
+    uint     dwReserved3;
+    uint     dwSVBCaps;
+    uint     dwSVBCKeyCaps;
+    uint     dwSVBFXCaps;
+    uint[8]  dwSVBRops;
+    uint     dwVSBCaps;
+    uint     dwVSBCKeyCaps;
+    uint     dwVSBFXCaps;
+    uint[8]  dwVSBRops;
+    uint     dwSSBCaps;
+    uint     dwSSBCKeyCaps;
+    uint     dwSSBFXCaps;
+    uint[8]  dwSSBRops;
+    uint     dwMaxVideoPorts;
+    uint     dwCurrVideoPorts;
+    uint     dwSVBCaps2;
+    uint     dwNLVBCaps;
+    uint     dwNLVBCaps2;
+    uint     dwNLVBCKeyCaps;
+    uint     dwNLVBFXCaps;
+    uint[8]  dwNLVBRops;
     DDSCAPS2 ddsCaps;
 }
 
@@ -379,71 +421,240 @@ struct DDPIXELFORMAT
     uint dwSize;
     uint dwFlags;
     uint dwFourCC;
-    _Anonymous1_e__Union Anonymous1;
-    _Anonymous2_e__Union Anonymous2;
-    _Anonymous3_e__Union Anonymous3;
-    _Anonymous4_e__Union Anonymous4;
-    _Anonymous5_e__Union Anonymous5;
+    union
+    {
+        uint dwRGBBitCount;
+        uint dwYUVBitCount;
+        uint dwZBufferBitDepth;
+        uint dwAlphaBitDepth;
+        uint dwLuminanceBitCount;
+        uint dwBumpBitCount;
+        uint dwPrivateFormatBitCount;
+    }
+    union
+    {
+        uint dwRBitMask;
+        uint dwYBitMask;
+        uint dwStencilBitDepth;
+        uint dwLuminanceBitMask;
+        uint dwBumpDuBitMask;
+        uint dwOperations;
+    }
+    union
+    {
+        uint dwGBitMask;
+        uint dwUBitMask;
+        uint dwZBitMask;
+        uint dwBumpDvBitMask;
+        struct MultiSampleCaps
+        {
+            ushort wFlipMSTypes;
+            ushort wBltMSTypes;
+        }
+    }
+    union
+    {
+        uint dwBBitMask;
+        uint dwVBitMask;
+        uint dwStencilBitMask;
+        uint dwBumpLuminanceBitMask;
+    }
+    union
+    {
+        uint dwRGBAlphaBitMask;
+        uint dwYUVAlphaBitMask;
+        uint dwLuminanceAlphaBitMask;
+        uint dwRGBZBitMask;
+        uint dwYUVZBitMask;
+    }
 }
 
 struct DDOVERLAYFX
 {
-    uint dwSize;
-    uint dwAlphaEdgeBlendBitDepth;
-    uint dwAlphaEdgeBlend;
-    uint dwReserved;
-    uint dwAlphaDestConstBitDepth;
-    _Anonymous1_e__Union Anonymous1;
-    uint dwAlphaSrcConstBitDepth;
-    _Anonymous2_e__Union Anonymous2;
+    uint       dwSize;
+    uint       dwAlphaEdgeBlendBitDepth;
+    uint       dwAlphaEdgeBlend;
+    uint       dwReserved;
+    uint       dwAlphaDestConstBitDepth;
+    union
+    {
+        uint               dwAlphaDestConst;
+        IDirectDrawSurface lpDDSAlphaDest;
+    }
+    uint       dwAlphaSrcConstBitDepth;
+    union
+    {
+        uint               dwAlphaSrcConst;
+        IDirectDrawSurface lpDDSAlphaSrc;
+    }
     DDCOLORKEY dckDestColorkey;
     DDCOLORKEY dckSrcColorkey;
-    uint dwDDFX;
-    uint dwFlags;
+    uint       dwDDFX;
+    uint       dwFlags;
 }
 
 struct DDBLTBATCH
 {
-    RECT* lprDest;
+    RECT*              lprDest;
     IDirectDrawSurface lpDDSSrc;
-    RECT* lprSrc;
-    uint dwFlags;
-    DDBLTFX* lpDDBltFx;
+    RECT*              lprSrc;
+    uint               dwFlags;
+    DDBLTFX*           lpDDBltFx;
 }
 
 struct DDGAMMARAMP
 {
-    ushort red;
-    ushort green;
-    ushort blue;
+    ushort[256] red;
+    ushort[256] green;
+    ushort[256] blue;
 }
 
 struct DDDEVICEIDENTIFIER
 {
-    byte szDriver;
-    byte szDescription;
+    byte[512]     szDriver;
+    byte[512]     szDescription;
     LARGE_INTEGER liDriverVersion;
-    uint dwVendorId;
-    uint dwDeviceId;
-    uint dwSubSysId;
-    uint dwRevision;
-    Guid guidDeviceIdentifier;
+    uint          dwVendorId;
+    uint          dwDeviceId;
+    uint          dwSubSysId;
+    uint          dwRevision;
+    GUID          guidDeviceIdentifier;
 }
 
 struct DDDEVICEIDENTIFIER2
 {
-    byte szDriver;
-    byte szDescription;
+    byte[512]     szDriver;
+    byte[512]     szDescription;
     LARGE_INTEGER liDriverVersion;
-    uint dwVendorId;
-    uint dwDeviceId;
-    uint dwSubSysId;
-    uint dwRevision;
-    Guid guidDeviceIdentifier;
-    uint dwWHQLLevel;
+    uint          dwVendorId;
+    uint          dwDeviceId;
+    uint          dwSubSysId;
+    uint          dwRevision;
+    GUID          guidDeviceIdentifier;
+    uint          dwWHQLLevel;
 }
 
-alias LPCLIPPERCALLBACK = extern(Windows) uint function(IDirectDrawClipper lpDDClipper, HWND hWnd, uint code, void* lpContext);
+struct DDSURFACEDESC
+{
+    uint          dwSize;
+    uint          dwFlags;
+    uint          dwHeight;
+    uint          dwWidth;
+    union
+    {
+        int  lPitch;
+        uint dwLinearSize;
+    }
+    uint          dwBackBufferCount;
+    union
+    {
+        uint dwMipMapCount;
+        uint dwZBufferBitDepth;
+        uint dwRefreshRate;
+    }
+    uint          dwAlphaBitDepth;
+    uint          dwReserved;
+    void*         lpSurface;
+    DDCOLORKEY    ddckCKDestOverlay;
+    DDCOLORKEY    ddckCKDestBlt;
+    DDCOLORKEY    ddckCKSrcOverlay;
+    DDCOLORKEY    ddckCKSrcBlt;
+    DDPIXELFORMAT ddpfPixelFormat;
+    DDSCAPS       ddsCaps;
+}
+
+struct DDSURFACEDESC2
+{
+    uint       dwSize;
+    uint       dwFlags;
+    uint       dwHeight;
+    uint       dwWidth;
+    union
+    {
+        int  lPitch;
+        uint dwLinearSize;
+    }
+    union
+    {
+        uint dwBackBufferCount;
+        uint dwDepth;
+    }
+    union
+    {
+        uint dwMipMapCount;
+        uint dwRefreshRate;
+        uint dwSrcVBHandle;
+    }
+    uint       dwAlphaBitDepth;
+    uint       dwReserved;
+    void*      lpSurface;
+    union
+    {
+        DDCOLORKEY ddckCKDestOverlay;
+        uint       dwEmptyFaceColor;
+    }
+    DDCOLORKEY ddckCKDestBlt;
+    DDCOLORKEY ddckCKSrcOverlay;
+    DDCOLORKEY ddckCKSrcBlt;
+    union
+    {
+        DDPIXELFORMAT ddpfPixelFormat;
+        uint          dwFVF;
+    }
+    DDSCAPS2   ddsCaps;
+    uint       dwTextureStage;
+}
+
+struct DDOPTSURFACEDESC
+{
+    uint     dwSize;
+    uint     dwFlags;
+    DDSCAPS2 ddSCaps;
+    DDOSCAPS ddOSCaps;
+    GUID     guid;
+    uint     dwCompressionRatio;
+}
+
+struct DDCOLORCONTROL
+{
+    uint dwSize;
+    uint dwFlags;
+    int  lBrightness;
+    int  lContrast;
+    int  lHue;
+    int  lSaturation;
+    int  lSharpness;
+    int  lGamma;
+    int  lColorEnable;
+    uint dwReserved1;
+}
+
+// Functions
+
+@DllImport("DDRAW")
+HRESULT DirectDrawEnumerateW(LPDDENUMCALLBACKW lpCallback, void* lpContext);
+
+@DllImport("DDRAW")
+HRESULT DirectDrawEnumerateA(LPDDENUMCALLBACKA lpCallback, void* lpContext);
+
+@DllImport("DDRAW")
+HRESULT DirectDrawEnumerateExW(LPDDENUMCALLBACKEXW lpCallback, void* lpContext, uint dwFlags);
+
+@DllImport("DDRAW")
+HRESULT DirectDrawEnumerateExA(LPDDENUMCALLBACKEXA lpCallback, void* lpContext, uint dwFlags);
+
+@DllImport("DDRAW")
+HRESULT DirectDrawCreate(GUID* lpGUID, IDirectDraw* lplpDD, IUnknown pUnkOuter);
+
+@DllImport("DDRAW")
+HRESULT DirectDrawCreateEx(GUID* lpGuid, void** lplpDD, const(GUID)* iid, IUnknown pUnkOuter);
+
+@DllImport("DDRAW")
+HRESULT DirectDrawCreateClipper(uint dwFlags, IDirectDrawClipper* lplpDDClipper, IUnknown pUnkOuter);
+
+
+// Interfaces
+
 interface IDirectDraw : IUnknown
 {
     HRESULT Compact();
@@ -461,7 +672,7 @@ interface IDirectDraw : IUnknown
     HRESULT GetMonitorFrequency(uint* param0);
     HRESULT GetScanLine(uint* param0);
     HRESULT GetVerticalBlankStatus(int* param0);
-    HRESULT Initialize(Guid* param0);
+    HRESULT Initialize(GUID* param0);
     HRESULT RestoreDisplayMode();
     HRESULT SetCooperativeLevel(HWND param0, uint param1);
     HRESULT SetDisplayMode(uint param0, uint param1, uint param2);
@@ -485,7 +696,7 @@ interface IDirectDraw2 : IUnknown
     HRESULT GetMonitorFrequency(uint* param0);
     HRESULT GetScanLine(uint* param0);
     HRESULT GetVerticalBlankStatus(int* param0);
-    HRESULT Initialize(Guid* param0);
+    HRESULT Initialize(GUID* param0);
     HRESULT RestoreDisplayMode();
     HRESULT SetCooperativeLevel(HWND param0, uint param1);
     HRESULT SetDisplayMode(uint param0, uint param1, uint param2, uint param3, uint param4);
@@ -510,7 +721,7 @@ interface IDirectDraw4 : IUnknown
     HRESULT GetMonitorFrequency(uint* param0);
     HRESULT GetScanLine(uint* param0);
     HRESULT GetVerticalBlankStatus(int* param0);
-    HRESULT Initialize(Guid* param0);
+    HRESULT Initialize(GUID* param0);
     HRESULT RestoreDisplayMode();
     HRESULT SetCooperativeLevel(HWND param0, uint param1);
     HRESULT SetDisplayMode(uint param0, uint param1, uint param2, uint param3, uint param4);
@@ -539,7 +750,7 @@ interface IDirectDraw7 : IUnknown
     HRESULT GetMonitorFrequency(uint* param0);
     HRESULT GetScanLine(uint* param0);
     HRESULT GetVerticalBlankStatus(int* param0);
-    HRESULT Initialize(Guid* param0);
+    HRESULT Initialize(GUID* param0);
     HRESULT RestoreDisplayMode();
     HRESULT SetCooperativeLevel(HWND param0, uint param1);
     HRESULT SetDisplayMode(uint param0, uint param1, uint param2, uint param3, uint param4);
@@ -728,9 +939,9 @@ interface IDirectDrawSurface4 : IUnknown
     HRESULT PageLock(uint param0);
     HRESULT PageUnlock(uint param0);
     HRESULT SetSurfaceDesc(DDSURFACEDESC2* param0, uint param1);
-    HRESULT SetPrivateData(const(Guid)* param0, void* param1, uint param2, uint param3);
-    HRESULT GetPrivateData(const(Guid)* param0, void* param1, uint* param2);
-    HRESULT FreePrivateData(const(Guid)* param0);
+    HRESULT SetPrivateData(const(GUID)* param0, void* param1, uint param2, uint param3);
+    HRESULT GetPrivateData(const(GUID)* param0, void* param1, uint* param2);
+    HRESULT FreePrivateData(const(GUID)* param0);
     HRESULT GetUniquenessValue(uint* param0);
     HRESULT ChangeUniquenessValue();
 }
@@ -774,9 +985,9 @@ interface IDirectDrawSurface7 : IUnknown
     HRESULT PageLock(uint param0);
     HRESULT PageUnlock(uint param0);
     HRESULT SetSurfaceDesc(DDSURFACEDESC2* param0, uint param1);
-    HRESULT SetPrivateData(const(Guid)* param0, void* param1, uint param2, uint param3);
-    HRESULT GetPrivateData(const(Guid)* param0, void* param1, uint* param2);
-    HRESULT FreePrivateData(const(Guid)* param0);
+    HRESULT SetPrivateData(const(GUID)* param0, void* param1, uint param2, uint param3);
+    HRESULT GetPrivateData(const(GUID)* param0, void* param1, uint* param2);
+    HRESULT FreePrivateData(const(GUID)* param0);
     HRESULT GetUniquenessValue(uint* param0);
     HRESULT ChangeUniquenessValue();
     HRESULT SetPriority(uint param0);
@@ -797,89 +1008,4 @@ interface IDirectDrawGammaControl : IUnknown
     HRESULT SetGammaRamp(uint param0, DDGAMMARAMP* param1);
 }
 
-struct DDSURFACEDESC
-{
-    uint dwSize;
-    uint dwFlags;
-    uint dwHeight;
-    uint dwWidth;
-    _Anonymous1_e__Union Anonymous1;
-    uint dwBackBufferCount;
-    _Anonymous2_e__Union Anonymous2;
-    uint dwAlphaBitDepth;
-    uint dwReserved;
-    void* lpSurface;
-    DDCOLORKEY ddckCKDestOverlay;
-    DDCOLORKEY ddckCKDestBlt;
-    DDCOLORKEY ddckCKSrcOverlay;
-    DDCOLORKEY ddckCKSrcBlt;
-    DDPIXELFORMAT ddpfPixelFormat;
-    DDSCAPS ddsCaps;
-}
-
-struct DDSURFACEDESC2
-{
-    uint dwSize;
-    uint dwFlags;
-    uint dwHeight;
-    uint dwWidth;
-    _Anonymous1_e__Union Anonymous1;
-    _Anonymous2_e__Union Anonymous2;
-    _Anonymous3_e__Union Anonymous3;
-    uint dwAlphaBitDepth;
-    uint dwReserved;
-    void* lpSurface;
-    _Anonymous4_e__Union Anonymous4;
-    DDCOLORKEY ddckCKDestBlt;
-    DDCOLORKEY ddckCKSrcOverlay;
-    DDCOLORKEY ddckCKSrcBlt;
-    _Anonymous5_e__Union Anonymous5;
-    DDSCAPS2 ddsCaps;
-    uint dwTextureStage;
-}
-
-struct DDOPTSURFACEDESC
-{
-    uint dwSize;
-    uint dwFlags;
-    DDSCAPS2 ddSCaps;
-    DDOSCAPS ddOSCaps;
-    Guid guid;
-    uint dwCompressionRatio;
-}
-
-struct DDCOLORCONTROL
-{
-    uint dwSize;
-    uint dwFlags;
-    int lBrightness;
-    int lContrast;
-    int lHue;
-    int lSaturation;
-    int lSharpness;
-    int lGamma;
-    int lColorEnable;
-    uint dwReserved1;
-}
-
-@DllImport("DDRAW.dll")
-HRESULT DirectDrawEnumerateW(LPDDENUMCALLBACKW lpCallback, void* lpContext);
-
-@DllImport("DDRAW.dll")
-HRESULT DirectDrawEnumerateA(LPDDENUMCALLBACKA lpCallback, void* lpContext);
-
-@DllImport("DDRAW.dll")
-HRESULT DirectDrawEnumerateExW(LPDDENUMCALLBACKEXW lpCallback, void* lpContext, uint dwFlags);
-
-@DllImport("DDRAW.dll")
-HRESULT DirectDrawEnumerateExA(LPDDENUMCALLBACKEXA lpCallback, void* lpContext, uint dwFlags);
-
-@DllImport("DDRAW.dll")
-HRESULT DirectDrawCreate(Guid* lpGUID, IDirectDraw* lplpDD, IUnknown pUnkOuter);
-
-@DllImport("DDRAW.dll")
-HRESULT DirectDrawCreateEx(Guid* lpGuid, void** lplpDD, const(Guid)* iid, IUnknown pUnkOuter);
-
-@DllImport("DDRAW.dll")
-HRESULT DirectDrawCreateClipper(uint dwFlags, IDirectDrawClipper* lplpDDClipper, IUnknown pUnkOuter);
 

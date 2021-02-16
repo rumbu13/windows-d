@@ -1,9 +1,24 @@
 module windows.mobiledevicemanagementregistration;
 
-public import windows.com;
-public import windows.systemservices;
+public import windows.core;
+public import windows.com : HRESULT;
+public import windows.systemservices : BOOL, HANDLE;
 
 extern(Windows):
+
+
+// Enums
+
+
+enum : int
+{
+    DeviceRegistrationBasicInfo = 0x00000001,
+    MaxDeviceInfoClass          = 0x00000002,
+}
+alias REGISTRATION_INFORMATION_CLASS = int;
+
+// Structs
+
 
 struct MANAGEMENT_SERVICE_INFO
 {
@@ -13,51 +28,52 @@ struct MANAGEMENT_SERVICE_INFO
 
 struct MANAGEMENT_REGISTRATION_INFO
 {
-    BOOL fDeviceRegisteredWithManagement;
-    uint dwDeviceRegistionKind;
+    BOOL          fDeviceRegisteredWithManagement;
+    uint          dwDeviceRegistionKind;
     const(wchar)* pszUPN;
     const(wchar)* pszMDMServiceUri;
 }
 
-enum REGISTRATION_INFORMATION_CLASS
-{
-    DeviceRegistrationBasicInfo = 1,
-    MaxDeviceInfoClass = 2,
-}
+// Functions
 
-@DllImport("MDMRegistration.dll")
-HRESULT GetDeviceRegistrationInfo(REGISTRATION_INFORMATION_CLASS DeviceInformationClass, void** ppDeviceRegistrationInfo);
+@DllImport("MDMRegistration")
+HRESULT GetDeviceRegistrationInfo(REGISTRATION_INFORMATION_CLASS DeviceInformationClass, 
+                                  void** ppDeviceRegistrationInfo);
 
-@DllImport("MDMRegistration.dll")
-HRESULT IsDeviceRegisteredWithManagement(int* pfIsDeviceRegisteredWithManagement, uint cchUPN, const(wchar)* pszUPN);
+@DllImport("MDMRegistration")
+HRESULT IsDeviceRegisteredWithManagement(int* pfIsDeviceRegisteredWithManagement, uint cchUPN, 
+                                         const(wchar)* pszUPN);
 
-@DllImport("MDMRegistration.dll")
+@DllImport("MDMRegistration")
 HRESULT IsManagementRegistrationAllowed(int* pfIsManagementRegistrationAllowed);
 
-@DllImport("MDMRegistration.dll")
+@DllImport("MDMRegistration")
 HRESULT IsMdmUxWithoutAadAllowed(int* isEnrollmentAllowed);
 
-@DllImport("MDMRegistration.dll")
+@DllImport("MDMRegistration")
 HRESULT SetManagedExternally(BOOL IsManagedExternally);
 
-@DllImport("MDMRegistration.dll")
+@DllImport("MDMRegistration")
 HRESULT DiscoverManagementService(const(wchar)* pszUPN, MANAGEMENT_SERVICE_INFO** ppMgmtInfo);
 
-@DllImport("MDMRegistration.dll")
+@DllImport("MDMRegistration")
 HRESULT RegisterDeviceWithManagementUsingAADCredentials(HANDLE UserToken);
 
-@DllImport("MDMRegistration.dll")
+@DllImport("MDMRegistration")
 HRESULT RegisterDeviceWithManagementUsingAADDeviceCredentials();
 
-@DllImport("MDMRegistration.dll")
-HRESULT RegisterDeviceWithManagement(const(wchar)* pszUPN, const(wchar)* ppszMDMServiceUri, const(wchar)* ppzsAccessToken);
+@DllImport("MDMRegistration")
+HRESULT RegisterDeviceWithManagement(const(wchar)* pszUPN, const(wchar)* ppszMDMServiceUri, 
+                                     const(wchar)* ppzsAccessToken);
 
-@DllImport("MDMRegistration.dll")
+@DllImport("MDMRegistration")
 HRESULT UnregisterDeviceWithManagement(const(wchar)* enrollmentID);
 
-@DllImport("MDMRegistration.dll")
+@DllImport("MDMRegistration")
 HRESULT GetManagementAppHyperlink(uint cchHyperlink, const(wchar)* pszHyperlink);
 
-@DllImport("MDMRegistration.dll")
-HRESULT DiscoverManagementServiceEx(const(wchar)* pszUPN, const(wchar)* pszDiscoveryServiceCandidate, MANAGEMENT_SERVICE_INFO** ppMgmtInfo);
+@DllImport("MDMRegistration")
+HRESULT DiscoverManagementServiceEx(const(wchar)* pszUPN, const(wchar)* pszDiscoveryServiceCandidate, 
+                                    MANAGEMENT_SERVICE_INFO** ppMgmtInfo);
+
 

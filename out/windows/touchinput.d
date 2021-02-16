@@ -1,46 +1,71 @@
 module windows.touchinput;
 
-public import windows.com;
-public import windows.displaydevices;
-public import windows.systemservices;
-public import windows.windowsandmessaging;
+public import windows.core;
+public import windows.com : HRESULT, IUnknown;
+public import windows.displaydevices : POINTS;
+public import windows.systemservices : BOOL, HANDLE;
+public import windows.windowsandmessaging : HWND;
 
 extern(Windows):
 
+
+// Enums
+
+
+enum : int
+{
+    MANIPULATION_NONE        = 0x00000000,
+    MANIPULATION_TRANSLATE_X = 0x00000001,
+    MANIPULATION_TRANSLATE_Y = 0x00000002,
+    MANIPULATION_SCALE       = 0x00000004,
+    MANIPULATION_ROTATE      = 0x00000008,
+    MANIPULATION_ALL         = 0x0000000f,
+}
+alias MANIPULATION_PROCESSOR_MANIPULATIONS = int;
+
+// Constants
+
+
+enum float POSITIVE_INFINITY = float.infinity;
+enum float NaN = -float.nan;
+
+// Structs
+
+
 struct TOUCHINPUT
 {
-    int x;
-    int y;
+    int    x;
+    int    y;
     HANDLE hSource;
-    uint dwID;
-    uint dwFlags;
-    uint dwMask;
-    uint dwTime;
-    uint dwExtraInfo;
-    uint cxContact;
-    uint cyContact;
+    uint   dwID;
+    uint   dwFlags;
+    uint   dwMask;
+    uint   dwTime;
+    size_t dwExtraInfo;
+    uint   cxContact;
+    uint   cyContact;
 }
 
 struct GESTUREINFO
 {
-    uint cbSize;
-    uint dwFlags;
-    uint dwID;
-    HWND hwndTarget;
+    uint   cbSize;
+    uint   dwFlags;
+    uint   dwID;
+    HWND   hwndTarget;
     POINTS ptsLocation;
-    uint dwInstanceID;
-    uint dwSequenceID;
-    ulong ullArguments;
-    uint cbExtraArgs;
+    uint   dwInstanceID;
+    uint   dwSequenceID;
+    ulong  ullArguments;
+    uint   cbExtraArgs;
 }
 
 struct GESTURENOTIFYSTRUCT
 {
-    uint cbSize;
-    uint dwFlags;
-    HWND hwndTarget;
+    uint   cbSize;
+    uint   dwFlags;
+    HWND   hwndTarget;
     POINTS ptsLocation;
-    uint dwInstanceID;
+    uint   dwInstanceID;
 }
 
 struct GESTURECONFIG
@@ -50,65 +75,60 @@ struct GESTURECONFIG
     uint dwBlock;
 }
 
-@DllImport("USER32.dll")
-BOOL GetTouchInputInfo(int hTouchInput, uint cInputs, char* pInputs, int cbSize);
+// Functions
 
-@DllImport("USER32.dll")
-BOOL CloseTouchInputHandle(int hTouchInput);
+@DllImport("USER32")
+BOOL GetTouchInputInfo(ptrdiff_t hTouchInput, uint cInputs, char* pInputs, int cbSize);
 
-@DllImport("USER32.dll")
+@DllImport("USER32")
+BOOL CloseTouchInputHandle(ptrdiff_t hTouchInput);
+
+@DllImport("USER32")
 BOOL RegisterTouchWindow(HWND hwnd, uint ulFlags);
 
-@DllImport("USER32.dll")
+@DllImport("USER32")
 BOOL UnregisterTouchWindow(HWND hwnd);
 
-@DllImport("USER32.dll")
+@DllImport("USER32")
 BOOL IsTouchWindow(HWND hwnd, uint* pulFlags);
 
-@DllImport("USER32.dll")
-BOOL GetGestureInfo(int hGestureInfo, GESTUREINFO* pGestureInfo);
+@DllImport("USER32")
+BOOL GetGestureInfo(ptrdiff_t hGestureInfo, GESTUREINFO* pGestureInfo);
 
-@DllImport("USER32.dll")
-BOOL GetGestureExtraArgs(int hGestureInfo, uint cbExtraArgs, char* pExtraArgs);
+@DllImport("USER32")
+BOOL GetGestureExtraArgs(ptrdiff_t hGestureInfo, uint cbExtraArgs, char* pExtraArgs);
 
-@DllImport("USER32.dll")
-BOOL CloseGestureInfoHandle(int hGestureInfo);
+@DllImport("USER32")
+BOOL CloseGestureInfoHandle(ptrdiff_t hGestureInfo);
 
-@DllImport("USER32.dll")
+@DllImport("USER32")
 BOOL SetGestureConfig(HWND hwnd, uint dwReserved, uint cIDs, char* pGestureConfig, uint cbSize);
 
-@DllImport("USER32.dll")
+@DllImport("USER32")
 BOOL GetGestureConfig(HWND hwnd, uint dwReserved, uint dwFlags, uint* pcIDs, char* pGestureConfig, uint cbSize);
 
-const GUID CLSID_InertiaProcessor = {0xABB27087, 0x4CE0, 0x4E58, [0xA0, 0xCB, 0xE2, 0x4D, 0xF9, 0x68, 0x14, 0xBE]};
-@GUID(0xABB27087, 0x4CE0, 0x4E58, [0xA0, 0xCB, 0xE2, 0x4D, 0xF9, 0x68, 0x14, 0xBE]);
+
+// Interfaces
+
+@GUID("ABB27087-4CE0-4E58-A0CB-E24DF96814BE")
 struct InertiaProcessor;
 
-const GUID CLSID_ManipulationProcessor = {0x597D4FB0, 0x47FD, 0x4AFF, [0x89, 0xB9, 0xC6, 0xCF, 0xAE, 0x8C, 0xF0, 0x8E]};
-@GUID(0x597D4FB0, 0x47FD, 0x4AFF, [0x89, 0xB9, 0xC6, 0xCF, 0xAE, 0x8C, 0xF0, 0x8E]);
+@GUID("597D4FB0-47FD-4AFF-89B9-C6CFAE8CF08E")
 struct ManipulationProcessor;
 
-enum MANIPULATION_PROCESSOR_MANIPULATIONS
-{
-    MANIPULATION_NONE = 0,
-    MANIPULATION_TRANSLATE_X = 1,
-    MANIPULATION_TRANSLATE_Y = 2,
-    MANIPULATION_SCALE = 4,
-    MANIPULATION_ROTATE = 8,
-    MANIPULATION_ALL = 15,
-}
-
-const GUID IID__IManipulationEvents = {0x4F62C8DA, 0x9C53, 0x4B22, [0x93, 0xDF, 0x92, 0x7A, 0x86, 0x2B, 0xBB, 0x03]};
-@GUID(0x4F62C8DA, 0x9C53, 0x4B22, [0x93, 0xDF, 0x92, 0x7A, 0x86, 0x2B, 0xBB, 0x03]);
+@GUID("4F62C8DA-9C53-4B22-93DF-927A862BBB03")
 interface _IManipulationEvents : IUnknown
 {
     HRESULT ManipulationStarted(float x, float y);
-    HRESULT ManipulationDelta(float x, float y, float translationDeltaX, float translationDeltaY, float scaleDelta, float expansionDelta, float rotationDelta, float cumulativeTranslationX, float cumulativeTranslationY, float cumulativeScale, float cumulativeExpansion, float cumulativeRotation);
-    HRESULT ManipulationCompleted(float x, float y, float cumulativeTranslationX, float cumulativeTranslationY, float cumulativeScale, float cumulativeExpansion, float cumulativeRotation);
+    HRESULT ManipulationDelta(float x, float y, float translationDeltaX, float translationDeltaY, float scaleDelta, 
+                              float expansionDelta, float rotationDelta, float cumulativeTranslationX, 
+                              float cumulativeTranslationY, float cumulativeScale, float cumulativeExpansion, 
+                              float cumulativeRotation);
+    HRESULT ManipulationCompleted(float x, float y, float cumulativeTranslationX, float cumulativeTranslationY, 
+                                  float cumulativeScale, float cumulativeExpansion, float cumulativeRotation);
 }
 
-const GUID IID_IInertiaProcessor = {0x18B00C6D, 0xC5EE, 0x41B1, [0x90, 0xA9, 0x9D, 0x4A, 0x92, 0x90, 0x95, 0xAD]};
-@GUID(0x18B00C6D, 0xC5EE, 0x41B1, [0x90, 0xA9, 0x9D, 0x4A, 0x92, 0x90, 0x95, 0xAD]);
+@GUID("18B00C6D-C5EE-41B1-90A9-9D4A929095AD")
 interface IInertiaProcessor : IUnknown
 {
     HRESULT get_InitialOriginX(float* x);
@@ -162,8 +182,7 @@ interface IInertiaProcessor : IUnknown
     HRESULT CompleteTime(uint timestamp);
 }
 
-const GUID IID_IManipulationProcessor = {0xA22AC519, 0x8300, 0x48A0, [0xBE, 0xF4, 0xF1, 0xBE, 0x87, 0x37, 0xDB, 0xA4]};
-@GUID(0xA22AC519, 0x8300, 0x48A0, [0xBE, 0xF4, 0xF1, 0xBE, 0x87, 0x37, 0xDB, 0xA4]);
+@GUID("A22AC519-8300-48A0-BEF4-F1BE8737DBA4")
 interface IManipulationProcessor : IUnknown
 {
     HRESULT get_SupportedManipulations(MANIPULATION_PROCESSOR_MANIPULATIONS* manipulations);
@@ -189,3 +208,12 @@ interface IManipulationProcessor : IUnknown
     HRESULT put_MinimumScaleRotateRadius(float minRadius);
 }
 
+
+// GUIDs
+
+const GUID CLSID_InertiaProcessor      = GUIDOF!InertiaProcessor;
+const GUID CLSID_ManipulationProcessor = GUIDOF!ManipulationProcessor;
+
+const GUID IID_IInertiaProcessor      = GUIDOF!IInertiaProcessor;
+const GUID IID_IManipulationProcessor = GUIDOF!IManipulationProcessor;
+const GUID IID__IManipulationEvents   = GUIDOF!_IManipulationEvents;

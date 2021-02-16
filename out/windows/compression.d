@@ -1,59 +1,86 @@
 module windows.compression;
 
-public import windows.systemservices;
+public import windows.core;
+public import windows.systemservices : BOOL;
 
 extern(Windows):
 
-alias COMPRESSOR_HANDLE = int;
-alias PFN_COMPRESS_ALLOCATE = extern(Windows) void* function(void* UserContext, uint Size);
-alias PFN_COMPRESS_FREE = extern(Windows) void function(void* UserContext, void* Memory);
+
+// Enums
+
+
+enum : int
+{
+    COMPRESS_INFORMATION_CLASS_INVALID    = 0x00000000,
+    COMPRESS_INFORMATION_CLASS_BLOCK_SIZE = 0x00000001,
+    COMPRESS_INFORMATION_CLASS_LEVEL      = 0x00000002,
+}
+alias COMPRESS_INFORMATION_CLASS = int;
+
+// Callbacks
+
+alias PFN_COMPRESS_ALLOCATE = void* function(void* UserContext, size_t Size);
+alias PFN_COMPRESS_FREE = void function(void* UserContext, void* Memory);
+
+// Structs
+
+
+alias COMPRESSOR_HANDLE = ptrdiff_t;
+
 struct COMPRESS_ALLOCATION_ROUTINES
 {
     PFN_COMPRESS_ALLOCATE Allocate;
     PFN_COMPRESS_FREE Free;
-    void* UserContext;
+    void*             UserContext;
 }
 
-enum COMPRESS_INFORMATION_CLASS
-{
-    COMPRESS_INFORMATION_CLASS_INVALID = 0,
-    COMPRESS_INFORMATION_CLASS_BLOCK_SIZE = 1,
-    COMPRESS_INFORMATION_CLASS_LEVEL = 2,
-}
+// Functions
 
-@DllImport("Cabinet.dll")
-BOOL CreateCompressor(uint Algorithm, COMPRESS_ALLOCATION_ROUTINES* AllocationRoutines, COMPRESSOR_HANDLE* CompressorHandle);
+@DllImport("Cabinet")
+BOOL CreateCompressor(uint Algorithm, COMPRESS_ALLOCATION_ROUTINES* AllocationRoutines, 
+                      COMPRESSOR_HANDLE* CompressorHandle);
 
-@DllImport("Cabinet.dll")
-BOOL SetCompressorInformation(COMPRESSOR_HANDLE CompressorHandle, COMPRESS_INFORMATION_CLASS CompressInformationClass, char* CompressInformation, uint CompressInformationSize);
+@DllImport("Cabinet")
+BOOL SetCompressorInformation(COMPRESSOR_HANDLE CompressorHandle, 
+                              COMPRESS_INFORMATION_CLASS CompressInformationClass, char* CompressInformation, 
+                              size_t CompressInformationSize);
 
-@DllImport("Cabinet.dll")
-BOOL QueryCompressorInformation(COMPRESSOR_HANDLE CompressorHandle, COMPRESS_INFORMATION_CLASS CompressInformationClass, char* CompressInformation, uint CompressInformationSize);
+@DllImport("Cabinet")
+BOOL QueryCompressorInformation(COMPRESSOR_HANDLE CompressorHandle, 
+                                COMPRESS_INFORMATION_CLASS CompressInformationClass, char* CompressInformation, 
+                                size_t CompressInformationSize);
 
-@DllImport("Cabinet.dll")
-BOOL Compress(COMPRESSOR_HANDLE CompressorHandle, char* UncompressedData, uint UncompressedDataSize, char* CompressedBuffer, uint CompressedBufferSize, uint* CompressedDataSize);
+@DllImport("Cabinet")
+BOOL Compress(COMPRESSOR_HANDLE CompressorHandle, char* UncompressedData, size_t UncompressedDataSize, 
+              char* CompressedBuffer, size_t CompressedBufferSize, size_t* CompressedDataSize);
 
-@DllImport("Cabinet.dll")
+@DllImport("Cabinet")
 BOOL ResetCompressor(COMPRESSOR_HANDLE CompressorHandle);
 
-@DllImport("Cabinet.dll")
+@DllImport("Cabinet")
 BOOL CloseCompressor(COMPRESSOR_HANDLE CompressorHandle);
 
-@DllImport("Cabinet.dll")
-BOOL CreateDecompressor(uint Algorithm, COMPRESS_ALLOCATION_ROUTINES* AllocationRoutines, int* DecompressorHandle);
+@DllImport("Cabinet")
+BOOL CreateDecompressor(uint Algorithm, COMPRESS_ALLOCATION_ROUTINES* AllocationRoutines, 
+                        ptrdiff_t* DecompressorHandle);
 
-@DllImport("Cabinet.dll")
-BOOL SetDecompressorInformation(int DecompressorHandle, COMPRESS_INFORMATION_CLASS CompressInformationClass, char* CompressInformation, uint CompressInformationSize);
+@DllImport("Cabinet")
+BOOL SetDecompressorInformation(ptrdiff_t DecompressorHandle, COMPRESS_INFORMATION_CLASS CompressInformationClass, 
+                                char* CompressInformation, size_t CompressInformationSize);
 
-@DllImport("Cabinet.dll")
-BOOL QueryDecompressorInformation(int DecompressorHandle, COMPRESS_INFORMATION_CLASS CompressInformationClass, char* CompressInformation, uint CompressInformationSize);
+@DllImport("Cabinet")
+BOOL QueryDecompressorInformation(ptrdiff_t DecompressorHandle, 
+                                  COMPRESS_INFORMATION_CLASS CompressInformationClass, char* CompressInformation, 
+                                  size_t CompressInformationSize);
 
-@DllImport("Cabinet.dll")
-BOOL Decompress(int DecompressorHandle, char* CompressedData, uint CompressedDataSize, char* UncompressedBuffer, uint UncompressedBufferSize, uint* UncompressedDataSize);
+@DllImport("Cabinet")
+BOOL Decompress(ptrdiff_t DecompressorHandle, char* CompressedData, size_t CompressedDataSize, 
+                char* UncompressedBuffer, size_t UncompressedBufferSize, size_t* UncompressedDataSize);
 
-@DllImport("Cabinet.dll")
-BOOL ResetDecompressor(int DecompressorHandle);
+@DllImport("Cabinet")
+BOOL ResetDecompressor(ptrdiff_t DecompressorHandle);
 
-@DllImport("Cabinet.dll")
-BOOL CloseDecompressor(int DecompressorHandle);
+@DllImport("Cabinet")
+BOOL CloseDecompressor(ptrdiff_t DecompressorHandle);
+
 

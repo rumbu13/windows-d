@@ -1,20 +1,34 @@
 module windows.multicast;
 
-public import windows.security;
-public import windows.systemservices;
+public import windows.core;
+public import windows.security : UNICODE_STRING;
+public import windows.systemservices : BOOL;
 
 extern(Windows):
 
-struct IPNG_ADDRESS
+
+// Constants
+
+
+enum : int
 {
-    uint IpAddrV4;
-    ubyte IpAddrV6;
+    MCAST_API_VERSION_0 = 0x00000000,
+    MCAST_API_VERSION_1 = 0x00000001,
+}
+
+// Structs
+
+
+union IPNG_ADDRESS
+{
+    uint      IpAddrV4;
+    ubyte[16] IpAddrV6;
 }
 
 struct MCAST_CLIENT_UID
 {
     ubyte* ClientUID;
-    uint ClientUIDLength;
+    uint   ClientUIDLength;
 }
 
 struct MCAST_SCOPE_CTX
@@ -27,50 +41,56 @@ struct MCAST_SCOPE_CTX
 struct MCAST_SCOPE_ENTRY
 {
     MCAST_SCOPE_CTX ScopeCtx;
-    IPNG_ADDRESS LastAddr;
-    uint TTL;
-    UNICODE_STRING ScopeDesc;
+    IPNG_ADDRESS    LastAddr;
+    uint            TTL;
+    UNICODE_STRING  ScopeDesc;
 }
 
 struct MCAST_LEASE_REQUEST
 {
-    int LeaseStartTime;
-    int MaxLeaseStartTime;
-    uint LeaseDuration;
-    uint MinLeaseDuration;
+    int          LeaseStartTime;
+    int          MaxLeaseStartTime;
+    uint         LeaseDuration;
+    uint         MinLeaseDuration;
     IPNG_ADDRESS ServerAddress;
-    ushort MinAddrCount;
-    ushort AddrCount;
-    ubyte* pAddrBuf;
+    ushort       MinAddrCount;
+    ushort       AddrCount;
+    ubyte*       pAddrBuf;
 }
 
 struct MCAST_LEASE_RESPONSE
 {
-    int LeaseStartTime;
-    int LeaseEndTime;
+    int          LeaseStartTime;
+    int          LeaseEndTime;
     IPNG_ADDRESS ServerAddress;
-    ushort AddrCount;
-    ubyte* pAddrBuf;
+    ushort       AddrCount;
+    ubyte*       pAddrBuf;
 }
 
-@DllImport("dhcpcsvc.dll")
+// Functions
+
+@DllImport("dhcpcsvc")
 uint McastApiStartup(uint* Version);
 
-@DllImport("dhcpcsvc.dll")
+@DllImport("dhcpcsvc")
 void McastApiCleanup();
 
-@DllImport("dhcpcsvc.dll")
+@DllImport("dhcpcsvc")
 uint McastGenUID(MCAST_CLIENT_UID* pRequestID);
 
-@DllImport("dhcpcsvc.dll")
-uint McastEnumerateScopes(ushort AddrFamily, BOOL ReQuery, MCAST_SCOPE_ENTRY* pScopeList, uint* pScopeLen, uint* pScopeCount);
+@DllImport("dhcpcsvc")
+uint McastEnumerateScopes(ushort AddrFamily, BOOL ReQuery, MCAST_SCOPE_ENTRY* pScopeList, uint* pScopeLen, 
+                          uint* pScopeCount);
 
-@DllImport("dhcpcsvc.dll")
-uint McastRequestAddress(ushort AddrFamily, MCAST_CLIENT_UID* pRequestID, MCAST_SCOPE_CTX* pScopeCtx, MCAST_LEASE_REQUEST* pAddrRequest, MCAST_LEASE_RESPONSE* pAddrResponse);
+@DllImport("dhcpcsvc")
+uint McastRequestAddress(ushort AddrFamily, MCAST_CLIENT_UID* pRequestID, MCAST_SCOPE_CTX* pScopeCtx, 
+                         MCAST_LEASE_REQUEST* pAddrRequest, MCAST_LEASE_RESPONSE* pAddrResponse);
 
-@DllImport("dhcpcsvc.dll")
-uint McastRenewAddress(ushort AddrFamily, MCAST_CLIENT_UID* pRequestID, MCAST_LEASE_REQUEST* pRenewRequest, MCAST_LEASE_RESPONSE* pRenewResponse);
+@DllImport("dhcpcsvc")
+uint McastRenewAddress(ushort AddrFamily, MCAST_CLIENT_UID* pRequestID, MCAST_LEASE_REQUEST* pRenewRequest, 
+                       MCAST_LEASE_RESPONSE* pRenewResponse);
 
-@DllImport("dhcpcsvc.dll")
+@DllImport("dhcpcsvc")
 uint McastReleaseAddress(ushort AddrFamily, MCAST_CLIENT_UID* pRequestID, MCAST_LEASE_REQUEST* pReleaseRequest);
+
 

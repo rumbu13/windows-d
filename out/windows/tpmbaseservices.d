@@ -1,24 +1,36 @@
 module windows.tpmbaseservices;
 
-public import windows.com;
+public import windows.core;
+public import windows.com : HRESULT;
 
 extern(Windows):
 
+
+// Structs
+
+
 struct TBS_CONTEXT_PARAMS
 {
-    uint version;
+    uint version_;
 }
 
 struct TBS_CONTEXT_PARAMS2
 {
-    uint version;
-    _Anonymous_e__Union Anonymous;
+    uint version_;
+    union
+    {
+        struct
+        {
+            uint _bitfield174;
+        }
+        uint asUINT32;
+    }
 }
 
 struct tdTPM_WNF_PROVISIONING
 {
-    uint status;
-    ubyte message;
+    uint      status;
+    ubyte[28] message;
 }
 
 struct TPM_DEVICE_INFO
@@ -29,42 +41,46 @@ struct TPM_DEVICE_INFO
     uint tpmImpRevision;
 }
 
-@DllImport("tbs.dll")
+// Functions
+
+@DllImport("tbs")
 uint Tbsi_Context_Create(TBS_CONTEXT_PARAMS* pContextParams, void** phContext);
 
-@DllImport("tbs.dll")
+@DllImport("tbs")
 uint Tbsip_Context_Close(void* hContext);
 
-@DllImport("tbs.dll")
-uint Tbsip_Submit_Command(void* hContext, uint Locality, uint Priority, char* pabCommand, uint cbCommand, char* pabResult, uint* pcbResult);
+@DllImport("tbs")
+uint Tbsip_Submit_Command(void* hContext, uint Locality, uint Priority, char* pabCommand, uint cbCommand, 
+                          char* pabResult, uint* pcbResult);
 
-@DllImport("tbs.dll")
+@DllImport("tbs")
 uint Tbsip_Cancel_Commands(void* hContext);
 
-@DllImport("tbs.dll")
+@DllImport("tbs")
 uint Tbsi_Physical_Presence_Command(void* hContext, char* pabInput, uint cbInput, char* pabOutput, uint* pcbOutput);
 
-@DllImport("tbs.dll")
+@DllImport("tbs")
 uint Tbsi_Get_TCG_Log(void* hContext, char* pOutputBuf, uint* pOutputBufLen);
 
-@DllImport("tbs.dll")
+@DllImport("tbs")
 uint Tbsi_GetDeviceInfo(uint Size, char* Info);
 
-@DllImport("tbs.dll")
+@DllImport("tbs")
 uint Tbsi_Get_OwnerAuth(void* hContext, uint ownerauthType, char* pOutputBuf, uint* pOutputBufLen);
 
-@DllImport("tbs.dll")
+@DllImport("tbs")
 uint Tbsi_Revoke_Attestation();
 
-@DllImport("DSOUND.dll")
+@DllImport("DSOUND")
 HRESULT GetDeviceID(char* pbWindowsAIK, uint cbWindowsAIK, uint* pcbResult, int* pfProtectedByTPM);
 
-@DllImport("tbs.dll")
+@DllImport("tbs")
 HRESULT GetDeviceIDString(const(wchar)* pszWindowsAIK, uint cchWindowsAIK, uint* pcchResult, int* pfProtectedByTPM);
 
-@DllImport("tbs.dll")
+@DllImport("tbs")
 uint Tbsi_Create_Windows_Key(uint keyHandle);
 
-@DllImport("tbs.dll")
+@DllImport("tbs")
 uint Tbsi_Get_TCG_Log_Ex(uint logType, char* pbOutput, uint* pcbOutput);
+
 

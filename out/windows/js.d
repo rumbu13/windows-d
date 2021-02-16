@@ -1,339 +1,364 @@
 module windows.js;
 
-public import windows.automation;
-public import windows.com;
-public import windows.debug;
+public import windows.core;
+public import windows.automation : VARIANT;
+public import windows.com : HRESULT;
+public import windows.dbg : IActiveScriptProfilerCallback, IActiveScriptProfilerHeapEnum, IDebugApplication32,
+                            __MIDL___MIDL_itf_activprof_0000_0000_0002;
 
 extern(Windows):
 
-enum JsRuntimeVersion
+
+// Enums
+
+
+enum JsRuntimeVersion : int
 {
-    JsRuntimeVersion10 = 0,
-    JsRuntimeVersion11 = 1,
-    JsRuntimeVersionEdge = -1,
+    JsRuntimeVersion10   = 0x00000000,
+    JsRuntimeVersion11   = 0x00000001,
+    JsRuntimeVersionEdge = 0xffffffff,
 }
 
-@DllImport("chakra.dll")
-JsErrorCode JsCreateRuntime(JsRuntimeAttributes attributes, JsRuntimeVersion runtimeVersion, JsThreadServiceCallback threadService, void** runtime);
+enum JsErrorCode : uint
+{
+    JsNoError                         = 0x00000000,
+    JsErrorCategoryUsage              = 0x00010000,
+    JsErrorInvalidArgument            = 0x00010001,
+    JsErrorNullArgument               = 0x00010002,
+    JsErrorNoCurrentContext           = 0x00010003,
+    JsErrorInExceptionState           = 0x00010004,
+    JsErrorNotImplemented             = 0x00010005,
+    JsErrorWrongThread                = 0x00010006,
+    JsErrorRuntimeInUse               = 0x00010007,
+    JsErrorBadSerializedScript        = 0x00010008,
+    JsErrorInDisabledState            = 0x00010009,
+    JsErrorCannotDisableExecution     = 0x0001000a,
+    JsErrorHeapEnumInProgress         = 0x0001000b,
+    JsErrorArgumentNotObject          = 0x0001000c,
+    JsErrorInProfileCallback          = 0x0001000d,
+    JsErrorInThreadServiceCallback    = 0x0001000e,
+    JsErrorCannotSerializeDebugScript = 0x0001000f,
+    JsErrorAlreadyDebuggingContext    = 0x00010010,
+    JsErrorAlreadyProfilingContext    = 0x00010011,
+    JsErrorIdleNotEnabled             = 0x00010012,
+    JsErrorCategoryEngine             = 0x00020000,
+    JsErrorOutOfMemory                = 0x00020001,
+    JsErrorCategoryScript             = 0x00030000,
+    JsErrorScriptException            = 0x00030001,
+    JsErrorScriptCompile              = 0x00030002,
+    JsErrorScriptTerminated           = 0x00030003,
+    JsErrorScriptEvalDisabled         = 0x00030004,
+    JsErrorCategoryFatal              = 0x00040000,
+    JsErrorFatal                      = 0x00040001,
+}
 
-@DllImport("chakra.dll")
+enum JsRuntimeAttributes : int
+{
+    JsRuntimeAttributeNone                        = 0x00000000,
+    JsRuntimeAttributeDisableBackgroundWork       = 0x00000001,
+    JsRuntimeAttributeAllowScriptInterrupt        = 0x00000002,
+    JsRuntimeAttributeEnableIdleProcessing        = 0x00000004,
+    JsRuntimeAttributeDisableNativeCodeGeneration = 0x00000008,
+    JsRuntimeAttributeDisableEval                 = 0x00000010,
+}
+
+enum JsMemoryEventType : int
+{
+    JsMemoryAllocate = 0x00000000,
+    JsMemoryFree     = 0x00000001,
+    JsMemoryFailure  = 0x00000002,
+}
+
+enum JsValueType : int
+{
+    JsUndefined = 0x00000000,
+    JsNull      = 0x00000001,
+    JsNumber    = 0x00000002,
+    JsString    = 0x00000003,
+    JsBoolean   = 0x00000004,
+    JsObject    = 0x00000005,
+    JsFunction  = 0x00000006,
+    JsError     = 0x00000007,
+    JsArray     = 0x00000008,
+}
+
+// Constants
+
+
+enum ulong JS_SOURCE_CONTEXT_NONE = 0xffffffffffffffff;
+
+// Callbacks
+
+alias JsMemoryAllocationCallback = bool function(void* callbackState, JsMemoryEventType allocationEvent, 
+                                                 size_t allocationSize);
+alias JsBeforeCollectCallback = void function(void* callbackState);
+alias JsBackgroundWorkItemCallback = void function(void* callbackState);
+alias JsThreadServiceCallback = bool function(JsBackgroundWorkItemCallback callback, void* callbackState);
+alias JsFinalizeCallback = void function(void* data);
+alias JsNativeFunction = void* function(void* callee, bool isConstructCall, void** arguments, ushort argumentCount, 
+                                        void* callbackState);
+
+// Functions
+
+@DllImport("chakra")
+JsErrorCode JsCreateRuntime(JsRuntimeAttributes attributes, JsRuntimeVersion runtimeVersion, 
+                            JsThreadServiceCallback threadService, void** runtime);
+
+@DllImport("chakra")
 JsErrorCode JsCollectGarbage(void* runtime);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsDisposeRuntime(void* runtime);
 
-@DllImport("chakra.dll")
-JsErrorCode JsGetRuntimeMemoryUsage(void* runtime, uint* memoryUsage);
+@DllImport("chakra")
+JsErrorCode JsGetRuntimeMemoryUsage(void* runtime, size_t* memoryUsage);
 
-@DllImport("chakra.dll")
-JsErrorCode JsGetRuntimeMemoryLimit(void* runtime, uint* memoryLimit);
+@DllImport("chakra")
+JsErrorCode JsGetRuntimeMemoryLimit(void* runtime, size_t* memoryLimit);
 
-@DllImport("chakra.dll")
-JsErrorCode JsSetRuntimeMemoryLimit(void* runtime, uint memoryLimit);
+@DllImport("chakra")
+JsErrorCode JsSetRuntimeMemoryLimit(void* runtime, size_t memoryLimit);
 
-@DllImport("chakra.dll")
-JsErrorCode JsSetRuntimeMemoryAllocationCallback(void* runtime, void* callbackState, JsMemoryAllocationCallback allocationCallback);
+@DllImport("chakra")
+JsErrorCode JsSetRuntimeMemoryAllocationCallback(void* runtime, void* callbackState, 
+                                                 JsMemoryAllocationCallback allocationCallback);
 
-@DllImport("chakra.dll")
-JsErrorCode JsSetRuntimeBeforeCollectCallback(void* runtime, void* callbackState, JsBeforeCollectCallback beforeCollectCallback);
+@DllImport("chakra")
+JsErrorCode JsSetRuntimeBeforeCollectCallback(void* runtime, void* callbackState, 
+                                              JsBeforeCollectCallback beforeCollectCallback);
 
-@DllImport("chakra.dll")
-JsErrorCode JsAddRef(void* ref, uint* count);
+@DllImport("chakra")
+JsErrorCode JsAddRef(void* ref_, uint* count);
 
-@DllImport("chakra.dll")
-JsErrorCode JsRelease(void* ref, uint* count);
+@DllImport("chakra")
+JsErrorCode JsRelease(void* ref_, uint* count);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsCreateContext(void* runtime, IDebugApplication32 debugApplication, void** newContext);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsGetCurrentContext(void** currentContext);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsSetCurrentContext(void* context);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsGetRuntime(void* context, void** runtime);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsStartDebugging(IDebugApplication32 debugApplication);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsIdle(uint* nextIdleTick);
 
-@DllImport("chakra.dll")
-JsErrorCode JsParseScript(const(ushort)* script, uint sourceContext, const(ushort)* sourceUrl, void** result);
+@DllImport("chakra")
+JsErrorCode JsParseScript(const(ushort)* script, size_t sourceContext, const(ushort)* sourceUrl, void** result);
 
-@DllImport("chakra.dll")
-JsErrorCode JsRunScript(const(ushort)* script, uint sourceContext, const(ushort)* sourceUrl, void** result);
+@DllImport("chakra")
+JsErrorCode JsRunScript(const(ushort)* script, size_t sourceContext, const(ushort)* sourceUrl, void** result);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsSerializeScript(const(ushort)* script, char* buffer, uint* bufferSize);
 
-@DllImport("chakra.dll")
-JsErrorCode JsParseSerializedScript(const(ushort)* script, ubyte* buffer, uint sourceContext, const(ushort)* sourceUrl, void** result);
+@DllImport("chakra")
+JsErrorCode JsParseSerializedScript(const(ushort)* script, ubyte* buffer, size_t sourceContext, 
+                                    const(ushort)* sourceUrl, void** result);
 
-@DllImport("chakra.dll")
-JsErrorCode JsRunSerializedScript(const(ushort)* script, ubyte* buffer, uint sourceContext, const(ushort)* sourceUrl, void** result);
+@DllImport("chakra")
+JsErrorCode JsRunSerializedScript(const(ushort)* script, ubyte* buffer, size_t sourceContext, 
+                                  const(ushort)* sourceUrl, void** result);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsGetPropertyIdFromName(const(ushort)* name, void** propertyId);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsGetPropertyNameFromId(void* propertyId, const(ushort)** name);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsGetUndefinedValue(void** undefinedValue);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsGetNullValue(void** nullValue);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsGetTrueValue(void** trueValue);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsGetFalseValue(void** falseValue);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsBoolToBoolean(ubyte value, void** booleanValue);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsBooleanToBool(void* value, bool* boolValue);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsConvertValueToBoolean(void* value, void** booleanValue);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsGetValueType(void* value, JsValueType* type);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsDoubleToNumber(double doubleValue, void** value);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsIntToNumber(int intValue, void** value);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsNumberToDouble(void* value, double* doubleValue);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsConvertValueToNumber(void* value, void** numberValue);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsGetStringLength(void* stringValue, int* length);
 
-@DllImport("chakra.dll")
-JsErrorCode JsPointerToString(char* stringValue, uint stringLength, void** value);
+@DllImport("chakra")
+JsErrorCode JsPointerToString(char* stringValue, size_t stringLength, void** value);
 
-@DllImport("chakra.dll")
-JsErrorCode JsStringToPointer(void* value, const(ushort)** stringValue, uint* stringLength);
+@DllImport("chakra")
+JsErrorCode JsStringToPointer(void* value, const(ushort)** stringValue, size_t* stringLength);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsConvertValueToString(void* value, void** stringValue);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsVariantToValue(VARIANT* variant, void** value);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsValueToVariant(void* object, VARIANT* variant);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsGetGlobalObject(void** globalObject);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsCreateObject(void** object);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsCreateExternalObject(void* data, JsFinalizeCallback finalizeCallback, void** object);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsConvertValueToObject(void* value, void** object);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsGetPrototype(void* object, void** prototypeObject);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsSetPrototype(void* object, void* prototypeObject);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsGetExtensionAllowed(void* object, bool* value);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsPreventExtension(void* object);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsGetProperty(void* object, void* propertyId, void** value);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsGetOwnPropertyDescriptor(void* object, void* propertyId, void** propertyDescriptor);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsGetOwnPropertyNames(void* object, void** propertyNames);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsSetProperty(void* object, void* propertyId, void* value, ubyte useStrictRules);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsHasProperty(void* object, void* propertyId, bool* hasProperty);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsDeleteProperty(void* object, void* propertyId, ubyte useStrictRules, void** result);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsDefineProperty(void* object, void* propertyId, void* propertyDescriptor, bool* result);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsHasIndexedProperty(void* object, void* index, bool* result);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsGetIndexedProperty(void* object, void* index, void** result);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsSetIndexedProperty(void* object, void* index, void* value);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsDeleteIndexedProperty(void* object, void* index);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsEquals(void* object1, void* object2, bool* result);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsStrictEquals(void* object1, void* object2, bool* result);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsHasExternalData(void* object, bool* value);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsGetExternalData(void* object, void** externalData);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsSetExternalData(void* object, void* externalData);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsCreateArray(uint length, void** result);
 
-@DllImport("chakra.dll")
-JsErrorCode JsCallFunction(void* function, char* arguments, ushort argumentCount, void** result);
+@DllImport("chakra")
+JsErrorCode JsCallFunction(void* function_, char* arguments, ushort argumentCount, void** result);
 
-@DllImport("chakra.dll")
-JsErrorCode JsConstructObject(void* function, char* arguments, ushort argumentCount, void** result);
+@DllImport("chakra")
+JsErrorCode JsConstructObject(void* function_, char* arguments, ushort argumentCount, void** result);
 
-@DllImport("chakra.dll")
-JsErrorCode JsCreateFunction(JsNativeFunction nativeFunction, void* callbackState, void** function);
+@DllImport("chakra")
+JsErrorCode JsCreateFunction(JsNativeFunction nativeFunction, void* callbackState, void** function_);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsCreateError(void* message, void** error);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsCreateRangeError(void* message, void** error);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsCreateReferenceError(void* message, void** error);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsCreateSyntaxError(void* message, void** error);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsCreateTypeError(void* message, void** error);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsCreateURIError(void* message, void** error);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsHasException(bool* hasException);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsGetAndClearException(void** exception);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsSetException(void* exception);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsDisableRuntimeExecution(void* runtime);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsEnableRuntimeExecution(void* runtime);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsIsRuntimeExecutionDisabled(void* runtime, bool* isDisabled);
 
-@DllImport("chakra.dll")
-JsErrorCode JsStartProfiling(IActiveScriptProfilerCallback callback, __MIDL___MIDL_itf_activprof_0000_0000_0002 eventMask, uint context);
+@DllImport("chakra")
+JsErrorCode JsStartProfiling(IActiveScriptProfilerCallback callback, 
+                             __MIDL___MIDL_itf_activprof_0000_0000_0002 eventMask, uint context);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsStopProfiling(HRESULT reason);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsEnumerateHeap(IActiveScriptProfilerHeapEnum* enumerator);
 
-@DllImport("chakra.dll")
+@DllImport("chakra")
 JsErrorCode JsIsEnumeratingHeap(bool* isEnumeratingHeap);
 
-enum JsErrorCode
-{
-    JsNoError = 0,
-    JsErrorCategoryUsage = 65536,
-    JsErrorInvalidArgument = 65537,
-    JsErrorNullArgument = 65538,
-    JsErrorNoCurrentContext = 65539,
-    JsErrorInExceptionState = 65540,
-    JsErrorNotImplemented = 65541,
-    JsErrorWrongThread = 65542,
-    JsErrorRuntimeInUse = 65543,
-    JsErrorBadSerializedScript = 65544,
-    JsErrorInDisabledState = 65545,
-    JsErrorCannotDisableExecution = 65546,
-    JsErrorHeapEnumInProgress = 65547,
-    JsErrorArgumentNotObject = 65548,
-    JsErrorInProfileCallback = 65549,
-    JsErrorInThreadServiceCallback = 65550,
-    JsErrorCannotSerializeDebugScript = 65551,
-    JsErrorAlreadyDebuggingContext = 65552,
-    JsErrorAlreadyProfilingContext = 65553,
-    JsErrorIdleNotEnabled = 65554,
-    JsErrorCategoryEngine = 131072,
-    JsErrorOutOfMemory = 131073,
-    JsErrorCategoryScript = 196608,
-    JsErrorScriptException = 196609,
-    JsErrorScriptCompile = 196610,
-    JsErrorScriptTerminated = 196611,
-    JsErrorScriptEvalDisabled = 196612,
-    JsErrorCategoryFatal = 262144,
-    JsErrorFatal = 262145,
-}
 
-enum JsRuntimeAttributes
-{
-    JsRuntimeAttributeNone = 0,
-    JsRuntimeAttributeDisableBackgroundWork = 1,
-    JsRuntimeAttributeAllowScriptInterrupt = 2,
-    JsRuntimeAttributeEnableIdleProcessing = 4,
-    JsRuntimeAttributeDisableNativeCodeGeneration = 8,
-    JsRuntimeAttributeDisableEval = 16,
-}
-
-enum JsMemoryEventType
-{
-    JsMemoryAllocate = 0,
-    JsMemoryFree = 1,
-    JsMemoryFailure = 2,
-}
-
-alias JsMemoryAllocationCallback = extern(Windows) bool function(void* callbackState, JsMemoryEventType allocationEvent, uint allocationSize);
-alias JsBeforeCollectCallback = extern(Windows) void function(void* callbackState);
-alias JsBackgroundWorkItemCallback = extern(Windows) void function(void* callbackState);
-alias JsThreadServiceCallback = extern(Windows) bool function(JsBackgroundWorkItemCallback callback, void* callbackState);
-enum JsValueType
-{
-    JsUndefined = 0,
-    JsNull = 1,
-    JsNumber = 2,
-    JsString = 3,
-    JsBoolean = 4,
-    JsObject = 5,
-    JsFunction = 6,
-    JsError = 7,
-    JsArray = 8,
-}
-
-alias JsFinalizeCallback = extern(Windows) void function(void* data);
-alias JsNativeFunction = extern(Windows) void* function(void* callee, bool isConstructCall, void** arguments, ushort argumentCount, void* callbackState);

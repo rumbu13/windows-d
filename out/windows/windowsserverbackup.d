@@ -1,45 +1,28 @@
 module windows.windowsserverbackup;
 
-public import system;
-public import windows.com;
+public import windows.core;
+public import windows.com : HRESULT, IUnknown;
 
 extern(Windows):
 
-const GUID IID_IWsbApplicationBackupSupport = {0x1EFF3510, 0x4A27, 0x46AD, [0xB9, 0xE0, 0x08, 0x33, 0x2F, 0x0F, 0x4F, 0x6D]};
-@GUID(0x1EFF3510, 0x4A27, 0x46AD, [0xB9, 0xE0, 0x08, 0x33, 0x2F, 0x0F, 0x4F, 0x6D]);
-interface IWsbApplicationBackupSupport : IUnknown
-{
-    HRESULT CheckConsistency(const(wchar)* wszWriterMetadata, const(wchar)* wszComponentName, const(wchar)* wszComponentLogicalPath, uint cVolumes, char* rgwszSourceVolumePath, char* rgwszSnapshotVolumePath, IWsbApplicationAsync* ppAsync);
-}
 
-const GUID IID_IWsbApplicationRestoreSupport = {0x8D3BDB38, 0x4EE8, 0x4718, [0x85, 0xF9, 0xC7, 0xDB, 0xC4, 0xAB, 0x77, 0xAA]};
-@GUID(0x8D3BDB38, 0x4EE8, 0x4718, [0x85, 0xF9, 0xC7, 0xDB, 0xC4, 0xAB, 0x77, 0xAA]);
-interface IWsbApplicationRestoreSupport : IUnknown
-{
-    HRESULT PreRestore(const(wchar)* wszWriterMetadata, const(wchar)* wszComponentName, const(wchar)* wszComponentLogicalPath, ubyte bNoRollForward);
-    HRESULT PostRestore(const(wchar)* wszWriterMetadata, const(wchar)* wszComponentName, const(wchar)* wszComponentLogicalPath, ubyte bNoRollForward);
-    HRESULT OrderComponents(uint cComponents, char* rgComponentName, char* rgComponentLogicalPaths, char* prgComponentName, char* prgComponentLogicalPath);
-    HRESULT IsRollForwardSupported(ubyte* pbRollForwardSupported);
-}
+// Enums
 
-const GUID IID_IWsbApplicationAsync = {0x0843F6F7, 0x895C, 0x44A6, [0xB0, 0xC2, 0x05, 0xA5, 0x02, 0x2A, 0xA3, 0xA1]};
-@GUID(0x0843F6F7, 0x895C, 0x44A6, [0xB0, 0xC2, 0x05, 0xA5, 0x02, 0x2A, 0xA3, 0xA1]);
-interface IWsbApplicationAsync : IUnknown
-{
-    HRESULT QueryStatus(int* phrResult);
-    HRESULT Abort();
-}
 
-enum WSB_OB_STATUS_ENTRY_PAIR_TYPE
+enum : int
 {
-    WSB_OB_ET_UNDEFINED = 0,
-    WSB_OB_ET_STRING = 1,
-    WSB_OB_ET_NUMBER = 2,
-    WSB_OB_ET_DATETIME = 3,
-    WSB_OB_ET_TIME = 4,
-    WSB_OB_ET_SIZE = 5,
-    WSB_OB_ET_MAX = 6,
+    WSB_OB_ET_UNDEFINED = 0x00000000,
+    WSB_OB_ET_STRING    = 0x00000001,
+    WSB_OB_ET_NUMBER    = 0x00000002,
+    WSB_OB_ET_DATETIME  = 0x00000003,
+    WSB_OB_ET_TIME      = 0x00000004,
+    WSB_OB_ET_SIZE      = 0x00000005,
+    WSB_OB_ET_MAX       = 0x00000006,
 }
+alias WSB_OB_STATUS_ENTRY_PAIR_TYPE = int;
+
+// Structs
+
 
 struct WSB_OB_STATUS_ENTRY_VALUE_TYPE_PAIR
 {
@@ -58,17 +41,53 @@ struct WSB_OB_STATUS_ENTRY
 
 struct WSB_OB_STATUS_INFO
 {
-    Guid m_guidSnapinId;
-    uint m_cStatusEntry;
+    GUID                 m_guidSnapinId;
+    uint                 m_cStatusEntry;
     WSB_OB_STATUS_ENTRY* m_rgStatusEntry;
 }
 
 struct WSB_OB_REGISTRATION_INFO
 {
     const(wchar)* m_wszResourceDLL;
-    Guid m_guidSnapinId;
-    uint m_dwProviderName;
-    uint m_dwProviderIcon;
-    ubyte m_bSupportsRemoting;
+    GUID          m_guidSnapinId;
+    uint          m_dwProviderName;
+    uint          m_dwProviderIcon;
+    ubyte         m_bSupportsRemoting;
 }
 
+// Interfaces
+
+@GUID("1EFF3510-4A27-46AD-B9E0-08332F0F4F6D")
+interface IWsbApplicationBackupSupport : IUnknown
+{
+    HRESULT CheckConsistency(const(wchar)* wszWriterMetadata, const(wchar)* wszComponentName, 
+                             const(wchar)* wszComponentLogicalPath, uint cVolumes, char* rgwszSourceVolumePath, 
+                             char* rgwszSnapshotVolumePath, IWsbApplicationAsync* ppAsync);
+}
+
+@GUID("8D3BDB38-4EE8-4718-85F9-C7DBC4AB77AA")
+interface IWsbApplicationRestoreSupport : IUnknown
+{
+    HRESULT PreRestore(const(wchar)* wszWriterMetadata, const(wchar)* wszComponentName, 
+                       const(wchar)* wszComponentLogicalPath, ubyte bNoRollForward);
+    HRESULT PostRestore(const(wchar)* wszWriterMetadata, const(wchar)* wszComponentName, 
+                        const(wchar)* wszComponentLogicalPath, ubyte bNoRollForward);
+    HRESULT OrderComponents(uint cComponents, char* rgComponentName, char* rgComponentLogicalPaths, 
+                            char* prgComponentName, char* prgComponentLogicalPath);
+    HRESULT IsRollForwardSupported(ubyte* pbRollForwardSupported);
+}
+
+@GUID("0843F6F7-895C-44A6-B0C2-05A5022AA3A1")
+interface IWsbApplicationAsync : IUnknown
+{
+    HRESULT QueryStatus(int* phrResult);
+    HRESULT Abort();
+}
+
+
+// GUIDs
+
+
+const GUID IID_IWsbApplicationAsync          = GUIDOF!IWsbApplicationAsync;
+const GUID IID_IWsbApplicationBackupSupport  = GUIDOF!IWsbApplicationBackupSupport;
+const GUID IID_IWsbApplicationRestoreSupport = GUIDOF!IWsbApplicationRestoreSupport;

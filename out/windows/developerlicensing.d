@@ -1,17 +1,22 @@
 module windows.developerlicensing;
 
-public import windows.com;
-public import windows.windowsandmessaging;
-public import windows.windowsprogramming;
+public import windows.core;
+public import windows.com : HRESULT;
+public import windows.windowsandmessaging : HWND;
+public import windows.windowsprogramming : FILETIME;
 
 extern(Windows):
 
-@DllImport("WSClient.dll")
+
+// Functions
+
+@DllImport("WSClient")
 HRESULT CheckDeveloperLicense(FILETIME* pExpiration);
 
-@DllImport("WSClient.dll")
+@DllImport("WSClient")
 HRESULT AcquireDeveloperLicense(HWND hwndParent, FILETIME* pExpiration);
 
-@DllImport("WSClient.dll")
+@DllImport("WSClient")
 HRESULT RemoveDeveloperLicense(HWND hwndParent);
+
 

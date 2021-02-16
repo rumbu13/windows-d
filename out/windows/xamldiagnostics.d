@@ -1,38 +1,77 @@
 module windows.xamldiagnostics;
 
-public import windows.automation;
-public import windows.com;
-public import windows.displaydevices;
-public import windows.dxgi;
-public import windows.systemservices;
-public import windows.winrt;
+public import windows.core;
+public import windows.automation : BSTR, SAFEARRAY;
+public import windows.com : HRESULT, IUnknown;
+public import windows.displaydevices : RECT;
+public import windows.dxgi : DXGI_ALPHA_MODE, DXGI_FORMAT;
+public import windows.systemservices : BOOL;
+public import windows.winrt : IInspectable;
 
 extern(Windows):
 
-enum VisualMutationType
+
+// Enums
+
+
+enum VisualMutationType : int
 {
-    Add = 0,
-    Remove = 1,
+    Add     = 0x00000000,
+    Remove  = 0x00000001,
 }
 
-enum BaseValueSource
+enum BaseValueSource : int
 {
-    BaseValueSourceUnknown = 0,
-    BaseValueSourceDefault = 1,
-    BaseValueSourceBuiltInStyle = 2,
-    BaseValueSourceStyle = 3,
-    BaseValueSourceLocal = 4,
-    Inherited = 5,
-    DefaultStyleTrigger = 6,
-    TemplateTrigger = 7,
-    StyleTrigger = 8,
-    ImplicitStyleReference = 9,
-    ParentTemplate = 10,
-    ParentTemplateTrigger = 11,
-    Animation = 12,
-    Coercion = 13,
-    BaseValueSourceVisualState = 14,
+    BaseValueSourceUnknown      = 0x00000000,
+    BaseValueSourceDefault      = 0x00000001,
+    BaseValueSourceBuiltInStyle = 0x00000002,
+    BaseValueSourceStyle        = 0x00000003,
+    BaseValueSourceLocal        = 0x00000004,
+    Inherited                   = 0x00000005,
+    DefaultStyleTrigger         = 0x00000006,
+    TemplateTrigger             = 0x00000007,
+    StyleTrigger                = 0x00000008,
+    ImplicitStyleReference      = 0x00000009,
+    ParentTemplate              = 0x0000000a,
+    ParentTemplateTrigger       = 0x0000000b,
+    Animation                   = 0x0000000c,
+    Coercion                    = 0x0000000d,
+    BaseValueSourceVisualState  = 0x0000000e,
 }
+
+enum MetadataBit : int
+{
+    None                           = 0x00000000,
+    IsValueHandle                  = 0x00000001,
+    IsPropertyReadOnly             = 0x00000002,
+    IsValueCollection              = 0x00000004,
+    IsValueCollectionReadOnly      = 0x00000008,
+    IsValueBindingExpression       = 0x00000010,
+    IsValueNull                    = 0x00000020,
+    IsValueHandleAndEvaluatedValue = 0x00000040,
+}
+
+enum RenderTargetBitmapOptions : int
+{
+    RenderTarget            = 0x00000000,
+    RenderTargetAndChildren = 0x00000001,
+}
+
+enum ResourceType : int
+{
+    ResourceTypeStatic = 0x00000000,
+    ResourceTypeTheme  = 0x00000001,
+}
+
+enum VisualElementState : int
+{
+    ErrorResolved         = 0x00000000,
+    ErrorResourceNotFound = 0x00000001,
+    ErrorInvalidResource  = 0x00000002,
+}
+
+// Structs
+
 
 struct SourceInfo
 {
@@ -47,37 +86,25 @@ struct ParentChildRelation
 {
     ulong Parent;
     ulong Child;
-    uint ChildIndex;
+    uint  ChildIndex;
 }
 
 struct VisualElement
 {
-    ulong Handle;
+    ulong      Handle;
     SourceInfo SrcInfo;
-    BSTR Type;
-    BSTR Name;
-    uint NumChildren;
+    BSTR       Type;
+    BSTR       Name;
+    uint       NumChildren;
 }
 
 struct PropertyChainSource
 {
-    ulong Handle;
-    BSTR TargetType;
-    BSTR Name;
+    ulong           Handle;
+    BSTR            TargetType;
+    BSTR            Name;
     BaseValueSource Source;
-    SourceInfo SrcInfo;
-}
-
-enum MetadataBit
-{
-    None = 0,
-    IsValueHandle = 1,
-    IsPropertyReadOnly = 2,
-    IsValueCollection = 4,
-    IsValueCollectionReadOnly = 8,
-    IsValueBindingExpression = 16,
-    IsValueNull = 32,
-    IsValueHandleAndEvaluatedValue = 64,
+    SourceInfo      SrcInfo;
 }
 
 struct PropertyChainValue
@@ -96,7 +123,7 @@ struct PropertyChainValue
 
 struct EnumType
 {
-    BSTR Name;
+    BSTR       Name;
     SAFEARRAY* ValueInts;
     SAFEARRAY* ValueStrings;
 }
@@ -109,67 +136,49 @@ struct CollectionElementValue
     long MetadataBits;
 }
 
-enum RenderTargetBitmapOptions
-{
-    RenderTarget = 0,
-    RenderTargetAndChildren = 1,
-}
-
 struct BitmapDescription
 {
-    uint Width;
-    uint Height;
-    DXGI_FORMAT Format;
+    uint            Width;
+    uint            Height;
+    DXGI_FORMAT     Format;
     DXGI_ALPHA_MODE AlphaMode;
 }
 
-enum ResourceType
-{
-    ResourceTypeStatic = 0,
-    ResourceTypeTheme = 1,
-}
+// Interfaces
 
-enum VisualElementState
-{
-    ErrorResolved = 0,
-    ErrorResourceNotFound = 1,
-    ErrorInvalidResource = 2,
-}
-
-const GUID IID_IVisualTreeServiceCallback = {0xAA7A8931, 0x80E4, 0x4FEC, [0x8F, 0x3B, 0x55, 0x3F, 0x87, 0xB4, 0x96, 0x6E]};
-@GUID(0xAA7A8931, 0x80E4, 0x4FEC, [0x8F, 0x3B, 0x55, 0x3F, 0x87, 0xB4, 0x96, 0x6E]);
+@GUID("AA7A8931-80E4-4FEC-8F3B-553F87B4966E")
 interface IVisualTreeServiceCallback : IUnknown
 {
-    HRESULT OnVisualTreeChange(ParentChildRelation relation, VisualElement element, VisualMutationType mutationType);
+    HRESULT OnVisualTreeChange(ParentChildRelation relation, VisualElement element, 
+                               VisualMutationType mutationType);
 }
 
-const GUID IID_IVisualTreeServiceCallback2 = {0xBAD9EB88, 0xAE77, 0x4397, [0xB9, 0x48, 0x5F, 0xA2, 0xDB, 0x0A, 0x19, 0xEA]};
-@GUID(0xBAD9EB88, 0xAE77, 0x4397, [0xB9, 0x48, 0x5F, 0xA2, 0xDB, 0x0A, 0x19, 0xEA]);
+@GUID("BAD9EB88-AE77-4397-B948-5FA2DB0A19EA")
 interface IVisualTreeServiceCallback2 : IVisualTreeServiceCallback
 {
     HRESULT OnElementStateChanged(ulong element, VisualElementState elementState, const(wchar)* context);
 }
 
-const GUID IID_IVisualTreeService = {0xA593B11A, 0xD17F, 0x48BB, [0x8F, 0x66, 0x83, 0x91, 0x07, 0x31, 0xC8, 0xA5]};
-@GUID(0xA593B11A, 0xD17F, 0x48BB, [0x8F, 0x66, 0x83, 0x91, 0x07, 0x31, 0xC8, 0xA5]);
+@GUID("A593B11A-D17F-48BB-8F66-83910731C8A5")
 interface IVisualTreeService : IUnknown
 {
     HRESULT AdviseVisualTreeChange(IVisualTreeServiceCallback pCallback);
     HRESULT UnadviseVisualTreeChange(IVisualTreeServiceCallback pCallback);
     HRESULT GetEnums(uint* pCount, char* ppEnums);
     HRESULT CreateInstance(BSTR typeName, BSTR value, ulong* pInstanceHandle);
-    HRESULT GetPropertyValuesChain(ulong instanceHandle, uint* pSourceCount, char* ppPropertySources, uint* pPropertyCount, char* ppPropertyValues);
+    HRESULT GetPropertyValuesChain(ulong instanceHandle, uint* pSourceCount, char* ppPropertySources, 
+                                   uint* pPropertyCount, char* ppPropertyValues);
     HRESULT SetProperty(ulong instanceHandle, ulong value, uint propertyIndex);
     HRESULT ClearProperty(ulong instanceHandle, uint propertyIndex);
     HRESULT GetCollectionCount(ulong instanceHandle, uint* pCollectionSize);
-    HRESULT GetCollectionElements(ulong instanceHandle, uint startIndex, uint* pElementCount, char* ppElementValues);
+    HRESULT GetCollectionElements(ulong instanceHandle, uint startIndex, uint* pElementCount, 
+                                  char* ppElementValues);
     HRESULT AddChild(ulong parent, ulong child, uint index);
     HRESULT RemoveChild(ulong parent, uint index);
     HRESULT ClearChildren(ulong parent);
 }
 
-const GUID IID_IXamlDiagnostics = {0x18C9E2B6, 0x3F43, 0x4116, [0x9F, 0x2B, 0xFF, 0x93, 0x5D, 0x77, 0x70, 0xD2]};
-@GUID(0x18C9E2B6, 0x3F43, 0x4116, [0x9F, 0x2B, 0xFF, 0x93, 0x5D, 0x77, 0x70, 0xD2]);
+@GUID("18C9E2B6-3F43-4116-9F2B-FF935D7770D2")
 interface IXamlDiagnostics : IUnknown
 {
     HRESULT GetDispatcher(IInspectable* ppDispatcher);
@@ -182,8 +191,7 @@ interface IXamlDiagnostics : IUnknown
     HRESULT GetInitializationData(BSTR* pInitializationData);
 }
 
-const GUID IID_IBitmapData = {0xD1A34EF2, 0xCAD8, 0x4635, [0xA3, 0xD2, 0xFC, 0xDA, 0x8D, 0x3F, 0x3C, 0xAF]};
-@GUID(0xD1A34EF2, 0xCAD8, 0x4635, [0xA3, 0xD2, 0xFC, 0xDA, 0x8D, 0x3F, 0x3C, 0xAF]);
+@GUID("D1A34EF2-CAD8-4635-A3D2-FCDA8D3F3CAF")
 interface IBitmapData : IUnknown
 {
     HRESULT CopyBytesTo(uint sourceOffsetInBytes, uint maxBytesToCopy, char* pvBytes, uint* numberOfBytesCopied);
@@ -192,23 +200,35 @@ interface IBitmapData : IUnknown
     HRESULT GetSourceBitmapDescription(BitmapDescription* pBitmapDescription);
 }
 
-const GUID IID_IVisualTreeService2 = {0x130F5136, 0xEC43, 0x4F61, [0x89, 0xC7, 0x98, 0x01, 0xA3, 0x6D, 0x2E, 0x95]};
-@GUID(0x130F5136, 0xEC43, 0x4F61, [0x89, 0xC7, 0x98, 0x01, 0xA3, 0x6D, 0x2E, 0x95]);
+@GUID("130F5136-EC43-4F61-89C7-9801A36D2E95")
 interface IVisualTreeService2 : IVisualTreeService
 {
     HRESULT GetPropertyIndex(ulong object, const(wchar)* propertyName, uint* pPropertyIndex);
     HRESULT GetProperty(ulong object, uint propertyIndex, ulong* pValue);
     HRESULT ReplaceResource(ulong resourceDictionary, ulong key, ulong newValue);
-    HRESULT RenderTargetBitmap(ulong handle, RenderTargetBitmapOptions options, uint maxPixelWidth, uint maxPixelHeight, IBitmapData* ppBitmapData);
+    HRESULT RenderTargetBitmap(ulong handle, RenderTargetBitmapOptions options, uint maxPixelWidth, 
+                               uint maxPixelHeight, IBitmapData* ppBitmapData);
 }
 
-const GUID IID_IVisualTreeService3 = {0x0E79C6E0, 0x85A0, 0x4BE8, [0xB4, 0x1A, 0x65, 0x5C, 0xF1, 0xFD, 0x19, 0xBD]};
-@GUID(0x0E79C6E0, 0x85A0, 0x4BE8, [0xB4, 0x1A, 0x65, 0x5C, 0xF1, 0xFD, 0x19, 0xBD]);
+@GUID("0E79C6E0-85A0-4BE8-B41A-655CF1FD19BD")
 interface IVisualTreeService3 : IVisualTreeService2
 {
-    HRESULT ResolveResource(ulong resourceContext, const(wchar)* resourceName, ResourceType resourceType, uint propertyIndex);
-    HRESULT GetDictionaryItem(ulong dictionaryHandle, const(wchar)* resourceName, BOOL resourceIsImplicitStyle, ulong* resourceHandle);
+    HRESULT ResolveResource(ulong resourceContext, const(wchar)* resourceName, ResourceType resourceType, 
+                            uint propertyIndex);
+    HRESULT GetDictionaryItem(ulong dictionaryHandle, const(wchar)* resourceName, BOOL resourceIsImplicitStyle, 
+                              ulong* resourceHandle);
     HRESULT AddDictionaryItem(ulong dictionaryHandle, ulong resourceKey, ulong resourceHandle);
     HRESULT RemoveDictionaryItem(ulong dictionaryHandle, ulong resourceKey);
 }
 
+
+// GUIDs
+
+
+const GUID IID_IBitmapData                 = GUIDOF!IBitmapData;
+const GUID IID_IVisualTreeService          = GUIDOF!IVisualTreeService;
+const GUID IID_IVisualTreeService2         = GUIDOF!IVisualTreeService2;
+const GUID IID_IVisualTreeService3         = GUIDOF!IVisualTreeService3;
+const GUID IID_IVisualTreeServiceCallback  = GUIDOF!IVisualTreeServiceCallback;
+const GUID IID_IVisualTreeServiceCallback2 = GUIDOF!IVisualTreeServiceCallback2;
+const GUID IID_IXamlDiagnostics            = GUIDOF!IXamlDiagnostics;

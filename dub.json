@@ -1,0 +1,13 @@
+{
+	"name": "windows-d",
+    "description": "The D Windows SDK projection",
+    "authors": ["Răzvan Ștefănescu"],
+    "license": "GPL-2.0",
+    "targetType": "executable",
+    "targetName": "wind",
+    "targetPath": "bin",
+    "sourcePaths": ["src"]    
+}
+
+//example: winmd --meta ./meta/Windows.Win32.winmd --out .\out --core ./cfg/core.d --replace ./cfg/replace.cfg --ignore ./cfg/ignore.cfg
+

@@ -1,83 +1,141 @@
 module windows.policy;
 
-public import system;
-public import windows.automation;
-public import windows.com;
-public import windows.controls;
-public import windows.security;
-public import windows.shell;
-public import windows.systemservices;
-public import windows.windowsandmessaging;
-public import windows.windowsprogramming;
-public import windows.wmi;
+public import windows.core;
+public import windows.automation : SAFEARRAY;
+public import windows.com : HRESULT, IUnknown;
+public import windows.controls : HPROPSHEETPAGE;
+public import windows.security : GENERIC_MAPPING, OBJECT_TYPE_LIST, PRIVILEGE_SET;
+public import windows.shell : APPCATEGORYINFOLIST;
+public import windows.systemservices : BOOL, HANDLE;
+public import windows.windowsandmessaging : HWND, LPARAM;
+public import windows.windowsprogramming : HKEY, SYSTEMTIME;
+public import windows.wmi : IWbemClassObject, IWbemServices;
 
 extern(Windows):
 
-alias CriticalPolicySectionHandle = int;
-enum GPO_LINK
+
+// Enums
+
+
+enum : int
 {
-    GPLinkUnknown = 0,
-    GPLinkMachine = 1,
-    GPLinkSite = 2,
-    GPLinkDomain = 3,
-    GPLinkOrganizationalUnit = 4,
+    GPLinkUnknown            = 0x00000000,
+    GPLinkMachine            = 0x00000001,
+    GPLinkSite               = 0x00000002,
+    GPLinkDomain             = 0x00000003,
+    GPLinkOrganizationalUnit = 0x00000004,
 }
+alias GPO_LINK = int;
+
+enum : int
+{
+    RSOPUnspecified      = 0x00000000,
+    RSOPApplied          = 0x00000001,
+    RSOPIgnored          = 0x00000002,
+    RSOPFailed           = 0x00000003,
+    RSOPSubsettingFailed = 0x00000004,
+}
+alias SETTINGSTATUS = int;
+
+enum : int
+{
+    APPNAME  = 0x00000001,
+    FILEEXT  = 0x00000002,
+    PROGID   = 0x00000003,
+    COMCLASS = 0x00000004,
+}
+alias INSTALLSPECTYPE = int;
+
+enum : int
+{
+    ABSENT    = 0x00000000,
+    ASSIGNED  = 0x00000001,
+    PUBLISHED = 0x00000002,
+}
+alias APPSTATE = int;
+
+enum : int
+{
+    GPOTypeLocal      = 0x00000000,
+    GPOTypeRemote     = 0x00000001,
+    GPOTypeDS         = 0x00000002,
+    GPOTypeLocalUser  = 0x00000003,
+    GPOTypeLocalGroup = 0x00000004,
+}
+alias GROUP_POLICY_OBJECT_TYPE = int;
+
+enum : int
+{
+    GPHintUnknown            = 0x00000000,
+    GPHintMachine            = 0x00000001,
+    GPHintSite               = 0x00000002,
+    GPHintDomain             = 0x00000003,
+    GPHintOrganizationalUnit = 0x00000004,
+}
+alias GROUP_POLICY_HINT_TYPE = int;
+
+// Callbacks
+
+alias PFNSTATUSMESSAGECALLBACK = uint function(BOOL bVerbose, const(wchar)* lpMessage);
+alias PFNPROCESSGROUPPOLICY = uint function(uint dwFlags, HANDLE hToken, HKEY hKeyRoot, 
+                                            GROUP_POLICY_OBJECTA* pDeletedGPOList, 
+                                            GROUP_POLICY_OBJECTA* pChangedGPOList, size_t pHandle, int* pbAbort, 
+                                            PFNSTATUSMESSAGECALLBACK pStatusCallback);
+alias PFNPROCESSGROUPPOLICYEX = uint function(uint dwFlags, HANDLE hToken, HKEY hKeyRoot, 
+                                              GROUP_POLICY_OBJECTA* pDeletedGPOList, 
+                                              GROUP_POLICY_OBJECTA* pChangedGPOList, size_t pHandle, int* pbAbort, 
+                                              PFNSTATUSMESSAGECALLBACK pStatusCallback, IWbemServices pWbemServices, 
+                                              int* pRsopStatus);
+alias PFNGENERATEGROUPPOLICY = uint function(uint dwFlags, int* pbAbort, ushort* pwszSite, 
+                                             RSOP_TARGET* pComputerTarget, RSOP_TARGET* pUserTarget);
+
+// Structs
+
+
+alias CriticalPolicySectionHandle = ptrdiff_t;
 
 struct GROUP_POLICY_OBJECTA
 {
-    uint dwOptions;
-    uint dwVersion;
+    uint         dwOptions;
+    uint         dwVersion;
     const(char)* lpDSPath;
     const(char)* lpFileSysPath;
     const(char)* lpDisplayName;
-    byte szGPOName;
-    GPO_LINK GPOLink;
-    LPARAM lParam;
+    byte[50]     szGPOName;
+    GPO_LINK     GPOLink;
+    LPARAM       lParam;
     GROUP_POLICY_OBJECTA* pNext;
     GROUP_POLICY_OBJECTA* pPrev;
     const(char)* lpExtensions;
-    LPARAM lParam2;
+    LPARAM       lParam2;
     const(char)* lpLink;
 }
 
 struct GROUP_POLICY_OBJECTW
 {
-    uint dwOptions;
-    uint dwVersion;
+    uint          dwOptions;
+    uint          dwVersion;
     const(wchar)* lpDSPath;
     const(wchar)* lpFileSysPath;
     const(wchar)* lpDisplayName;
-    ushort szGPOName;
-    GPO_LINK GPOLink;
-    LPARAM lParam;
+    ushort[50]    szGPOName;
+    GPO_LINK      GPOLink;
+    LPARAM        lParam;
     GROUP_POLICY_OBJECTW* pNext;
     GROUP_POLICY_OBJECTW* pPrev;
     const(wchar)* lpExtensions;
-    LPARAM lParam2;
+    LPARAM        lParam2;
     const(wchar)* lpLink;
 }
 
-alias PFNSTATUSMESSAGECALLBACK = extern(Windows) uint function(BOOL bVerbose, const(wchar)* lpMessage);
-alias PFNPROCESSGROUPPOLICY = extern(Windows) uint function(uint dwFlags, HANDLE hToken, HKEY hKeyRoot, GROUP_POLICY_OBJECTA* pDeletedGPOList, GROUP_POLICY_OBJECTA* pChangedGPOList, uint pHandle, int* pbAbort, PFNSTATUSMESSAGECALLBACK pStatusCallback);
-alias PFNPROCESSGROUPPOLICYEX = extern(Windows) uint function(uint dwFlags, HANDLE hToken, HKEY hKeyRoot, GROUP_POLICY_OBJECTA* pDeletedGPOList, GROUP_POLICY_OBJECTA* pChangedGPOList, uint pHandle, int* pbAbort, PFNSTATUSMESSAGECALLBACK pStatusCallback, IWbemServices pWbemServices, int* pRsopStatus);
 struct RSOP_TARGET
 {
-    ushort* pwszAccountName;
-    ushort* pwszNewSOM;
-    SAFEARRAY* psaSecurityGroups;
-    void* pRsopToken;
+    ushort*       pwszAccountName;
+    ushort*       pwszNewSOM;
+    SAFEARRAY*    psaSecurityGroups;
+    void*         pRsopToken;
     GROUP_POLICY_OBJECTA* pGPOList;
     IWbemServices pWbemServices;
-}
-
-alias PFNGENERATEGROUPPOLICY = extern(Windows) uint function(uint dwFlags, int* pbAbort, ushort* pwszSite, RSOP_TARGET* pComputerTarget, RSOP_TARGET* pUserTarget);
-enum SETTINGSTATUS
-{
-    RSOPUnspecified = 0,
-    RSOPApplied = 1,
-    RSOPIgnored = 2,
-    RSOPFailed = 3,
-    RSOPSubsettingFailed = 4,
 }
 
 struct POLICYSETTINGSTATUSINFO
@@ -85,39 +143,32 @@ struct POLICYSETTINGSTATUSINFO
     const(wchar)* szKey;
     const(wchar)* szEventSource;
     const(wchar)* szEventLogName;
-    uint dwEventID;
-    uint dwErrorCode;
+    uint          dwEventID;
+    uint          dwErrorCode;
     SETTINGSTATUS status;
-    SYSTEMTIME timeLogged;
+    SYSTEMTIME    timeLogged;
 }
 
-enum INSTALLSPECTYPE
+union INSTALLSPEC
 {
-    APPNAME = 1,
-    FILEEXT = 2,
-    PROGID = 3,
-    COMCLASS = 4,
-}
-
-struct INSTALLSPEC
-{
-    _AppName_e__Struct AppName;
+    struct AppName
+    {
+        ushort* Name;
+        GUID    GPOId;
+    }
     ushort* FileExt;
     ushort* ProgId;
-    _COMClass_e__Struct COMClass;
+    struct COMClass
+    {
+        GUID Clsid;
+        uint ClsCtx;
+    }
 }
 
 struct INSTALLDATA
 {
     INSTALLSPECTYPE Type;
-    INSTALLSPEC Spec;
-}
-
-enum APPSTATE
-{
-    ABSENT = 0,
-    ASSIGNED = 1,
-    PUBLISHED = 2,
+    INSTALLSPEC     Spec;
 }
 
 struct LOCALMANAGEDAPPLICATION
@@ -125,46 +176,154 @@ struct LOCALMANAGEDAPPLICATION
     const(wchar)* pszDeploymentName;
     const(wchar)* pszPolicyName;
     const(wchar)* pszProductId;
-    uint dwState;
+    uint          dwState;
 }
 
 struct MANAGEDAPPLICATION
 {
     const(wchar)* pszPackageName;
     const(wchar)* pszPublisher;
-    uint dwVersionHi;
-    uint dwVersionLo;
-    uint dwRevision;
-    Guid GpoId;
+    uint          dwVersionHi;
+    uint          dwVersionLo;
+    uint          dwRevision;
+    GUID          GpoId;
     const(wchar)* pszPolicyName;
-    Guid ProductId;
-    ushort Language;
+    GUID          ProductId;
+    ushort        Language;
     const(wchar)* pszOwner;
     const(wchar)* pszCompany;
     const(wchar)* pszComments;
     const(wchar)* pszContact;
     const(wchar)* pszSupportUrl;
-    uint dwPathType;
-    BOOL bInstalled;
+    uint          dwPathType;
+    BOOL          bInstalled;
 }
 
-enum GROUP_POLICY_OBJECT_TYPE
+struct GPOBROWSEINFO
 {
-    GPOTypeLocal = 0,
-    GPOTypeRemote = 1,
-    GPOTypeDS = 2,
-    GPOTypeLocalUser = 3,
-    GPOTypeLocalGroup = 4,
+    uint    dwSize;
+    uint    dwFlags;
+    HWND    hwndOwner;
+    ushort* lpTitle;
+    ushort* lpInitialOU;
+    ushort* lpDSPath;
+    uint    dwDSPathSize;
+    ushort* lpName;
+    uint    dwNameSize;
+    GROUP_POLICY_OBJECT_TYPE gpoType;
+    GROUP_POLICY_HINT_TYPE gpoHint;
 }
 
-enum GROUP_POLICY_HINT_TYPE
-{
-    GPHintUnknown = 0,
-    GPHintMachine = 1,
-    GPHintSite = 2,
-    GPHintDomain = 3,
-    GPHintOrganizationalUnit = 4,
-}
+// Functions
+
+@DllImport("USERENV")
+BOOL RefreshPolicy(BOOL bMachine);
+
+@DllImport("USERENV")
+BOOL RefreshPolicyEx(BOOL bMachine, uint dwOptions);
+
+@DllImport("USERENV")
+HANDLE EnterCriticalPolicySection(BOOL bMachine);
+
+@DllImport("USERENV")
+BOOL LeaveCriticalPolicySection(HANDLE hSection);
+
+@DllImport("USERENV")
+BOOL RegisterGPNotification(HANDLE hEvent, BOOL bMachine);
+
+@DllImport("USERENV")
+BOOL UnregisterGPNotification(HANDLE hEvent);
+
+@DllImport("USERENV")
+BOOL GetGPOListA(HANDLE hToken, const(char)* lpName, const(char)* lpHostName, const(char)* lpComputerName, 
+                 uint dwFlags, GROUP_POLICY_OBJECTA** pGPOList);
+
+@DllImport("USERENV")
+BOOL GetGPOListW(HANDLE hToken, const(wchar)* lpName, const(wchar)* lpHostName, const(wchar)* lpComputerName, 
+                 uint dwFlags, GROUP_POLICY_OBJECTW** pGPOList);
+
+@DllImport("USERENV")
+BOOL FreeGPOListA(GROUP_POLICY_OBJECTA* pGPOList);
+
+@DllImport("USERENV")
+BOOL FreeGPOListW(GROUP_POLICY_OBJECTW* pGPOList);
+
+@DllImport("USERENV")
+uint GetAppliedGPOListA(uint dwFlags, const(char)* pMachineName, void* pSidUser, GUID* pGuidExtension, 
+                        GROUP_POLICY_OBJECTA** ppGPOList);
+
+@DllImport("USERENV")
+uint GetAppliedGPOListW(uint dwFlags, const(wchar)* pMachineName, void* pSidUser, GUID* pGuidExtension, 
+                        GROUP_POLICY_OBJECTW** ppGPOList);
+
+@DllImport("USERENV")
+uint ProcessGroupPolicyCompleted(GUID* extensionId, size_t pAsyncHandle, uint dwStatus);
+
+@DllImport("USERENV")
+uint ProcessGroupPolicyCompletedEx(GUID* extensionId, size_t pAsyncHandle, uint dwStatus, HRESULT RsopStatus);
+
+@DllImport("USERENV")
+HRESULT RsopAccessCheckByType(void* pSecurityDescriptor, void* pPrincipalSelfSid, void* pRsopToken, 
+                              uint dwDesiredAccessMask, char* pObjectTypeList, uint ObjectTypeListLength, 
+                              GENERIC_MAPPING* pGenericMapping, char* pPrivilegeSet, uint* pdwPrivilegeSetLength, 
+                              uint* pdwGrantedAccessMask, int* pbAccessStatus);
+
+@DllImport("USERENV")
+HRESULT RsopFileAccessCheck(const(wchar)* pszFileName, void* pRsopToken, uint dwDesiredAccessMask, 
+                            uint* pdwGrantedAccessMask, int* pbAccessStatus);
+
+@DllImport("USERENV")
+HRESULT RsopSetPolicySettingStatus(uint dwFlags, IWbemServices pServices, IWbemClassObject pSettingInstance, 
+                                   uint nInfo, char* pStatus);
+
+@DllImport("USERENV")
+HRESULT RsopResetPolicySettingStatus(uint dwFlags, IWbemServices pServices, IWbemClassObject pSettingInstance);
+
+@DllImport("USERENV")
+uint GenerateGPNotification(BOOL bMachine, const(wchar)* lpwszMgmtProduct, uint dwMgmtProductOptions);
+
+@DllImport("ADVAPI32")
+uint InstallApplication(INSTALLDATA* pInstallInfo);
+
+@DllImport("ADVAPI32")
+uint UninstallApplication(const(wchar)* ProductCode, uint dwStatus);
+
+@DllImport("ADVAPI32")
+uint CommandLineFromMsiDescriptor(const(wchar)* Descriptor, const(wchar)* CommandLine, uint* CommandLineLength);
+
+@DllImport("ADVAPI32")
+uint GetManagedApplications(GUID* pCategory, uint dwQueryFlags, uint dwInfoLevel, uint* pdwApps, 
+                            MANAGEDAPPLICATION** prgManagedApps);
+
+@DllImport("ADVAPI32")
+uint GetLocalManagedApplications(BOOL bUserApps, uint* pdwApps, LOCALMANAGEDAPPLICATION** prgLocalApps);
+
+@DllImport("ADVAPI32")
+void GetLocalManagedApplicationData(const(wchar)* ProductCode, ushort** DisplayName, ushort** SupportUrl);
+
+@DllImport("ADVAPI32")
+uint GetManagedApplicationCategories(uint dwReserved, APPCATEGORYINFOLIST* pAppCategory);
+
+@DllImport("GPEDIT")
+HRESULT CreateGPOLink(ushort* lpGPO, ushort* lpContainer, BOOL fHighPriority);
+
+@DllImport("GPEDIT")
+HRESULT DeleteGPOLink(ushort* lpGPO, ushort* lpContainer);
+
+@DllImport("GPEDIT")
+HRESULT DeleteAllGPOLinks(ushort* lpContainer);
+
+@DllImport("GPEDIT")
+HRESULT BrowseForGPO(GPOBROWSEINFO* lpBrowseInfo);
+
+@DllImport("GPEDIT")
+HRESULT ImportRSoPData(ushort* lpNameSpace, ushort* lpFileName);
+
+@DllImport("GPEDIT")
+HRESULT ExportRSoPData(ushort* lpNameSpace, ushort* lpFileName);
+
+
+// Interfaces
 
 interface IGPEInformation : IUnknown
 {
@@ -176,7 +335,7 @@ interface IGPEInformation : IUnknown
     HRESULT GetOptions(uint* dwOptions);
     HRESULT GetType(GROUP_POLICY_OBJECT_TYPE* gpoType);
     HRESULT GetHint(GROUP_POLICY_HINT_TYPE* gpHint);
-    HRESULT PolicyChanged(BOOL bMachine, BOOL bAdd, Guid* pGuidExtension, Guid* pGuidSnapin);
+    HRESULT PolicyChanged(BOOL bMachine, BOOL bAdd, GUID* pGuidExtension, GUID* pGuidSnapin);
 }
 
 interface IGroupPolicyObject : IUnknown
@@ -185,7 +344,7 @@ interface IGroupPolicyObject : IUnknown
     HRESULT OpenDSGPO(ushort* pszPath, uint dwFlags);
     HRESULT OpenLocalMachineGPO(uint dwFlags);
     HRESULT OpenRemoteMachineGPO(ushort* pszComputerName, uint dwFlags);
-    HRESULT Save(BOOL bMachine, BOOL bAdd, Guid* pGuidExtension, Guid* pGuid);
+    HRESULT Save(BOOL bMachine, BOOL bAdd, GUID* pGuidExtension, GUID* pGuid);
     HRESULT Delete();
     HRESULT GetName(char* pszName, int cchMaxLength);
     HRESULT GetDisplayName(char* pszName, int cchMaxLength);
@@ -205,117 +364,8 @@ interface IRSOPInformation : IUnknown
 {
     HRESULT GetNamespace(uint dwSection, char* pszName, int cchMaxLength);
     HRESULT GetFlags(uint* pdwFlags);
-    HRESULT GetEventLogEntryText(ushort* pszEventSource, ushort* pszEventLogName, ushort* pszEventTime, uint dwEventID, ushort** ppszText);
+    HRESULT GetEventLogEntryText(ushort* pszEventSource, ushort* pszEventLogName, ushort* pszEventTime, 
+                                 uint dwEventID, ushort** ppszText);
 }
 
-struct GPOBROWSEINFO
-{
-    uint dwSize;
-    uint dwFlags;
-    HWND hwndOwner;
-    ushort* lpTitle;
-    ushort* lpInitialOU;
-    ushort* lpDSPath;
-    uint dwDSPathSize;
-    ushort* lpName;
-    uint dwNameSize;
-    GROUP_POLICY_OBJECT_TYPE gpoType;
-    GROUP_POLICY_HINT_TYPE gpoHint;
-}
-
-@DllImport("USERENV.dll")
-BOOL RefreshPolicy(BOOL bMachine);
-
-@DllImport("USERENV.dll")
-BOOL RefreshPolicyEx(BOOL bMachine, uint dwOptions);
-
-@DllImport("USERENV.dll")
-HANDLE EnterCriticalPolicySection(BOOL bMachine);
-
-@DllImport("USERENV.dll")
-BOOL LeaveCriticalPolicySection(HANDLE hSection);
-
-@DllImport("USERENV.dll")
-BOOL RegisterGPNotification(HANDLE hEvent, BOOL bMachine);
-
-@DllImport("USERENV.dll")
-BOOL UnregisterGPNotification(HANDLE hEvent);
-
-@DllImport("USERENV.dll")
-BOOL GetGPOListA(HANDLE hToken, const(char)* lpName, const(char)* lpHostName, const(char)* lpComputerName, uint dwFlags, GROUP_POLICY_OBJECTA** pGPOList);
-
-@DllImport("USERENV.dll")
-BOOL GetGPOListW(HANDLE hToken, const(wchar)* lpName, const(wchar)* lpHostName, const(wchar)* lpComputerName, uint dwFlags, GROUP_POLICY_OBJECTW** pGPOList);
-
-@DllImport("USERENV.dll")
-BOOL FreeGPOListA(GROUP_POLICY_OBJECTA* pGPOList);
-
-@DllImport("USERENV.dll")
-BOOL FreeGPOListW(GROUP_POLICY_OBJECTW* pGPOList);
-
-@DllImport("USERENV.dll")
-uint GetAppliedGPOListA(uint dwFlags, const(char)* pMachineName, void* pSidUser, Guid* pGuidExtension, GROUP_POLICY_OBJECTA** ppGPOList);
-
-@DllImport("USERENV.dll")
-uint GetAppliedGPOListW(uint dwFlags, const(wchar)* pMachineName, void* pSidUser, Guid* pGuidExtension, GROUP_POLICY_OBJECTW** ppGPOList);
-
-@DllImport("USERENV.dll")
-uint ProcessGroupPolicyCompleted(Guid* extensionId, uint pAsyncHandle, uint dwStatus);
-
-@DllImport("USERENV.dll")
-uint ProcessGroupPolicyCompletedEx(Guid* extensionId, uint pAsyncHandle, uint dwStatus, HRESULT RsopStatus);
-
-@DllImport("USERENV.dll")
-HRESULT RsopAccessCheckByType(void* pSecurityDescriptor, void* pPrincipalSelfSid, void* pRsopToken, uint dwDesiredAccessMask, char* pObjectTypeList, uint ObjectTypeListLength, GENERIC_MAPPING* pGenericMapping, char* pPrivilegeSet, uint* pdwPrivilegeSetLength, uint* pdwGrantedAccessMask, int* pbAccessStatus);
-
-@DllImport("USERENV.dll")
-HRESULT RsopFileAccessCheck(const(wchar)* pszFileName, void* pRsopToken, uint dwDesiredAccessMask, uint* pdwGrantedAccessMask, int* pbAccessStatus);
-
-@DllImport("USERENV.dll")
-HRESULT RsopSetPolicySettingStatus(uint dwFlags, IWbemServices pServices, IWbemClassObject pSettingInstance, uint nInfo, char* pStatus);
-
-@DllImport("USERENV.dll")
-HRESULT RsopResetPolicySettingStatus(uint dwFlags, IWbemServices pServices, IWbemClassObject pSettingInstance);
-
-@DllImport("USERENV.dll")
-uint GenerateGPNotification(BOOL bMachine, const(wchar)* lpwszMgmtProduct, uint dwMgmtProductOptions);
-
-@DllImport("ADVAPI32.dll")
-uint InstallApplication(INSTALLDATA* pInstallInfo);
-
-@DllImport("ADVAPI32.dll")
-uint UninstallApplication(const(wchar)* ProductCode, uint dwStatus);
-
-@DllImport("ADVAPI32.dll")
-uint CommandLineFromMsiDescriptor(const(wchar)* Descriptor, const(wchar)* CommandLine, uint* CommandLineLength);
-
-@DllImport("ADVAPI32.dll")
-uint GetManagedApplications(Guid* pCategory, uint dwQueryFlags, uint dwInfoLevel, uint* pdwApps, MANAGEDAPPLICATION** prgManagedApps);
-
-@DllImport("ADVAPI32.dll")
-uint GetLocalManagedApplications(BOOL bUserApps, uint* pdwApps, LOCALMANAGEDAPPLICATION** prgLocalApps);
-
-@DllImport("ADVAPI32.dll")
-void GetLocalManagedApplicationData(const(wchar)* ProductCode, ushort** DisplayName, ushort** SupportUrl);
-
-@DllImport("ADVAPI32.dll")
-uint GetManagedApplicationCategories(uint dwReserved, APPCATEGORYINFOLIST* pAppCategory);
-
-@DllImport("GPEDIT.dll")
-HRESULT CreateGPOLink(ushort* lpGPO, ushort* lpContainer, BOOL fHighPriority);
-
-@DllImport("GPEDIT.dll")
-HRESULT DeleteGPOLink(ushort* lpGPO, ushort* lpContainer);
-
-@DllImport("GPEDIT.dll")
-HRESULT DeleteAllGPOLinks(ushort* lpContainer);
-
-@DllImport("GPEDIT.dll")
-HRESULT BrowseForGPO(GPOBROWSEINFO* lpBrowseInfo);
-
-@DllImport("GPEDIT.dll")
-HRESULT ImportRSoPData(ushort* lpNameSpace, ushort* lpFileName);
-
-@DllImport("GPEDIT.dll")
-HRESULT ExportRSoPData(ushort* lpNameSpace, ushort* lpFileName);
 

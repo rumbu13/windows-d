@@ -1,63 +1,1139 @@
 module windows.nativewifi;
 
-public import system;
-public import windows.com;
-public import windows.eauthprotocol;
-public import windows.iphelper;
-public import windows.networkdrivers;
-public import windows.systemservices;
-public import windows.windowsandmessaging;
+public import windows.core;
+public import windows.com : HRESULT, IUnknown;
+public import windows.extensibleauthenticationprotocol : EAP_METHOD_TYPE;
+public import windows.iphelper : NET_LUID_LH;
+public import windows.networkdrivers : L2_NOTIFICATION_DATA, NET_IF_DIRECTION_TYPE, NET_IF_MEDIA_CONNECT_STATE,
+                                       NET_IF_MEDIA_DUPLEX_STATE, NET_IF_OPER_STATUS;
+public import windows.systemservices : BOOL, HANDLE, LARGE_INTEGER;
+public import windows.windowsandmessaging : HWND;
 
 extern(Windows):
 
-enum DOT11_BSS_TYPE
+
+// Enums
+
+
+enum : int
 {
-    dot11_BSS_type_infrastructure = 1,
-    dot11_BSS_type_independent = 2,
-    dot11_BSS_type_any = 3,
+    dot11_BSS_type_infrastructure = 0x00000001,
+    dot11_BSS_type_independent    = 0x00000002,
+    dot11_BSS_type_any            = 0x00000003,
 }
+alias DOT11_BSS_TYPE = int;
+
+enum : int
+{
+    DOT11_AUTH_ALGO_80211_OPEN       = 0x00000001,
+    DOT11_AUTH_ALGO_80211_SHARED_KEY = 0x00000002,
+    DOT11_AUTH_ALGO_WPA              = 0x00000003,
+    DOT11_AUTH_ALGO_WPA_PSK          = 0x00000004,
+    DOT11_AUTH_ALGO_WPA_NONE         = 0x00000005,
+    DOT11_AUTH_ALGO_RSNA             = 0x00000006,
+    DOT11_AUTH_ALGO_RSNA_PSK         = 0x00000007,
+    DOT11_AUTH_ALGO_WPA3             = 0x00000008,
+    DOT11_AUTH_ALGO_WPA3_SAE         = 0x00000009,
+    DOT11_AUTH_ALGO_OWE              = 0x0000000a,
+    DOT11_AUTH_ALGO_IHV_START        = 0x80000000,
+    DOT11_AUTH_ALGO_IHV_END          = 0xffffffff,
+}
+alias DOT11_AUTH_ALGORITHM = int;
+
+enum : int
+{
+    DOT11_CIPHER_ALGO_NONE          = 0x00000000,
+    DOT11_CIPHER_ALGO_WEP40         = 0x00000001,
+    DOT11_CIPHER_ALGO_TKIP          = 0x00000002,
+    DOT11_CIPHER_ALGO_CCMP          = 0x00000004,
+    DOT11_CIPHER_ALGO_WEP104        = 0x00000005,
+    DOT11_CIPHER_ALGO_BIP           = 0x00000006,
+    DOT11_CIPHER_ALGO_GCMP          = 0x00000008,
+    DOT11_CIPHER_ALGO_GCMP_256      = 0x00000009,
+    DOT11_CIPHER_ALGO_CCMP_256      = 0x0000000a,
+    DOT11_CIPHER_ALGO_BIP_GMAC_128  = 0x0000000b,
+    DOT11_CIPHER_ALGO_BIP_GMAC_256  = 0x0000000c,
+    DOT11_CIPHER_ALGO_BIP_CMAC_256  = 0x0000000d,
+    DOT11_CIPHER_ALGO_WPA_USE_GROUP = 0x00000100,
+    DOT11_CIPHER_ALGO_RSN_USE_GROUP = 0x00000100,
+    DOT11_CIPHER_ALGO_WEP           = 0x00000101,
+    DOT11_CIPHER_ALGO_IHV_START     = 0x80000000,
+    DOT11_CIPHER_ALGO_IHV_END       = 0xffffffff,
+}
+alias DOT11_CIPHER_ALGORITHM = int;
+
+enum : int
+{
+    NdisRequestQueryInformation = 0x00000000,
+    NdisRequestSetInformation   = 0x00000001,
+    NdisRequestQueryStatistics  = 0x00000002,
+    NdisRequestOpen             = 0x00000003,
+    NdisRequestClose            = 0x00000004,
+    NdisRequestSend             = 0x00000005,
+    NdisRequestTransferData     = 0x00000006,
+    NdisRequestReset            = 0x00000007,
+    NdisRequestGeneric1         = 0x00000008,
+    NdisRequestGeneric2         = 0x00000009,
+    NdisRequestGeneric3         = 0x0000000a,
+    NdisRequestGeneric4         = 0x0000000b,
+}
+alias NDIS_REQUEST_TYPE = int;
+
+enum : int
+{
+    NdisInterruptModerationUnknown      = 0x00000000,
+    NdisInterruptModerationNotSupported = 0x00000001,
+    NdisInterruptModerationEnabled      = 0x00000002,
+    NdisInterruptModerationDisabled     = 0x00000003,
+}
+alias NDIS_INTERRUPT_MODERATION = int;
+
+enum : int
+{
+    Ndis802_11StatusType_Authentication      = 0x00000000,
+    Ndis802_11StatusType_MediaStreamMode     = 0x00000001,
+    Ndis802_11StatusType_PMKID_CandidateList = 0x00000002,
+    Ndis802_11StatusTypeMax                  = 0x00000003,
+}
+alias NDIS_802_11_STATUS_TYPE = int;
+
+enum : int
+{
+    Ndis802_11FH             = 0x00000000,
+    Ndis802_11DS             = 0x00000001,
+    Ndis802_11OFDM5          = 0x00000002,
+    Ndis802_11OFDM24         = 0x00000003,
+    Ndis802_11Automode       = 0x00000004,
+    Ndis802_11NetworkTypeMax = 0x00000005,
+}
+alias NDIS_802_11_NETWORK_TYPE = int;
+
+enum : int
+{
+    Ndis802_11PowerModeCAM      = 0x00000000,
+    Ndis802_11PowerModeMAX_PSP  = 0x00000001,
+    Ndis802_11PowerModeFast_PSP = 0x00000002,
+    Ndis802_11PowerModeMax      = 0x00000003,
+}
+alias NDIS_802_11_POWER_MODE = int;
+
+enum : int
+{
+    Ndis802_11IBSS              = 0x00000000,
+    Ndis802_11Infrastructure    = 0x00000001,
+    Ndis802_11AutoUnknown       = 0x00000002,
+    Ndis802_11InfrastructureMax = 0x00000003,
+}
+alias NDIS_802_11_NETWORK_INFRASTRUCTURE = int;
+
+enum : int
+{
+    Ndis802_11AuthModeOpen       = 0x00000000,
+    Ndis802_11AuthModeShared     = 0x00000001,
+    Ndis802_11AuthModeAutoSwitch = 0x00000002,
+    Ndis802_11AuthModeWPA        = 0x00000003,
+    Ndis802_11AuthModeWPAPSK     = 0x00000004,
+    Ndis802_11AuthModeWPANone    = 0x00000005,
+    Ndis802_11AuthModeWPA2       = 0x00000006,
+    Ndis802_11AuthModeWPA2PSK    = 0x00000007,
+    Ndis802_11AuthModeWPA3       = 0x00000008,
+    Ndis802_11AuthModeWPA3SAE    = 0x00000009,
+    Ndis802_11AuthModeMax        = 0x0000000a,
+}
+alias NDIS_802_11_AUTHENTICATION_MODE = int;
+
+enum : int
+{
+    Ndis802_11PrivFilterAcceptAll = 0x00000000,
+    Ndis802_11PrivFilter8021xWEP  = 0x00000001,
+}
+alias NDIS_802_11_PRIVACY_FILTER = int;
+
+enum : int
+{
+    Ndis802_11WEPEnabled             = 0x00000000,
+    Ndis802_11Encryption1Enabled     = 0x00000000,
+    Ndis802_11WEPDisabled            = 0x00000001,
+    Ndis802_11EncryptionDisabled     = 0x00000001,
+    Ndis802_11WEPKeyAbsent           = 0x00000002,
+    Ndis802_11Encryption1KeyAbsent   = 0x00000002,
+    Ndis802_11WEPNotSupported        = 0x00000003,
+    Ndis802_11EncryptionNotSupported = 0x00000003,
+    Ndis802_11Encryption2Enabled     = 0x00000004,
+    Ndis802_11Encryption2KeyAbsent   = 0x00000005,
+    Ndis802_11Encryption3Enabled     = 0x00000006,
+    Ndis802_11Encryption3KeyAbsent   = 0x00000007,
+}
+alias NDIS_802_11_WEP_STATUS = int;
+
+enum : int
+{
+    Ndis802_11ReloadWEPKeys = 0x00000000,
+}
+alias NDIS_802_11_RELOAD_DEFAULTS = int;
+
+enum : int
+{
+    Ndis802_11MediaStreamOff = 0x00000000,
+    Ndis802_11MediaStreamOn  = 0x00000001,
+}
+alias NDIS_802_11_MEDIA_STREAM_MODE = int;
+
+enum : int
+{
+    Ndis802_11RadioStatusOn                  = 0x00000000,
+    Ndis802_11RadioStatusHardwareOff         = 0x00000001,
+    Ndis802_11RadioStatusSoftwareOff         = 0x00000002,
+    Ndis802_11RadioStatusHardwareSoftwareOff = 0x00000003,
+    Ndis802_11RadioStatusMax                 = 0x00000004,
+}
+alias NDIS_802_11_RADIO_STATUS = int;
+
+enum : int
+{
+    AUTHENTICATE = 0x00000001,
+    ENCRYPT      = 0x00000002,
+}
+alias OFFLOAD_OPERATION_E = int;
+
+enum : int
+{
+    OFFLOAD_IPSEC_CONF_NONE     = 0x00000000,
+    OFFLOAD_IPSEC_CONF_DES      = 0x00000001,
+    OFFLOAD_IPSEC_CONF_RESERVED = 0x00000002,
+    OFFLOAD_IPSEC_CONF_3_DES    = 0x00000003,
+    OFFLOAD_IPSEC_CONF_MAX      = 0x00000004,
+}
+alias OFFLOAD_CONF_ALGO = int;
+
+enum : int
+{
+    OFFLOAD_IPSEC_INTEGRITY_NONE = 0x00000000,
+    OFFLOAD_IPSEC_INTEGRITY_MD5  = 0x00000001,
+    OFFLOAD_IPSEC_INTEGRITY_SHA  = 0x00000002,
+    OFFLOAD_IPSEC_INTEGRITY_MAX  = 0x00000003,
+}
+alias OFFLOAD_INTEGRITY_ALGO = int;
+
+enum : int
+{
+    OFFLOAD_IPSEC_UDPESP_ENCAPTYPE_IKE   = 0x00000000,
+    OFFLOAD_IPSEC_UDPESP_ENCAPTYPE_OTHER = 0x00000001,
+}
+alias UDP_ENCAP_TYPE = int;
+
+enum : int
+{
+    NdisMedium802_3        = 0x00000000,
+    NdisMedium802_5        = 0x00000001,
+    NdisMediumFddi         = 0x00000002,
+    NdisMediumWan          = 0x00000003,
+    NdisMediumLocalTalk    = 0x00000004,
+    NdisMediumDix          = 0x00000005,
+    NdisMediumArcnetRaw    = 0x00000006,
+    NdisMediumArcnet878_2  = 0x00000007,
+    NdisMediumAtm          = 0x00000008,
+    NdisMediumWirelessWan  = 0x00000009,
+    NdisMediumIrda         = 0x0000000a,
+    NdisMediumBpc          = 0x0000000b,
+    NdisMediumCoWan        = 0x0000000c,
+    NdisMedium1394         = 0x0000000d,
+    NdisMediumInfiniBand   = 0x0000000e,
+    NdisMediumTunnel       = 0x0000000f,
+    NdisMediumNative802_11 = 0x00000010,
+    NdisMediumLoopback     = 0x00000011,
+    NdisMediumWiMAX        = 0x00000012,
+    NdisMediumIP           = 0x00000013,
+    NdisMediumMax          = 0x00000014,
+}
+alias NDIS_MEDIUM = int;
+
+enum : int
+{
+    NdisPhysicalMediumUnspecified    = 0x00000000,
+    NdisPhysicalMediumWirelessLan    = 0x00000001,
+    NdisPhysicalMediumCableModem     = 0x00000002,
+    NdisPhysicalMediumPhoneLine      = 0x00000003,
+    NdisPhysicalMediumPowerLine      = 0x00000004,
+    NdisPhysicalMediumDSL            = 0x00000005,
+    NdisPhysicalMediumFibreChannel   = 0x00000006,
+    NdisPhysicalMedium1394           = 0x00000007,
+    NdisPhysicalMediumWirelessWan    = 0x00000008,
+    NdisPhysicalMediumNative802_11   = 0x00000009,
+    NdisPhysicalMediumBluetooth      = 0x0000000a,
+    NdisPhysicalMediumInfiniband     = 0x0000000b,
+    NdisPhysicalMediumWiMax          = 0x0000000c,
+    NdisPhysicalMediumUWB            = 0x0000000d,
+    NdisPhysicalMedium802_3          = 0x0000000e,
+    NdisPhysicalMedium802_5          = 0x0000000f,
+    NdisPhysicalMediumIrda           = 0x00000010,
+    NdisPhysicalMediumWiredWAN       = 0x00000011,
+    NdisPhysicalMediumWiredCoWan     = 0x00000012,
+    NdisPhysicalMediumOther          = 0x00000013,
+    NdisPhysicalMediumNative802_15_4 = 0x00000014,
+    NdisPhysicalMediumMax            = 0x00000015,
+}
+alias NDIS_PHYSICAL_MEDIUM = int;
+
+enum : int
+{
+    NdisHardwareStatusReady        = 0x00000000,
+    NdisHardwareStatusInitializing = 0x00000001,
+    NdisHardwareStatusReset        = 0x00000002,
+    NdisHardwareStatusClosing      = 0x00000003,
+    NdisHardwareStatusNotReady     = 0x00000004,
+}
+alias NDIS_HARDWARE_STATUS = int;
+
+enum : int
+{
+    NdisDeviceStateUnspecified = 0x00000000,
+    NdisDeviceStateD0          = 0x00000001,
+    NdisDeviceStateD1          = 0x00000002,
+    NdisDeviceStateD2          = 0x00000003,
+    NdisDeviceStateD3          = 0x00000004,
+    NdisDeviceStateMaximum     = 0x00000005,
+}
+alias NDIS_DEVICE_POWER_STATE = int;
+
+enum : int
+{
+    NdisFddiTypeIsolated = 0x00000001,
+    NdisFddiTypeLocalA   = 0x00000002,
+    NdisFddiTypeLocalB   = 0x00000003,
+    NdisFddiTypeLocalAB  = 0x00000004,
+    NdisFddiTypeLocalS   = 0x00000005,
+    NdisFddiTypeWrapA    = 0x00000006,
+    NdisFddiTypeWrapB    = 0x00000007,
+    NdisFddiTypeWrapAB   = 0x00000008,
+    NdisFddiTypeWrapS    = 0x00000009,
+    NdisFddiTypeCWrapA   = 0x0000000a,
+    NdisFddiTypeCWrapB   = 0x0000000b,
+    NdisFddiTypeCWrapS   = 0x0000000c,
+    NdisFddiTypeThrough  = 0x0000000d,
+}
+alias NDIS_FDDI_ATTACHMENT_TYPE = int;
+
+enum : int
+{
+    NdisFddiRingIsolated          = 0x00000001,
+    NdisFddiRingNonOperational    = 0x00000002,
+    NdisFddiRingOperational       = 0x00000003,
+    NdisFddiRingDetect            = 0x00000004,
+    NdisFddiRingNonOperationalDup = 0x00000005,
+    NdisFddiRingOperationalDup    = 0x00000006,
+    NdisFddiRingDirected          = 0x00000007,
+    NdisFddiRingTrace             = 0x00000008,
+}
+alias NDIS_FDDI_RING_MGT_STATE = int;
+
+enum : int
+{
+    NdisFddiStateOff         = 0x00000001,
+    NdisFddiStateBreak       = 0x00000002,
+    NdisFddiStateTrace       = 0x00000003,
+    NdisFddiStateConnect     = 0x00000004,
+    NdisFddiStateNext        = 0x00000005,
+    NdisFddiStateSignal      = 0x00000006,
+    NdisFddiStateJoin        = 0x00000007,
+    NdisFddiStateVerify      = 0x00000008,
+    NdisFddiStateActive      = 0x00000009,
+    NdisFddiStateMaintenance = 0x0000000a,
+}
+alias NDIS_FDDI_LCONNECTION_STATE = int;
+
+enum : int
+{
+    NdisWanMediumHub        = 0x00000000,
+    NdisWanMediumX_25       = 0x00000001,
+    NdisWanMediumIsdn       = 0x00000002,
+    NdisWanMediumSerial     = 0x00000003,
+    NdisWanMediumFrameRelay = 0x00000004,
+    NdisWanMediumAtm        = 0x00000005,
+    NdisWanMediumSonet      = 0x00000006,
+    NdisWanMediumSW56K      = 0x00000007,
+    NdisWanMediumPPTP       = 0x00000008,
+    NdisWanMediumL2TP       = 0x00000009,
+    NdisWanMediumIrda       = 0x0000000a,
+    NdisWanMediumParallel   = 0x0000000b,
+    NdisWanMediumPppoe      = 0x0000000c,
+    NdisWanMediumSSTP       = 0x0000000d,
+    NdisWanMediumAgileVPN   = 0x0000000e,
+    NdisWanMediumGre        = 0x0000000f,
+    NdisWanMediumSubTypeMax = 0x00000010,
+}
+alias NDIS_WAN_MEDIUM_SUBTYPE = int;
+
+enum : int
+{
+    NdisWanHeaderNative   = 0x00000000,
+    NdisWanHeaderEthernet = 0x00000001,
+}
+alias NDIS_WAN_HEADER_FORMAT = int;
+
+enum : int
+{
+    NdisWanRaw          = 0x00000000,
+    NdisWanErrorControl = 0x00000001,
+    NdisWanReliable     = 0x00000002,
+}
+alias NDIS_WAN_QUALITY = int;
+
+enum : int
+{
+    NdisRingStateOpened      = 0x00000001,
+    NdisRingStateClosed      = 0x00000002,
+    NdisRingStateOpening     = 0x00000003,
+    NdisRingStateClosing     = 0x00000004,
+    NdisRingStateOpenFailure = 0x00000005,
+    NdisRingStateRingFailure = 0x00000006,
+}
+alias NDIS_802_5_RING_STATE = int;
+
+enum : int
+{
+    NdisMediaStateConnected    = 0x00000000,
+    NdisMediaStateDisconnected = 0x00000001,
+}
+alias NDIS_MEDIA_STATE = int;
+
+enum : int
+{
+    NdisPauseFunctionsUnsupported    = 0x00000000,
+    NdisPauseFunctionsSendOnly       = 0x00000001,
+    NdisPauseFunctionsReceiveOnly    = 0x00000002,
+    NdisPauseFunctionsSendAndReceive = 0x00000003,
+    NdisPauseFunctionsUnknown        = 0x00000004,
+}
+alias NDIS_SUPPORTED_PAUSE_FUNCTIONS = int;
+
+enum : int
+{
+    NdisPortTypeUndefined       = 0x00000000,
+    NdisPortTypeBridge          = 0x00000001,
+    NdisPortTypeRasConnection   = 0x00000002,
+    NdisPortType8021xSupplicant = 0x00000003,
+    NdisPortTypeMax             = 0x00000004,
+}
+alias NDIS_PORT_TYPE = int;
+
+enum : int
+{
+    NdisPortAuthorizationUnknown = 0x00000000,
+    NdisPortAuthorized           = 0x00000001,
+    NdisPortUnauthorized         = 0x00000002,
+    NdisPortReauthorizing        = 0x00000003,
+}
+alias NDIS_PORT_AUTHORIZATION_STATE = int;
+
+enum : int
+{
+    NdisPortControlStateUnknown      = 0x00000000,
+    NdisPortControlStateControlled   = 0x00000001,
+    NdisPortControlStateUncontrolled = 0x00000002,
+}
+alias NDIS_PORT_CONTROL_STATE = int;
+
+enum : int
+{
+    NdisPossibleNetworkChange         = 0x00000001,
+    NdisDefinitelyNetworkChange       = 0x00000002,
+    NdisNetworkChangeFromMediaConnect = 0x00000003,
+    NdisNetworkChangeMax              = 0x00000004,
+}
+alias NDIS_NETWORK_CHANGE_TYPE = int;
+
+enum : int
+{
+    NdisProcessorVendorUnknown      = 0x00000000,
+    NdisProcessorVendorGenuinIntel  = 0x00000001,
+    NdisProcessorVendorGenuineIntel = 0x00000001,
+    NdisProcessorVendorAuthenticAMD = 0x00000002,
+}
+alias NDIS_PROCESSOR_VENDOR = int;
+
+enum : int
+{
+    dot11_phy_type_unknown    = 0x00000000,
+    dot11_phy_type_any        = 0x00000000,
+    dot11_phy_type_fhss       = 0x00000001,
+    dot11_phy_type_dsss       = 0x00000002,
+    dot11_phy_type_irbaseband = 0x00000003,
+    dot11_phy_type_ofdm       = 0x00000004,
+    dot11_phy_type_hrdsss     = 0x00000005,
+    dot11_phy_type_erp        = 0x00000006,
+    dot11_phy_type_ht         = 0x00000007,
+    dot11_phy_type_vht        = 0x00000008,
+    dot11_phy_type_dmg        = 0x00000009,
+    dot11_phy_type_he         = 0x0000000a,
+    dot11_phy_type_IHV_start  = 0x80000000,
+    dot11_phy_type_IHV_end    = 0xffffffff,
+}
+alias DOT11_PHY_TYPE = int;
+
+enum : int
+{
+    dot11_offload_type_wep  = 0x00000001,
+    dot11_offload_type_auth = 0x00000002,
+}
+alias DOT11_OFFLOAD_TYPE = int;
+
+enum : int
+{
+    dot11_key_direction_both     = 0x00000001,
+    dot11_key_direction_inbound  = 0x00000002,
+    dot11_key_direction_outbound = 0x00000003,
+}
+alias DOT11_KEY_DIRECTION = int;
+
+enum : int
+{
+    dot11_scan_type_active  = 0x00000001,
+    dot11_scan_type_passive = 0x00000002,
+    dot11_scan_type_auto    = 0x00000003,
+    dot11_scan_type_forced  = 0x80000000,
+}
+alias DOT11_SCAN_TYPE = int;
+
+enum : int
+{
+    ch_description_type_logical          = 0x00000001,
+    ch_description_type_center_frequency = 0x00000002,
+    ch_description_type_phy_specific     = 0x00000003,
+}
+alias CH_DESCRIPTION_TYPE = int;
+
+enum : int
+{
+    dot11_update_ie_op_create_replace = 0x00000001,
+    dot11_update_ie_op_delete         = 0x00000002,
+}
+alias DOT11_UPDATE_IE_OP = int;
+
+enum : int
+{
+    dot11_reset_type_phy         = 0x00000001,
+    dot11_reset_type_mac         = 0x00000002,
+    dot11_reset_type_phy_and_mac = 0x00000003,
+}
+alias DOT11_RESET_TYPE = int;
+
+enum : int
+{
+    dot11_power_mode_unknown   = 0x00000000,
+    dot11_power_mode_active    = 0x00000001,
+    dot11_power_mode_powersave = 0x00000002,
+}
+alias DOT11_POWER_MODE = int;
+
+enum : int
+{
+    dot11_temp_type_unknown = 0x00000000,
+    dot11_temp_type_1       = 0x00000001,
+    dot11_temp_type_2       = 0x00000002,
+}
+alias DOT11_TEMP_TYPE = int;
+
+enum : int
+{
+    dot11_diversity_support_unknown      = 0x00000000,
+    dot11_diversity_support_fixedlist    = 0x00000001,
+    dot11_diversity_support_notsupported = 0x00000002,
+    dot11_diversity_support_dynamic      = 0x00000003,
+}
+alias DOT11_DIVERSITY_SUPPORT = int;
+
+enum : int
+{
+    dot11_hop_algo_current   = 0x00000000,
+    dot11_hop_algo_hop_index = 0x00000001,
+    dot11_hop_algo_hcc       = 0x00000002,
+}
+alias DOT11_HOP_ALGO_ADOPTED = int;
+
+enum : int
+{
+    dot11_AC_param_BE  = 0x00000000,
+    dot11_AC_param_BK  = 0x00000001,
+    dot11_AC_param_VI  = 0x00000002,
+    dot11_AC_param_VO  = 0x00000003,
+    dot11_AC_param_max = 0x00000004,
+}
+alias DOT11_AC_PARAM = int;
+
+enum : int
+{
+    DOT11_DIR_INBOUND  = 0x00000001,
+    DOT11_DIR_OUTBOUND = 0x00000002,
+    DOT11_DIR_BOTH     = 0x00000003,
+}
+alias DOT11_DIRECTION = int;
+
+enum : int
+{
+    dot11_assoc_state_zero           = 0x00000000,
+    dot11_assoc_state_unauth_unassoc = 0x00000001,
+    dot11_assoc_state_auth_unassoc   = 0x00000002,
+    dot11_assoc_state_auth_assoc     = 0x00000003,
+}
+alias DOT11_ASSOCIATION_STATE = int;
+
+enum : int
+{
+    DOT11_DS_CHANGED   = 0x00000000,
+    DOT11_DS_UNCHANGED = 0x00000001,
+    DOT11_DS_UNKNOWN   = 0x00000002,
+}
+alias DOT11_DS_INFO = int;
+
+enum : int
+{
+    DOT11_WPS_CONFIG_METHOD_NULL          = 0x00000000,
+    DOT11_WPS_CONFIG_METHOD_DISPLAY       = 0x00000008,
+    DOT11_WPS_CONFIG_METHOD_NFC_TAG       = 0x00000020,
+    DOT11_WPS_CONFIG_METHOD_NFC_INTERFACE = 0x00000040,
+    DOT11_WPS_CONFIG_METHOD_PUSHBUTTON    = 0x00000080,
+    DOT11_WPS_CONFIG_METHOD_KEYPAD        = 0x00000100,
+    DOT11_WPS_CONFIG_METHOD_WFDS_DEFAULT  = 0x00001000,
+}
+alias DOT11_WPS_CONFIG_METHOD = int;
+
+enum : int
+{
+    DOT11_WPS_PASSWORD_ID_DEFAULT                 = 0x00000000,
+    DOT11_WPS_PASSWORD_ID_USER_SPECIFIED          = 0x00000001,
+    DOT11_WPS_PASSWORD_ID_MACHINE_SPECIFIED       = 0x00000002,
+    DOT11_WPS_PASSWORD_ID_REKEY                   = 0x00000003,
+    DOT11_WPS_PASSWORD_ID_PUSHBUTTON              = 0x00000004,
+    DOT11_WPS_PASSWORD_ID_REGISTRAR_SPECIFIED     = 0x00000005,
+    DOT11_WPS_PASSWORD_ID_NFC_CONNECTION_HANDOVER = 0x00000007,
+    DOT11_WPS_PASSWORD_ID_WFD_SERVICES            = 0x00000008,
+    DOT11_WPS_PASSWORD_ID_OOB_RANGE_MIN           = 0x00000010,
+    DOT11_WPS_PASSWORD_ID_OOB_RANGE_MAX           = 0x0000ffff,
+}
+alias DOT11_WPS_DEVICE_PASSWORD_ID = int;
+
+enum : int
+{
+    dot11_ANQP_query_result_success                                        = 0x00000000,
+    dot11_ANQP_query_result_failure                                        = 0x00000001,
+    dot11_ANQP_query_result_timed_out                                      = 0x00000002,
+    dot11_ANQP_query_result_resources                                      = 0x00000003,
+    dot11_ANQP_query_result_advertisement_protocol_not_supported_on_remote = 0x00000004,
+    dot11_ANQP_query_result_gas_protocol_failure                           = 0x00000005,
+    dot11_ANQP_query_result_advertisement_server_not_responding            = 0x00000006,
+    dot11_ANQP_query_result_access_issues                                  = 0x00000007,
+}
+alias DOT11_ANQP_QUERY_RESULT = int;
+
+enum : int
+{
+    dot11_wfd_discover_type_scan_only            = 0x00000001,
+    dot11_wfd_discover_type_find_only            = 0x00000002,
+    dot11_wfd_discover_type_auto                 = 0x00000003,
+    dot11_wfd_discover_type_scan_social_channels = 0x00000004,
+    dot11_wfd_discover_type_forced               = 0x80000000,
+}
+alias DOT11_WFD_DISCOVER_TYPE = int;
+
+enum : int
+{
+    dot11_wfd_scan_type_active  = 0x00000001,
+    dot11_wfd_scan_type_passive = 0x00000002,
+    dot11_wfd_scan_type_auto    = 0x00000003,
+}
+alias DOT11_WFD_SCAN_TYPE = int;
+
+enum : int
+{
+    dot11_power_mode_reason_no_change            = 0x00000000,
+    dot11_power_mode_reason_noncompliant_AP      = 0x00000001,
+    dot11_power_mode_reason_legacy_WFD_device    = 0x00000002,
+    dot11_power_mode_reason_compliant_AP         = 0x00000003,
+    dot11_power_mode_reason_compliant_WFD_device = 0x00000004,
+    dot11_power_mode_reason_others               = 0x00000005,
+}
+alias DOT11_POWER_MODE_REASON = int;
+
+enum : int
+{
+    dot11_manufacturing_test_unknown           = 0x00000000,
+    dot11_manufacturing_test_self_start        = 0x00000001,
+    dot11_manufacturing_test_self_query_result = 0x00000002,
+    dot11_manufacturing_test_rx                = 0x00000003,
+    dot11_manufacturing_test_tx                = 0x00000004,
+    dot11_manufacturing_test_query_adc         = 0x00000005,
+    dot11_manufacturing_test_set_data          = 0x00000006,
+    dot11_manufacturing_test_query_data        = 0x00000007,
+    dot11_manufacturing_test_sleep             = 0x00000008,
+    dot11_manufacturing_test_awake             = 0x00000009,
+    dot11_manufacturing_test_IHV_start         = 0x80000000,
+    dot11_manufacturing_test_IHV_end           = 0xffffffff,
+}
+alias DOT11_MANUFACTURING_TEST_TYPE = int;
+
+enum : int
+{
+    DOT11_MANUFACTURING_SELF_TEST_TYPE_INTERFACE      = 0x00000001,
+    DOT11_MANUFACTURING_SELF_TEST_TYPE_RF_INTERFACE   = 0x00000002,
+    DOT11_MANUFACTURING_SELF_TEST_TYPE_BT_COEXISTENCE = 0x00000003,
+}
+alias DOT11_MANUFACTURING_SELF_TEST_TYPE = int;
+
+enum : int
+{
+    dot11_band_2p4g = 0x00000001,
+    dot11_band_4p9g = 0x00000002,
+    dot11_band_5g   = 0x00000003,
+}
+alias DOT11_BAND = int;
+
+enum : int
+{
+    dot11_manufacturing_callback_unknown            = 0x00000000,
+    dot11_manufacturing_callback_self_test_complete = 0x00000001,
+    dot11_manufacturing_callback_sleep_complete     = 0x00000002,
+    dot11_manufacturing_callback_IHV_start          = 0x80000000,
+    dot11_manufacturing_callback_IHV_end            = 0xffffffff,
+}
+alias DOT11_MANUFACTURING_CALLBACK_TYPE = int;
+
+enum : int
+{
+    wlan_connection_mode_profile            = 0x00000000,
+    wlan_connection_mode_temporary_profile  = 0x00000001,
+    wlan_connection_mode_discovery_secure   = 0x00000002,
+    wlan_connection_mode_discovery_unsecure = 0x00000003,
+    wlan_connection_mode_auto               = 0x00000004,
+    wlan_connection_mode_invalid            = 0x00000005,
+}
+alias WLAN_CONNECTION_MODE = int;
+
+enum : int
+{
+    wlan_interface_state_not_ready             = 0x00000000,
+    wlan_interface_state_connected             = 0x00000001,
+    wlan_interface_state_ad_hoc_network_formed = 0x00000002,
+    wlan_interface_state_disconnecting         = 0x00000003,
+    wlan_interface_state_disconnected          = 0x00000004,
+    wlan_interface_state_associating           = 0x00000005,
+    wlan_interface_state_discovering           = 0x00000006,
+    wlan_interface_state_authenticating        = 0x00000007,
+}
+alias WLAN_INTERFACE_STATE = int;
+
+enum : int
+{
+    wlan_adhoc_network_state_formed    = 0x00000000,
+    wlan_adhoc_network_state_connected = 0x00000001,
+}
+alias WLAN_ADHOC_NETWORK_STATE = int;
+
+enum : int
+{
+    dot11_radio_state_unknown = 0x00000000,
+    dot11_radio_state_on      = 0x00000001,
+    dot11_radio_state_off     = 0x00000002,
+}
+alias DOT11_RADIO_STATE = int;
+
+enum : int
+{
+    wlan_operational_state_unknown   = 0x00000000,
+    wlan_operational_state_off       = 0x00000001,
+    wlan_operational_state_on        = 0x00000002,
+    wlan_operational_state_going_off = 0x00000003,
+    wlan_operational_state_going_on  = 0x00000004,
+}
+alias WLAN_OPERATIONAL_STATE = int;
+
+enum : int
+{
+    wlan_interface_type_emulated_802_11 = 0x00000000,
+    wlan_interface_type_native_802_11   = 0x00000001,
+    wlan_interface_type_invalid         = 0x00000002,
+}
+alias WLAN_INTERFACE_TYPE = int;
+
+enum : int
+{
+    wlan_power_setting_no_saving      = 0x00000000,
+    wlan_power_setting_low_saving     = 0x00000001,
+    wlan_power_setting_medium_saving  = 0x00000002,
+    wlan_power_setting_maximum_saving = 0x00000003,
+    wlan_power_setting_invalid        = 0x00000004,
+}
+alias WLAN_POWER_SETTING = int;
+
+enum : int
+{
+    wlan_notification_acm_start                      = 0x00000000,
+    wlan_notification_acm_autoconf_enabled           = 0x00000001,
+    wlan_notification_acm_autoconf_disabled          = 0x00000002,
+    wlan_notification_acm_background_scan_enabled    = 0x00000003,
+    wlan_notification_acm_background_scan_disabled   = 0x00000004,
+    wlan_notification_acm_bss_type_change            = 0x00000005,
+    wlan_notification_acm_power_setting_change       = 0x00000006,
+    wlan_notification_acm_scan_complete              = 0x00000007,
+    wlan_notification_acm_scan_fail                  = 0x00000008,
+    wlan_notification_acm_connection_start           = 0x00000009,
+    wlan_notification_acm_connection_complete        = 0x0000000a,
+    wlan_notification_acm_connection_attempt_fail    = 0x0000000b,
+    wlan_notification_acm_filter_list_change         = 0x0000000c,
+    wlan_notification_acm_interface_arrival          = 0x0000000d,
+    wlan_notification_acm_interface_removal          = 0x0000000e,
+    wlan_notification_acm_profile_change             = 0x0000000f,
+    wlan_notification_acm_profile_name_change        = 0x00000010,
+    wlan_notification_acm_profiles_exhausted         = 0x00000011,
+    wlan_notification_acm_network_not_available      = 0x00000012,
+    wlan_notification_acm_network_available          = 0x00000013,
+    wlan_notification_acm_disconnecting              = 0x00000014,
+    wlan_notification_acm_disconnected               = 0x00000015,
+    wlan_notification_acm_adhoc_network_state_change = 0x00000016,
+    wlan_notification_acm_profile_unblocked          = 0x00000017,
+    wlan_notification_acm_screen_power_change        = 0x00000018,
+    wlan_notification_acm_profile_blocked            = 0x00000019,
+    wlan_notification_acm_scan_list_refresh          = 0x0000001a,
+    wlan_notification_acm_operational_state_change   = 0x0000001b,
+    wlan_notification_acm_end                        = 0x0000001c,
+}
+alias WLAN_NOTIFICATION_ACM = int;
+
+enum : int
+{
+    wlan_notification_msm_start                         = 0x00000000,
+    wlan_notification_msm_associating                   = 0x00000001,
+    wlan_notification_msm_associated                    = 0x00000002,
+    wlan_notification_msm_authenticating                = 0x00000003,
+    wlan_notification_msm_connected                     = 0x00000004,
+    wlan_notification_msm_roaming_start                 = 0x00000005,
+    wlan_notification_msm_roaming_end                   = 0x00000006,
+    wlan_notification_msm_radio_state_change            = 0x00000007,
+    wlan_notification_msm_signal_quality_change         = 0x00000008,
+    wlan_notification_msm_disassociating                = 0x00000009,
+    wlan_notification_msm_disconnected                  = 0x0000000a,
+    wlan_notification_msm_peer_join                     = 0x0000000b,
+    wlan_notification_msm_peer_leave                    = 0x0000000c,
+    wlan_notification_msm_adapter_removal               = 0x0000000d,
+    wlan_notification_msm_adapter_operation_mode_change = 0x0000000e,
+    wlan_notification_msm_link_degraded                 = 0x0000000f,
+    wlan_notification_msm_link_improved                 = 0x00000010,
+    wlan_notification_msm_end                           = 0x00000011,
+}
+alias WLAN_NOTIFICATION_MSM = int;
+
+enum : int
+{
+    wlan_notification_security_start = 0x00000000,
+    wlan_notification_security_end   = 0x00000001,
+}
+alias WLAN_NOTIFICATION_SECURITY = int;
+
+enum : int
+{
+    wlan_opcode_value_type_query_only          = 0x00000000,
+    wlan_opcode_value_type_set_by_group_policy = 0x00000001,
+    wlan_opcode_value_type_set_by_user         = 0x00000002,
+    wlan_opcode_value_type_invalid             = 0x00000003,
+}
+alias WLAN_OPCODE_VALUE_TYPE = int;
+
+enum : int
+{
+    wlan_intf_opcode_autoconf_start                             = 0x00000000,
+    wlan_intf_opcode_autoconf_enabled                           = 0x00000001,
+    wlan_intf_opcode_background_scan_enabled                    = 0x00000002,
+    wlan_intf_opcode_media_streaming_mode                       = 0x00000003,
+    wlan_intf_opcode_radio_state                                = 0x00000004,
+    wlan_intf_opcode_bss_type                                   = 0x00000005,
+    wlan_intf_opcode_interface_state                            = 0x00000006,
+    wlan_intf_opcode_current_connection                         = 0x00000007,
+    wlan_intf_opcode_channel_number                             = 0x00000008,
+    wlan_intf_opcode_supported_infrastructure_auth_cipher_pairs = 0x00000009,
+    wlan_intf_opcode_supported_adhoc_auth_cipher_pairs          = 0x0000000a,
+    wlan_intf_opcode_supported_country_or_region_string_list    = 0x0000000b,
+    wlan_intf_opcode_current_operation_mode                     = 0x0000000c,
+    wlan_intf_opcode_supported_safe_mode                        = 0x0000000d,
+    wlan_intf_opcode_certified_safe_mode                        = 0x0000000e,
+    wlan_intf_opcode_hosted_network_capable                     = 0x0000000f,
+    wlan_intf_opcode_management_frame_protection_capable        = 0x00000010,
+    wlan_intf_opcode_autoconf_end                               = 0x0fffffff,
+    wlan_intf_opcode_msm_start                                  = 0x10000100,
+    wlan_intf_opcode_statistics                                 = 0x10000101,
+    wlan_intf_opcode_rssi                                       = 0x10000102,
+    wlan_intf_opcode_msm_end                                    = 0x1fffffff,
+    wlan_intf_opcode_security_start                             = 0x20010000,
+    wlan_intf_opcode_security_end                               = 0x2fffffff,
+    wlan_intf_opcode_ihv_start                                  = 0x30000000,
+    wlan_intf_opcode_ihv_end                                    = 0x3fffffff,
+}
+alias WLAN_INTF_OPCODE = int;
+
+enum : int
+{
+    wlan_autoconf_opcode_start                                     = 0x00000000,
+    wlan_autoconf_opcode_show_denied_networks                      = 0x00000001,
+    wlan_autoconf_opcode_power_setting                             = 0x00000002,
+    wlan_autoconf_opcode_only_use_gp_profiles_for_allowed_networks = 0x00000003,
+    wlan_autoconf_opcode_allow_explicit_creds                      = 0x00000004,
+    wlan_autoconf_opcode_block_period                              = 0x00000005,
+    wlan_autoconf_opcode_allow_virtual_station_extensibility       = 0x00000006,
+    wlan_autoconf_opcode_end                                       = 0x00000007,
+}
+alias WLAN_AUTOCONF_OPCODE = int;
+
+enum : int
+{
+    wlan_ihv_control_type_service = 0x00000000,
+    wlan_ihv_control_type_driver  = 0x00000001,
+}
+alias WLAN_IHV_CONTROL_TYPE = int;
+
+enum : int
+{
+    wlan_filter_list_type_gp_permit   = 0x00000000,
+    wlan_filter_list_type_gp_deny     = 0x00000001,
+    wlan_filter_list_type_user_permit = 0x00000002,
+    wlan_filter_list_type_user_deny   = 0x00000003,
+}
+alias WLAN_FILTER_LIST_TYPE = int;
+
+enum : int
+{
+    wlan_secure_permit_list                    = 0x00000000,
+    wlan_secure_deny_list                      = 0x00000001,
+    wlan_secure_ac_enabled                     = 0x00000002,
+    wlan_secure_bc_scan_enabled                = 0x00000003,
+    wlan_secure_bss_type                       = 0x00000004,
+    wlan_secure_show_denied                    = 0x00000005,
+    wlan_secure_interface_properties           = 0x00000006,
+    wlan_secure_ihv_control                    = 0x00000007,
+    wlan_secure_all_user_profiles_order        = 0x00000008,
+    wlan_secure_add_new_all_user_profiles      = 0x00000009,
+    wlan_secure_add_new_per_user_profiles      = 0x0000000a,
+    wlan_secure_media_streaming_mode_enabled   = 0x0000000b,
+    wlan_secure_current_operation_mode         = 0x0000000c,
+    wlan_secure_get_plaintext_key              = 0x0000000d,
+    wlan_secure_hosted_network_elevated_access = 0x0000000e,
+    wlan_secure_virtual_station_extensibility  = 0x0000000f,
+    wlan_secure_wfd_elevated_access            = 0x00000010,
+    WLAN_SECURABLE_OBJECT_COUNT                = 0x00000011,
+}
+alias WLAN_SECURABLE_OBJECT = int;
+
+enum : int
+{
+    WFD_ROLE_TYPE_NONE        = 0x00000000,
+    WFD_ROLE_TYPE_DEVICE      = 0x00000001,
+    WFD_ROLE_TYPE_GROUP_OWNER = 0x00000002,
+    WFD_ROLE_TYPE_CLIENT      = 0x00000004,
+    WFD_ROLE_TYPE_MAX         = 0x00000005,
+}
+alias WFD_ROLE_TYPE = int;
+
+enum : int
+{
+    WLConnectionPage = 0x00000000,
+    WLSecurityPage   = 0x00000001,
+    WLAdvPage        = 0x00000002,
+}
+alias WL_DISPLAY_PAGES = int;
+
+enum : int
+{
+    wlan_hosted_network_unavailable = 0x00000000,
+    wlan_hosted_network_idle        = 0x00000001,
+    wlan_hosted_network_active      = 0x00000002,
+}
+alias WLAN_HOSTED_NETWORK_STATE = int;
+
+enum : int
+{
+    wlan_hosted_network_reason_success                              = 0x00000000,
+    wlan_hosted_network_reason_unspecified                          = 0x00000001,
+    wlan_hosted_network_reason_bad_parameters                       = 0x00000002,
+    wlan_hosted_network_reason_service_shutting_down                = 0x00000003,
+    wlan_hosted_network_reason_insufficient_resources               = 0x00000004,
+    wlan_hosted_network_reason_elevation_required                   = 0x00000005,
+    wlan_hosted_network_reason_read_only                            = 0x00000006,
+    wlan_hosted_network_reason_persistence_failed                   = 0x00000007,
+    wlan_hosted_network_reason_crypt_error                          = 0x00000008,
+    wlan_hosted_network_reason_impersonation                        = 0x00000009,
+    wlan_hosted_network_reason_stop_before_start                    = 0x0000000a,
+    wlan_hosted_network_reason_interface_available                  = 0x0000000b,
+    wlan_hosted_network_reason_interface_unavailable                = 0x0000000c,
+    wlan_hosted_network_reason_miniport_stopped                     = 0x0000000d,
+    wlan_hosted_network_reason_miniport_started                     = 0x0000000e,
+    wlan_hosted_network_reason_incompatible_connection_started      = 0x0000000f,
+    wlan_hosted_network_reason_incompatible_connection_stopped      = 0x00000010,
+    wlan_hosted_network_reason_user_action                          = 0x00000011,
+    wlan_hosted_network_reason_client_abort                         = 0x00000012,
+    wlan_hosted_network_reason_ap_start_failed                      = 0x00000013,
+    wlan_hosted_network_reason_peer_arrived                         = 0x00000014,
+    wlan_hosted_network_reason_peer_departed                        = 0x00000015,
+    wlan_hosted_network_reason_peer_timeout                         = 0x00000016,
+    wlan_hosted_network_reason_gp_denied                            = 0x00000017,
+    wlan_hosted_network_reason_service_unavailable                  = 0x00000018,
+    wlan_hosted_network_reason_device_change                        = 0x00000019,
+    wlan_hosted_network_reason_properties_change                    = 0x0000001a,
+    wlan_hosted_network_reason_virtual_station_blocking_use         = 0x0000001b,
+    wlan_hosted_network_reason_service_available_on_virtual_station = 0x0000001c,
+}
+alias WLAN_HOSTED_NETWORK_REASON = int;
+
+enum : int
+{
+    wlan_hosted_network_peer_state_invalid       = 0x00000000,
+    wlan_hosted_network_peer_state_authenticated = 0x00000001,
+}
+alias WLAN_HOSTED_NETWORK_PEER_AUTH_STATE = int;
+
+enum : int
+{
+    wlan_hosted_network_state_change       = 0x00001000,
+    wlan_hosted_network_peer_state_change  = 0x00001001,
+    wlan_hosted_network_radio_state_change = 0x00001002,
+}
+alias WLAN_HOSTED_NETWORK_NOTIFICATION_CODE = int;
+
+enum : int
+{
+    wlan_hosted_network_opcode_connection_settings = 0x00000000,
+    wlan_hosted_network_opcode_security_settings   = 0x00000001,
+    wlan_hosted_network_opcode_station_profile     = 0x00000002,
+    wlan_hosted_network_opcode_enable              = 0x00000003,
+}
+alias WLAN_HOSTED_NETWORK_OPCODE = int;
+
+enum : int
+{
+    OneXAuthIdentityNone         = 0x00000000,
+    OneXAuthIdentityMachine      = 0x00000001,
+    OneXAuthIdentityUser         = 0x00000002,
+    OneXAuthIdentityExplicitUser = 0x00000003,
+    OneXAuthIdentityGuest        = 0x00000004,
+    OneXAuthIdentityInvalid      = 0x00000005,
+}
+alias ONEX_AUTH_IDENTITY = int;
+
+enum : int
+{
+    OneXAuthNotStarted           = 0x00000000,
+    OneXAuthInProgress           = 0x00000001,
+    OneXAuthNoAuthenticatorFound = 0x00000002,
+    OneXAuthSuccess              = 0x00000003,
+    OneXAuthFailure              = 0x00000004,
+    OneXAuthInvalid              = 0x00000005,
+}
+alias ONEX_AUTH_STATUS = int;
+
+enum : int
+{
+    ONEX_REASON_CODE_SUCCESS                       = 0x00000000,
+    ONEX_REASON_START                              = 0x00050000,
+    ONEX_UNABLE_TO_IDENTIFY_USER                   = 0x00050001,
+    ONEX_IDENTITY_NOT_FOUND                        = 0x00050002,
+    ONEX_UI_DISABLED                               = 0x00050003,
+    ONEX_UI_FAILURE                                = 0x00050004,
+    ONEX_EAP_FAILURE_RECEIVED                      = 0x00050005,
+    ONEX_AUTHENTICATOR_NO_LONGER_PRESENT           = 0x00050006,
+    ONEX_NO_RESPONSE_TO_IDENTITY                   = 0x00050007,
+    ONEX_PROFILE_VERSION_NOT_SUPPORTED             = 0x00050008,
+    ONEX_PROFILE_INVALID_LENGTH                    = 0x00050009,
+    ONEX_PROFILE_DISALLOWED_EAP_TYPE               = 0x0005000a,
+    ONEX_PROFILE_INVALID_EAP_TYPE_OR_FLAG          = 0x0005000b,
+    ONEX_PROFILE_INVALID_ONEX_FLAGS                = 0x0005000c,
+    ONEX_PROFILE_INVALID_TIMER_VALUE               = 0x0005000d,
+    ONEX_PROFILE_INVALID_SUPPLICANT_MODE           = 0x0005000e,
+    ONEX_PROFILE_INVALID_AUTH_MODE                 = 0x0005000f,
+    ONEX_PROFILE_INVALID_EAP_CONNECTION_PROPERTIES = 0x00050010,
+    ONEX_UI_CANCELLED                              = 0x00050011,
+    ONEX_PROFILE_INVALID_EXPLICIT_CREDENTIALS      = 0x00050012,
+    ONEX_PROFILE_EXPIRED_EXPLICIT_CREDENTIALS      = 0x00050013,
+    ONEX_UI_NOT_PERMITTED                          = 0x00050014,
+}
+alias ONEX_REASON_CODE = int;
+
+enum : int
+{
+    OneXPublicNotificationBase        = 0x00000000,
+    OneXNotificationTypeResultUpdate  = 0x00000001,
+    OneXNotificationTypeAuthRestarted = 0x00000002,
+    OneXNotificationTypeEventInvalid  = 0x00000003,
+    OneXNumNotifications              = 0x00000003,
+}
+alias ONEX_NOTIFICATION_TYPE = int;
+
+enum : int
+{
+    OneXRestartReasonPeerInitiated            = 0x00000000,
+    OneXRestartReasonMsmInitiated             = 0x00000001,
+    OneXRestartReasonOneXHeldStateTimeout     = 0x00000002,
+    OneXRestartReasonOneXAuthTimeout          = 0x00000003,
+    OneXRestartReasonOneXConfigurationChanged = 0x00000004,
+    OneXRestartReasonOneXUserChanged          = 0x00000005,
+    OneXRestartReasonQuarantineStateChanged   = 0x00000006,
+    OneXRestartReasonAltCredsTrial            = 0x00000007,
+    OneXRestartReasonInvalid                  = 0x00000008,
+}
+alias ONEX_AUTH_RESTART_REASON = int;
+
+enum : int
+{
+    OneXEapMethodBackendSupportUnknown = 0x00000000,
+    OneXEapMethodBackendSupported      = 0x00000001,
+    OneXEapMethodBackendUnsupported    = 0x00000002,
+}
+alias ONEX_EAP_METHOD_BACKEND_SUPPORT = int;
+
+enum : int
+{
+    DOT11_ADHOC_CIPHER_ALGO_INVALID = 0xffffffff,
+    DOT11_ADHOC_CIPHER_ALGO_NONE    = 0x00000000,
+    DOT11_ADHOC_CIPHER_ALGO_CCMP    = 0x00000004,
+    DOT11_ADHOC_CIPHER_ALGO_WEP     = 0x00000101,
+}
+alias DOT11_ADHOC_CIPHER_ALGORITHM = int;
+
+enum : int
+{
+    DOT11_ADHOC_AUTH_ALGO_INVALID    = 0xffffffff,
+    DOT11_ADHOC_AUTH_ALGO_80211_OPEN = 0x00000001,
+    DOT11_ADHOC_AUTH_ALGO_RSNA_PSK   = 0x00000007,
+}
+alias DOT11_ADHOC_AUTH_ALGORITHM = int;
+
+enum : int
+{
+    DOT11_ADHOC_NETWORK_CONNECTION_STATUS_INVALID      = 0x00000000,
+    DOT11_ADHOC_NETWORK_CONNECTION_STATUS_DISCONNECTED = 0x0000000b,
+    DOT11_ADHOC_NETWORK_CONNECTION_STATUS_CONNECTING   = 0x0000000c,
+    DOT11_ADHOC_NETWORK_CONNECTION_STATUS_CONNECTED    = 0x0000000d,
+    DOT11_ADHOC_NETWORK_CONNECTION_STATUS_FORMED       = 0x0000000e,
+}
+alias DOT11_ADHOC_NETWORK_CONNECTION_STATUS = int;
+
+enum : int
+{
+    DOT11_ADHOC_CONNECT_FAIL_DOMAIN_MISMATCH     = 0x00000000,
+    DOT11_ADHOC_CONNECT_FAIL_PASSPHRASE_MISMATCH = 0x00000001,
+    DOT11_ADHOC_CONNECT_FAIL_OTHER               = 0x00000002,
+}
+alias DOT11_ADHOC_CONNECT_FAIL_REASON = int;
+
+// Callbacks
+
+alias WLAN_NOTIFICATION_CALLBACK = void function(L2_NOTIFICATION_DATA* param0, void* param1);
+alias WFD_OPEN_SESSION_COMPLETE_CALLBACK = void function(HANDLE hSessionHandle, void* pvContext, 
+                                                         GUID guidSessionInterface, uint dwError, uint dwReasonCode);
+
+// Structs
+
 
 struct DOT11_SSID
 {
-    uint uSSIDLength;
-    ubyte ucSSID;
-}
-
-enum DOT11_AUTH_ALGORITHM
-{
-    DOT11_AUTH_ALGO_80211_OPEN = 1,
-    DOT11_AUTH_ALGO_80211_SHARED_KEY = 2,
-    DOT11_AUTH_ALGO_WPA = 3,
-    DOT11_AUTH_ALGO_WPA_PSK = 4,
-    DOT11_AUTH_ALGO_WPA_NONE = 5,
-    DOT11_AUTH_ALGO_RSNA = 6,
-    DOT11_AUTH_ALGO_RSNA_PSK = 7,
-    DOT11_AUTH_ALGO_WPA3 = 8,
-    DOT11_AUTH_ALGO_WPA3_SAE = 9,
-    DOT11_AUTH_ALGO_OWE = 10,
-    DOT11_AUTH_ALGO_IHV_START = -2147483648,
-    DOT11_AUTH_ALGO_IHV_END = -1,
-}
-
-enum DOT11_CIPHER_ALGORITHM
-{
-    DOT11_CIPHER_ALGO_NONE = 0,
-    DOT11_CIPHER_ALGO_WEP40 = 1,
-    DOT11_CIPHER_ALGO_TKIP = 2,
-    DOT11_CIPHER_ALGO_CCMP = 4,
-    DOT11_CIPHER_ALGO_WEP104 = 5,
-    DOT11_CIPHER_ALGO_BIP = 6,
-    DOT11_CIPHER_ALGO_GCMP = 8,
-    DOT11_CIPHER_ALGO_GCMP_256 = 9,
-    DOT11_CIPHER_ALGO_CCMP_256 = 10,
-    DOT11_CIPHER_ALGO_BIP_GMAC_128 = 11,
-    DOT11_CIPHER_ALGO_BIP_GMAC_256 = 12,
-    DOT11_CIPHER_ALGO_BIP_CMAC_256 = 13,
-    DOT11_CIPHER_ALGO_WPA_USE_GROUP = 256,
-    DOT11_CIPHER_ALGO_RSN_USE_GROUP = 256,
-    DOT11_CIPHER_ALGO_WEP = 257,
-    DOT11_CIPHER_ALGO_IHV_START = -2147483648,
-    DOT11_CIPHER_ALGO_IHV_END = -1,
+    uint      uSSIDLength;
+    ubyte[32] ucSSID;
 }
 
 struct DOT11_AUTH_CIPHER_PAIR
@@ -68,8 +1144,8 @@ struct DOT11_AUTH_CIPHER_PAIR
 
 struct DOT11_OI
 {
-    ushort OILength;
-    ubyte OI;
+    ushort   OILength;
+    ubyte[5] OI;
 }
 
 struct DOT11_ACCESSNETWORKOPTIONS
@@ -89,119 +1165,87 @@ struct DOT11_VENUEINFO
 
 struct NDIS_STATISTICS_VALUE
 {
-    uint Oid;
-    uint DataLength;
-    ubyte Data;
+    uint     Oid;
+    uint     DataLength;
+    ubyte[1] Data;
 }
 
 struct NDIS_STATISTICS_VALUE_EX
 {
-    uint Oid;
-    uint DataLength;
-    uint Length;
-    ubyte Data;
+    uint     Oid;
+    uint     DataLength;
+    uint     Length;
+    ubyte[1] Data;
 }
 
 struct NDIS_VAR_DATA_DESC
 {
     ushort Length;
     ushort MaximumLength;
-    uint Offset;
+    size_t Offset;
 }
 
 struct NDIS_OBJECT_HEADER
 {
-    ubyte Type;
-    ubyte Revision;
+    ubyte  Type;
+    ubyte  Revision;
     ushort Size;
-}
-
-enum NDIS_REQUEST_TYPE
-{
-    NdisRequestQueryInformation = 0,
-    NdisRequestSetInformation = 1,
-    NdisRequestQueryStatistics = 2,
-    NdisRequestOpen = 3,
-    NdisRequestClose = 4,
-    NdisRequestSend = 5,
-    NdisRequestTransferData = 6,
-    NdisRequestReset = 7,
-    NdisRequestGeneric1 = 8,
-    NdisRequestGeneric2 = 9,
-    NdisRequestGeneric3 = 10,
-    NdisRequestGeneric4 = 11,
 }
 
 struct NDIS_STATISTICS_INFO
 {
     NDIS_OBJECT_HEADER Header;
-    uint SupportedStatistics;
-    ulong ifInDiscards;
-    ulong ifInErrors;
-    ulong ifHCInOctets;
-    ulong ifHCInUcastPkts;
-    ulong ifHCInMulticastPkts;
-    ulong ifHCInBroadcastPkts;
-    ulong ifHCOutOctets;
-    ulong ifHCOutUcastPkts;
-    ulong ifHCOutMulticastPkts;
-    ulong ifHCOutBroadcastPkts;
-    ulong ifOutErrors;
-    ulong ifOutDiscards;
-    ulong ifHCInUcastOctets;
-    ulong ifHCInMulticastOctets;
-    ulong ifHCInBroadcastOctets;
-    ulong ifHCOutUcastOctets;
-    ulong ifHCOutMulticastOctets;
-    ulong ifHCOutBroadcastOctets;
-}
-
-enum NDIS_INTERRUPT_MODERATION
-{
-    NdisInterruptModerationUnknown = 0,
-    NdisInterruptModerationNotSupported = 1,
-    NdisInterruptModerationEnabled = 2,
-    NdisInterruptModerationDisabled = 3,
+    uint               SupportedStatistics;
+    ulong              ifInDiscards;
+    ulong              ifInErrors;
+    ulong              ifHCInOctets;
+    ulong              ifHCInUcastPkts;
+    ulong              ifHCInMulticastPkts;
+    ulong              ifHCInBroadcastPkts;
+    ulong              ifHCOutOctets;
+    ulong              ifHCOutUcastPkts;
+    ulong              ifHCOutMulticastPkts;
+    ulong              ifHCOutBroadcastPkts;
+    ulong              ifOutErrors;
+    ulong              ifOutDiscards;
+    ulong              ifHCInUcastOctets;
+    ulong              ifHCInMulticastOctets;
+    ulong              ifHCInBroadcastOctets;
+    ulong              ifHCOutUcastOctets;
+    ulong              ifHCOutMulticastOctets;
+    ulong              ifHCOutBroadcastOctets;
 }
 
 struct NDIS_INTERRUPT_MODERATION_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
-    uint Flags;
+    uint               Flags;
     NDIS_INTERRUPT_MODERATION InterruptModeration;
 }
 
 struct NDIS_TIMEOUT_DPC_REQUEST_CAPABILITIES
 {
     NDIS_OBJECT_HEADER Header;
-    uint Flags;
-    uint TimeoutArrayLength;
-    uint TimeoutArray;
+    uint               Flags;
+    uint               TimeoutArrayLength;
+    uint[1]            TimeoutArray;
 }
 
 struct NDIS_PCI_DEVICE_CUSTOM_PROPERTIES
 {
     NDIS_OBJECT_HEADER Header;
-    uint DeviceType;
-    uint CurrentSpeedAndMode;
-    uint CurrentPayloadSize;
-    uint MaxPayloadSize;
-    uint MaxReadRequestSize;
-    uint CurrentLinkSpeed;
-    uint CurrentLinkWidth;
-    uint MaxLinkSpeed;
-    uint MaxLinkWidth;
-    uint PciExpressVersion;
-    uint InterruptType;
-    uint MaxInterruptMessages;
-}
-
-enum NDIS_802_11_STATUS_TYPE
-{
-    Ndis802_11StatusType_Authentication = 0,
-    Ndis802_11StatusType_MediaStreamMode = 1,
-    Ndis802_11StatusType_PMKID_CandidateList = 2,
-    Ndis802_11StatusTypeMax = 3,
+    uint               DeviceType;
+    uint               CurrentSpeedAndMode;
+    uint               CurrentPayloadSize;
+    uint               MaxPayloadSize;
+    uint               MaxReadRequestSize;
+    uint               CurrentLinkSpeed;
+    uint               CurrentLinkWidth;
+    uint               MaxLinkSpeed;
+    uint               MaxLinkWidth;
+    uint               PciExpressVersion;
+    uint               InterruptType;
+    uint               MaxInterruptMessages;
 }
 
 struct NDIS_802_11_STATUS_INDICATION
@@ -211,46 +1255,28 @@ struct NDIS_802_11_STATUS_INDICATION
 
 struct NDIS_802_11_AUTHENTICATION_REQUEST
 {
-    uint Length;
-    ubyte Bssid;
-    uint Flags;
+    uint     Length;
+    ubyte[6] Bssid;
+    uint     Flags;
 }
 
 struct PMKID_CANDIDATE
 {
-    ubyte BSSID;
-    uint Flags;
+    ubyte[6] BSSID;
+    uint     Flags;
 }
 
 struct NDIS_802_11_PMKID_CANDIDATE_LIST
 {
-    uint Version;
-    uint NumCandidates;
-    PMKID_CANDIDATE CandidateList;
-}
-
-enum NDIS_802_11_NETWORK_TYPE
-{
-    Ndis802_11FH = 0,
-    Ndis802_11DS = 1,
-    Ndis802_11OFDM5 = 2,
-    Ndis802_11OFDM24 = 3,
-    Ndis802_11Automode = 4,
-    Ndis802_11NetworkTypeMax = 5,
+    uint               Version;
+    uint               NumCandidates;
+    PMKID_CANDIDATE[1] CandidateList;
 }
 
 struct NDIS_802_11_NETWORK_TYPE_LIST
 {
     uint NumberOfItems;
-    NDIS_802_11_NETWORK_TYPE NetworkType;
-}
-
-enum NDIS_802_11_POWER_MODE
-{
-    Ndis802_11PowerModeCAM = 0,
-    Ndis802_11PowerModeMAX_PSP = 1,
-    Ndis802_11PowerModeFast_PSP = 2,
-    Ndis802_11PowerModeMax = 3,
+    NDIS_802_11_NETWORK_TYPE[1] NetworkType;
 }
 
 struct NDIS_802_11_CONFIGURATION_FH
@@ -272,7 +1298,7 @@ struct NDIS_802_11_CONFIGURATION
 
 struct NDIS_802_11_STATISTICS
 {
-    uint Length;
+    uint          Length;
     LARGE_INTEGER TransmittedFragmentCount;
     LARGE_INTEGER MulticastTransmittedFrameCount;
     LARGE_INTEGER FailedCount;
@@ -301,146 +1327,96 @@ struct NDIS_802_11_STATISTICS
 
 struct NDIS_802_11_KEY
 {
-    uint Length;
-    uint KeyIndex;
-    uint KeyLength;
-    ubyte BSSID;
-    ulong KeyRSC;
-    ubyte KeyMaterial;
+    uint     Length;
+    uint     KeyIndex;
+    uint     KeyLength;
+    ubyte[6] BSSID;
+    ulong    KeyRSC;
+    ubyte[1] KeyMaterial;
 }
 
 struct NDIS_802_11_REMOVE_KEY
 {
-    uint Length;
-    uint KeyIndex;
-    ubyte BSSID;
+    uint     Length;
+    uint     KeyIndex;
+    ubyte[6] BSSID;
 }
 
 struct NDIS_802_11_WEP
 {
-    uint Length;
-    uint KeyIndex;
-    uint KeyLength;
-    ubyte KeyMaterial;
-}
-
-enum NDIS_802_11_NETWORK_INFRASTRUCTURE
-{
-    Ndis802_11IBSS = 0,
-    Ndis802_11Infrastructure = 1,
-    Ndis802_11AutoUnknown = 2,
-    Ndis802_11InfrastructureMax = 3,
-}
-
-enum NDIS_802_11_AUTHENTICATION_MODE
-{
-    Ndis802_11AuthModeOpen = 0,
-    Ndis802_11AuthModeShared = 1,
-    Ndis802_11AuthModeAutoSwitch = 2,
-    Ndis802_11AuthModeWPA = 3,
-    Ndis802_11AuthModeWPAPSK = 4,
-    Ndis802_11AuthModeWPANone = 5,
-    Ndis802_11AuthModeWPA2 = 6,
-    Ndis802_11AuthModeWPA2PSK = 7,
-    Ndis802_11AuthModeWPA3 = 8,
-    Ndis802_11AuthModeWPA3SAE = 9,
-    Ndis802_11AuthModeMax = 10,
+    uint     Length;
+    uint     KeyIndex;
+    uint     KeyLength;
+    ubyte[1] KeyMaterial;
 }
 
 struct NDIS_802_11_SSID
 {
-    uint SsidLength;
-    ubyte Ssid;
+    uint      SsidLength;
+    ubyte[32] Ssid;
 }
 
 struct NDIS_WLAN_BSSID
 {
-    uint Length;
-    ubyte MacAddress;
-    ubyte Reserved;
+    uint             Length;
+    ubyte[6]         MacAddress;
+    ubyte[2]         Reserved;
     NDIS_802_11_SSID Ssid;
-    uint Privacy;
-    int Rssi;
+    uint             Privacy;
+    int              Rssi;
     NDIS_802_11_NETWORK_TYPE NetworkTypeInUse;
     NDIS_802_11_CONFIGURATION Configuration;
     NDIS_802_11_NETWORK_INFRASTRUCTURE InfrastructureMode;
-    ubyte SupportedRates;
+    ubyte[8]         SupportedRates;
 }
 
 struct NDIS_802_11_BSSID_LIST
 {
-    uint NumberOfItems;
-    NDIS_WLAN_BSSID Bssid;
+    uint               NumberOfItems;
+    NDIS_WLAN_BSSID[1] Bssid;
 }
 
 struct NDIS_WLAN_BSSID_EX
 {
-    uint Length;
-    ubyte MacAddress;
-    ubyte Reserved;
+    uint             Length;
+    ubyte[6]         MacAddress;
+    ubyte[2]         Reserved;
     NDIS_802_11_SSID Ssid;
-    uint Privacy;
-    int Rssi;
+    uint             Privacy;
+    int              Rssi;
     NDIS_802_11_NETWORK_TYPE NetworkTypeInUse;
     NDIS_802_11_CONFIGURATION Configuration;
     NDIS_802_11_NETWORK_INFRASTRUCTURE InfrastructureMode;
-    ubyte SupportedRates;
-    uint IELength;
-    ubyte IEs;
+    ubyte[16]        SupportedRates;
+    uint             IELength;
+    ubyte[1]         IEs;
 }
 
 struct NDIS_802_11_BSSID_LIST_EX
 {
     uint NumberOfItems;
-    NDIS_WLAN_BSSID_EX Bssid;
+    NDIS_WLAN_BSSID_EX[1] Bssid;
 }
 
 struct NDIS_802_11_FIXED_IEs
 {
-    ubyte Timestamp;
-    ushort BeaconInterval;
-    ushort Capabilities;
+    ubyte[8] Timestamp;
+    ushort   BeaconInterval;
+    ushort   Capabilities;
 }
 
 struct NDIS_802_11_VARIABLE_IEs
 {
-    ubyte ElementID;
-    ubyte Length;
-    ubyte data;
-}
-
-enum NDIS_802_11_PRIVACY_FILTER
-{
-    Ndis802_11PrivFilterAcceptAll = 0,
-    Ndis802_11PrivFilter8021xWEP = 1,
-}
-
-enum NDIS_802_11_WEP_STATUS
-{
-    Ndis802_11WEPEnabled = 0,
-    Ndis802_11Encryption1Enabled = 0,
-    Ndis802_11WEPDisabled = 1,
-    Ndis802_11EncryptionDisabled = 1,
-    Ndis802_11WEPKeyAbsent = 2,
-    Ndis802_11Encryption1KeyAbsent = 2,
-    Ndis802_11WEPNotSupported = 3,
-    Ndis802_11EncryptionNotSupported = 3,
-    Ndis802_11Encryption2Enabled = 4,
-    Ndis802_11Encryption2KeyAbsent = 5,
-    Ndis802_11Encryption3Enabled = 6,
-    Ndis802_11Encryption3KeyAbsent = 7,
-}
-
-enum NDIS_802_11_RELOAD_DEFAULTS
-{
-    Ndis802_11ReloadWEPKeys = 0,
+    ubyte    ElementID;
+    ubyte    Length;
+    ubyte[1] data;
 }
 
 struct NDIS_802_11_AI_REQFI
 {
-    ushort Capabilities;
-    ushort ListenInterval;
-    ubyte CurrentAPAddress;
+    ushort   Capabilities;
+    ushort   ListenInterval;
+    ubyte[6] CurrentAPAddress;
 }
 
 struct NDIS_802_11_AI_RESFI
@@ -452,47 +1428,45 @@ struct NDIS_802_11_AI_RESFI
 
 struct NDIS_802_11_ASSOCIATION_INFORMATION
 {
-    uint Length;
-    ushort AvailableRequestFixedIEs;
+    uint                 Length;
+    ushort               AvailableRequestFixedIEs;
     NDIS_802_11_AI_REQFI RequestFixedIEs;
-    uint RequestIELength;
-    uint OffsetRequestIEs;
-    ushort AvailableResponseFixedIEs;
+    uint                 RequestIELength;
+    uint                 OffsetRequestIEs;
+    ushort               AvailableResponseFixedIEs;
     NDIS_802_11_AI_RESFI ResponseFixedIEs;
-    uint ResponseIELength;
-    uint OffsetResponseIEs;
+    uint                 ResponseIELength;
+    uint                 OffsetResponseIEs;
 }
 
 struct NDIS_802_11_AUTHENTICATION_EVENT
 {
     NDIS_802_11_STATUS_INDICATION Status;
-    NDIS_802_11_AUTHENTICATION_REQUEST Request;
+    NDIS_802_11_AUTHENTICATION_REQUEST[1] Request;
 }
 
 struct NDIS_802_11_TEST
 {
     uint Length;
     uint Type;
-    _Anonymous_e__Union Anonymous;
-}
-
-enum NDIS_802_11_MEDIA_STREAM_MODE
-{
-    Ndis802_11MediaStreamOff = 0,
-    Ndis802_11MediaStreamOn = 1,
+    union
+    {
+        NDIS_802_11_AUTHENTICATION_EVENT AuthenticationEvent;
+        int RssiTrigger;
+    }
 }
 
 struct BSSID_INFO
 {
-    ubyte BSSID;
-    ubyte PMKID;
+    ubyte[6]  BSSID;
+    ubyte[16] PMKID;
 }
 
 struct NDIS_802_11_PMKID
 {
-    uint Length;
-    uint BSSIDInfoCount;
-    BSSID_INFO BSSIDInfo;
+    uint          Length;
+    uint          BSSIDInfoCount;
+    BSSID_INFO[1] BSSIDInfo;
 }
 
 struct NDIS_802_11_AUTHENTICATION_ENCRYPTION
@@ -507,60 +1481,45 @@ struct NDIS_802_11_CAPABILITY
     uint Version;
     uint NoOfPMKIDs;
     uint NoOfAuthEncryptPairsSupported;
-    NDIS_802_11_AUTHENTICATION_ENCRYPTION AuthenticationEncryptionSupported;
+    NDIS_802_11_AUTHENTICATION_ENCRYPTION[1] AuthenticationEncryptionSupported;
 }
 
 struct NDIS_802_11_NON_BCAST_SSID_LIST
 {
-    uint NumberOfItems;
-    NDIS_802_11_SSID Non_Bcast_Ssid;
-}
-
-enum NDIS_802_11_RADIO_STATUS
-{
-    Ndis802_11RadioStatusOn = 0,
-    Ndis802_11RadioStatusHardwareOff = 1,
-    Ndis802_11RadioStatusSoftwareOff = 2,
-    Ndis802_11RadioStatusHardwareSoftwareOff = 3,
-    Ndis802_11RadioStatusMax = 4,
+    uint                NumberOfItems;
+    NDIS_802_11_SSID[1] Non_Bcast_Ssid;
 }
 
 struct NDIS_CO_DEVICE_PROFILE
 {
     NDIS_VAR_DATA_DESC DeviceDescription;
     NDIS_VAR_DATA_DESC DevSpecificInfo;
-    uint ulTAPISupplementaryPassThru;
-    uint ulAddressModes;
-    uint ulNumAddresses;
-    uint ulBearerModes;
-    uint ulMaxTxRate;
-    uint ulMinTxRate;
-    uint ulMaxRxRate;
-    uint ulMinRxRate;
-    uint ulMediaModes;
-    uint ulGenerateToneModes;
-    uint ulGenerateToneMaxNumFreq;
-    uint ulGenerateDigitModes;
-    uint ulMonitorToneMaxNumFreq;
-    uint ulMonitorToneMaxNumEntries;
-    uint ulMonitorDigitModes;
-    uint ulGatherDigitsMinTimeout;
-    uint ulGatherDigitsMaxTimeout;
-    uint ulDevCapFlags;
-    uint ulMaxNumActiveCalls;
-    uint ulAnswerMode;
-    uint ulUUIAcceptSize;
-    uint ulUUIAnswerSize;
-    uint ulUUIMakeCallSize;
-    uint ulUUIDropSize;
-    uint ulUUISendUserUserInfoSize;
-    uint ulUUICallInfoSize;
-}
-
-enum OFFLOAD_OPERATION_E
-{
-    AUTHENTICATE = 1,
-    ENCRYPT = 2,
+    uint               ulTAPISupplementaryPassThru;
+    uint               ulAddressModes;
+    uint               ulNumAddresses;
+    uint               ulBearerModes;
+    uint               ulMaxTxRate;
+    uint               ulMinTxRate;
+    uint               ulMaxRxRate;
+    uint               ulMinRxRate;
+    uint               ulMediaModes;
+    uint               ulGenerateToneModes;
+    uint               ulGenerateToneMaxNumFreq;
+    uint               ulGenerateDigitModes;
+    uint               ulMonitorToneMaxNumFreq;
+    uint               ulMonitorToneMaxNumEntries;
+    uint               ulMonitorDigitModes;
+    uint               ulGatherDigitsMinTimeout;
+    uint               ulGatherDigitsMaxTimeout;
+    uint               ulDevCapFlags;
+    uint               ulMaxNumActiveCalls;
+    uint               ulAnswerMode;
+    uint               ulUUIAcceptSize;
+    uint               ulUUIAnswerSize;
+    uint               ulUUIMakeCallSize;
+    uint               ulUUIDropSize;
+    uint               ulUUISendUserUserInfoSize;
+    uint               ulUUICallInfoSize;
 }
 
 struct OFFLOAD_ALGO_INFO
@@ -570,49 +1529,32 @@ struct OFFLOAD_ALGO_INFO
     uint algoRounds;
 }
 
-enum OFFLOAD_CONF_ALGO
-{
-    OFFLOAD_IPSEC_CONF_NONE = 0,
-    OFFLOAD_IPSEC_CONF_DES = 1,
-    OFFLOAD_IPSEC_CONF_RESERVED = 2,
-    OFFLOAD_IPSEC_CONF_3_DES = 3,
-    OFFLOAD_IPSEC_CONF_MAX = 4,
-}
-
-enum OFFLOAD_INTEGRITY_ALGO
-{
-    OFFLOAD_IPSEC_INTEGRITY_NONE = 0,
-    OFFLOAD_IPSEC_INTEGRITY_MD5 = 1,
-    OFFLOAD_IPSEC_INTEGRITY_SHA = 2,
-    OFFLOAD_IPSEC_INTEGRITY_MAX = 3,
-}
-
 struct OFFLOAD_SECURITY_ASSOCIATION
 {
     OFFLOAD_OPERATION_E Operation;
-    uint SPI;
-    OFFLOAD_ALGO_INFO IntegrityAlgo;
-    OFFLOAD_ALGO_INFO ConfAlgo;
-    OFFLOAD_ALGO_INFO Reserved;
+    uint                SPI;
+    OFFLOAD_ALGO_INFO   IntegrityAlgo;
+    OFFLOAD_ALGO_INFO   ConfAlgo;
+    OFFLOAD_ALGO_INFO   Reserved;
 }
 
 struct OFFLOAD_IPSEC_ADD_SA
 {
-    uint SrcAddr;
-    uint SrcMask;
-    uint DestAddr;
-    uint DestMask;
-    uint Protocol;
-    ushort SrcPort;
-    ushort DestPort;
-    uint SrcTunnelAddr;
-    uint DestTunnelAddr;
-    ushort Flags;
-    short NumSAs;
-    OFFLOAD_SECURITY_ASSOCIATION SecAssoc;
-    HANDLE OffloadHandle;
-    uint KeyLen;
-    ubyte KeyMat;
+    uint     SrcAddr;
+    uint     SrcMask;
+    uint     DestAddr;
+    uint     DestMask;
+    uint     Protocol;
+    ushort   SrcPort;
+    ushort   DestPort;
+    uint     SrcTunnelAddr;
+    uint     DestTunnelAddr;
+    ushort   Flags;
+    short    NumSAs;
+    OFFLOAD_SECURITY_ASSOCIATION[3] SecAssoc;
+    HANDLE   OffloadHandle;
+    uint     KeyLen;
+    ubyte[1] KeyMat;
 }
 
 struct OFFLOAD_IPSEC_DELETE_SA
@@ -620,94 +1562,37 @@ struct OFFLOAD_IPSEC_DELETE_SA
     HANDLE OffloadHandle;
 }
 
-enum UDP_ENCAP_TYPE
-{
-    OFFLOAD_IPSEC_UDPESP_ENCAPTYPE_IKE = 0,
-    OFFLOAD_IPSEC_UDPESP_ENCAPTYPE_OTHER = 1,
-}
-
 struct OFFLOAD_IPSEC_UDPESP_ENCAPTYPE_ENTRY
 {
     UDP_ENCAP_TYPE UdpEncapType;
-    ushort DstEncapPort;
+    ushort         DstEncapPort;
 }
 
 struct OFFLOAD_IPSEC_ADD_UDPESP_SA
 {
-    uint SrcAddr;
-    uint SrcMask;
-    uint DstAddr;
-    uint DstMask;
-    uint Protocol;
-    ushort SrcPort;
-    ushort DstPort;
-    uint SrcTunnelAddr;
-    uint DstTunnelAddr;
-    ushort Flags;
-    short NumSAs;
-    OFFLOAD_SECURITY_ASSOCIATION SecAssoc;
-    HANDLE OffloadHandle;
+    uint     SrcAddr;
+    uint     SrcMask;
+    uint     DstAddr;
+    uint     DstMask;
+    uint     Protocol;
+    ushort   SrcPort;
+    ushort   DstPort;
+    uint     SrcTunnelAddr;
+    uint     DstTunnelAddr;
+    ushort   Flags;
+    short    NumSAs;
+    OFFLOAD_SECURITY_ASSOCIATION[3] SecAssoc;
+    HANDLE   OffloadHandle;
     OFFLOAD_IPSEC_UDPESP_ENCAPTYPE_ENTRY EncapTypeEntry;
-    HANDLE EncapTypeEntryOffldHandle;
-    uint KeyLen;
-    ubyte KeyMat;
+    HANDLE   EncapTypeEntryOffldHandle;
+    uint     KeyLen;
+    ubyte[1] KeyMat;
 }
 
 struct OFFLOAD_IPSEC_DELETE_UDPESP_SA
 {
     HANDLE OffloadHandle;
     HANDLE EncapTypeEntryOffldHandle;
-}
-
-enum NDIS_MEDIUM
-{
-    NdisMedium802_3 = 0,
-    NdisMedium802_5 = 1,
-    NdisMediumFddi = 2,
-    NdisMediumWan = 3,
-    NdisMediumLocalTalk = 4,
-    NdisMediumDix = 5,
-    NdisMediumArcnetRaw = 6,
-    NdisMediumArcnet878_2 = 7,
-    NdisMediumAtm = 8,
-    NdisMediumWirelessWan = 9,
-    NdisMediumIrda = 10,
-    NdisMediumBpc = 11,
-    NdisMediumCoWan = 12,
-    NdisMedium1394 = 13,
-    NdisMediumInfiniBand = 14,
-    NdisMediumTunnel = 15,
-    NdisMediumNative802_11 = 16,
-    NdisMediumLoopback = 17,
-    NdisMediumWiMAX = 18,
-    NdisMediumIP = 19,
-    NdisMediumMax = 20,
-}
-
-enum NDIS_PHYSICAL_MEDIUM
-{
-    NdisPhysicalMediumUnspecified = 0,
-    NdisPhysicalMediumWirelessLan = 1,
-    NdisPhysicalMediumCableModem = 2,
-    NdisPhysicalMediumPhoneLine = 3,
-    NdisPhysicalMediumPowerLine = 4,
-    NdisPhysicalMediumDSL = 5,
-    NdisPhysicalMediumFibreChannel = 6,
-    NdisPhysicalMedium1394 = 7,
-    NdisPhysicalMediumWirelessWan = 8,
-    NdisPhysicalMediumNative802_11 = 9,
-    NdisPhysicalMediumBluetooth = 10,
-    NdisPhysicalMediumInfiniband = 11,
-    NdisPhysicalMediumWiMax = 12,
-    NdisPhysicalMediumUWB = 13,
-    NdisPhysicalMedium802_3 = 14,
-    NdisPhysicalMedium802_5 = 15,
-    NdisPhysicalMediumIrda = 16,
-    NdisPhysicalMediumWiredWAN = 17,
-    NdisPhysicalMediumWiredCoWan = 18,
-    NdisPhysicalMediumOther = 19,
-    NdisPhysicalMediumNative802_15_4 = 20,
-    NdisPhysicalMediumMax = 21,
 }
 
 struct TRANSPORT_HEADER_OFFSET
@@ -718,47 +1603,38 @@ struct TRANSPORT_HEADER_OFFSET
 
 struct NETWORK_ADDRESS
 {
-    ushort AddressLength;
-    ushort AddressType;
-    ubyte Address;
+    ushort   AddressLength;
+    ushort   AddressType;
+    ubyte[1] Address;
 }
 
 struct NETWORK_ADDRESS_LIST
 {
-    int AddressCount;
-    ushort AddressType;
-    NETWORK_ADDRESS Address;
+    int                AddressCount;
+    ushort             AddressType;
+    NETWORK_ADDRESS[1] Address;
 }
 
 struct NETWORK_ADDRESS_IP
 {
-    ushort sin_port;
-    uint in_addr;
-    ubyte sin_zero;
+    ushort   sin_port;
+    uint     in_addr;
+    ubyte[8] sin_zero;
 }
 
 struct NETWORK_ADDRESS_IP6
 {
-    ushort sin6_port;
-    uint sin6_flowinfo;
-    ushort sin6_addr;
-    uint sin6_scope_id;
+    ushort    sin6_port;
+    uint      sin6_flowinfo;
+    ushort[8] sin6_addr;
+    uint      sin6_scope_id;
 }
 
 struct NETWORK_ADDRESS_IPX
 {
-    uint NetworkAddress;
-    ubyte NodeAddress;
-    ushort Socket;
-}
-
-enum NDIS_HARDWARE_STATUS
-{
-    NdisHardwareStatusReady = 0,
-    NdisHardwareStatusInitializing = 1,
-    NdisHardwareStatusReset = 2,
-    NdisHardwareStatusClosing = 3,
-    NdisHardwareStatusNotReady = 4,
+    uint     NetworkAddress;
+    ubyte[6] NodeAddress;
+    ushort   Socket;
 }
 
 struct GEN_GET_TIME_CAPS
@@ -782,16 +1658,6 @@ struct NDIS_PM_PACKET_PATTERN
     uint PatternFlags;
 }
 
-enum NDIS_DEVICE_POWER_STATE
-{
-    NdisDeviceStateUnspecified = 0,
-    NdisDeviceStateD0 = 1,
-    NdisDeviceStateD1 = 2,
-    NdisDeviceStateD2 = 3,
-    NdisDeviceStateD3 = 4,
-    NdisDeviceStateMaximum = 5,
-}
-
 struct NDIS_PM_WAKE_UP_CAPABILITIES
 {
     NDIS_DEVICE_POWER_STATE MinMagicPacketWakeUp;
@@ -805,103 +1671,10 @@ struct NDIS_PNP_CAPABILITIES
     NDIS_PM_WAKE_UP_CAPABILITIES WakeUpCapabilities;
 }
 
-enum NDIS_FDDI_ATTACHMENT_TYPE
-{
-    NdisFddiTypeIsolated = 1,
-    NdisFddiTypeLocalA = 2,
-    NdisFddiTypeLocalB = 3,
-    NdisFddiTypeLocalAB = 4,
-    NdisFddiTypeLocalS = 5,
-    NdisFddiTypeWrapA = 6,
-    NdisFddiTypeWrapB = 7,
-    NdisFddiTypeWrapAB = 8,
-    NdisFddiTypeWrapS = 9,
-    NdisFddiTypeCWrapA = 10,
-    NdisFddiTypeCWrapB = 11,
-    NdisFddiTypeCWrapS = 12,
-    NdisFddiTypeThrough = 13,
-}
-
-enum NDIS_FDDI_RING_MGT_STATE
-{
-    NdisFddiRingIsolated = 1,
-    NdisFddiRingNonOperational = 2,
-    NdisFddiRingOperational = 3,
-    NdisFddiRingDetect = 4,
-    NdisFddiRingNonOperationalDup = 5,
-    NdisFddiRingOperationalDup = 6,
-    NdisFddiRingDirected = 7,
-    NdisFddiRingTrace = 8,
-}
-
-enum NDIS_FDDI_LCONNECTION_STATE
-{
-    NdisFddiStateOff = 1,
-    NdisFddiStateBreak = 2,
-    NdisFddiStateTrace = 3,
-    NdisFddiStateConnect = 4,
-    NdisFddiStateNext = 5,
-    NdisFddiStateSignal = 6,
-    NdisFddiStateJoin = 7,
-    NdisFddiStateVerify = 8,
-    NdisFddiStateActive = 9,
-    NdisFddiStateMaintenance = 10,
-}
-
-enum NDIS_WAN_MEDIUM_SUBTYPE
-{
-    NdisWanMediumHub = 0,
-    NdisWanMediumX_25 = 1,
-    NdisWanMediumIsdn = 2,
-    NdisWanMediumSerial = 3,
-    NdisWanMediumFrameRelay = 4,
-    NdisWanMediumAtm = 5,
-    NdisWanMediumSonet = 6,
-    NdisWanMediumSW56K = 7,
-    NdisWanMediumPPTP = 8,
-    NdisWanMediumL2TP = 9,
-    NdisWanMediumIrda = 10,
-    NdisWanMediumParallel = 11,
-    NdisWanMediumPppoe = 12,
-    NdisWanMediumSSTP = 13,
-    NdisWanMediumAgileVPN = 14,
-    NdisWanMediumGre = 15,
-    NdisWanMediumSubTypeMax = 16,
-}
-
-enum NDIS_WAN_HEADER_FORMAT
-{
-    NdisWanHeaderNative = 0,
-    NdisWanHeaderEthernet = 1,
-}
-
-enum NDIS_WAN_QUALITY
-{
-    NdisWanRaw = 0,
-    NdisWanErrorControl = 1,
-    NdisWanReliable = 2,
-}
-
 struct NDIS_WAN_PROTOCOL_CAPS
 {
     uint Flags;
     uint Reserved;
-}
-
-enum NDIS_802_5_RING_STATE
-{
-    NdisRingStateOpened = 1,
-    NdisRingStateClosed = 2,
-    NdisRingStateOpening = 3,
-    NdisRingStateClosing = 4,
-    NdisRingStateOpenFailure = 5,
-    NdisRingStateRingFailure = 6,
-}
-
-enum NDIS_MEDIA_STATE
-{
-    NdisMediaStateConnected = 0,
-    NdisMediaStateDisconnected = 1,
 }
 
 struct NDIS_CO_LINK_SPEED
@@ -918,8 +1691,12 @@ struct NDIS_LINK_SPEED
 
 struct NDIS_GUID
 {
-    Guid Guid;
-    _Anonymous_e__Union Anonymous;
+    GUID Guid;
+    union
+    {
+        uint Oid;
+        int  Status;
+    }
     uint Size;
     uint Flags;
 }
@@ -930,106 +1707,143 @@ struct NDIS_IRDA_PACKET_INFO
     uint MinTurnAroundTime;
 }
 
-enum NDIS_SUPPORTED_PAUSE_FUNCTIONS
-{
-    NdisPauseFunctionsUnsupported = 0,
-    NdisPauseFunctionsSendOnly = 1,
-    NdisPauseFunctionsReceiveOnly = 2,
-    NdisPauseFunctionsSendAndReceive = 3,
-    NdisPauseFunctionsUnknown = 4,
-}
-
 struct NDIS_LINK_STATE
 {
     NDIS_OBJECT_HEADER Header;
     NET_IF_MEDIA_CONNECT_STATE MediaConnectState;
     NET_IF_MEDIA_DUPLEX_STATE MediaDuplexState;
-    ulong XmitLinkSpeed;
-    ulong RcvLinkSpeed;
+    ulong              XmitLinkSpeed;
+    ulong              RcvLinkSpeed;
     NDIS_SUPPORTED_PAUSE_FUNCTIONS PauseFunctions;
-    uint AutoNegotiationFlags;
+    uint               AutoNegotiationFlags;
 }
 
 struct NDIS_LINK_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
     NET_IF_MEDIA_DUPLEX_STATE MediaDuplexState;
-    ulong XmitLinkSpeed;
-    ulong RcvLinkSpeed;
+    ulong              XmitLinkSpeed;
+    ulong              RcvLinkSpeed;
     NDIS_SUPPORTED_PAUSE_FUNCTIONS PauseFunctions;
-    uint AutoNegotiationFlags;
+    uint               AutoNegotiationFlags;
 }
 
 struct NDIS_OPER_STATE
 {
     NDIS_OBJECT_HEADER Header;
     NET_IF_OPER_STATUS OperationalStatus;
-    uint OperationalStatusFlags;
+    uint               OperationalStatusFlags;
 }
 
 struct NDIS_IP_OPER_STATUS
 {
-    uint AddressFamily;
+    uint               AddressFamily;
     NET_IF_OPER_STATUS OperationalStatus;
-    uint OperationalStatusFlags;
+    uint               OperationalStatusFlags;
 }
 
 struct NDIS_IP_OPER_STATUS_INFO
 {
     NDIS_OBJECT_HEADER Header;
-    uint Flags;
-    uint NumberofAddressFamiliesReturned;
-    NDIS_IP_OPER_STATUS IpOperationalStatus;
+    uint               Flags;
+    uint               NumberofAddressFamiliesReturned;
+    NDIS_IP_OPER_STATUS[32] IpOperationalStatus;
 }
 
 struct NDIS_IP_OPER_STATE
 {
-    NDIS_OBJECT_HEADER Header;
-    uint Flags;
+    NDIS_OBJECT_HEADER  Header;
+    uint                Flags;
     NDIS_IP_OPER_STATUS IpOperationalStatus;
 }
 
 struct NDIS_OFFLOAD_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
-    ubyte IPv4Checksum;
-    ubyte TCPIPv4Checksum;
-    ubyte UDPIPv4Checksum;
-    ubyte TCPIPv6Checksum;
-    ubyte UDPIPv6Checksum;
-    ubyte LsoV1;
-    ubyte IPsecV1;
-    ubyte LsoV2IPv4;
-    ubyte LsoV2IPv6;
-    ubyte TcpConnectionIPv4;
-    ubyte TcpConnectionIPv6;
-    uint Flags;
+    ubyte              IPv4Checksum;
+    ubyte              TCPIPv4Checksum;
+    ubyte              UDPIPv4Checksum;
+    ubyte              TCPIPv6Checksum;
+    ubyte              UDPIPv6Checksum;
+    ubyte              LsoV1;
+    ubyte              IPsecV1;
+    ubyte              LsoV2IPv4;
+    ubyte              LsoV2IPv6;
+    ubyte              TcpConnectionIPv4;
+    ubyte              TcpConnectionIPv6;
+    uint               Flags;
 }
 
 struct NDIS_TCP_LARGE_SEND_OFFLOAD_V1
 {
-    _IPv4_e__Struct IPv4;
+    struct IPv4
+    {
+        uint Encapsulation;
+        uint MaxOffLoadSize;
+        uint MinSegmentCount;
+        uint _bitfield75;
+    }
 }
 
 struct NDIS_TCP_IP_CHECKSUM_OFFLOAD
 {
-    _IPv4Transmit_e__Struct IPv4Transmit;
-    _IPv4Receive_e__Struct IPv4Receive;
-    _IPv6Transmit_e__Struct IPv6Transmit;
-    _IPv6Receive_e__Struct IPv6Receive;
+    struct IPv4Transmit
+    {
+        uint Encapsulation;
+        uint _bitfield76;
+    }
+    struct IPv4Receive
+    {
+        uint Encapsulation;
+        uint _bitfield77;
+    }
+    struct IPv6Transmit
+    {
+        uint Encapsulation;
+        uint _bitfield78;
+    }
+    struct IPv6Receive
+    {
+        uint Encapsulation;
+        uint _bitfield79;
+    }
 }
 
 struct NDIS_IPSEC_OFFLOAD_V1
 {
-    _Supported_e__Struct Supported;
-    _IPv4AH_e__Struct IPv4AH;
-    _IPv4ESP_e__Struct IPv4ESP;
+    struct Supported
+    {
+        uint Encapsulation;
+        uint AhEspCombined;
+        uint TransportTunnelCombined;
+        uint IPv4Options;
+        uint Flags;
+    }
+    struct IPv4AH
+    {
+        uint _bitfield80;
+    }
+    struct IPv4ESP
+    {
+        uint _bitfield81;
+    }
 }
 
 struct NDIS_TCP_LARGE_SEND_OFFLOAD_V2
 {
-    _IPv4_e__Struct IPv4;
-    _IPv6_e__Struct IPv6;
+    struct IPv4
+    {
+        uint Encapsulation;
+        uint MaxOffLoadSize;
+        uint MinSegmentCount;
+    }
+    struct IPv6
+    {
+        uint Encapsulation;
+        uint MaxOffLoadSize;
+        uint MinSegmentCount;
+        uint _bitfield82;
+    }
 }
 
 struct NDIS_OFFLOAD
@@ -1039,33 +1853,107 @@ struct NDIS_OFFLOAD
     NDIS_TCP_LARGE_SEND_OFFLOAD_V1 LsoV1;
     NDIS_IPSEC_OFFLOAD_V1 IPsecV1;
     NDIS_TCP_LARGE_SEND_OFFLOAD_V2 LsoV2;
-    uint Flags;
+    uint               Flags;
 }
 
 struct NDIS_WMI_TCP_LARGE_SEND_OFFLOAD_V1
 {
-    _IPv4_e__Struct IPv4;
+    struct IPv4
+    {
+        uint Encapsulation;
+        uint MaxOffLoadSize;
+        uint MinSegmentCount;
+        uint TcpOptions;
+        uint IpOptions;
+    }
 }
 
 struct NDIS_WMI_TCP_IP_CHECKSUM_OFFLOAD
 {
-    _IPv4Transmit_e__Struct IPv4Transmit;
-    _IPv4Receive_e__Struct IPv4Receive;
-    _IPv6Transmit_e__Struct IPv6Transmit;
-    _IPv6Receive_e__Struct IPv6Receive;
+    struct IPv4Transmit
+    {
+        uint Encapsulation;
+        uint IpOptionsSupported;
+        uint TcpOptionsSupported;
+        uint TcpChecksum;
+        uint UdpChecksum;
+        uint IpChecksum;
+    }
+    struct IPv4Receive
+    {
+        uint Encapsulation;
+        uint IpOptionsSupported;
+        uint TcpOptionsSupported;
+        uint TcpChecksum;
+        uint UdpChecksum;
+        uint IpChecksum;
+    }
+    struct IPv6Transmit
+    {
+        uint Encapsulation;
+        uint IpExtensionHeadersSupported;
+        uint TcpOptionsSupported;
+        uint TcpChecksum;
+        uint UdpChecksum;
+    }
+    struct IPv6Receive
+    {
+        uint Encapsulation;
+        uint IpExtensionHeadersSupported;
+        uint TcpOptionsSupported;
+        uint TcpChecksum;
+        uint UdpChecksum;
+    }
 }
 
 struct NDIS_WMI_IPSEC_OFFLOAD_V1
 {
-    _Supported_e__Struct Supported;
-    _IPv4AH_e__Struct IPv4AH;
-    _IPv4ESP_e__Struct IPv4ESP;
+    struct Supported
+    {
+        uint Encapsulation;
+        uint AhEspCombined;
+        uint TransportTunnelCombined;
+        uint IPv4Options;
+        uint Flags;
+    }
+    struct IPv4AH
+    {
+        uint Md5;
+        uint Sha_1;
+        uint Transport;
+        uint Tunnel;
+        uint Send;
+        uint Receive;
+    }
+    struct IPv4ESP
+    {
+        uint Des;
+        uint Reserved;
+        uint TripleDes;
+        uint NullEsp;
+        uint Transport;
+        uint Tunnel;
+        uint Send;
+        uint Receive;
+    }
 }
 
 struct NDIS_WMI_TCP_LARGE_SEND_OFFLOAD_V2
 {
-    _IPv4_e__Struct IPv4;
-    _IPv6_e__Struct IPv6;
+    struct IPv4
+    {
+        uint Encapsulation;
+        uint MaxOffLoadSize;
+        uint MinSegmentCount;
+    }
+    struct IPv6
+    {
+        uint Encapsulation;
+        uint MaxOffLoadSize;
+        uint MinSegmentCount;
+        uint IpExtensionHeadersSupported;
+        uint TcpOptionsSupported;
+    }
 }
 
 struct NDIS_WMI_OFFLOAD
@@ -1075,52 +1963,28 @@ struct NDIS_WMI_OFFLOAD
     NDIS_WMI_TCP_LARGE_SEND_OFFLOAD_V1 LsoV1;
     NDIS_WMI_IPSEC_OFFLOAD_V1 IPsecV1;
     NDIS_WMI_TCP_LARGE_SEND_OFFLOAD_V2 LsoV2;
-    uint Flags;
+    uint               Flags;
 }
 
 struct NDIS_TCP_CONNECTION_OFFLOAD
 {
     NDIS_OBJECT_HEADER Header;
-    uint Encapsulation;
-    uint _bitfield;
-    uint TcpConnectionOffloadCapacity;
-    uint Flags;
+    uint               Encapsulation;
+    uint               _bitfield83;
+    uint               TcpConnectionOffloadCapacity;
+    uint               Flags;
 }
 
 struct NDIS_WMI_TCP_CONNECTION_OFFLOAD
 {
     NDIS_OBJECT_HEADER Header;
-    uint Encapsulation;
-    uint SupportIPv4;
-    uint SupportIPv6;
-    uint SupportIPv6ExtensionHeaders;
-    uint SupportSack;
-    uint TcpConnectionOffloadCapacity;
-    uint Flags;
-}
-
-enum NDIS_PORT_TYPE
-{
-    NdisPortTypeUndefined = 0,
-    NdisPortTypeBridge = 1,
-    NdisPortTypeRasConnection = 2,
-    NdisPortType8021xSupplicant = 3,
-    NdisPortTypeMax = 4,
-}
-
-enum NDIS_PORT_AUTHORIZATION_STATE
-{
-    NdisPortAuthorizationUnknown = 0,
-    NdisPortAuthorized = 1,
-    NdisPortUnauthorized = 2,
-    NdisPortReauthorizing = 3,
-}
-
-enum NDIS_PORT_CONTROL_STATE
-{
-    NdisPortControlStateUnknown = 0,
-    NdisPortControlStateControlled = 1,
-    NdisPortControlStateUncontrolled = 2,
+    uint               Encapsulation;
+    uint               SupportIPv4;
+    uint               SupportIPv6;
+    uint               SupportIPv6ExtensionHeaders;
+    uint               SupportSack;
+    uint               TcpConnectionOffloadCapacity;
+    uint               Flags;
 }
 
 struct NDIS_PORT_AUTHENTICATION_PARAMETERS
@@ -1132,123 +1996,107 @@ struct NDIS_PORT_AUTHENTICATION_PARAMETERS
     NDIS_PORT_AUTHORIZATION_STATE RcvAuthorizationState;
 }
 
-enum NDIS_NETWORK_CHANGE_TYPE
-{
-    NdisPossibleNetworkChange = 1,
-    NdisDefinitelyNetworkChange = 2,
-    NdisNetworkChangeFromMediaConnect = 3,
-    NdisNetworkChangeMax = 4,
-}
-
 struct NDIS_WMI_METHOD_HEADER
 {
     NDIS_OBJECT_HEADER Header;
-    uint PortNumber;
-    NET_LUID_LH NetLuid;
-    ulong RequestId;
-    uint Timeout;
-    ubyte Padding;
+    uint               PortNumber;
+    NET_LUID_LH        NetLuid;
+    ulong              RequestId;
+    uint               Timeout;
+    ubyte[4]           Padding;
 }
 
 struct NDIS_WMI_SET_HEADER
 {
     NDIS_OBJECT_HEADER Header;
-    uint PortNumber;
-    NET_LUID_LH NetLuid;
-    ulong RequestId;
-    uint Timeout;
-    ubyte Padding;
+    uint               PortNumber;
+    NET_LUID_LH        NetLuid;
+    ulong              RequestId;
+    uint               Timeout;
+    ubyte[4]           Padding;
 }
 
 struct NDIS_WMI_EVENT_HEADER
 {
     NDIS_OBJECT_HEADER Header;
-    uint IfIndex;
-    NET_LUID_LH NetLuid;
-    ulong RequestId;
-    uint PortNumber;
-    uint DeviceNameLength;
-    uint DeviceNameOffset;
-    ubyte Padding;
+    uint               IfIndex;
+    NET_LUID_LH        NetLuid;
+    ulong              RequestId;
+    uint               PortNumber;
+    uint               DeviceNameLength;
+    uint               DeviceNameOffset;
+    ubyte[4]           Padding;
 }
 
 struct NDIS_WMI_ENUM_ADAPTER
 {
     NDIS_OBJECT_HEADER Header;
-    uint IfIndex;
-    NET_LUID_LH NetLuid;
-    ushort DeviceNameLength;
-    byte DeviceName;
+    uint               IfIndex;
+    NET_LUID_LH        NetLuid;
+    ushort             DeviceNameLength;
+    byte[1]            DeviceName;
 }
 
 struct NDIS_WMI_OUTPUT_INFO
 {
     NDIS_OBJECT_HEADER Header;
-    uint Flags;
-    ubyte SupportedRevision;
-    uint DataOffset;
+    uint               Flags;
+    ubyte              SupportedRevision;
+    uint               DataOffset;
 }
 
 struct NDIS_RECEIVE_SCALE_CAPABILITIES
 {
     NDIS_OBJECT_HEADER Header;
-    uint CapabilitiesFlags;
-    uint NumberOfInterruptMessages;
-    uint NumberOfReceiveQueues;
+    uint               CapabilitiesFlags;
+    uint               NumberOfInterruptMessages;
+    uint               NumberOfReceiveQueues;
 }
 
 struct NDIS_RECEIVE_SCALE_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
-    ushort Flags;
-    ushort BaseCpuNumber;
-    uint HashInformation;
-    ushort IndirectionTableSize;
-    uint IndirectionTableOffset;
-    ushort HashSecretKeySize;
-    uint HashSecretKeyOffset;
+    ushort             Flags;
+    ushort             BaseCpuNumber;
+    uint               HashInformation;
+    ushort             IndirectionTableSize;
+    uint               IndirectionTableOffset;
+    ushort             HashSecretKeySize;
+    uint               HashSecretKeyOffset;
 }
 
 struct NDIS_RECEIVE_HASH_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
-    uint Flags;
-    uint HashInformation;
-    ushort HashSecretKeySize;
-    uint HashSecretKeyOffset;
-}
-
-enum NDIS_PROCESSOR_VENDOR
-{
-    NdisProcessorVendorUnknown = 0,
-    NdisProcessorVendorGenuinIntel = 1,
-    NdisProcessorVendorGenuineIntel = 1,
-    NdisProcessorVendorAuthenticAMD = 2,
+    uint               Flags;
+    uint               HashInformation;
+    ushort             HashSecretKeySize;
+    uint               HashSecretKeyOffset;
 }
 
 struct NDIS_PORT_STATE
 {
     NDIS_OBJECT_HEADER Header;
     NET_IF_MEDIA_CONNECT_STATE MediaConnectState;
-    ulong XmitLinkSpeed;
-    ulong RcvLinkSpeed;
+    ulong              XmitLinkSpeed;
+    ulong              RcvLinkSpeed;
     NET_IF_DIRECTION_TYPE Direction;
     NDIS_PORT_CONTROL_STATE SendControlState;
     NDIS_PORT_CONTROL_STATE RcvControlState;
     NDIS_PORT_AUTHORIZATION_STATE SendAuthorizationState;
     NDIS_PORT_AUTHORIZATION_STATE RcvAuthorizationState;
-    uint Flags;
+    uint               Flags;
 }
 
 struct NDIS_PORT_CHARACTERISTICS
 {
     NDIS_OBJECT_HEADER Header;
-    uint PortNumber;
-    uint Flags;
-    NDIS_PORT_TYPE Type;
+    uint               PortNumber;
+    uint               Flags;
+    NDIS_PORT_TYPE     Type;
     NET_IF_MEDIA_CONNECT_STATE MediaConnectState;
-    ulong XmitLinkSpeed;
-    ulong RcvLinkSpeed;
+    ulong              XmitLinkSpeed;
+    ulong              RcvLinkSpeed;
     NET_IF_DIRECTION_TYPE Direction;
     NDIS_PORT_CONTROL_STATE SendControlState;
     NDIS_PORT_CONTROL_STATE RcvControlState;
@@ -1259,19 +2107,19 @@ struct NDIS_PORT_CHARACTERISTICS
 struct NDIS_PORT
 {
     NDIS_PORT* Next;
-    void* NdisReserved;
-    void* MiniportReserved;
-    void* ProtocolReserved;
+    void*      NdisReserved;
+    void*      MiniportReserved;
+    void*      ProtocolReserved;
     NDIS_PORT_CHARACTERISTICS PortCharacteristics;
 }
 
 struct NDIS_PORT_ARRAY
 {
     NDIS_OBJECT_HEADER Header;
-    uint NumberOfPorts;
-    uint OffsetFirstPort;
-    uint ElementSize;
-    NDIS_PORT_CHARACTERISTICS Ports;
+    uint               NumberOfPorts;
+    uint               OffsetFirstPort;
+    uint               ElementSize;
+    NDIS_PORT_CHARACTERISTICS[1] Ports;
 }
 
 struct NDIS_TIMESTAMP_CAPABILITY_FLAGS
@@ -1295,58 +2143,40 @@ struct NDIS_TIMESTAMP_CAPABILITY_FLAGS
 struct NDIS_TIMESTAMP_CAPABILITIES
 {
     NDIS_OBJECT_HEADER Header;
-    ulong HardwareClockFrequencyHz;
-    ubyte CrossTimestamp;
-    ulong Reserved1;
-    ulong Reserved2;
+    ulong              HardwareClockFrequencyHz;
+    ubyte              CrossTimestamp;
+    ulong              Reserved1;
+    ulong              Reserved2;
     NDIS_TIMESTAMP_CAPABILITY_FLAGS TimestampFlags;
 }
 
 struct NDIS_HARDWARE_CROSSTIMESTAMP
 {
     NDIS_OBJECT_HEADER Header;
-    uint Flags;
-    ulong SystemTimestamp1;
-    ulong HardwareClockTimestamp;
-    ulong SystemTimestamp2;
+    uint               Flags;
+    ulong              SystemTimestamp1;
+    ulong              HardwareClockTimestamp;
+    ulong              SystemTimestamp2;
 }
 
 struct DOT11_BSSID_LIST
 {
     NDIS_OBJECT_HEADER Header;
-    uint uNumOfEntries;
-    uint uTotalNumOfEntries;
-    ubyte BSSIDs;
-}
-
-enum DOT11_PHY_TYPE
-{
-    dot11_phy_type_unknown = 0,
-    dot11_phy_type_any = 0,
-    dot11_phy_type_fhss = 1,
-    dot11_phy_type_dsss = 2,
-    dot11_phy_type_irbaseband = 3,
-    dot11_phy_type_ofdm = 4,
-    dot11_phy_type_hrdsss = 5,
-    dot11_phy_type_erp = 6,
-    dot11_phy_type_ht = 7,
-    dot11_phy_type_vht = 8,
-    dot11_phy_type_dmg = 9,
-    dot11_phy_type_he = 10,
-    dot11_phy_type_IHV_start = -2147483648,
-    dot11_phy_type_IHV_end = -1,
+    uint               uNumOfEntries;
+    uint               uTotalNumOfEntries;
+    ubyte[6]           BSSIDs;
 }
 
 struct DOT11_RATE_SET
 {
-    uint uRateSetLength;
-    ubyte ucRateSet;
+    uint       uRateSetLength;
+    ubyte[126] ucRateSet;
 }
 
 struct DOT11_WFD_SESSION_INFO
 {
-    ushort uSessionInfoLength;
-    ubyte ucSessionInfo;
+    ushort     uSessionInfoLength;
+    ubyte[144] ucSessionInfo;
 }
 
 struct DOT11_OFFLOAD_CAPABILITY
@@ -1366,80 +2196,67 @@ struct DOT11_CURRENT_OFFLOAD_CAPABILITY
     uint uFlags;
 }
 
-enum DOT11_OFFLOAD_TYPE
-{
-    dot11_offload_type_wep = 1,
-    dot11_offload_type_auth = 2,
-}
-
 struct DOT11_IV48_COUNTER
 {
-    uint uIV32Counter;
+    uint   uIV32Counter;
     ushort usIV16Counter;
 }
 
 struct DOT11_WEP_OFFLOAD
 {
-    uint uReserved;
-    HANDLE hOffloadContext;
-    HANDLE hOffload;
+    uint               uReserved;
+    HANDLE             hOffloadContext;
+    HANDLE             hOffload;
     DOT11_OFFLOAD_TYPE dot11OffloadType;
-    uint dwAlgorithm;
-    ubyte bRowIsOutbound;
-    ubyte bUseDefault;
-    uint uFlags;
-    ubyte ucMacAddress;
-    uint uNumOfRWsOnPeer;
-    uint uNumOfRWsOnMe;
-    DOT11_IV48_COUNTER dot11IV48Counters;
-    ushort usDot11RWBitMaps;
-    ushort usKeyLength;
-    ubyte ucKey;
+    uint               dwAlgorithm;
+    ubyte              bRowIsOutbound;
+    ubyte              bUseDefault;
+    uint               uFlags;
+    ubyte[6]           ucMacAddress;
+    uint               uNumOfRWsOnPeer;
+    uint               uNumOfRWsOnMe;
+    DOT11_IV48_COUNTER[16] dot11IV48Counters;
+    ushort[16]         usDot11RWBitMaps;
+    ushort             usKeyLength;
+    ubyte[1]           ucKey;
 }
 
 struct DOT11_WEP_UPLOAD
 {
-    uint uReserved;
+    uint               uReserved;
     DOT11_OFFLOAD_TYPE dot11OffloadType;
-    HANDLE hOffload;
-    uint uNumOfRWsUsed;
-    DOT11_IV48_COUNTER dot11IV48Counters;
-    ushort usDot11RWBitMaps;
-}
-
-enum DOT11_KEY_DIRECTION
-{
-    dot11_key_direction_both = 1,
-    dot11_key_direction_inbound = 2,
-    dot11_key_direction_outbound = 3,
+    HANDLE             hOffload;
+    uint               uNumOfRWsUsed;
+    DOT11_IV48_COUNTER[16] dot11IV48Counters;
+    ushort[16]         usDot11RWBitMaps;
 }
 
 struct DOT11_DEFAULT_WEP_OFFLOAD
 {
-    uint uReserved;
-    HANDLE hOffloadContext;
-    HANDLE hOffload;
-    uint dwIndex;
-    DOT11_OFFLOAD_TYPE dot11OffloadType;
-    uint dwAlgorithm;
-    uint uFlags;
+    uint                uReserved;
+    HANDLE              hOffloadContext;
+    HANDLE              hOffload;
+    uint                dwIndex;
+    DOT11_OFFLOAD_TYPE  dot11OffloadType;
+    uint                dwAlgorithm;
+    uint                uFlags;
     DOT11_KEY_DIRECTION dot11KeyDirection;
-    ubyte ucMacAddress;
-    uint uNumOfRWsOnMe;
-    DOT11_IV48_COUNTER dot11IV48Counters;
-    ushort usDot11RWBitMaps;
-    ushort usKeyLength;
-    ubyte ucKey;
+    ubyte[6]            ucMacAddress;
+    uint                uNumOfRWsOnMe;
+    DOT11_IV48_COUNTER[16] dot11IV48Counters;
+    ushort[16]          usDot11RWBitMaps;
+    ushort              usKeyLength;
+    ubyte[1]            ucKey;
 }
 
 struct DOT11_DEFAULT_WEP_UPLOAD
 {
-    uint uReserved;
+    uint               uReserved;
     DOT11_OFFLOAD_TYPE dot11OffloadType;
-    HANDLE hOffload;
-    uint uNumOfRWsUsed;
-    DOT11_IV48_COUNTER dot11IV48Counters;
-    ushort usDot11RWBitMaps;
+    HANDLE             hOffload;
+    uint               uNumOfRWsUsed;
+    DOT11_IV48_COUNTER[16] dot11IV48Counters;
+    ushort[16]         usDot11RWBitMaps;
 }
 
 struct DOT11_OPERATION_MODE_CAPABILITY
@@ -1458,134 +2275,106 @@ struct DOT11_CURRENT_OPERATION_MODE
     uint uCurrentOpMode;
 }
 
-enum DOT11_SCAN_TYPE
-{
-    dot11_scan_type_active = 1,
-    dot11_scan_type_passive = 2,
-    dot11_scan_type_auto = 3,
-    dot11_scan_type_forced = -2147483648,
-}
-
 struct DOT11_SCAN_REQUEST
 {
-    DOT11_BSS_TYPE dot11BSSType;
-    ubyte dot11BSSID;
-    DOT11_SSID dot11SSID;
+    DOT11_BSS_TYPE  dot11BSSType;
+    ubyte[6]        dot11BSSID;
+    DOT11_SSID      dot11SSID;
     DOT11_SCAN_TYPE dot11ScanType;
-    ubyte bRestrictedScan;
-    ubyte bUseRequestIE;
-    uint uRequestIDsOffset;
-    uint uNumOfRequestIDs;
-    uint uPhyTypesOffset;
-    uint uNumOfPhyTypes;
-    uint uIEsOffset;
-    uint uIEsLength;
-    ubyte ucBuffer;
-}
-
-enum CH_DESCRIPTION_TYPE
-{
-    ch_description_type_logical = 1,
-    ch_description_type_center_frequency = 2,
-    ch_description_type_phy_specific = 3,
+    ubyte           bRestrictedScan;
+    ubyte           bUseRequestIE;
+    uint            uRequestIDsOffset;
+    uint            uNumOfRequestIDs;
+    uint            uPhyTypesOffset;
+    uint            uNumOfPhyTypes;
+    uint            uIEsOffset;
+    uint            uIEsLength;
+    ubyte[1]        ucBuffer;
 }
 
 struct DOT11_PHY_TYPE_INFO
 {
-    DOT11_PHY_TYPE dot11PhyType;
-    ubyte bUseParameters;
-    uint uProbeDelay;
-    uint uMinChannelTime;
-    uint uMaxChannelTime;
+    DOT11_PHY_TYPE      dot11PhyType;
+    ubyte               bUseParameters;
+    uint                uProbeDelay;
+    uint                uMinChannelTime;
+    uint                uMaxChannelTime;
     CH_DESCRIPTION_TYPE ChDescriptionType;
-    uint uChannelListSize;
-    ubyte ucChannelListBuffer;
+    uint                uChannelListSize;
+    ubyte[1]            ucChannelListBuffer;
 }
 
 struct DOT11_SCAN_REQUEST_V2
 {
-    DOT11_BSS_TYPE dot11BSSType;
-    ubyte dot11BSSID;
+    DOT11_BSS_TYPE  dot11BSSType;
+    ubyte[6]        dot11BSSID;
     DOT11_SCAN_TYPE dot11ScanType;
-    ubyte bRestrictedScan;
-    uint udot11SSIDsOffset;
-    uint uNumOfdot11SSIDs;
-    ubyte bUseRequestIE;
-    uint uRequestIDsOffset;
-    uint uNumOfRequestIDs;
-    uint uPhyTypeInfosOffset;
-    uint uNumOfPhyTypeInfos;
-    uint uIEsOffset;
-    uint uIEsLength;
-    ubyte ucBuffer;
+    ubyte           bRestrictedScan;
+    uint            udot11SSIDsOffset;
+    uint            uNumOfdot11SSIDs;
+    ubyte           bUseRequestIE;
+    uint            uRequestIDsOffset;
+    uint            uNumOfRequestIDs;
+    uint            uPhyTypeInfosOffset;
+    uint            uNumOfPhyTypeInfos;
+    uint            uIEsOffset;
+    uint            uIEsLength;
+    ubyte[1]        ucBuffer;
 }
 
 struct DOT11_PHY_TYPE_LIST
 {
     NDIS_OBJECT_HEADER Header;
-    uint uNumOfEntries;
-    uint uTotalNumOfEntries;
-    DOT11_PHY_TYPE dot11PhyType;
+    uint               uNumOfEntries;
+    uint               uTotalNumOfEntries;
+    DOT11_PHY_TYPE[1]  dot11PhyType;
 }
 
 struct DOT11_BSS_DESCRIPTION
 {
-    uint uReserved;
-    ubyte dot11BSSID;
+    uint           uReserved;
+    ubyte[6]       dot11BSSID;
     DOT11_BSS_TYPE dot11BSSType;
-    ushort usBeaconPeriod;
-    ulong ullTimestamp;
-    ushort usCapabilityInformation;
-    uint uBufferLength;
-    ubyte ucBuffer;
+    ushort         usBeaconPeriod;
+    ulong          ullTimestamp;
+    ushort         usCapabilityInformation;
+    uint           uBufferLength;
+    ubyte[1]       ucBuffer;
 }
 
 struct DOT11_JOIN_REQUEST
 {
-    uint uJoinFailureTimeout;
+    uint           uJoinFailureTimeout;
     DOT11_RATE_SET OperationalRateSet;
-    uint uChCenterFrequency;
+    uint           uChCenterFrequency;
     DOT11_BSS_DESCRIPTION dot11BSSDescription;
 }
 
 struct DOT11_START_REQUEST
 {
-    uint uStartFailureTimeout;
+    uint           uStartFailureTimeout;
     DOT11_RATE_SET OperationalRateSet;
-    uint uChCenterFrequency;
+    uint           uChCenterFrequency;
     DOT11_BSS_DESCRIPTION dot11BSSDescription;
-}
-
-enum DOT11_UPDATE_IE_OP
-{
-    dot11_update_ie_op_create_replace = 1,
-    dot11_update_ie_op_delete = 2,
 }
 
 struct DOT11_UPDATE_IE
 {
     DOT11_UPDATE_IE_OP dot11UpdateIEOp;
-    uint uBufferLength;
-    ubyte ucBuffer;
-}
-
-enum DOT11_RESET_TYPE
-{
-    dot11_reset_type_phy = 1,
-    dot11_reset_type_mac = 2,
-    dot11_reset_type_phy_and_mac = 3,
+    uint               uBufferLength;
+    ubyte[1]           ucBuffer;
 }
 
 struct DOT11_RESET_REQUEST
 {
     DOT11_RESET_TYPE dot11ResetType;
-    ubyte dot11MacAddress;
-    ubyte bSetDefaultMIB;
+    ubyte[6]         dot11MacAddress;
+    ubyte            bSetDefaultMIB;
 }
 
 struct DOT11_OPTIONAL_CAPABILITY
 {
-    uint uReserved;
+    uint  uReserved;
     ubyte bDot11PCF;
     ubyte bDot11PCFMPDUTransferToPC;
     ubyte bStrictlyOrderedServiceClass;
@@ -1593,27 +2382,20 @@ struct DOT11_OPTIONAL_CAPABILITY
 
 struct DOT11_CURRENT_OPTIONAL_CAPABILITY
 {
-    uint uReserved;
+    uint  uReserved;
     ubyte bDot11CFPollable;
     ubyte bDot11PCF;
     ubyte bDot11PCFMPDUTransferToPC;
     ubyte bStrictlyOrderedServiceClass;
 }
 
-enum DOT11_POWER_MODE
-{
-    dot11_power_mode_unknown = 0,
-    dot11_power_mode_active = 1,
-    dot11_power_mode_powersave = 2,
-}
-
 struct DOT11_POWER_MGMT_MODE
 {
     DOT11_POWER_MODE dot11PowerMode;
-    uint uPowerSaveLevel;
-    ushort usListenInterval;
-    ushort usAID;
-    ubyte bReceiveDTIMs;
+    uint             uPowerSaveLevel;
+    ushort           usListenInterval;
+    ushort           usAID;
+    ubyte            bReceiveDTIMs;
 }
 
 struct DOT11_COUNTERS_ENTRY
@@ -1635,30 +2417,15 @@ struct DOT11_COUNTERS_ENTRY
 
 struct DOT11_SUPPORTED_PHY_TYPES
 {
-    uint uNumOfEntries;
-    uint uTotalNumOfEntries;
-    DOT11_PHY_TYPE dot11PHYType;
-}
-
-enum DOT11_TEMP_TYPE
-{
-    dot11_temp_type_unknown = 0,
-    dot11_temp_type_1 = 1,
-    dot11_temp_type_2 = 2,
-}
-
-enum DOT11_DIVERSITY_SUPPORT
-{
-    dot11_diversity_support_unknown = 0,
-    dot11_diversity_support_fixedlist = 1,
-    dot11_diversity_support_notsupported = 2,
-    dot11_diversity_support_dynamic = 3,
+    uint              uNumOfEntries;
+    uint              uTotalNumOfEntries;
+    DOT11_PHY_TYPE[1] dot11PHYType;
 }
 
 struct DOT11_SUPPORTED_POWER_LEVELS
 {
-    uint uNumOfSupportedPowerLevels;
-    uint uTxPowerLevelValues;
+    uint    uNumOfSupportedPowerLevels;
+    uint[8] uTxPowerLevelValues;
 }
 
 struct DOT11_REG_DOMAIN_VALUE
@@ -1671,12 +2438,12 @@ struct DOT11_REG_DOMAINS_SUPPORT_VALUE
 {
     uint uNumOfEntries;
     uint uTotalNumOfEntries;
-    DOT11_REG_DOMAIN_VALUE dot11RegDomainValue;
+    DOT11_REG_DOMAIN_VALUE[1] dot11RegDomainValue;
 }
 
 struct DOT11_SUPPORTED_ANTENNA
 {
-    uint uAntennaListIndex;
+    uint  uAntennaListIndex;
     ubyte bSupportedAntenna;
 }
 
@@ -1684,12 +2451,12 @@ struct DOT11_SUPPORTED_ANTENNA_LIST
 {
     uint uNumOfEntries;
     uint uTotalNumOfEntries;
-    DOT11_SUPPORTED_ANTENNA dot11SupportedAntenna;
+    DOT11_SUPPORTED_ANTENNA[1] dot11SupportedAntenna;
 }
 
 struct DOT11_DIVERSITY_SELECTION_RX
 {
-    uint uAntennaListIndex;
+    uint  uAntennaListIndex;
     ubyte bDiversitySelectionRX;
 }
 
@@ -1697,19 +2464,19 @@ struct DOT11_DIVERSITY_SELECTION_RX_LIST
 {
     uint uNumOfEntries;
     uint uTotalNumOfEntries;
-    DOT11_DIVERSITY_SELECTION_RX dot11DiversitySelectionRx;
+    DOT11_DIVERSITY_SELECTION_RX[1] dot11DiversitySelectionRx;
 }
 
 struct DOT11_SUPPORTED_DATA_RATES_VALUE
 {
-    ubyte ucSupportedTxDataRatesValue;
-    ubyte ucSupportedRxDataRatesValue;
+    ubyte[8] ucSupportedTxDataRatesValue;
+    ubyte[8] ucSupportedRxDataRatesValue;
 }
 
 struct DOT11_SUPPORTED_DATA_RATES_VALUE_V2
 {
-    ubyte ucSupportedTxDataRatesValue;
-    ubyte ucSupportedRxDataRatesValue;
+    ubyte[255] ucSupportedTxDataRatesValue;
+    ubyte[255] ucSupportedRxDataRatesValue;
 }
 
 struct DOT11_MULTI_DOMAIN_CAPABILITY_ENTRY
@@ -1717,21 +2484,14 @@ struct DOT11_MULTI_DOMAIN_CAPABILITY_ENTRY
     uint uMultiDomainCapabilityIndex;
     uint uFirstChannelNumber;
     uint uNumberOfChannels;
-    int lMaximumTransmitPowerLevel;
+    int  lMaximumTransmitPowerLevel;
 }
 
 struct DOT11_MD_CAPABILITY_ENTRY_LIST
 {
     uint uNumOfEntries;
     uint uTotalNumOfEntries;
-    DOT11_MULTI_DOMAIN_CAPABILITY_ENTRY dot11MDCapabilityEntry;
-}
-
-enum DOT11_HOP_ALGO_ADOPTED
-{
-    dot11_hop_algo_current = 0,
-    dot11_hop_algo_hop_index = 1,
-    dot11_hop_algo_hcc = 2,
+    DOT11_MULTI_DOMAIN_CAPABILITY_ENTRY[1] dot11MDCapabilityEntry;
 }
 
 struct DOT11_HOPPING_PATTERN_ENTRY
@@ -1744,69 +2504,64 @@ struct DOT11_HOPPING_PATTERN_ENTRY_LIST
 {
     uint uNumOfEntries;
     uint uTotalNumOfEntries;
-    DOT11_HOPPING_PATTERN_ENTRY dot11HoppingPatternEntry;
+    DOT11_HOPPING_PATTERN_ENTRY[1] dot11HoppingPatternEntry;
 }
 
 struct DOT11_WPA_TSC
 {
-    uint uReserved;
+    uint               uReserved;
     DOT11_OFFLOAD_TYPE dot11OffloadType;
-    HANDLE hOffload;
+    HANDLE             hOffload;
     DOT11_IV48_COUNTER dot11IV48Counter;
 }
 
 struct DOT11_RSSI_RANGE
 {
     DOT11_PHY_TYPE dot11PhyType;
-    uint uRSSIMin;
-    uint uRSSIMax;
+    uint           uRSSIMin;
+    uint           uRSSIMax;
 }
 
 struct DOT11_NIC_SPECIFIC_EXTENSION
 {
-    uint uBufferLength;
-    uint uTotalBufferLength;
-    ubyte ucBuffer;
+    uint     uBufferLength;
+    uint     uTotalBufferLength;
+    ubyte[1] ucBuffer;
 }
 
 struct DOT11_AP_JOIN_REQUEST
 {
-    uint uJoinFailureTimeout;
+    uint           uJoinFailureTimeout;
     DOT11_RATE_SET OperationalRateSet;
-    uint uChCenterFrequency;
+    uint           uChCenterFrequency;
     DOT11_BSS_DESCRIPTION dot11BSSDescription;
 }
 
 struct DOT11_RECV_SENSITIVITY
 {
     ubyte ucDataRate;
-    int lRSSIMin;
-    int lRSSIMax;
+    int   lRSSIMin;
+    int   lRSSIMax;
 }
 
 struct DOT11_RECV_SENSITIVITY_LIST
 {
-    _Anonymous_e__Union Anonymous;
+    union
+    {
+        DOT11_PHY_TYPE dot11PhyType;
+        uint           uPhyId;
+    }
     uint uNumOfEntries;
     uint uTotalNumOfEntries;
-    DOT11_RECV_SENSITIVITY dot11RecvSensitivity;
-}
-
-enum DOT11_AC_PARAM
-{
-    dot11_AC_param_BE = 0,
-    dot11_AC_param_BK = 1,
-    dot11_AC_param_VI = 2,
-    dot11_AC_param_VO = 3,
-    dot11_AC_param_max = 4,
+    DOT11_RECV_SENSITIVITY[1] dot11RecvSensitivity;
 }
 
 struct DOT11_WME_AC_PARAMETERS
 {
-    ubyte ucAccessCategoryIndex;
-    ubyte ucAIFSN;
-    ubyte ucECWmin;
-    ubyte ucECWmax;
+    ubyte  ucAccessCategoryIndex;
+    ubyte  ucAIFSN;
+    ubyte  ucECWmin;
+    ubyte  ucECWmax;
     ushort usTXOPLimit;
 }
 
@@ -1814,17 +2569,17 @@ struct _DOT11_WME_AC_PARAMTERS_LIST
 {
     uint uNumOfEntries;
     uint uTotalNumOfEntries;
-    DOT11_WME_AC_PARAMETERS dot11WMEACParameters;
+    DOT11_WME_AC_PARAMETERS[1] dot11WMEACParameters;
 }
 
 struct DOT11_WME_UPDATE_IE
 {
-    uint uParamElemMinBeaconIntervals;
-    uint uWMEInfoElemOffset;
-    uint uWMEInfoElemLength;
-    uint uWMEParamElemOffset;
-    uint uWMEParamElemLength;
-    ubyte ucBuffer;
+    uint     uParamElemMinBeaconIntervals;
+    uint     uWMEInfoElemOffset;
+    uint     uWMEInfoElemLength;
+    uint     uWMEParamElemOffset;
+    uint     uWMEParamElemLength;
+    ubyte[1] ucBuffer;
 }
 
 struct DOT11_QOS_TX_DURATION
@@ -1836,9 +2591,9 @@ struct DOT11_QOS_TX_DURATION
 
 struct DOT11_QOS_TX_MEDIUM_TIME
 {
-    ubyte dot11PeerAddress;
-    ubyte ucQoSPriority;
-    uint uMediumTimeAdmited;
+    ubyte[6] dot11PeerAddress;
+    ubyte    ucQoSPriority;
+    uint     uMediumTimeAdmited;
 }
 
 struct DOT11_SUPPORTED_OFDM_FREQUENCY
@@ -1850,7 +2605,7 @@ struct DOT11_SUPPORTED_OFDM_FREQUENCY_LIST
 {
     uint uNumOfEntries;
     uint uTotalNumOfEntries;
-    DOT11_SUPPORTED_OFDM_FREQUENCY dot11SupportedOFDMFrequency;
+    DOT11_SUPPORTED_OFDM_FREQUENCY[1] dot11SupportedOFDMFrequency;
 }
 
 struct DOT11_SUPPORTED_DSSS_CHANNEL
@@ -1862,69 +2617,74 @@ struct DOT11_SUPPORTED_DSSS_CHANNEL_LIST
 {
     uint uNumOfEntries;
     uint uTotalNumOfEntries;
-    DOT11_SUPPORTED_DSSS_CHANNEL dot11SupportedDSSSChannel;
+    DOT11_SUPPORTED_DSSS_CHANNEL[1] dot11SupportedDSSSChannel;
 }
 
 struct DOT11_BYTE_ARRAY
 {
     NDIS_OBJECT_HEADER Header;
-    uint uNumOfBytes;
-    uint uTotalNumOfBytes;
-    ubyte ucBuffer;
+    uint               uNumOfBytes;
+    uint               uTotalNumOfBytes;
+    ubyte[1]           ucBuffer;
 }
 
-struct DOT11_BSS_ENTRY_PHY_SPECIFIC_INFO
+union DOT11_BSS_ENTRY_PHY_SPECIFIC_INFO
 {
     uint uChCenterFrequency;
-    _FHSS_e__Struct FHSS;
+    struct FHSS
+    {
+        uint uHopPattern;
+        uint uHopSet;
+        uint uDwellTime;
+    }
 }
 
 struct DOT11_BSS_ENTRY
 {
-    uint uPhyId;
+    uint           uPhyId;
     DOT11_BSS_ENTRY_PHY_SPECIFIC_INFO PhySpecificInfo;
-    ubyte dot11BSSID;
+    ubyte[6]       dot11BSSID;
     DOT11_BSS_TYPE dot11BSSType;
-    int lRSSI;
-    uint uLinkQuality;
-    ubyte bInRegDomain;
-    ushort usBeaconPeriod;
-    ulong ullTimestamp;
-    ulong ullHostTimestamp;
-    ushort usCapabilityInformation;
-    uint uBufferLength;
-    ubyte ucBuffer;
+    int            lRSSI;
+    uint           uLinkQuality;
+    ubyte          bInRegDomain;
+    ushort         usBeaconPeriod;
+    ulong          ullTimestamp;
+    ulong          ullHostTimestamp;
+    ushort         usCapabilityInformation;
+    uint           uBufferLength;
+    ubyte[1]       ucBuffer;
 }
 
 struct DOT11_SSID_LIST
 {
     NDIS_OBJECT_HEADER Header;
-    uint uNumOfEntries;
-    uint uTotalNumOfEntries;
-    DOT11_SSID SSIDs;
+    uint               uNumOfEntries;
+    uint               uTotalNumOfEntries;
+    DOT11_SSID[1]      SSIDs;
 }
 
 struct DOT11_MAC_ADDRESS_LIST
 {
     NDIS_OBJECT_HEADER Header;
-    uint uNumOfEntries;
-    uint uTotalNumOfEntries;
-    ubyte MacAddrs;
+    uint               uNumOfEntries;
+    uint               uTotalNumOfEntries;
+    ubyte[6]           MacAddrs;
 }
 
 struct DOT11_PMKID_ENTRY
 {
-    ubyte BSSID;
-    ubyte PMKID;
-    uint uFlags;
+    ubyte[6]  BSSID;
+    ubyte[16] PMKID;
+    uint      uFlags;
 }
 
 struct DOT11_PMKID_LIST
 {
-    NDIS_OBJECT_HEADER Header;
-    uint uNumOfEntries;
-    uint uTotalNumOfEntries;
-    DOT11_PMKID_ENTRY PMKIDs;
+    NDIS_OBJECT_HEADER   Header;
+    uint                 uNumOfEntries;
+    uint                 uTotalNumOfEntries;
+    DOT11_PMKID_ENTRY[1] PMKIDs;
 }
 
 struct DOT11_PHY_FRAME_STATISTICS
@@ -1970,12 +2730,12 @@ struct DOT11_MAC_FRAME_STATISTICS
 struct DOT11_STATISTICS
 {
     NDIS_OBJECT_HEADER Header;
-    ulong ullFourWayHandshakeFailures;
-    ulong ullTKIPCounterMeasuresInvoked;
-    ulong ullReserved;
+    ulong              ullFourWayHandshakeFailures;
+    ulong              ullTKIPCounterMeasuresInvoked;
+    ulong              ullReserved;
     DOT11_MAC_FRAME_STATISTICS MacUcastCounters;
     DOT11_MAC_FRAME_STATISTICS MacMcastCounters;
-    DOT11_PHY_FRAME_STATISTICS PhyCounters;
+    DOT11_PHY_FRAME_STATISTICS[1] PhyCounters;
 }
 
 struct DOT11_PRIVACY_EXEMPTION
@@ -1988,213 +2748,198 @@ struct DOT11_PRIVACY_EXEMPTION
 struct DOT11_PRIVACY_EXEMPTION_LIST
 {
     NDIS_OBJECT_HEADER Header;
-    uint uNumOfEntries;
-    uint uTotalNumOfEntries;
-    DOT11_PRIVACY_EXEMPTION PrivacyExemptionEntries;
+    uint               uNumOfEntries;
+    uint               uTotalNumOfEntries;
+    DOT11_PRIVACY_EXEMPTION[1] PrivacyExemptionEntries;
 }
 
 struct DOT11_AUTH_ALGORITHM_LIST
 {
     NDIS_OBJECT_HEADER Header;
-    uint uNumOfEntries;
-    uint uTotalNumOfEntries;
-    DOT11_AUTH_ALGORITHM AlgorithmIds;
+    uint               uNumOfEntries;
+    uint               uTotalNumOfEntries;
+    DOT11_AUTH_ALGORITHM[1] AlgorithmIds;
 }
 
 struct DOT11_AUTH_CIPHER_PAIR_LIST
 {
     NDIS_OBJECT_HEADER Header;
-    uint uNumOfEntries;
-    uint uTotalNumOfEntries;
-    DOT11_AUTH_CIPHER_PAIR AuthCipherPairs;
+    uint               uNumOfEntries;
+    uint               uTotalNumOfEntries;
+    DOT11_AUTH_CIPHER_PAIR[1] AuthCipherPairs;
 }
 
 struct DOT11_CIPHER_ALGORITHM_LIST
 {
     NDIS_OBJECT_HEADER Header;
-    uint uNumOfEntries;
-    uint uTotalNumOfEntries;
-    DOT11_CIPHER_ALGORITHM AlgorithmIds;
+    uint               uNumOfEntries;
+    uint               uTotalNumOfEntries;
+    DOT11_CIPHER_ALGORITHM[1] AlgorithmIds;
 }
 
 struct DOT11_CIPHER_DEFAULT_KEY_VALUE
 {
     NDIS_OBJECT_HEADER Header;
-    uint uKeyIndex;
+    uint               uKeyIndex;
     DOT11_CIPHER_ALGORITHM AlgorithmId;
-    ubyte MacAddr;
-    ubyte bDelete;
-    ubyte bStatic;
-    ushort usKeyLength;
-    ubyte ucKey;
+    ubyte[6]           MacAddr;
+    ubyte              bDelete;
+    ubyte              bStatic;
+    ushort             usKeyLength;
+    ubyte[1]           ucKey;
 }
 
 struct DOT11_KEY_ALGO_TKIP_MIC
 {
-    ubyte ucIV48Counter;
-    uint ulTKIPKeyLength;
-    uint ulMICKeyLength;
-    ubyte ucTKIPMICKeys;
+    ubyte[6] ucIV48Counter;
+    uint     ulTKIPKeyLength;
+    uint     ulMICKeyLength;
+    ubyte[1] ucTKIPMICKeys;
 }
 
 struct DOT11_KEY_ALGO_CCMP
 {
-    ubyte ucIV48Counter;
-    uint ulCCMPKeyLength;
-    ubyte ucCCMPKey;
+    ubyte[6] ucIV48Counter;
+    uint     ulCCMPKeyLength;
+    ubyte[1] ucCCMPKey;
 }
 
 struct DOT11_KEY_ALGO_GCMP
 {
-    ubyte ucIV48Counter;
-    uint ulGCMPKeyLength;
-    ubyte ucGCMPKey;
+    ubyte[6] ucIV48Counter;
+    uint     ulGCMPKeyLength;
+    ubyte[1] ucGCMPKey;
 }
 
 struct DOT11_KEY_ALGO_GCMP_256
 {
-    ubyte ucIV48Counter;
-    uint ulGCMP256KeyLength;
-    ubyte ucGCMP256Key;
+    ubyte[6] ucIV48Counter;
+    uint     ulGCMP256KeyLength;
+    ubyte[1] ucGCMP256Key;
 }
 
 struct DOT11_KEY_ALGO_BIP
 {
-    ubyte ucIPN;
-    uint ulBIPKeyLength;
-    ubyte ucBIPKey;
+    ubyte[6] ucIPN;
+    uint     ulBIPKeyLength;
+    ubyte[1] ucBIPKey;
 }
 
 struct DOT11_KEY_ALGO_BIP_GMAC_256
 {
-    ubyte ucIPN;
-    uint ulBIPGmac256KeyLength;
-    ubyte ucBIPGmac256Key;
-}
-
-enum DOT11_DIRECTION
-{
-    DOT11_DIR_INBOUND = 1,
-    DOT11_DIR_OUTBOUND = 2,
-    DOT11_DIR_BOTH = 3,
+    ubyte[6] ucIPN;
+    uint     ulBIPGmac256KeyLength;
+    ubyte[1] ucBIPGmac256Key;
 }
 
 struct DOT11_CIPHER_KEY_MAPPING_KEY_VALUE
 {
-    ubyte PeerMacAddr;
+    ubyte[6]        PeerMacAddr;
     DOT11_CIPHER_ALGORITHM AlgorithmId;
     DOT11_DIRECTION Direction;
-    ubyte bDelete;
-    ubyte bStatic;
-    ushort usKeyLength;
-    ubyte ucKey;
-}
-
-enum DOT11_ASSOCIATION_STATE
-{
-    dot11_assoc_state_zero = 0,
-    dot11_assoc_state_unauth_unassoc = 1,
-    dot11_assoc_state_auth_unassoc = 2,
-    dot11_assoc_state_auth_assoc = 3,
+    ubyte           bDelete;
+    ubyte           bStatic;
+    ushort          usKeyLength;
+    ubyte[1]        ucKey;
 }
 
 struct DOT11_ASSOCIATION_INFO_EX
 {
-    ubyte PeerMacAddress;
-    ubyte BSSID;
-    ushort usCapabilityInformation;
-    ushort usListenInterval;
-    ubyte ucPeerSupportedRates;
-    ushort usAssociationID;
+    ubyte[6]         PeerMacAddress;
+    ubyte[6]         BSSID;
+    ushort           usCapabilityInformation;
+    ushort           usListenInterval;
+    ubyte[255]       ucPeerSupportedRates;
+    ushort           usAssociationID;
     DOT11_ASSOCIATION_STATE dot11AssociationState;
     DOT11_POWER_MODE dot11PowerMode;
-    LARGE_INTEGER liAssociationUpTime;
-    ulong ullNumOfTxPacketSuccesses;
-    ulong ullNumOfTxPacketFailures;
-    ulong ullNumOfRxPacketSuccesses;
-    ulong ullNumOfRxPacketFailures;
+    LARGE_INTEGER    liAssociationUpTime;
+    ulong            ullNumOfTxPacketSuccesses;
+    ulong            ullNumOfTxPacketFailures;
+    ulong            ullNumOfRxPacketSuccesses;
+    ulong            ullNumOfRxPacketFailures;
 }
 
 struct DOT11_ASSOCIATION_INFO_LIST
 {
     NDIS_OBJECT_HEADER Header;
-    uint uNumOfEntries;
-    uint uTotalNumOfEntries;
-    DOT11_ASSOCIATION_INFO_EX dot11AssocInfo;
+    uint               uNumOfEntries;
+    uint               uTotalNumOfEntries;
+    DOT11_ASSOCIATION_INFO_EX[1] dot11AssocInfo;
 }
 
 struct DOT11_PHY_ID_LIST
 {
     NDIS_OBJECT_HEADER Header;
-    uint uNumOfEntries;
-    uint uTotalNumOfEntries;
-    uint dot11PhyId;
+    uint               uNumOfEntries;
+    uint               uTotalNumOfEntries;
+    uint[1]            dot11PhyId;
 }
 
 struct DOT11_EXTSTA_CAPABILITY
 {
     NDIS_OBJECT_HEADER Header;
-    uint uScanSSIDListSize;
-    uint uDesiredBSSIDListSize;
-    uint uDesiredSSIDListSize;
-    uint uExcludedMacAddressListSize;
-    uint uPrivacyExemptionListSize;
-    uint uKeyMappingTableSize;
-    uint uDefaultKeyTableSize;
-    uint uWEPKeyValueMaxLength;
-    uint uPMKIDCacheSize;
-    uint uMaxNumPerSTADefaultKeyTables;
+    uint               uScanSSIDListSize;
+    uint               uDesiredBSSIDListSize;
+    uint               uDesiredSSIDListSize;
+    uint               uExcludedMacAddressListSize;
+    uint               uPrivacyExemptionListSize;
+    uint               uKeyMappingTableSize;
+    uint               uDefaultKeyTableSize;
+    uint               uWEPKeyValueMaxLength;
+    uint               uPMKIDCacheSize;
+    uint               uMaxNumPerSTADefaultKeyTables;
 }
 
 struct DOT11_DATA_RATE_MAPPING_ENTRY
 {
-    ubyte ucDataRateIndex;
-    ubyte ucDataRateFlag;
+    ubyte  ucDataRateIndex;
+    ubyte  ucDataRateFlag;
     ushort usDataRateValue;
 }
 
 struct DOT11_DATA_RATE_MAPPING_TABLE
 {
     NDIS_OBJECT_HEADER Header;
-    uint uDataRateMappingLength;
-    DOT11_DATA_RATE_MAPPING_ENTRY DataRateMappingEntries;
+    uint               uDataRateMappingLength;
+    DOT11_DATA_RATE_MAPPING_ENTRY[126] DataRateMappingEntries;
 }
 
 struct DOT11_COUNTRY_OR_REGION_STRING_LIST
 {
     NDIS_OBJECT_HEADER Header;
-    uint uNumOfEntries;
-    uint uTotalNumOfEntries;
-    ubyte CountryOrRegionStrings;
+    uint               uNumOfEntries;
+    uint               uTotalNumOfEntries;
+    ubyte[3]           CountryOrRegionStrings;
 }
 
 struct DOT11_PORT_STATE_NOTIFICATION
 {
     NDIS_OBJECT_HEADER Header;
-    ubyte PeerMac;
-    ubyte bOpen;
+    ubyte[6]           PeerMac;
+    ubyte              bOpen;
 }
 
 struct DOT11_IBSS_PARAMS
 {
     NDIS_OBJECT_HEADER Header;
-    ubyte bJoinOnly;
-    uint uIEsOffset;
-    uint uIEsLength;
+    ubyte              bJoinOnly;
+    uint               uIEsOffset;
+    uint               uIEsLength;
 }
 
 struct DOT11_QOS_PARAMS
 {
     NDIS_OBJECT_HEADER Header;
-    ubyte ucEnabledQoSProtocolFlags;
+    ubyte              ucEnabledQoSProtocolFlags;
 }
 
 struct DOT11_ASSOCIATION_PARAMS
 {
     NDIS_OBJECT_HEADER Header;
-    ubyte BSSID;
-    uint uAssocRequestIEsOffset;
-    uint uAssocRequestIEsLength;
+    ubyte[6]           BSSID;
+    uint               uAssocRequestIEsOffset;
+    uint               uAssocRequestIEsLength;
 }
 
 struct DOT11_FRAGMENT_DESCRIPTOR
@@ -2217,7 +2962,7 @@ struct DOT11_HRDSSS_PHY_ATTRIBUTES
     ubyte bShortPreambleOptionImplemented;
     ubyte bPBCCOptionImplemented;
     ubyte bChannelAgilityPresent;
-    uint uHRCCAModeSupported;
+    uint  uHRCCAModeSupported;
 }
 
 struct DOT11_OFDM_PHY_ATTRIBUTES
@@ -2236,131 +2981,136 @@ struct DOT11_ERP_PHY_ATTRIBUTES
 struct DOT11_PHY_ATTRIBUTES
 {
     NDIS_OBJECT_HEADER Header;
-    DOT11_PHY_TYPE PhyType;
-    ubyte bHardwarePhyState;
-    ubyte bSoftwarePhyState;
-    ubyte bCFPollable;
-    uint uMPDUMaxLength;
-    DOT11_TEMP_TYPE TempType;
+    DOT11_PHY_TYPE     PhyType;
+    ubyte              bHardwarePhyState;
+    ubyte              bSoftwarePhyState;
+    ubyte              bCFPollable;
+    uint               uMPDUMaxLength;
+    DOT11_TEMP_TYPE    TempType;
     DOT11_DIVERSITY_SUPPORT DiversitySupport;
-    _PhySpecificAttributes_e__Union PhySpecificAttributes;
-    uint uNumberSupportedPowerLevels;
-    uint TxPowerLevels;
-    uint uNumDataRateMappingEntries;
-    DOT11_DATA_RATE_MAPPING_ENTRY DataRateMappingEntries;
+    union PhySpecificAttributes
+    {
+        DOT11_HRDSSS_PHY_ATTRIBUTES HRDSSSAttributes;
+        DOT11_OFDM_PHY_ATTRIBUTES OFDMAttributes;
+        DOT11_ERP_PHY_ATTRIBUTES ERPAttributes;
+    }
+    uint               uNumberSupportedPowerLevels;
+    uint[8]            TxPowerLevels;
+    uint               uNumDataRateMappingEntries;
+    DOT11_DATA_RATE_MAPPING_ENTRY[126] DataRateMappingEntries;
     DOT11_SUPPORTED_DATA_RATES_VALUE_V2 SupportedDataRatesValue;
 }
 
 struct DOT11_EXTSTA_ATTRIBUTES
 {
     NDIS_OBJECT_HEADER Header;
-    uint uScanSSIDListSize;
-    uint uDesiredBSSIDListSize;
-    uint uDesiredSSIDListSize;
-    uint uExcludedMacAddressListSize;
-    uint uPrivacyExemptionListSize;
-    uint uKeyMappingTableSize;
-    uint uDefaultKeyTableSize;
-    uint uWEPKeyValueMaxLength;
-    uint uPMKIDCacheSize;
-    uint uMaxNumPerSTADefaultKeyTables;
-    ubyte bStrictlyOrderedServiceClassImplemented;
-    ubyte ucSupportedQoSProtocolFlags;
-    ubyte bSafeModeImplemented;
-    uint uNumSupportedCountryOrRegionStrings;
-    ubyte* pSupportedCountryOrRegionStrings;
-    uint uInfraNumSupportedUcastAlgoPairs;
+    uint               uScanSSIDListSize;
+    uint               uDesiredBSSIDListSize;
+    uint               uDesiredSSIDListSize;
+    uint               uExcludedMacAddressListSize;
+    uint               uPrivacyExemptionListSize;
+    uint               uKeyMappingTableSize;
+    uint               uDefaultKeyTableSize;
+    uint               uWEPKeyValueMaxLength;
+    uint               uPMKIDCacheSize;
+    uint               uMaxNumPerSTADefaultKeyTables;
+    ubyte              bStrictlyOrderedServiceClassImplemented;
+    ubyte              ucSupportedQoSProtocolFlags;
+    ubyte              bSafeModeImplemented;
+    uint               uNumSupportedCountryOrRegionStrings;
+    ubyte*             pSupportedCountryOrRegionStrings;
+    uint               uInfraNumSupportedUcastAlgoPairs;
     DOT11_AUTH_CIPHER_PAIR* pInfraSupportedUcastAlgoPairs;
-    uint uInfraNumSupportedMcastAlgoPairs;
+    uint               uInfraNumSupportedMcastAlgoPairs;
     DOT11_AUTH_CIPHER_PAIR* pInfraSupportedMcastAlgoPairs;
-    uint uAdhocNumSupportedUcastAlgoPairs;
+    uint               uAdhocNumSupportedUcastAlgoPairs;
     DOT11_AUTH_CIPHER_PAIR* pAdhocSupportedUcastAlgoPairs;
-    uint uAdhocNumSupportedMcastAlgoPairs;
+    uint               uAdhocNumSupportedMcastAlgoPairs;
     DOT11_AUTH_CIPHER_PAIR* pAdhocSupportedMcastAlgoPairs;
-    ubyte bAutoPowerSaveMode;
-    uint uMaxNetworkOffloadListSize;
-    ubyte bMFPCapable;
-    uint uInfraNumSupportedMcastMgmtAlgoPairs;
+    ubyte              bAutoPowerSaveMode;
+    uint               uMaxNetworkOffloadListSize;
+    ubyte              bMFPCapable;
+    uint               uInfraNumSupportedMcastMgmtAlgoPairs;
     DOT11_AUTH_CIPHER_PAIR* pInfraSupportedMcastMgmtAlgoPairs;
-    ubyte bNeighborReportSupported;
-    ubyte bAPChannelReportSupported;
-    ubyte bActionFramesSupported;
-    ubyte bANQPQueryOffloadSupported;
-    ubyte bHESSIDConnectionSupported;
+    ubyte              bNeighborReportSupported;
+    ubyte              bAPChannelReportSupported;
+    ubyte              bActionFramesSupported;
+    ubyte              bANQPQueryOffloadSupported;
+    ubyte              bHESSIDConnectionSupported;
 }
 
 struct DOT11_RECV_EXTENSION_INFO
 {
-    uint uVersion;
-    void* pvReserved;
-    DOT11_PHY_TYPE dot11PhyType;
-    uint uChCenterFrequency;
-    int lRSSI;
-    int lRSSIMin;
-    int lRSSIMax;
-    uint uRSSI;
-    ubyte ucPriority;
-    ubyte ucDataRate;
-    ubyte ucPeerMacAddress;
-    uint dwExtendedStatus;
-    HANDLE hWEPOffloadContext;
-    HANDLE hAuthOffloadContext;
-    ushort usWEPAppliedMask;
-    ushort usWPAMSDUPriority;
+    uint               uVersion;
+    void*              pvReserved;
+    DOT11_PHY_TYPE     dot11PhyType;
+    uint               uChCenterFrequency;
+    int                lRSSI;
+    int                lRSSIMin;
+    int                lRSSIMax;
+    uint               uRSSI;
+    ubyte              ucPriority;
+    ubyte              ucDataRate;
+    ubyte[6]           ucPeerMacAddress;
+    uint               dwExtendedStatus;
+    HANDLE             hWEPOffloadContext;
+    HANDLE             hAuthOffloadContext;
+    ushort             usWEPAppliedMask;
+    ushort             usWPAMSDUPriority;
     DOT11_IV48_COUNTER dot11LowestIV48Counter;
-    ushort usDot11LeftRWBitMap;
+    ushort             usDot11LeftRWBitMap;
     DOT11_IV48_COUNTER dot11HighestIV48Counter;
-    ushort usDot11RightRWBitMap;
-    ushort usNumberOfMPDUsReceived;
-    ushort usNumberOfFragments;
-    void* pNdisPackets;
+    ushort             usDot11RightRWBitMap;
+    ushort             usNumberOfMPDUsReceived;
+    ushort             usNumberOfFragments;
+    void[1]*           pNdisPackets;
 }
 
 struct DOT11_RECV_EXTENSION_INFO_V2
 {
-    uint uVersion;
-    void* pvReserved;
-    DOT11_PHY_TYPE dot11PhyType;
-    uint uChCenterFrequency;
-    int lRSSI;
-    uint uRSSI;
-    ubyte ucPriority;
-    ubyte ucDataRate;
-    ubyte ucPeerMacAddress;
-    uint dwExtendedStatus;
-    HANDLE hWEPOffloadContext;
-    HANDLE hAuthOffloadContext;
-    ushort usWEPAppliedMask;
-    ushort usWPAMSDUPriority;
+    uint               uVersion;
+    void*              pvReserved;
+    DOT11_PHY_TYPE     dot11PhyType;
+    uint               uChCenterFrequency;
+    int                lRSSI;
+    uint               uRSSI;
+    ubyte              ucPriority;
+    ubyte              ucDataRate;
+    ubyte[6]           ucPeerMacAddress;
+    uint               dwExtendedStatus;
+    HANDLE             hWEPOffloadContext;
+    HANDLE             hAuthOffloadContext;
+    ushort             usWEPAppliedMask;
+    ushort             usWPAMSDUPriority;
     DOT11_IV48_COUNTER dot11LowestIV48Counter;
-    ushort usDot11LeftRWBitMap;
+    ushort             usDot11LeftRWBitMap;
     DOT11_IV48_COUNTER dot11HighestIV48Counter;
-    ushort usDot11RightRWBitMap;
-    ushort usNumberOfMPDUsReceived;
-    ushort usNumberOfFragments;
-    void* pNdisPackets;
+    ushort             usDot11RightRWBitMap;
+    ushort             usNumberOfMPDUsReceived;
+    ushort             usNumberOfFragments;
+    void[1]*           pNdisPackets;
 }
 
 struct DOT11_STATUS_INDICATION
 {
     uint uStatusType;
-    int ndisStatus;
+    int  ndisStatus;
 }
 
 struct DOT11_MPDU_MAX_LENGTH_INDICATION
 {
     NDIS_OBJECT_HEADER Header;
-    uint uPhyId;
-    uint uMPDUMaxLength;
+    uint               uPhyId;
+    uint               uMPDUMaxLength;
 }
 
 struct DOT11_ASSOCIATION_START_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
-    ubyte MacAddr;
-    DOT11_SSID SSID;
-    uint uIHVDataOffset;
-    uint uIHVDataSize;
+    ubyte[6]           MacAddr;
+    DOT11_SSID         SSID;
+    uint               uIHVDataOffset;
+    uint               uIHVDataSize;
 }
 
 struct DOT11_ENCAP_ENTRY
@@ -2369,270 +3119,267 @@ struct DOT11_ENCAP_ENTRY
     ushort usEncapType;
 }
 
-enum DOT11_DS_INFO
-{
-    DOT11_DS_CHANGED = 0,
-    DOT11_DS_UNCHANGED = 1,
-    DOT11_DS_UNKNOWN = 2,
-}
-
 struct DOT11_ASSOCIATION_COMPLETION_PARAMETERS
 {
-    NDIS_OBJECT_HEADER Header;
-    ubyte MacAddr;
-    uint uStatus;
-    ubyte bReAssocReq;
-    ubyte bReAssocResp;
-    uint uAssocReqOffset;
-    uint uAssocReqSize;
-    uint uAssocRespOffset;
-    uint uAssocRespSize;
-    uint uBeaconOffset;
-    uint uBeaconSize;
-    uint uIHVDataOffset;
-    uint uIHVDataSize;
+    NDIS_OBJECT_HEADER   Header;
+    ubyte[6]             MacAddr;
+    uint                 uStatus;
+    ubyte                bReAssocReq;
+    ubyte                bReAssocResp;
+    uint                 uAssocReqOffset;
+    uint                 uAssocReqSize;
+    uint                 uAssocRespOffset;
+    uint                 uAssocRespSize;
+    uint                 uBeaconOffset;
+    uint                 uBeaconSize;
+    uint                 uIHVDataOffset;
+    uint                 uIHVDataSize;
     DOT11_AUTH_ALGORITHM AuthAlgo;
     DOT11_CIPHER_ALGORITHM UnicastCipher;
     DOT11_CIPHER_ALGORITHM MulticastCipher;
-    uint uActivePhyListOffset;
-    uint uActivePhyListSize;
-    ubyte bFourAddressSupported;
-    ubyte bPortAuthorized;
-    ubyte ucActiveQoSProtocol;
-    DOT11_DS_INFO DSInfo;
-    uint uEncapTableOffset;
-    uint uEncapTableSize;
+    uint                 uActivePhyListOffset;
+    uint                 uActivePhyListSize;
+    ubyte                bFourAddressSupported;
+    ubyte                bPortAuthorized;
+    ubyte                ucActiveQoSProtocol;
+    DOT11_DS_INFO        DSInfo;
+    uint                 uEncapTableOffset;
+    uint                 uEncapTableSize;
     DOT11_CIPHER_ALGORITHM MulticastMgmtCipher;
-    uint uAssocComebackTime;
+    uint                 uAssocComebackTime;
 }
 
 struct DOT11_CONNECTION_START_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
-    DOT11_BSS_TYPE BSSType;
-    ubyte AdhocBSSID;
-    DOT11_SSID AdhocSSID;
+    DOT11_BSS_TYPE     BSSType;
+    ubyte[6]           AdhocBSSID;
+    DOT11_SSID         AdhocSSID;
 }
 
 struct DOT11_CONNECTION_COMPLETION_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
-    uint uStatus;
+    uint               uStatus;
 }
 
 struct DOT11_ROAMING_START_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
-    ubyte AdhocBSSID;
-    DOT11_SSID AdhocSSID;
-    uint uRoamingReason;
+    ubyte[6]           AdhocBSSID;
+    DOT11_SSID         AdhocSSID;
+    uint               uRoamingReason;
 }
 
 struct DOT11_ROAMING_COMPLETION_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
-    uint uStatus;
+    uint               uStatus;
 }
 
 struct DOT11_DISASSOCIATION_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
-    ubyte MacAddr;
-    uint uReason;
-    uint uIHVDataOffset;
-    uint uIHVDataSize;
+    ubyte[6]           MacAddr;
+    uint               uReason;
+    uint               uIHVDataOffset;
+    uint               uIHVDataSize;
 }
 
 struct DOT11_TKIPMIC_FAILURE_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
-    ubyte bDefaultKeyFailure;
-    uint uKeyIndex;
-    ubyte PeerMac;
+    ubyte              bDefaultKeyFailure;
+    uint               uKeyIndex;
+    ubyte[6]           PeerMac;
 }
 
 struct DOT11_PMKID_CANDIDATE_LIST_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
-    uint uCandidateListSize;
-    uint uCandidateListOffset;
+    uint               uCandidateListSize;
+    uint               uCandidateListOffset;
 }
 
 struct DOT11_BSSID_CANDIDATE
 {
-    ubyte BSSID;
-    uint uFlags;
+    ubyte[6] BSSID;
+    uint     uFlags;
 }
 
 struct DOT11_PHY_STATE_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
-    uint uPhyId;
-    ubyte bHardwarePhyState;
-    ubyte bSoftwarePhyState;
+    uint               uPhyId;
+    ubyte              bHardwarePhyState;
+    ubyte              bSoftwarePhyState;
 }
 
 struct DOT11_LINK_QUALITY_ENTRY
 {
-    ubyte PeerMacAddr;
-    ubyte ucLinkQuality;
+    ubyte[6] PeerMacAddr;
+    ubyte    ucLinkQuality;
 }
 
 struct DOT11_LINK_QUALITY_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
-    uint uLinkQualityListSize;
-    uint uLinkQualityListOffset;
+    uint               uLinkQualityListSize;
+    uint               uLinkQualityListOffset;
 }
 
 struct DOT11_EXTSTA_SEND_CONTEXT
 {
     NDIS_OBJECT_HEADER Header;
-    ushort usExemptionActionType;
-    uint uPhyId;
-    uint uDelayedSleepValue;
-    void* pvMediaSpecificInfo;
-    uint uSendFlags;
+    ushort             usExemptionActionType;
+    uint               uPhyId;
+    uint               uDelayedSleepValue;
+    void*              pvMediaSpecificInfo;
+    uint               uSendFlags;
 }
 
 struct DOT11_EXTSTA_RECV_CONTEXT
 {
     NDIS_OBJECT_HEADER Header;
-    uint uReceiveFlags;
-    uint uPhyId;
-    uint uChCenterFrequency;
-    ushort usNumberOfMPDUsReceived;
-    int lRSSI;
-    ubyte ucDataRate;
-    uint uSizeMediaSpecificInfo;
-    void* pvMediaSpecificInfo;
-    ulong ullTimestamp;
+    uint               uReceiveFlags;
+    uint               uPhyId;
+    uint               uChCenterFrequency;
+    ushort             usNumberOfMPDUsReceived;
+    int                lRSSI;
+    ubyte              ucDataRate;
+    uint               uSizeMediaSpecificInfo;
+    void*              pvMediaSpecificInfo;
+    ulong              ullTimestamp;
 }
 
 struct DOT11_EXTAP_ATTRIBUTES
 {
     NDIS_OBJECT_HEADER Header;
-    uint uScanSSIDListSize;
-    uint uDesiredSSIDListSize;
-    uint uPrivacyExemptionListSize;
-    uint uAssociationTableSize;
-    uint uDefaultKeyTableSize;
-    uint uWEPKeyValueMaxLength;
-    ubyte bStrictlyOrderedServiceClassImplemented;
-    uint uNumSupportedCountryOrRegionStrings;
-    ubyte* pSupportedCountryOrRegionStrings;
-    uint uInfraNumSupportedUcastAlgoPairs;
+    uint               uScanSSIDListSize;
+    uint               uDesiredSSIDListSize;
+    uint               uPrivacyExemptionListSize;
+    uint               uAssociationTableSize;
+    uint               uDefaultKeyTableSize;
+    uint               uWEPKeyValueMaxLength;
+    ubyte              bStrictlyOrderedServiceClassImplemented;
+    uint               uNumSupportedCountryOrRegionStrings;
+    ubyte*             pSupportedCountryOrRegionStrings;
+    uint               uInfraNumSupportedUcastAlgoPairs;
     DOT11_AUTH_CIPHER_PAIR* pInfraSupportedUcastAlgoPairs;
-    uint uInfraNumSupportedMcastAlgoPairs;
+    uint               uInfraNumSupportedMcastAlgoPairs;
     DOT11_AUTH_CIPHER_PAIR* pInfraSupportedMcastAlgoPairs;
 }
 
 struct DOT11_INCOMING_ASSOC_STARTED_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
-    ubyte PeerMacAddr;
+    ubyte[6]           PeerMacAddr;
 }
 
 struct DOT11_INCOMING_ASSOC_REQUEST_RECEIVED_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
-    ubyte PeerMacAddr;
-    ubyte bReAssocReq;
-    uint uAssocReqOffset;
-    uint uAssocReqSize;
+    ubyte[6]           PeerMacAddr;
+    ubyte              bReAssocReq;
+    uint               uAssocReqOffset;
+    uint               uAssocReqSize;
 }
 
 struct DOT11_INCOMING_ASSOC_COMPLETION_PARAMETERS
 {
-    NDIS_OBJECT_HEADER Header;
-    ubyte PeerMacAddr;
-    uint uStatus;
-    ubyte ucErrorSource;
-    ubyte bReAssocReq;
-    ubyte bReAssocResp;
-    uint uAssocReqOffset;
-    uint uAssocReqSize;
-    uint uAssocRespOffset;
-    uint uAssocRespSize;
+    NDIS_OBJECT_HEADER   Header;
+    ubyte[6]             PeerMacAddr;
+    uint                 uStatus;
+    ubyte                ucErrorSource;
+    ubyte                bReAssocReq;
+    ubyte                bReAssocResp;
+    uint                 uAssocReqOffset;
+    uint                 uAssocReqSize;
+    uint                 uAssocRespOffset;
+    uint                 uAssocRespSize;
     DOT11_AUTH_ALGORITHM AuthAlgo;
     DOT11_CIPHER_ALGORITHM UnicastCipher;
     DOT11_CIPHER_ALGORITHM MulticastCipher;
-    uint uActivePhyListOffset;
-    uint uActivePhyListSize;
-    uint uBeaconOffset;
-    uint uBeaconSize;
+    uint                 uActivePhyListOffset;
+    uint                 uActivePhyListSize;
+    uint                 uBeaconOffset;
+    uint                 uBeaconSize;
 }
 
 struct DOT11_STOP_AP_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
-    uint ulReason;
+    uint               ulReason;
 }
 
 struct DOT11_PHY_FREQUENCY_ADOPTED_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
-    uint ulPhyId;
-    _Anonymous_e__Union Anonymous;
+    uint               ulPhyId;
+    union
+    {
+        uint ulChannel;
+        uint ulFrequency;
+    }
 }
 
 struct DOT11_CAN_SUSTAIN_AP_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
-    uint ulReason;
+    uint               ulReason;
 }
 
 struct DOT11_AVAILABLE_CHANNEL_LIST
 {
     NDIS_OBJECT_HEADER Header;
-    uint uNumOfEntries;
-    uint uTotalNumOfEntries;
-    uint uChannelNumber;
+    uint               uNumOfEntries;
+    uint               uTotalNumOfEntries;
+    uint[1]            uChannelNumber;
 }
 
 struct DOT11_AVAILABLE_FREQUENCY_LIST
 {
     NDIS_OBJECT_HEADER Header;
-    uint uNumOfEntries;
-    uint uTotalNumOfEntries;
-    uint uFrequencyValue;
+    uint               uNumOfEntries;
+    uint               uTotalNumOfEntries;
+    uint[1]            uFrequencyValue;
 }
 
 struct DOT11_DISASSOCIATE_PEER_REQUEST
 {
     NDIS_OBJECT_HEADER Header;
-    ubyte PeerMacAddr;
-    ushort usReason;
+    ubyte[6]           PeerMacAddr;
+    ushort             usReason;
 }
 
 struct DOT11_INCOMING_ASSOC_DECISION
 {
     NDIS_OBJECT_HEADER Header;
-    ubyte PeerMacAddr;
-    ubyte bAccept;
-    ushort usReasonCode;
-    uint uAssocResponseIEsOffset;
-    uint uAssocResponseIEsLength;
+    ubyte[6]           PeerMacAddr;
+    ubyte              bAccept;
+    ushort             usReasonCode;
+    uint               uAssocResponseIEsOffset;
+    uint               uAssocResponseIEsLength;
 }
 
 struct DOT11_INCOMING_ASSOC_DECISION_V2
 {
     NDIS_OBJECT_HEADER Header;
-    ubyte PeerMacAddr;
-    ubyte bAccept;
-    ushort usReasonCode;
-    uint uAssocResponseIEsOffset;
-    uint uAssocResponseIEsLength;
-    ubyte WFDStatus;
+    ubyte[6]           PeerMacAddr;
+    ubyte              bAccept;
+    ushort             usReasonCode;
+    uint               uAssocResponseIEsOffset;
+    uint               uAssocResponseIEsLength;
+    ubyte              WFDStatus;
 }
 
 struct DOT11_ADDITIONAL_IE
 {
     NDIS_OBJECT_HEADER Header;
-    uint uBeaconIEsOffset;
-    uint uBeaconIEsLength;
-    uint uResponseIEsOffset;
-    uint uResponseIEsLength;
+    uint               uBeaconIEsOffset;
+    uint               uBeaconIEsLength;
+    uint               uResponseIEsOffset;
+    uint               uResponseIEsLength;
 }
 
 struct DOT11_PEER_STATISTICS
@@ -2647,106 +3394,106 @@ struct DOT11_PEER_STATISTICS
 
 struct DOT11_PEER_INFO
 {
-    ubyte MacAddress;
-    ushort usCapabilityInformation;
+    ubyte[6]             MacAddress;
+    ushort               usCapabilityInformation;
     DOT11_AUTH_ALGORITHM AuthAlgo;
     DOT11_CIPHER_ALGORITHM UnicastCipherAlgo;
     DOT11_CIPHER_ALGORITHM MulticastCipherAlgo;
-    ubyte bWpsEnabled;
-    ushort usListenInterval;
-    ubyte ucSupportedRates;
-    ushort usAssociationID;
+    ubyte                bWpsEnabled;
+    ushort               usListenInterval;
+    ubyte[255]           ucSupportedRates;
+    ushort               usAssociationID;
     DOT11_ASSOCIATION_STATE AssociationState;
-    DOT11_POWER_MODE PowerMode;
-    LARGE_INTEGER liAssociationUpTime;
+    DOT11_POWER_MODE     PowerMode;
+    LARGE_INTEGER        liAssociationUpTime;
     DOT11_PEER_STATISTICS Statistics;
 }
 
 struct DOT11_PEER_INFO_LIST
 {
     NDIS_OBJECT_HEADER Header;
-    uint uNumOfEntries;
-    uint uTotalNumOfEntries;
-    DOT11_PEER_INFO PeerInfo;
+    uint               uNumOfEntries;
+    uint               uTotalNumOfEntries;
+    DOT11_PEER_INFO[1] PeerInfo;
 }
 
 struct DOT11_VWIFI_COMBINATION
 {
     NDIS_OBJECT_HEADER Header;
-    uint uNumInfrastructure;
-    uint uNumAdhoc;
-    uint uNumSoftAP;
+    uint               uNumInfrastructure;
+    uint               uNumAdhoc;
+    uint               uNumSoftAP;
 }
 
 struct DOT11_VWIFI_COMBINATION_V2
 {
     NDIS_OBJECT_HEADER Header;
-    uint uNumInfrastructure;
-    uint uNumAdhoc;
-    uint uNumSoftAP;
-    uint uNumVirtualStation;
+    uint               uNumInfrastructure;
+    uint               uNumAdhoc;
+    uint               uNumSoftAP;
+    uint               uNumVirtualStation;
 }
 
 struct DOT11_VWIFI_COMBINATION_V3
 {
     NDIS_OBJECT_HEADER Header;
-    uint uNumInfrastructure;
-    uint uNumAdhoc;
-    uint uNumSoftAP;
-    uint uNumVirtualStation;
-    uint uNumWFDGroup;
+    uint               uNumInfrastructure;
+    uint               uNumAdhoc;
+    uint               uNumSoftAP;
+    uint               uNumVirtualStation;
+    uint               uNumWFDGroup;
 }
 
 struct DOT11_VWIFI_ATTRIBUTES
 {
     NDIS_OBJECT_HEADER Header;
-    uint uTotalNumOfEntries;
-    DOT11_VWIFI_COMBINATION Combinations;
+    uint               uTotalNumOfEntries;
+    DOT11_VWIFI_COMBINATION[1] Combinations;
 }
 
 struct DOT11_MAC_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
-    uint uOpmodeMask;
+    uint               uOpmodeMask;
 }
 
 struct DOT11_MAC_INFO
 {
-    uint uReserved;
-    uint uNdisPortNumber;
-    ubyte MacAddr;
+    uint     uReserved;
+    uint     uNdisPortNumber;
+    ubyte[6] MacAddr;
 }
 
 struct DOT11_WFD_ATTRIBUTES
 {
     NDIS_OBJECT_HEADER Header;
-    uint uNumConcurrentGORole;
-    uint uNumConcurrentClientRole;
-    uint WPSVersionsSupported;
-    ubyte bServiceDiscoverySupported;
-    ubyte bClientDiscoverabilitySupported;
-    ubyte bInfrastructureManagementSupported;
-    uint uMaxSecondaryDeviceTypeListSize;
-    ubyte DeviceAddress;
-    uint uInterfaceAddressListCount;
-    ubyte* pInterfaceAddressList;
-    uint uNumSupportedCountryOrRegionStrings;
-    ubyte* pSupportedCountryOrRegionStrings;
-    uint uDiscoveryFilterListSize;
-    uint uGORoleClientTableSize;
+    uint               uNumConcurrentGORole;
+    uint               uNumConcurrentClientRole;
+    uint               WPSVersionsSupported;
+    ubyte              bServiceDiscoverySupported;
+    ubyte              bClientDiscoverabilitySupported;
+    ubyte              bInfrastructureManagementSupported;
+    uint               uMaxSecondaryDeviceTypeListSize;
+    ubyte[6]           DeviceAddress;
+    uint               uInterfaceAddressListCount;
+    ubyte*             pInterfaceAddressList;
+    uint               uNumSupportedCountryOrRegionStrings;
+    ubyte*             pSupportedCountryOrRegionStrings;
+    uint               uDiscoveryFilterListSize;
+    uint               uGORoleClientTableSize;
 }
 
 struct DOT11_WFD_DEVICE_TYPE
 {
-    ushort CategoryID;
-    ushort SubCategoryID;
-    ubyte OUI;
+    ushort   CategoryID;
+    ushort   SubCategoryID;
+    ubyte[4] OUI;
 }
 
 struct DOT11_WPS_DEVICE_NAME
 {
-    uint uDeviceNameLength;
-    ubyte ucDeviceName;
+    uint      uDeviceNameLength;
+    ubyte[32] ucDeviceName;
 }
 
 struct DOT11_WFD_CONFIGURATION_TIMEOUT
@@ -2757,45 +3504,20 @@ struct DOT11_WFD_CONFIGURATION_TIMEOUT
 
 struct DOT11_WFD_GROUP_ID
 {
-    ubyte DeviceAddress;
+    ubyte[6]   DeviceAddress;
     DOT11_SSID SSID;
 }
 
 struct DOT11_WFD_GO_INTENT
 {
-    ubyte _bitfield;
+    ubyte _bitfield84;
 }
 
 struct DOT11_WFD_CHANNEL
 {
-    ubyte CountryRegionString;
-    ubyte OperatingClass;
-    ubyte ChannelNumber;
-}
-
-enum DOT11_WPS_CONFIG_METHOD
-{
-    DOT11_WPS_CONFIG_METHOD_NULL = 0,
-    DOT11_WPS_CONFIG_METHOD_DISPLAY = 8,
-    DOT11_WPS_CONFIG_METHOD_NFC_TAG = 32,
-    DOT11_WPS_CONFIG_METHOD_NFC_INTERFACE = 64,
-    DOT11_WPS_CONFIG_METHOD_PUSHBUTTON = 128,
-    DOT11_WPS_CONFIG_METHOD_KEYPAD = 256,
-    DOT11_WPS_CONFIG_METHOD_WFDS_DEFAULT = 4096,
-}
-
-enum DOT11_WPS_DEVICE_PASSWORD_ID
-{
-    DOT11_WPS_PASSWORD_ID_DEFAULT = 0,
-    DOT11_WPS_PASSWORD_ID_USER_SPECIFIED = 1,
-    DOT11_WPS_PASSWORD_ID_MACHINE_SPECIFIED = 2,
-    DOT11_WPS_PASSWORD_ID_REKEY = 3,
-    DOT11_WPS_PASSWORD_ID_PUSHBUTTON = 4,
-    DOT11_WPS_PASSWORD_ID_REGISTRAR_SPECIFIED = 5,
-    DOT11_WPS_PASSWORD_ID_NFC_CONNECTION_HANDOVER = 7,
-    DOT11_WPS_PASSWORD_ID_WFD_SERVICES = 8,
-    DOT11_WPS_PASSWORD_ID_OOB_RANGE_MIN = 16,
-    DOT11_WPS_PASSWORD_ID_OOB_RANGE_MAX = 65535,
+    ubyte[3] CountryRegionString;
+    ubyte    OperatingClass;
+    ubyte    ChannelNumber;
 }
 
 struct WFDSVC_CONNECTION_CAPABILITY
@@ -2807,249 +3529,237 @@ struct WFDSVC_CONNECTION_CAPABILITY
 
 struct DOT11_WFD_SERVICE_HASH_LIST
 {
-    ushort ServiceHashCount;
-    ubyte ServiceHash;
+    ushort   ServiceHashCount;
+    ubyte[6] ServiceHash;
 }
 
 struct DOT11_WFD_ADVERTISEMENT_ID
 {
-    uint AdvertisementID;
-    ubyte ServiceAddress;
+    uint     AdvertisementID;
+    ubyte[6] ServiceAddress;
 }
 
 struct DOT11_WFD_SESSION_ID
 {
-    uint SessionID;
-    ubyte SessionAddress;
+    uint     SessionID;
+    ubyte[6] SessionAddress;
 }
 
 struct DOT11_WFD_ADVERTISED_SERVICE_DESCRIPTOR
 {
-    uint AdvertisementID;
-    ushort ConfigMethods;
-    ubyte ServiceNameLength;
-    ubyte ServiceName;
+    uint       AdvertisementID;
+    ushort     ConfigMethods;
+    ubyte      ServiceNameLength;
+    ubyte[255] ServiceName;
 }
 
 struct DOT11_WFD_ADVERTISED_SERVICE_LIST
 {
     ushort ServiceCount;
-    DOT11_WFD_ADVERTISED_SERVICE_DESCRIPTOR AdvertisedService;
+    DOT11_WFD_ADVERTISED_SERVICE_DESCRIPTOR[1] AdvertisedService;
 }
 
 struct DOT11_WFD_DISCOVER_COMPLETE_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
-    int Status;
-    uint uNumOfEntries;
-    uint uTotalNumOfEntries;
-    uint uListOffset;
-    uint uListLength;
+    int                Status;
+    uint               uNumOfEntries;
+    uint               uTotalNumOfEntries;
+    uint               uListOffset;
+    uint               uListLength;
 }
 
 struct DOT11_GO_NEGOTIATION_REQUEST_SEND_COMPLETE_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
-    ubyte PeerDeviceAddress;
-    ubyte DialogToken;
-    int Status;
-    uint uIEsOffset;
-    uint uIEsLength;
+    ubyte[6]           PeerDeviceAddress;
+    ubyte              DialogToken;
+    int                Status;
+    uint               uIEsOffset;
+    uint               uIEsLength;
 }
 
 struct DOT11_RECEIVED_GO_NEGOTIATION_REQUEST_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
-    ubyte PeerDeviceAddress;
-    ubyte DialogToken;
-    void* RequestContext;
-    uint uIEsOffset;
-    uint uIEsLength;
+    ubyte[6]           PeerDeviceAddress;
+    ubyte              DialogToken;
+    void*              RequestContext;
+    uint               uIEsOffset;
+    uint               uIEsLength;
 }
 
 struct DOT11_GO_NEGOTIATION_RESPONSE_SEND_COMPLETE_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
-    ubyte PeerDeviceAddress;
-    ubyte DialogToken;
-    int Status;
-    uint uIEsOffset;
-    uint uIEsLength;
+    ubyte[6]           PeerDeviceAddress;
+    ubyte              DialogToken;
+    int                Status;
+    uint               uIEsOffset;
+    uint               uIEsLength;
 }
 
 struct DOT11_RECEIVED_GO_NEGOTIATION_RESPONSE_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
-    ubyte PeerDeviceAddress;
-    ubyte DialogToken;
-    void* ResponseContext;
-    uint uIEsOffset;
-    uint uIEsLength;
+    ubyte[6]           PeerDeviceAddress;
+    ubyte              DialogToken;
+    void*              ResponseContext;
+    uint               uIEsOffset;
+    uint               uIEsLength;
 }
 
 struct DOT11_GO_NEGOTIATION_CONFIRMATION_SEND_COMPLETE_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
-    ubyte PeerDeviceAddress;
-    ubyte DialogToken;
-    int Status;
-    uint uIEsOffset;
-    uint uIEsLength;
+    ubyte[6]           PeerDeviceAddress;
+    ubyte              DialogToken;
+    int                Status;
+    uint               uIEsOffset;
+    uint               uIEsLength;
 }
 
 struct DOT11_RECEIVED_GO_NEGOTIATION_CONFIRMATION_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
-    ubyte PeerDeviceAddress;
-    ubyte DialogToken;
-    uint uIEsOffset;
-    uint uIEsLength;
+    ubyte[6]           PeerDeviceAddress;
+    ubyte              DialogToken;
+    uint               uIEsOffset;
+    uint               uIEsLength;
 }
 
 struct DOT11_INVITATION_REQUEST_SEND_COMPLETE_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
-    ubyte PeerDeviceAddress;
-    ubyte ReceiverAddress;
-    ubyte DialogToken;
-    int Status;
-    uint uIEsOffset;
-    uint uIEsLength;
+    ubyte[6]           PeerDeviceAddress;
+    ubyte[6]           ReceiverAddress;
+    ubyte              DialogToken;
+    int                Status;
+    uint               uIEsOffset;
+    uint               uIEsLength;
 }
 
 struct DOT11_RECEIVED_INVITATION_REQUEST_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
-    ubyte TransmitterDeviceAddress;
-    ubyte BSSID;
-    ubyte DialogToken;
-    void* RequestContext;
-    uint uIEsOffset;
-    uint uIEsLength;
+    ubyte[6]           TransmitterDeviceAddress;
+    ubyte[6]           BSSID;
+    ubyte              DialogToken;
+    void*              RequestContext;
+    uint               uIEsOffset;
+    uint               uIEsLength;
 }
 
 struct DOT11_INVITATION_RESPONSE_SEND_COMPLETE_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
-    ubyte ReceiverDeviceAddress;
-    ubyte DialogToken;
-    int Status;
-    uint uIEsOffset;
-    uint uIEsLength;
+    ubyte[6]           ReceiverDeviceAddress;
+    ubyte              DialogToken;
+    int                Status;
+    uint               uIEsOffset;
+    uint               uIEsLength;
 }
 
 struct DOT11_RECEIVED_INVITATION_RESPONSE_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
-    ubyte TransmitterDeviceAddress;
-    ubyte BSSID;
-    ubyte DialogToken;
-    uint uIEsOffset;
-    uint uIEsLength;
+    ubyte[6]           TransmitterDeviceAddress;
+    ubyte[6]           BSSID;
+    ubyte              DialogToken;
+    uint               uIEsOffset;
+    uint               uIEsLength;
 }
 
 struct DOT11_PROVISION_DISCOVERY_REQUEST_SEND_COMPLETE_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
-    ubyte PeerDeviceAddress;
-    ubyte ReceiverAddress;
-    ubyte DialogToken;
-    int Status;
-    uint uIEsOffset;
-    uint uIEsLength;
+    ubyte[6]           PeerDeviceAddress;
+    ubyte[6]           ReceiverAddress;
+    ubyte              DialogToken;
+    int                Status;
+    uint               uIEsOffset;
+    uint               uIEsLength;
 }
 
 struct DOT11_RECEIVED_PROVISION_DISCOVERY_REQUEST_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
-    ubyte TransmitterDeviceAddress;
-    ubyte BSSID;
-    ubyte DialogToken;
-    void* RequestContext;
-    uint uIEsOffset;
-    uint uIEsLength;
+    ubyte[6]           TransmitterDeviceAddress;
+    ubyte[6]           BSSID;
+    ubyte              DialogToken;
+    void*              RequestContext;
+    uint               uIEsOffset;
+    uint               uIEsLength;
 }
 
 struct DOT11_PROVISION_DISCOVERY_RESPONSE_SEND_COMPLETE_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
-    ubyte ReceiverDeviceAddress;
-    ubyte DialogToken;
-    int Status;
-    uint uIEsOffset;
-    uint uIEsLength;
+    ubyte[6]           ReceiverDeviceAddress;
+    ubyte              DialogToken;
+    int                Status;
+    uint               uIEsOffset;
+    uint               uIEsLength;
 }
 
 struct DOT11_RECEIVED_PROVISION_DISCOVERY_RESPONSE_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
-    ubyte TransmitterDeviceAddress;
-    ubyte BSSID;
-    ubyte DialogToken;
-    uint uIEsOffset;
-    uint uIEsLength;
-}
-
-enum DOT11_ANQP_QUERY_RESULT
-{
-    dot11_ANQP_query_result_success = 0,
-    dot11_ANQP_query_result_failure = 1,
-    dot11_ANQP_query_result_timed_out = 2,
-    dot11_ANQP_query_result_resources = 3,
-    dot11_ANQP_query_result_advertisement_protocol_not_supported_on_remote = 4,
-    dot11_ANQP_query_result_gas_protocol_failure = 5,
-    dot11_ANQP_query_result_advertisement_server_not_responding = 6,
-    dot11_ANQP_query_result_access_issues = 7,
+    ubyte[6]           TransmitterDeviceAddress;
+    ubyte[6]           BSSID;
+    ubyte              DialogToken;
+    uint               uIEsOffset;
+    uint               uIEsLength;
 }
 
 struct DOT11_ANQP_QUERY_COMPLETE_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
     DOT11_ANQP_QUERY_RESULT Status;
-    HANDLE hContext;
-    uint uResponseLength;
+    HANDLE             hContext;
+    uint               uResponseLength;
 }
 
 struct DOT11_WFD_DEVICE_CAPABILITY_CONFIG
 {
     NDIS_OBJECT_HEADER Header;
-    ubyte bServiceDiscoveryEnabled;
-    ubyte bClientDiscoverabilityEnabled;
-    ubyte bConcurrentOperationSupported;
-    ubyte bInfrastructureManagementEnabled;
-    ubyte bDeviceLimitReached;
-    ubyte bInvitationProcedureEnabled;
-    uint WPSVersionsEnabled;
+    ubyte              bServiceDiscoveryEnabled;
+    ubyte              bClientDiscoverabilityEnabled;
+    ubyte              bConcurrentOperationSupported;
+    ubyte              bInfrastructureManagementEnabled;
+    ubyte              bDeviceLimitReached;
+    ubyte              bInvitationProcedureEnabled;
+    uint               WPSVersionsEnabled;
 }
 
 struct DOT11_WFD_GROUP_OWNER_CAPABILITY_CONFIG
 {
     NDIS_OBJECT_HEADER Header;
-    ubyte bPersistentGroupEnabled;
-    ubyte bIntraBSSDistributionSupported;
-    ubyte bCrossConnectionSupported;
-    ubyte bPersistentReconnectSupported;
-    ubyte bGroupFormationEnabled;
-    uint uMaximumGroupLimit;
+    ubyte              bPersistentGroupEnabled;
+    ubyte              bIntraBSSDistributionSupported;
+    ubyte              bCrossConnectionSupported;
+    ubyte              bPersistentReconnectSupported;
+    ubyte              bGroupFormationEnabled;
+    uint               uMaximumGroupLimit;
 }
 
 struct DOT11_WFD_GROUP_OWNER_CAPABILITY_CONFIG_V2
 {
     NDIS_OBJECT_HEADER Header;
-    ubyte bPersistentGroupEnabled;
-    ubyte bIntraBSSDistributionSupported;
-    ubyte bCrossConnectionSupported;
-    ubyte bPersistentReconnectSupported;
-    ubyte bGroupFormationEnabled;
-    uint uMaximumGroupLimit;
-    ubyte bEapolKeyIpAddressAllocationSupported;
+    ubyte              bPersistentGroupEnabled;
+    ubyte              bIntraBSSDistributionSupported;
+    ubyte              bCrossConnectionSupported;
+    ubyte              bPersistentReconnectSupported;
+    ubyte              bGroupFormationEnabled;
+    uint               uMaximumGroupLimit;
+    ubyte              bEapolKeyIpAddressAllocationSupported;
 }
 
 struct DOT11_WFD_DEVICE_INFO
 {
     NDIS_OBJECT_HEADER Header;
-    ubyte DeviceAddress;
-    ushort ConfigMethods;
+    ubyte[6]           DeviceAddress;
+    ushort             ConfigMethods;
     DOT11_WFD_DEVICE_TYPE PrimaryDeviceType;
     DOT11_WPS_DEVICE_NAME DeviceName;
 }
@@ -3057,538 +3767,449 @@ struct DOT11_WFD_DEVICE_INFO
 struct DOT11_WFD_SECONDARY_DEVICE_TYPE_LIST
 {
     NDIS_OBJECT_HEADER Header;
-    uint uNumOfEntries;
-    uint uTotalNumOfEntries;
-    DOT11_WFD_DEVICE_TYPE SecondaryDeviceTypes;
-}
-
-enum DOT11_WFD_DISCOVER_TYPE
-{
-    dot11_wfd_discover_type_scan_only = 1,
-    dot11_wfd_discover_type_find_only = 2,
-    dot11_wfd_discover_type_auto = 3,
-    dot11_wfd_discover_type_scan_social_channels = 4,
-    dot11_wfd_discover_type_forced = -2147483648,
-}
-
-enum DOT11_WFD_SCAN_TYPE
-{
-    dot11_wfd_scan_type_active = 1,
-    dot11_wfd_scan_type_passive = 2,
-    dot11_wfd_scan_type_auto = 3,
+    uint               uNumOfEntries;
+    uint               uTotalNumOfEntries;
+    DOT11_WFD_DEVICE_TYPE[1] SecondaryDeviceTypes;
 }
 
 struct DOT11_WFD_DISCOVER_DEVICE_FILTER
 {
-    ubyte DeviceID;
-    ubyte ucBitmask;
+    ubyte[6]   DeviceID;
+    ubyte      ucBitmask;
     DOT11_SSID GroupSSID;
 }
 
 struct DOT11_WFD_DISCOVER_REQUEST
 {
-    NDIS_OBJECT_HEADER Header;
+    NDIS_OBJECT_HEADER  Header;
     DOT11_WFD_DISCOVER_TYPE DiscoverType;
     DOT11_WFD_SCAN_TYPE ScanType;
-    uint uDiscoverTimeout;
-    uint uDeviceFilterListOffset;
-    uint uNumDeviceFilters;
-    uint uIEsOffset;
-    uint uIEsLength;
-    ubyte bForceScanLegacyNetworks;
+    uint                uDiscoverTimeout;
+    uint                uDeviceFilterListOffset;
+    uint                uNumDeviceFilters;
+    uint                uIEsOffset;
+    uint                uIEsLength;
+    ubyte               bForceScanLegacyNetworks;
 }
 
 struct DOT11_WFD_DEVICE_ENTRY
 {
-    uint uPhyId;
+    uint           uPhyId;
     DOT11_BSS_ENTRY_PHY_SPECIFIC_INFO PhySpecificInfo;
-    ubyte dot11BSSID;
+    ubyte[6]       dot11BSSID;
     DOT11_BSS_TYPE dot11BSSType;
-    ubyte TransmitterAddress;
-    int lRSSI;
-    uint uLinkQuality;
-    ushort usBeaconPeriod;
-    ulong ullTimestamp;
-    ulong ullBeaconHostTimestamp;
-    ulong ullProbeResponseHostTimestamp;
-    ushort usCapabilityInformation;
-    uint uBeaconIEsOffset;
-    uint uBeaconIEsLength;
-    uint uProbeResponseIEsOffset;
-    uint uProbeResponseIEsLength;
+    ubyte[6]       TransmitterAddress;
+    int            lRSSI;
+    uint           uLinkQuality;
+    ushort         usBeaconPeriod;
+    ulong          ullTimestamp;
+    ulong          ullBeaconHostTimestamp;
+    ulong          ullProbeResponseHostTimestamp;
+    ushort         usCapabilityInformation;
+    uint           uBeaconIEsOffset;
+    uint           uBeaconIEsLength;
+    uint           uProbeResponseIEsOffset;
+    uint           uProbeResponseIEsLength;
 }
 
 struct DOT11_WFD_ADDITIONAL_IE
 {
     NDIS_OBJECT_HEADER Header;
-    uint uBeaconIEsOffset;
-    uint uBeaconIEsLength;
-    uint uProbeResponseIEsOffset;
-    uint uProbeResponseIEsLength;
-    uint uDefaultRequestIEsOffset;
-    uint uDefaultRequestIEsLength;
+    uint               uBeaconIEsOffset;
+    uint               uBeaconIEsLength;
+    uint               uProbeResponseIEsOffset;
+    uint               uProbeResponseIEsLength;
+    uint               uDefaultRequestIEsOffset;
+    uint               uDefaultRequestIEsLength;
 }
 
 struct DOT11_SEND_GO_NEGOTIATION_REQUEST_PARAMETERS
 {
-    NDIS_OBJECT_HEADER Header;
-    ubyte PeerDeviceAddress;
-    ubyte DialogToken;
-    uint uSendTimeout;
+    NDIS_OBJECT_HEADER  Header;
+    ubyte[6]            PeerDeviceAddress;
+    ubyte               DialogToken;
+    uint                uSendTimeout;
     DOT11_WFD_GO_INTENT GroupOwnerIntent;
     DOT11_WFD_CONFIGURATION_TIMEOUT MinimumConfigTimeout;
-    ubyte IntendedInterfaceAddress;
-    ubyte GroupCapability;
-    uint uIEsOffset;
-    uint uIEsLength;
+    ubyte[6]            IntendedInterfaceAddress;
+    ubyte               GroupCapability;
+    uint                uIEsOffset;
+    uint                uIEsLength;
 }
 
 struct DOT11_SEND_GO_NEGOTIATION_RESPONSE_PARAMETERS
 {
-    NDIS_OBJECT_HEADER Header;
-    ubyte PeerDeviceAddress;
-    ubyte DialogToken;
-    void* RequestContext;
-    uint uSendTimeout;
-    ubyte Status;
+    NDIS_OBJECT_HEADER  Header;
+    ubyte[6]            PeerDeviceAddress;
+    ubyte               DialogToken;
+    void*               RequestContext;
+    uint                uSendTimeout;
+    ubyte               Status;
     DOT11_WFD_GO_INTENT GroupOwnerIntent;
     DOT11_WFD_CONFIGURATION_TIMEOUT MinimumConfigTimeout;
-    ubyte IntendedInterfaceAddress;
-    ubyte GroupCapability;
-    DOT11_WFD_GROUP_ID GroupID;
-    ubyte bUseGroupID;
-    uint uIEsOffset;
-    uint uIEsLength;
+    ubyte[6]            IntendedInterfaceAddress;
+    ubyte               GroupCapability;
+    DOT11_WFD_GROUP_ID  GroupID;
+    ubyte               bUseGroupID;
+    uint                uIEsOffset;
+    uint                uIEsLength;
 }
 
 struct DOT11_SEND_GO_NEGOTIATION_CONFIRMATION_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
-    ubyte PeerDeviceAddress;
-    ubyte DialogToken;
-    void* ResponseContext;
-    uint uSendTimeout;
-    ubyte Status;
-    ubyte GroupCapability;
+    ubyte[6]           PeerDeviceAddress;
+    ubyte              DialogToken;
+    void*              ResponseContext;
+    uint               uSendTimeout;
+    ubyte              Status;
+    ubyte              GroupCapability;
     DOT11_WFD_GROUP_ID GroupID;
-    ubyte bUseGroupID;
-    uint uIEsOffset;
-    uint uIEsLength;
+    ubyte              bUseGroupID;
+    uint               uIEsOffset;
+    uint               uIEsLength;
 }
 
 struct DOT11_WFD_INVITATION_FLAGS
 {
-    ubyte _bitfield;
+    ubyte _bitfield85;
 }
 
 struct DOT11_SEND_INVITATION_REQUEST_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
-    ubyte DialogToken;
-    ubyte PeerDeviceAddress;
-    uint uSendTimeout;
+    ubyte              DialogToken;
+    ubyte[6]           PeerDeviceAddress;
+    uint               uSendTimeout;
     DOT11_WFD_CONFIGURATION_TIMEOUT MinimumConfigTimeout;
     DOT11_WFD_INVITATION_FLAGS InvitationFlags;
-    ubyte GroupBSSID;
-    ubyte bUseGroupBSSID;
-    DOT11_WFD_CHANNEL OperatingChannel;
-    ubyte bUseSpecifiedOperatingChannel;
+    ubyte[6]           GroupBSSID;
+    ubyte              bUseGroupBSSID;
+    DOT11_WFD_CHANNEL  OperatingChannel;
+    ubyte              bUseSpecifiedOperatingChannel;
     DOT11_WFD_GROUP_ID GroupID;
-    ubyte bLocalGO;
-    uint uIEsOffset;
-    uint uIEsLength;
+    ubyte              bLocalGO;
+    uint               uIEsOffset;
+    uint               uIEsLength;
 }
 
 struct DOT11_SEND_INVITATION_RESPONSE_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
-    ubyte ReceiverDeviceAddress;
-    ubyte DialogToken;
-    void* RequestContext;
-    uint uSendTimeout;
-    ubyte Status;
+    ubyte[6]           ReceiverDeviceAddress;
+    ubyte              DialogToken;
+    void*              RequestContext;
+    uint               uSendTimeout;
+    ubyte              Status;
     DOT11_WFD_CONFIGURATION_TIMEOUT MinimumConfigTimeout;
-    ubyte GroupBSSID;
-    ubyte bUseGroupBSSID;
-    DOT11_WFD_CHANNEL OperatingChannel;
-    ubyte bUseSpecifiedOperatingChannel;
-    uint uIEsOffset;
-    uint uIEsLength;
+    ubyte[6]           GroupBSSID;
+    ubyte              bUseGroupBSSID;
+    DOT11_WFD_CHANNEL  OperatingChannel;
+    ubyte              bUseSpecifiedOperatingChannel;
+    uint               uIEsOffset;
+    uint               uIEsLength;
 }
 
 struct DOT11_SEND_PROVISION_DISCOVERY_REQUEST_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
-    ubyte DialogToken;
-    ubyte PeerDeviceAddress;
-    uint uSendTimeout;
-    ubyte GroupCapability;
+    ubyte              DialogToken;
+    ubyte[6]           PeerDeviceAddress;
+    uint               uSendTimeout;
+    ubyte              GroupCapability;
     DOT11_WFD_GROUP_ID GroupID;
-    ubyte bUseGroupID;
-    uint uIEsOffset;
-    uint uIEsLength;
+    ubyte              bUseGroupID;
+    uint               uIEsOffset;
+    uint               uIEsLength;
 }
 
 struct DOT11_SEND_PROVISION_DISCOVERY_RESPONSE_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
-    ubyte ReceiverDeviceAddress;
-    ubyte DialogToken;
-    void* RequestContext;
-    uint uSendTimeout;
-    uint uIEsOffset;
-    uint uIEsLength;
+    ubyte[6]           ReceiverDeviceAddress;
+    ubyte              DialogToken;
+    void*              RequestContext;
+    uint               uSendTimeout;
+    uint               uIEsOffset;
+    uint               uIEsLength;
 }
 
 struct DOT11_WFD_DEVICE_LISTEN_CHANNEL
 {
     NDIS_OBJECT_HEADER Header;
-    ubyte ChannelNumber;
+    ubyte              ChannelNumber;
 }
 
 struct DOT11_WFD_GROUP_START_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
-    DOT11_WFD_CHANNEL AdvertisedOperatingChannel;
+    DOT11_WFD_CHANNEL  AdvertisedOperatingChannel;
 }
 
 struct DOT11_WFD_GROUP_JOIN_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
-    DOT11_WFD_CHANNEL GOOperatingChannel;
-    uint GOConfigTime;
-    ubyte bInGroupFormation;
-    ubyte bWaitForWPSReady;
+    DOT11_WFD_CHANNEL  GOOperatingChannel;
+    uint               GOConfigTime;
+    ubyte              bInGroupFormation;
+    ubyte              bWaitForWPSReady;
 }
 
 struct DOT11_POWER_MGMT_AUTO_MODE_ENABLED_INFO
 {
     NDIS_OBJECT_HEADER Header;
-    ubyte bEnabled;
-}
-
-enum DOT11_POWER_MODE_REASON
-{
-    dot11_power_mode_reason_no_change = 0,
-    dot11_power_mode_reason_noncompliant_AP = 1,
-    dot11_power_mode_reason_legacy_WFD_device = 2,
-    dot11_power_mode_reason_compliant_AP = 3,
-    dot11_power_mode_reason_compliant_WFD_device = 4,
-    dot11_power_mode_reason_others = 5,
+    ubyte              bEnabled;
 }
 
 struct DOT11_POWER_MGMT_MODE_STATUS_INFO
 {
     NDIS_OBJECT_HEADER Header;
-    DOT11_POWER_MODE PowerSaveMode;
-    uint uPowerSaveLevel;
+    DOT11_POWER_MODE   PowerSaveMode;
+    uint               uPowerSaveLevel;
     DOT11_POWER_MODE_REASON Reason;
 }
 
 struct DOT11_CHANNEL_HINT
 {
     DOT11_PHY_TYPE Dot11PhyType;
-    uint uChannelNumber;
+    uint           uChannelNumber;
 }
 
 struct DOT11_OFFLOAD_NETWORK
 {
-    DOT11_SSID Ssid;
+    DOT11_SSID           Ssid;
     DOT11_CIPHER_ALGORITHM UnicastCipher;
     DOT11_AUTH_ALGORITHM AuthAlgo;
-    DOT11_CHANNEL_HINT Dot11ChannelHints;
+    DOT11_CHANNEL_HINT[4] Dot11ChannelHints;
 }
 
 struct DOT11_OFFLOAD_NETWORK_LIST_INFO
 {
     NDIS_OBJECT_HEADER Header;
-    uint ulFlags;
-    uint FastScanPeriod;
-    uint FastScanIterations;
-    uint SlowScanPeriod;
-    uint uNumOfEntries;
-    DOT11_OFFLOAD_NETWORK offloadNetworkList;
+    uint               ulFlags;
+    uint               FastScanPeriod;
+    uint               FastScanIterations;
+    uint               SlowScanPeriod;
+    uint               uNumOfEntries;
+    DOT11_OFFLOAD_NETWORK[1] offloadNetworkList;
 }
 
 struct DOT11_OFFLOAD_NETWORK_STATUS_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
-    int Status;
-}
-
-enum DOT11_MANUFACTURING_TEST_TYPE
-{
-    dot11_manufacturing_test_unknown = 0,
-    dot11_manufacturing_test_self_start = 1,
-    dot11_manufacturing_test_self_query_result = 2,
-    dot11_manufacturing_test_rx = 3,
-    dot11_manufacturing_test_tx = 4,
-    dot11_manufacturing_test_query_adc = 5,
-    dot11_manufacturing_test_set_data = 6,
-    dot11_manufacturing_test_query_data = 7,
-    dot11_manufacturing_test_sleep = 8,
-    dot11_manufacturing_test_awake = 9,
-    dot11_manufacturing_test_IHV_start = -2147483648,
-    dot11_manufacturing_test_IHV_end = -1,
+    int                Status;
 }
 
 struct DOT11_MANUFACTURING_TEST
 {
     DOT11_MANUFACTURING_TEST_TYPE dot11ManufacturingTestType;
-    uint uBufferLength;
-    ubyte ucBuffer;
-}
-
-enum DOT11_MANUFACTURING_SELF_TEST_TYPE
-{
-    DOT11_MANUFACTURING_SELF_TEST_TYPE_INTERFACE = 1,
-    DOT11_MANUFACTURING_SELF_TEST_TYPE_RF_INTERFACE = 2,
-    DOT11_MANUFACTURING_SELF_TEST_TYPE_BT_COEXISTENCE = 3,
+    uint     uBufferLength;
+    ubyte[1] ucBuffer;
 }
 
 struct DOT11_MANUFACTURING_SELF_TEST_SET_PARAMS
 {
     DOT11_MANUFACTURING_SELF_TEST_TYPE SelfTestType;
-    uint uTestID;
-    uint uPinBitMask;
-    void* pvContext;
-    uint uBufferLength;
-    ubyte ucBufferIn;
+    uint     uTestID;
+    uint     uPinBitMask;
+    void*    pvContext;
+    uint     uBufferLength;
+    ubyte[1] ucBufferIn;
 }
 
 struct DOT11_MANUFACTURING_SELF_TEST_QUERY_RESULTS
 {
     DOT11_MANUFACTURING_SELF_TEST_TYPE SelfTestType;
-    uint uTestID;
-    ubyte bResult;
-    uint uPinFailedBitMask;
-    void* pvContext;
-    uint uBytesWrittenOut;
-    ubyte ucBufferOut;
-}
-
-enum DOT11_BAND
-{
-    dot11_band_2p4g = 1,
-    dot11_band_4p9g = 2,
-    dot11_band_5g = 3,
+    uint     uTestID;
+    ubyte    bResult;
+    uint     uPinFailedBitMask;
+    void*    pvContext;
+    uint     uBytesWrittenOut;
+    ubyte[1] ucBufferOut;
 }
 
 struct DOT11_MANUFACTURING_FUNCTIONAL_TEST_RX
 {
-    ubyte bEnabled;
+    ubyte      bEnabled;
     DOT11_BAND Dot11Band;
-    uint uChannel;
-    int PowerLevel;
+    uint       uChannel;
+    int        PowerLevel;
 }
 
 struct DOT11_MANUFACTURING_FUNCTIONAL_TEST_TX
 {
-    ubyte bEnable;
-    ubyte bOpenLoop;
+    ubyte      bEnable;
+    ubyte      bOpenLoop;
     DOT11_BAND Dot11Band;
-    uint uChannel;
-    uint uSetPowerLevel;
-    int ADCPowerLevel;
+    uint       uChannel;
+    uint       uSetPowerLevel;
+    int        ADCPowerLevel;
 }
 
 struct DOT11_MANUFACTURING_FUNCTIONAL_TEST_QUERY_ADC
 {
     DOT11_BAND Dot11Band;
-    uint uChannel;
-    int ADCPowerLevel;
+    uint       uChannel;
+    int        ADCPowerLevel;
 }
 
 struct DOT11_MANUFACTURING_TEST_SET_DATA
 {
-    uint uKey;
-    uint uOffset;
-    uint uBufferLength;
-    ubyte ucBufferIn;
+    uint     uKey;
+    uint     uOffset;
+    uint     uBufferLength;
+    ubyte[1] ucBufferIn;
 }
 
 struct DOT11_MANUFACTURING_TEST_QUERY_DATA
 {
-    uint uKey;
-    uint uOffset;
-    uint uBufferLength;
-    uint uBytesRead;
-    ubyte ucBufferOut;
+    uint     uKey;
+    uint     uOffset;
+    uint     uBufferLength;
+    uint     uBytesRead;
+    ubyte[1] ucBufferOut;
 }
 
 struct DOT11_MANUFACTURING_TEST_SLEEP
 {
-    uint uSleepTime;
+    uint  uSleepTime;
     void* pvContext;
-}
-
-enum DOT11_MANUFACTURING_CALLBACK_TYPE
-{
-    dot11_manufacturing_callback_unknown = 0,
-    dot11_manufacturing_callback_self_test_complete = 1,
-    dot11_manufacturing_callback_sleep_complete = 2,
-    dot11_manufacturing_callback_IHV_start = -2147483648,
-    dot11_manufacturing_callback_IHV_end = -1,
 }
 
 struct DOT11_MANUFACTURING_CALLBACK_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
     DOT11_MANUFACTURING_CALLBACK_TYPE dot11ManufacturingCallbackType;
-    uint uStatus;
-    void* pvContext;
+    uint               uStatus;
+    void*              pvContext;
 }
 
 struct WLAN_PROFILE_INFO
 {
-    ushort strProfileName;
-    uint dwFlags;
+    ushort[256] strProfileName;
+    uint        dwFlags;
 }
 
 struct DOT11_NETWORK
 {
-    DOT11_SSID dot11Ssid;
+    DOT11_SSID     dot11Ssid;
     DOT11_BSS_TYPE dot11BssType;
 }
 
 struct WLAN_RAW_DATA
 {
-    uint dwDataSize;
-    ubyte DataBlob;
+    uint     dwDataSize;
+    ubyte[1] DataBlob;
 }
 
 struct WLAN_RAW_DATA_LIST
 {
     uint dwTotalSize;
     uint dwNumberOfItems;
-    _Anonymous_e__Struct DataList;
-}
-
-enum WLAN_CONNECTION_MODE
-{
-    wlan_connection_mode_profile = 0,
-    wlan_connection_mode_temporary_profile = 1,
-    wlan_connection_mode_discovery_secure = 2,
-    wlan_connection_mode_discovery_unsecure = 3,
-    wlan_connection_mode_auto = 4,
-    wlan_connection_mode_invalid = 5,
+    struct
+    {
+        uint dwDataOffset;
+        uint dwDataSize;
+    }
 }
 
 struct WLAN_RATE_SET
 {
-    uint uRateSetLength;
-    ushort usRateSet;
+    uint        uRateSetLength;
+    ushort[126] usRateSet;
 }
 
 struct WLAN_AVAILABLE_NETWORK
 {
-    ushort strProfileName;
-    DOT11_SSID dot11Ssid;
-    DOT11_BSS_TYPE dot11BssType;
-    uint uNumberOfBssids;
-    BOOL bNetworkConnectable;
-    uint wlanNotConnectableReason;
-    uint uNumberOfPhyTypes;
-    DOT11_PHY_TYPE dot11PhyTypes;
-    BOOL bMorePhyTypes;
-    uint wlanSignalQuality;
-    BOOL bSecurityEnabled;
+    ushort[256]          strProfileName;
+    DOT11_SSID           dot11Ssid;
+    DOT11_BSS_TYPE       dot11BssType;
+    uint                 uNumberOfBssids;
+    BOOL                 bNetworkConnectable;
+    uint                 wlanNotConnectableReason;
+    uint                 uNumberOfPhyTypes;
+    DOT11_PHY_TYPE[8]    dot11PhyTypes;
+    BOOL                 bMorePhyTypes;
+    uint                 wlanSignalQuality;
+    BOOL                 bSecurityEnabled;
     DOT11_AUTH_ALGORITHM dot11DefaultAuthAlgorithm;
     DOT11_CIPHER_ALGORITHM dot11DefaultCipherAlgorithm;
-    uint dwFlags;
-    uint dwReserved;
+    uint                 dwFlags;
+    uint                 dwReserved;
 }
 
 struct WLAN_AVAILABLE_NETWORK_V2
 {
-    ushort strProfileName;
-    DOT11_SSID dot11Ssid;
-    DOT11_BSS_TYPE dot11BssType;
-    uint uNumberOfBssids;
-    BOOL bNetworkConnectable;
-    uint wlanNotConnectableReason;
-    uint uNumberOfPhyTypes;
-    DOT11_PHY_TYPE dot11PhyTypes;
-    BOOL bMorePhyTypes;
-    uint wlanSignalQuality;
-    BOOL bSecurityEnabled;
+    ushort[256]          strProfileName;
+    DOT11_SSID           dot11Ssid;
+    DOT11_BSS_TYPE       dot11BssType;
+    uint                 uNumberOfBssids;
+    BOOL                 bNetworkConnectable;
+    uint                 wlanNotConnectableReason;
+    uint                 uNumberOfPhyTypes;
+    DOT11_PHY_TYPE[8]    dot11PhyTypes;
+    BOOL                 bMorePhyTypes;
+    uint                 wlanSignalQuality;
+    BOOL                 bSecurityEnabled;
     DOT11_AUTH_ALGORITHM dot11DefaultAuthAlgorithm;
     DOT11_CIPHER_ALGORITHM dot11DefaultCipherAlgorithm;
-    uint dwFlags;
+    uint                 dwFlags;
     DOT11_ACCESSNETWORKOPTIONS AccessNetworkOptions;
-    ubyte dot11HESSID;
-    DOT11_VENUEINFO VenueInfo;
-    uint dwReserved;
+    ubyte[6]             dot11HESSID;
+    DOT11_VENUEINFO      VenueInfo;
+    uint                 dwReserved;
 }
 
 struct WLAN_BSS_ENTRY
 {
-    DOT11_SSID dot11Ssid;
-    uint uPhyId;
-    ubyte dot11Bssid;
+    DOT11_SSID     dot11Ssid;
+    uint           uPhyId;
+    ubyte[6]       dot11Bssid;
     DOT11_BSS_TYPE dot11BssType;
     DOT11_PHY_TYPE dot11BssPhyType;
-    int lRssi;
-    uint uLinkQuality;
-    ubyte bInRegDomain;
-    ushort usBeaconPeriod;
-    ulong ullTimestamp;
-    ulong ullHostTimestamp;
-    ushort usCapabilityInformation;
-    uint ulChCenterFrequency;
-    WLAN_RATE_SET wlanRateSet;
-    uint ulIeOffset;
-    uint ulIeSize;
+    int            lRssi;
+    uint           uLinkQuality;
+    ubyte          bInRegDomain;
+    ushort         usBeaconPeriod;
+    ulong          ullTimestamp;
+    ulong          ullHostTimestamp;
+    ushort         usCapabilityInformation;
+    uint           ulChCenterFrequency;
+    WLAN_RATE_SET  wlanRateSet;
+    uint           ulIeOffset;
+    uint           ulIeSize;
 }
 
 struct WLAN_BSS_LIST
 {
-    uint dwTotalSize;
-    uint dwNumberOfItems;
-    WLAN_BSS_ENTRY wlanBssEntries;
-}
-
-enum WLAN_INTERFACE_STATE
-{
-    wlan_interface_state_not_ready = 0,
-    wlan_interface_state_connected = 1,
-    wlan_interface_state_ad_hoc_network_formed = 2,
-    wlan_interface_state_disconnecting = 3,
-    wlan_interface_state_disconnected = 4,
-    wlan_interface_state_associating = 5,
-    wlan_interface_state_discovering = 6,
-    wlan_interface_state_authenticating = 7,
-}
-
-enum WLAN_ADHOC_NETWORK_STATE
-{
-    wlan_adhoc_network_state_formed = 0,
-    wlan_adhoc_network_state_connected = 1,
+    uint              dwTotalSize;
+    uint              dwNumberOfItems;
+    WLAN_BSS_ENTRY[1] wlanBssEntries;
 }
 
 struct WLAN_INTERFACE_INFO
 {
-    Guid InterfaceGuid;
-    ushort strInterfaceDescription;
+    GUID                 InterfaceGuid;
+    ushort[256]          strInterfaceDescription;
     WLAN_INTERFACE_STATE isState;
 }
 
 struct WLAN_ASSOCIATION_ATTRIBUTES
 {
-    DOT11_SSID dot11Ssid;
+    DOT11_SSID     dot11Ssid;
     DOT11_BSS_TYPE dot11BssType;
-    ubyte dot11Bssid;
+    ubyte[6]       dot11Bssid;
     DOT11_PHY_TYPE dot11PhyType;
-    uint uDot11PhyIndex;
-    uint wlanSignalQuality;
-    uint ulRxRate;
-    uint ulTxRate;
+    uint           uDot11PhyIndex;
+    uint           wlanSignalQuality;
+    uint           ulRxRate;
+    uint           ulTxRate;
 }
 
 struct WLAN_SECURITY_ATTRIBUTES
 {
-    BOOL bSecurityEnabled;
-    BOOL bOneXEnabled;
+    BOOL                 bSecurityEnabled;
+    BOOL                 bOneXEnabled;
     DOT11_AUTH_ALGORITHM dot11AuthAlgorithm;
     DOT11_CIPHER_ALGORITHM dot11CipherAlgorithm;
 }
@@ -3597,21 +4218,14 @@ struct WLAN_CONNECTION_ATTRIBUTES
 {
     WLAN_INTERFACE_STATE isState;
     WLAN_CONNECTION_MODE wlanConnectionMode;
-    ushort strProfileName;
+    ushort[256]          strProfileName;
     WLAN_ASSOCIATION_ATTRIBUTES wlanAssociationAttributes;
     WLAN_SECURITY_ATTRIBUTES wlanSecurityAttributes;
 }
 
-enum DOT11_RADIO_STATE
-{
-    dot11_radio_state_unknown = 0,
-    dot11_radio_state_on = 1,
-    dot11_radio_state_off = 2,
-}
-
 struct WLAN_PHY_RADIO_STATE
 {
-    uint dwPhyIndex;
+    uint              dwPhyIndex;
     DOT11_RADIO_STATE dot11SoftwareRadioState;
     DOT11_RADIO_STATE dot11HardwareRadioState;
 }
@@ -3619,270 +4233,119 @@ struct WLAN_PHY_RADIO_STATE
 struct WLAN_RADIO_STATE
 {
     uint dwNumberOfPhys;
-    WLAN_PHY_RADIO_STATE PhyRadioState;
-}
-
-enum WLAN_OPERATIONAL_STATE
-{
-    wlan_operational_state_unknown = 0,
-    wlan_operational_state_off = 1,
-    wlan_operational_state_on = 2,
-    wlan_operational_state_going_off = 3,
-    wlan_operational_state_going_on = 4,
-}
-
-enum WLAN_INTERFACE_TYPE
-{
-    wlan_interface_type_emulated_802_11 = 0,
-    wlan_interface_type_native_802_11 = 1,
-    wlan_interface_type_invalid = 2,
+    WLAN_PHY_RADIO_STATE[64] PhyRadioState;
 }
 
 struct WLAN_INTERFACE_CAPABILITY
 {
     WLAN_INTERFACE_TYPE interfaceType;
-    BOOL bDot11DSupported;
-    uint dwMaxDesiredSsidListSize;
-    uint dwMaxDesiredBssidListSize;
-    uint dwNumberOfSupportedPhys;
-    DOT11_PHY_TYPE dot11PhyTypes;
+    BOOL                bDot11DSupported;
+    uint                dwMaxDesiredSsidListSize;
+    uint                dwMaxDesiredBssidListSize;
+    uint                dwNumberOfSupportedPhys;
+    DOT11_PHY_TYPE[64]  dot11PhyTypes;
 }
 
 struct WLAN_AUTH_CIPHER_PAIR_LIST
 {
     uint dwNumberOfItems;
-    DOT11_AUTH_CIPHER_PAIR pAuthCipherPairList;
+    DOT11_AUTH_CIPHER_PAIR[1] pAuthCipherPairList;
 }
 
 struct WLAN_COUNTRY_OR_REGION_STRING_LIST
 {
-    uint dwNumberOfItems;
-    ubyte pCountryOrRegionStringList;
+    uint     dwNumberOfItems;
+    ubyte[3] pCountryOrRegionStringList;
 }
 
 struct WLAN_PROFILE_INFO_LIST
 {
-    uint dwNumberOfItems;
-    uint dwIndex;
-    WLAN_PROFILE_INFO ProfileInfo;
+    uint                 dwNumberOfItems;
+    uint                 dwIndex;
+    WLAN_PROFILE_INFO[1] ProfileInfo;
 }
 
 struct WLAN_AVAILABLE_NETWORK_LIST
 {
     uint dwNumberOfItems;
     uint dwIndex;
-    WLAN_AVAILABLE_NETWORK Network;
+    WLAN_AVAILABLE_NETWORK[1] Network;
 }
 
 struct WLAN_AVAILABLE_NETWORK_LIST_V2
 {
     uint dwNumberOfItems;
     uint dwIndex;
-    WLAN_AVAILABLE_NETWORK_V2 Network;
+    WLAN_AVAILABLE_NETWORK_V2[1] Network;
 }
 
 struct WLAN_INTERFACE_INFO_LIST
 {
     uint dwNumberOfItems;
     uint dwIndex;
-    WLAN_INTERFACE_INFO InterfaceInfo;
+    WLAN_INTERFACE_INFO[1] InterfaceInfo;
 }
 
 struct DOT11_NETWORK_LIST
 {
-    uint dwNumberOfItems;
-    uint dwIndex;
-    DOT11_NETWORK Network;
-}
-
-enum WLAN_POWER_SETTING
-{
-    wlan_power_setting_no_saving = 0,
-    wlan_power_setting_low_saving = 1,
-    wlan_power_setting_medium_saving = 2,
-    wlan_power_setting_maximum_saving = 3,
-    wlan_power_setting_invalid = 4,
+    uint             dwNumberOfItems;
+    uint             dwIndex;
+    DOT11_NETWORK[1] Network;
 }
 
 struct WLAN_CONNECTION_PARAMETERS
 {
     WLAN_CONNECTION_MODE wlanConnectionMode;
-    const(wchar)* strProfile;
-    DOT11_SSID* pDot11Ssid;
-    DOT11_BSSID_LIST* pDesiredBssidList;
-    DOT11_BSS_TYPE dot11BssType;
-    uint dwFlags;
+    const(wchar)*        strProfile;
+    DOT11_SSID*          pDot11Ssid;
+    DOT11_BSSID_LIST*    pDesiredBssidList;
+    DOT11_BSS_TYPE       dot11BssType;
+    uint                 dwFlags;
 }
 
 struct WLAN_CONNECTION_PARAMETERS_V2
 {
     WLAN_CONNECTION_MODE wlanConnectionMode;
-    const(wchar)* strProfile;
-    DOT11_SSID* pDot11Ssid;
-    ubyte* pDot11Hessid;
-    DOT11_BSSID_LIST* pDesiredBssidList;
-    DOT11_BSS_TYPE dot11BssType;
-    uint dwFlags;
+    const(wchar)*        strProfile;
+    DOT11_SSID*          pDot11Ssid;
+    ubyte*               pDot11Hessid;
+    DOT11_BSSID_LIST*    pDesiredBssidList;
+    DOT11_BSS_TYPE       dot11BssType;
+    uint                 dwFlags;
     DOT11_ACCESSNETWORKOPTIONS* pDot11AccessNetworkOptions;
 }
 
 struct WLAN_MSM_NOTIFICATION_DATA
 {
     WLAN_CONNECTION_MODE wlanConnectionMode;
-    ushort strProfileName;
-    DOT11_SSID dot11Ssid;
-    DOT11_BSS_TYPE dot11BssType;
-    ubyte dot11MacAddr;
-    BOOL bSecurityEnabled;
-    BOOL bFirstPeer;
-    BOOL bLastPeer;
-    uint wlanReasonCode;
+    ushort[256]          strProfileName;
+    DOT11_SSID           dot11Ssid;
+    DOT11_BSS_TYPE       dot11BssType;
+    ubyte[6]             dot11MacAddr;
+    BOOL                 bSecurityEnabled;
+    BOOL                 bFirstPeer;
+    BOOL                 bLastPeer;
+    uint                 wlanReasonCode;
 }
 
 struct WLAN_CONNECTION_NOTIFICATION_DATA
 {
     WLAN_CONNECTION_MODE wlanConnectionMode;
-    ushort strProfileName;
-    DOT11_SSID dot11Ssid;
-    DOT11_BSS_TYPE dot11BssType;
-    BOOL bSecurityEnabled;
-    uint wlanReasonCode;
-    uint dwFlags;
-    ushort strProfileXml;
+    ushort[256]          strProfileName;
+    DOT11_SSID           dot11Ssid;
+    DOT11_BSS_TYPE       dot11BssType;
+    BOOL                 bSecurityEnabled;
+    uint                 wlanReasonCode;
+    uint                 dwFlags;
+    ushort[1]            strProfileXml;
 }
 
 struct WLAN_DEVICE_SERVICE_NOTIFICATION_DATA
 {
-    Guid DeviceService;
-    uint dwOpCode;
-    uint dwDataSize;
-    ubyte DataBlob;
-}
-
-enum WLAN_NOTIFICATION_ACM
-{
-    wlan_notification_acm_start = 0,
-    wlan_notification_acm_autoconf_enabled = 1,
-    wlan_notification_acm_autoconf_disabled = 2,
-    wlan_notification_acm_background_scan_enabled = 3,
-    wlan_notification_acm_background_scan_disabled = 4,
-    wlan_notification_acm_bss_type_change = 5,
-    wlan_notification_acm_power_setting_change = 6,
-    wlan_notification_acm_scan_complete = 7,
-    wlan_notification_acm_scan_fail = 8,
-    wlan_notification_acm_connection_start = 9,
-    wlan_notification_acm_connection_complete = 10,
-    wlan_notification_acm_connection_attempt_fail = 11,
-    wlan_notification_acm_filter_list_change = 12,
-    wlan_notification_acm_interface_arrival = 13,
-    wlan_notification_acm_interface_removal = 14,
-    wlan_notification_acm_profile_change = 15,
-    wlan_notification_acm_profile_name_change = 16,
-    wlan_notification_acm_profiles_exhausted = 17,
-    wlan_notification_acm_network_not_available = 18,
-    wlan_notification_acm_network_available = 19,
-    wlan_notification_acm_disconnecting = 20,
-    wlan_notification_acm_disconnected = 21,
-    wlan_notification_acm_adhoc_network_state_change = 22,
-    wlan_notification_acm_profile_unblocked = 23,
-    wlan_notification_acm_screen_power_change = 24,
-    wlan_notification_acm_profile_blocked = 25,
-    wlan_notification_acm_scan_list_refresh = 26,
-    wlan_notification_acm_operational_state_change = 27,
-    wlan_notification_acm_end = 28,
-}
-
-enum WLAN_NOTIFICATION_MSM
-{
-    wlan_notification_msm_start = 0,
-    wlan_notification_msm_associating = 1,
-    wlan_notification_msm_associated = 2,
-    wlan_notification_msm_authenticating = 3,
-    wlan_notification_msm_connected = 4,
-    wlan_notification_msm_roaming_start = 5,
-    wlan_notification_msm_roaming_end = 6,
-    wlan_notification_msm_radio_state_change = 7,
-    wlan_notification_msm_signal_quality_change = 8,
-    wlan_notification_msm_disassociating = 9,
-    wlan_notification_msm_disconnected = 10,
-    wlan_notification_msm_peer_join = 11,
-    wlan_notification_msm_peer_leave = 12,
-    wlan_notification_msm_adapter_removal = 13,
-    wlan_notification_msm_adapter_operation_mode_change = 14,
-    wlan_notification_msm_link_degraded = 15,
-    wlan_notification_msm_link_improved = 16,
-    wlan_notification_msm_end = 17,
-}
-
-enum WLAN_NOTIFICATION_SECURITY
-{
-    wlan_notification_security_start = 0,
-    wlan_notification_security_end = 1,
-}
-
-alias WLAN_NOTIFICATION_CALLBACK = extern(Windows) void function(L2_NOTIFICATION_DATA* param0, void* param1);
-enum WLAN_OPCODE_VALUE_TYPE
-{
-    wlan_opcode_value_type_query_only = 0,
-    wlan_opcode_value_type_set_by_group_policy = 1,
-    wlan_opcode_value_type_set_by_user = 2,
-    wlan_opcode_value_type_invalid = 3,
-}
-
-enum WLAN_INTF_OPCODE
-{
-    wlan_intf_opcode_autoconf_start = 0,
-    wlan_intf_opcode_autoconf_enabled = 1,
-    wlan_intf_opcode_background_scan_enabled = 2,
-    wlan_intf_opcode_media_streaming_mode = 3,
-    wlan_intf_opcode_radio_state = 4,
-    wlan_intf_opcode_bss_type = 5,
-    wlan_intf_opcode_interface_state = 6,
-    wlan_intf_opcode_current_connection = 7,
-    wlan_intf_opcode_channel_number = 8,
-    wlan_intf_opcode_supported_infrastructure_auth_cipher_pairs = 9,
-    wlan_intf_opcode_supported_adhoc_auth_cipher_pairs = 10,
-    wlan_intf_opcode_supported_country_or_region_string_list = 11,
-    wlan_intf_opcode_current_operation_mode = 12,
-    wlan_intf_opcode_supported_safe_mode = 13,
-    wlan_intf_opcode_certified_safe_mode = 14,
-    wlan_intf_opcode_hosted_network_capable = 15,
-    wlan_intf_opcode_management_frame_protection_capable = 16,
-    wlan_intf_opcode_autoconf_end = 268435455,
-    wlan_intf_opcode_msm_start = 268435712,
-    wlan_intf_opcode_statistics = 268435713,
-    wlan_intf_opcode_rssi = 268435714,
-    wlan_intf_opcode_msm_end = 536870911,
-    wlan_intf_opcode_security_start = 536936448,
-    wlan_intf_opcode_security_end = 805306367,
-    wlan_intf_opcode_ihv_start = 805306368,
-    wlan_intf_opcode_ihv_end = 1073741823,
-}
-
-enum WLAN_AUTOCONF_OPCODE
-{
-    wlan_autoconf_opcode_start = 0,
-    wlan_autoconf_opcode_show_denied_networks = 1,
-    wlan_autoconf_opcode_power_setting = 2,
-    wlan_autoconf_opcode_only_use_gp_profiles_for_allowed_networks = 3,
-    wlan_autoconf_opcode_allow_explicit_creds = 4,
-    wlan_autoconf_opcode_block_period = 5,
-    wlan_autoconf_opcode_allow_virtual_station_extensibility = 6,
-    wlan_autoconf_opcode_end = 7,
-}
-
-enum WLAN_IHV_CONTROL_TYPE
-{
-    wlan_ihv_control_type_service = 0,
-    wlan_ihv_control_type_driver = 1,
-}
-
-enum WLAN_FILTER_LIST_TYPE
-{
-    wlan_filter_list_type_gp_permit = 0,
-    wlan_filter_list_type_gp_deny = 1,
-    wlan_filter_list_type_user_permit = 2,
-    wlan_filter_list_type_user_deny = 3,
+    GUID     DeviceService;
+    uint     dwOpCode;
+    uint     dwDataSize;
+    ubyte[1] DataBlob;
 }
 
 struct WLAN_PHY_FRAME_STATISTICS
@@ -3930,110 +4393,26 @@ struct WLAN_STATISTICS
     ulong ullReserved;
     WLAN_MAC_FRAME_STATISTICS MacUcastCounters;
     WLAN_MAC_FRAME_STATISTICS MacMcastCounters;
-    uint dwNumberOfPhys;
-    WLAN_PHY_FRAME_STATISTICS PhyCounters;
-}
-
-enum WLAN_SECURABLE_OBJECT
-{
-    wlan_secure_permit_list = 0,
-    wlan_secure_deny_list = 1,
-    wlan_secure_ac_enabled = 2,
-    wlan_secure_bc_scan_enabled = 3,
-    wlan_secure_bss_type = 4,
-    wlan_secure_show_denied = 5,
-    wlan_secure_interface_properties = 6,
-    wlan_secure_ihv_control = 7,
-    wlan_secure_all_user_profiles_order = 8,
-    wlan_secure_add_new_all_user_profiles = 9,
-    wlan_secure_add_new_per_user_profiles = 10,
-    wlan_secure_media_streaming_mode_enabled = 11,
-    wlan_secure_current_operation_mode = 12,
-    wlan_secure_get_plaintext_key = 13,
-    wlan_secure_hosted_network_elevated_access = 14,
-    wlan_secure_virtual_station_extensibility = 15,
-    wlan_secure_wfd_elevated_access = 16,
-    WLAN_SECURABLE_OBJECT_COUNT = 17,
+    uint  dwNumberOfPhys;
+    WLAN_PHY_FRAME_STATISTICS[1] PhyCounters;
 }
 
 struct WLAN_DEVICE_SERVICE_GUID_LIST
 {
-    uint dwNumberOfItems;
-    uint dwIndex;
-    Guid DeviceService;
-}
-
-enum WFD_ROLE_TYPE
-{
-    WFD_ROLE_TYPE_NONE = 0,
-    WFD_ROLE_TYPE_DEVICE = 1,
-    WFD_ROLE_TYPE_GROUP_OWNER = 2,
-    WFD_ROLE_TYPE_CLIENT = 4,
-    WFD_ROLE_TYPE_MAX = 5,
+    uint    dwNumberOfItems;
+    uint    dwIndex;
+    GUID[1] DeviceService;
 }
 
 struct WFD_GROUP_ID
 {
-    ubyte DeviceAddress;
+    ubyte[6]   DeviceAddress;
     DOT11_SSID GroupSSID;
-}
-
-enum WL_DISPLAY_PAGES
-{
-    WLConnectionPage = 0,
-    WLSecurityPage = 1,
-    WLAdvPage = 2,
-}
-
-enum WLAN_HOSTED_NETWORK_STATE
-{
-    wlan_hosted_network_unavailable = 0,
-    wlan_hosted_network_idle = 1,
-    wlan_hosted_network_active = 2,
-}
-
-enum WLAN_HOSTED_NETWORK_REASON
-{
-    wlan_hosted_network_reason_success = 0,
-    wlan_hosted_network_reason_unspecified = 1,
-    wlan_hosted_network_reason_bad_parameters = 2,
-    wlan_hosted_network_reason_service_shutting_down = 3,
-    wlan_hosted_network_reason_insufficient_resources = 4,
-    wlan_hosted_network_reason_elevation_required = 5,
-    wlan_hosted_network_reason_read_only = 6,
-    wlan_hosted_network_reason_persistence_failed = 7,
-    wlan_hosted_network_reason_crypt_error = 8,
-    wlan_hosted_network_reason_impersonation = 9,
-    wlan_hosted_network_reason_stop_before_start = 10,
-    wlan_hosted_network_reason_interface_available = 11,
-    wlan_hosted_network_reason_interface_unavailable = 12,
-    wlan_hosted_network_reason_miniport_stopped = 13,
-    wlan_hosted_network_reason_miniport_started = 14,
-    wlan_hosted_network_reason_incompatible_connection_started = 15,
-    wlan_hosted_network_reason_incompatible_connection_stopped = 16,
-    wlan_hosted_network_reason_user_action = 17,
-    wlan_hosted_network_reason_client_abort = 18,
-    wlan_hosted_network_reason_ap_start_failed = 19,
-    wlan_hosted_network_reason_peer_arrived = 20,
-    wlan_hosted_network_reason_peer_departed = 21,
-    wlan_hosted_network_reason_peer_timeout = 22,
-    wlan_hosted_network_reason_gp_denied = 23,
-    wlan_hosted_network_reason_service_unavailable = 24,
-    wlan_hosted_network_reason_device_change = 25,
-    wlan_hosted_network_reason_properties_change = 26,
-    wlan_hosted_network_reason_virtual_station_blocking_use = 27,
-    wlan_hosted_network_reason_service_available_on_virtual_station = 28,
-}
-
-enum WLAN_HOSTED_NETWORK_PEER_AUTH_STATE
-{
-    wlan_hosted_network_peer_state_invalid = 0,
-    wlan_hosted_network_peer_state_authenticated = 1,
 }
 
 struct WLAN_HOSTED_NETWORK_PEER_STATE
 {
-    ubyte PeerMacAddress;
+    ubyte[6] PeerMacAddress;
     WLAN_HOSTED_NETWORK_PEER_AUTH_STATE PeerAuthState;
 }
 
@@ -4041,13 +4420,6 @@ struct WLAN_HOSTED_NETWORK_RADIO_STATE
 {
     DOT11_RADIO_STATE dot11SoftwareRadioState;
     DOT11_RADIO_STATE dot11HardwareRadioState;
-}
-
-enum WLAN_HOSTED_NETWORK_NOTIFICATION_CODE
-{
-    wlan_hosted_network_state_change = 4096,
-    wlan_hosted_network_peer_state_change = 4097,
-    wlan_hosted_network_radio_state_change = 4098,
 }
 
 struct WLAN_HOSTED_NETWORK_STATE_CHANGE
@@ -4064,18 +4436,10 @@ struct WLAN_HOSTED_NETWORK_DATA_PEER_STATE_CHANGE
     WLAN_HOSTED_NETWORK_REASON PeerStateChangeReason;
 }
 
-enum WLAN_HOSTED_NETWORK_OPCODE
-{
-    wlan_hosted_network_opcode_connection_settings = 0,
-    wlan_hosted_network_opcode_security_settings = 1,
-    wlan_hosted_network_opcode_station_profile = 2,
-    wlan_hosted_network_opcode_enable = 3,
-}
-
 struct WLAN_HOSTED_NETWORK_CONNECTION_SETTINGS
 {
     DOT11_SSID hostedNetworkSSID;
-    uint dwMaxNumberOfPeers;
+    uint       dwMaxNumberOfPeers;
 }
 
 struct WLAN_HOSTED_NETWORK_SECURITY_SETTINGS
@@ -4087,81 +4451,12 @@ struct WLAN_HOSTED_NETWORK_SECURITY_SETTINGS
 struct WLAN_HOSTED_NETWORK_STATUS
 {
     WLAN_HOSTED_NETWORK_STATE HostedNetworkState;
-    Guid IPDeviceID;
-    ubyte wlanHostedNetworkBSSID;
+    GUID           IPDeviceID;
+    ubyte[6]       wlanHostedNetworkBSSID;
     DOT11_PHY_TYPE dot11PhyType;
-    uint ulChannelFrequency;
-    uint dwNumberOfPeers;
-    WLAN_HOSTED_NETWORK_PEER_STATE PeerList;
-}
-
-alias WFD_OPEN_SESSION_COMPLETE_CALLBACK = extern(Windows) void function(HANDLE hSessionHandle, void* pvContext, Guid guidSessionInterface, uint dwError, uint dwReasonCode);
-enum ONEX_AUTH_IDENTITY
-{
-    OneXAuthIdentityNone = 0,
-    OneXAuthIdentityMachine = 1,
-    OneXAuthIdentityUser = 2,
-    OneXAuthIdentityExplicitUser = 3,
-    OneXAuthIdentityGuest = 4,
-    OneXAuthIdentityInvalid = 5,
-}
-
-enum ONEX_AUTH_STATUS
-{
-    OneXAuthNotStarted = 0,
-    OneXAuthInProgress = 1,
-    OneXAuthNoAuthenticatorFound = 2,
-    OneXAuthSuccess = 3,
-    OneXAuthFailure = 4,
-    OneXAuthInvalid = 5,
-}
-
-enum ONEX_REASON_CODE
-{
-    ONEX_REASON_CODE_SUCCESS = 0,
-    ONEX_REASON_START = 327680,
-    ONEX_UNABLE_TO_IDENTIFY_USER = 327681,
-    ONEX_IDENTITY_NOT_FOUND = 327682,
-    ONEX_UI_DISABLED = 327683,
-    ONEX_UI_FAILURE = 327684,
-    ONEX_EAP_FAILURE_RECEIVED = 327685,
-    ONEX_AUTHENTICATOR_NO_LONGER_PRESENT = 327686,
-    ONEX_NO_RESPONSE_TO_IDENTITY = 327687,
-    ONEX_PROFILE_VERSION_NOT_SUPPORTED = 327688,
-    ONEX_PROFILE_INVALID_LENGTH = 327689,
-    ONEX_PROFILE_DISALLOWED_EAP_TYPE = 327690,
-    ONEX_PROFILE_INVALID_EAP_TYPE_OR_FLAG = 327691,
-    ONEX_PROFILE_INVALID_ONEX_FLAGS = 327692,
-    ONEX_PROFILE_INVALID_TIMER_VALUE = 327693,
-    ONEX_PROFILE_INVALID_SUPPLICANT_MODE = 327694,
-    ONEX_PROFILE_INVALID_AUTH_MODE = 327695,
-    ONEX_PROFILE_INVALID_EAP_CONNECTION_PROPERTIES = 327696,
-    ONEX_UI_CANCELLED = 327697,
-    ONEX_PROFILE_INVALID_EXPLICIT_CREDENTIALS = 327698,
-    ONEX_PROFILE_EXPIRED_EXPLICIT_CREDENTIALS = 327699,
-    ONEX_UI_NOT_PERMITTED = 327700,
-}
-
-enum ONEX_NOTIFICATION_TYPE
-{
-    OneXPublicNotificationBase = 0,
-    OneXNotificationTypeResultUpdate = 1,
-    OneXNotificationTypeAuthRestarted = 2,
-    OneXNotificationTypeEventInvalid = 3,
-    OneXNumNotifications = 3,
-}
-
-enum ONEX_AUTH_RESTART_REASON
-{
-    OneXRestartReasonPeerInitiated = 0,
-    OneXRestartReasonMsmInitiated = 1,
-    OneXRestartReasonOneXHeldStateTimeout = 2,
-    OneXRestartReasonOneXAuthTimeout = 3,
-    OneXRestartReasonOneXConfigurationChanged = 4,
-    OneXRestartReasonOneXUserChanged = 5,
-    OneXRestartReasonQuarantineStateChanged = 6,
-    OneXRestartReasonAltCredsTrial = 7,
-    OneXRestartReasonInvalid = 8,
+    uint           ulChannelFrequency;
+    uint           dwNumberOfPeers;
+    WLAN_HOSTED_NETWORK_PEER_STATE[1] PeerList;
 }
 
 struct ONEX_VARIABLE_BLOB
@@ -4172,13 +4467,13 @@ struct ONEX_VARIABLE_BLOB
 
 struct ONEX_AUTH_PARAMS
 {
-    BOOL fUpdatePending;
+    BOOL               fUpdatePending;
     ONEX_VARIABLE_BLOB oneXConnProfile;
     ONEX_AUTH_IDENTITY authIdentity;
-    uint dwQuarantineState;
-    uint _bitfield;
-    uint dwSessionId;
-    HANDLE hUserToken;
+    uint               dwQuarantineState;
+    uint               _bitfield86;
+    uint               dwSessionId;
+    HANDLE             hUserToken;
     ONEX_VARIABLE_BLOB OneXUserProfile;
     ONEX_VARIABLE_BLOB Identity;
     ONEX_VARIABLE_BLOB UserName;
@@ -4187,13 +4482,13 @@ struct ONEX_AUTH_PARAMS
 
 struct ONEX_EAP_ERROR
 {
-    uint dwWinError;
-    EAP_METHOD_TYPE type;
-    uint dwReasonCode;
-    Guid rootCauseGuid;
-    Guid repairGuid;
-    Guid helpLinkGuid;
-    uint _bitfield;
+    uint               dwWinError;
+    EAP_METHOD_TYPE    type;
+    uint               dwReasonCode;
+    GUID               rootCauseGuid;
+    GUID               repairGuid;
+    GUID               helpLinkGuid;
+    uint               _bitfield87;
     ONEX_VARIABLE_BLOB RootCauseString;
     ONEX_VARIABLE_BLOB RepairString;
 }
@@ -4201,23 +4496,16 @@ struct ONEX_EAP_ERROR
 struct ONEX_STATUS
 {
     ONEX_AUTH_STATUS authStatus;
-    uint dwReason;
-    uint dwError;
-}
-
-enum ONEX_EAP_METHOD_BACKEND_SUPPORT
-{
-    OneXEapMethodBackendSupportUnknown = 0,
-    OneXEapMethodBackendSupported = 1,
-    OneXEapMethodBackendUnsupported = 2,
+    uint             dwReason;
+    uint             dwError;
 }
 
 struct ONEX_RESULT_UPDATE_DATA
 {
-    ONEX_STATUS oneXStatus;
+    ONEX_STATUS        oneXStatus;
     ONEX_EAP_METHOD_BACKEND_SUPPORT BackendSupport;
-    BOOL fBackendEngaged;
-    uint _bitfield;
+    BOOL               fBackendEngaged;
+    uint               _bitfield88;
     ONEX_VARIABLE_BLOB authParams;
     ONEX_VARIABLE_BLOB eapError;
 }
@@ -4225,69 +4513,276 @@ struct ONEX_RESULT_UPDATE_DATA
 struct ONEX_USER_INFO
 {
     ONEX_AUTH_IDENTITY authIdentity;
-    uint _bitfield;
+    uint               _bitfield89;
     ONEX_VARIABLE_BLOB UserName;
     ONEX_VARIABLE_BLOB DomainName;
 }
 
-const GUID CLSID_Dot11AdHocManager = {0xDD06A84F, 0x83BD, 0x4D01, [0x8A, 0xB9, 0x23, 0x89, 0xFE, 0xA0, 0x86, 0x9E]};
-@GUID(0xDD06A84F, 0x83BD, 0x4D01, [0x8A, 0xB9, 0x23, 0x89, 0xFE, 0xA0, 0x86, 0x9E]);
+// Functions
+
+@DllImport("wlanapi")
+uint WlanOpenHandle(uint dwClientVersion, void* pReserved, uint* pdwNegotiatedVersion, ptrdiff_t* phClientHandle);
+
+@DllImport("wlanapi")
+uint WlanCloseHandle(HANDLE hClientHandle, void* pReserved);
+
+@DllImport("wlanapi")
+uint WlanEnumInterfaces(HANDLE hClientHandle, void* pReserved, WLAN_INTERFACE_INFO_LIST** ppInterfaceList);
+
+@DllImport("wlanapi")
+uint WlanSetAutoConfigParameter(HANDLE hClientHandle, WLAN_AUTOCONF_OPCODE OpCode, uint dwDataSize, char* pData, 
+                                void* pReserved);
+
+@DllImport("wlanapi")
+uint WlanQueryAutoConfigParameter(HANDLE hClientHandle, WLAN_AUTOCONF_OPCODE OpCode, void* pReserved, 
+                                  uint* pdwDataSize, void** ppData, WLAN_OPCODE_VALUE_TYPE* pWlanOpcodeValueType);
+
+@DllImport("wlanapi")
+uint WlanGetInterfaceCapability(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, void* pReserved, 
+                                WLAN_INTERFACE_CAPABILITY** ppCapability);
+
+@DllImport("wlanapi")
+uint WlanSetInterface(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, WLAN_INTF_OPCODE OpCode, uint dwDataSize, 
+                      char* pData, void* pReserved);
+
+@DllImport("wlanapi")
+uint WlanQueryInterface(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, WLAN_INTF_OPCODE OpCode, 
+                        void* pReserved, uint* pdwDataSize, void** ppData, 
+                        WLAN_OPCODE_VALUE_TYPE* pWlanOpcodeValueType);
+
+@DllImport("wlanapi")
+uint WlanIhvControl(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, WLAN_IHV_CONTROL_TYPE Type, 
+                    uint dwInBufferSize, char* pInBuffer, uint dwOutBufferSize, char* pOutBuffer, 
+                    uint* pdwBytesReturned);
+
+@DllImport("wlanapi")
+uint WlanScan(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, const(DOT11_SSID)* pDot11Ssid, 
+              const(WLAN_RAW_DATA)* pIeData, void* pReserved);
+
+@DllImport("wlanapi")
+uint WlanGetAvailableNetworkList(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, uint dwFlags, void* pReserved, 
+                                 WLAN_AVAILABLE_NETWORK_LIST** ppAvailableNetworkList);
+
+@DllImport("wlanapi")
+uint WlanGetAvailableNetworkList2(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, uint dwFlags, void* pReserved, 
+                                  WLAN_AVAILABLE_NETWORK_LIST_V2** ppAvailableNetworkList);
+
+@DllImport("wlanapi")
+uint WlanGetNetworkBssList(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, const(DOT11_SSID)* pDot11Ssid, 
+                           DOT11_BSS_TYPE dot11BssType, BOOL bSecurityEnabled, void* pReserved, 
+                           WLAN_BSS_LIST** ppWlanBssList);
+
+@DllImport("wlanapi")
+uint WlanConnect(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, 
+                 const(WLAN_CONNECTION_PARAMETERS)* pConnectionParameters, void* pReserved);
+
+@DllImport("wlanapi")
+uint WlanConnect2(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, 
+                  const(WLAN_CONNECTION_PARAMETERS_V2)* pConnectionParameters, void* pReserved);
+
+@DllImport("wlanapi")
+uint WlanDisconnect(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, void* pReserved);
+
+@DllImport("wlanapi")
+uint WlanRegisterNotification(HANDLE hClientHandle, uint dwNotifSource, BOOL bIgnoreDuplicate, 
+                              WLAN_NOTIFICATION_CALLBACK funcCallback, void* pCallbackContext, void* pReserved, 
+                              uint* pdwPrevNotifSource);
+
+@DllImport("wlanapi")
+uint WlanGetProfile(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, const(wchar)* strProfileName, 
+                    void* pReserved, ushort** pstrProfileXml, uint* pdwFlags, uint* pdwGrantedAccess);
+
+@DllImport("wlanapi")
+uint WlanSetProfileEapUserData(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, const(wchar)* strProfileName, 
+                               EAP_METHOD_TYPE eapType, uint dwFlags, uint dwEapUserDataSize, char* pbEapUserData, 
+                               void* pReserved);
+
+@DllImport("wlanapi")
+uint WlanSetProfileEapXmlUserData(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, const(wchar)* strProfileName, 
+                                  uint dwFlags, const(wchar)* strEapXmlUserData, void* pReserved);
+
+@DllImport("wlanapi")
+uint WlanSetProfile(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, uint dwFlags, const(wchar)* strProfileXml, 
+                    const(wchar)* strAllUserProfileSecurity, BOOL bOverwrite, void* pReserved, uint* pdwReasonCode);
+
+@DllImport("wlanapi")
+uint WlanDeleteProfile(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, const(wchar)* strProfileName, 
+                       void* pReserved);
+
+@DllImport("wlanapi")
+uint WlanRenameProfile(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, const(wchar)* strOldProfileName, 
+                       const(wchar)* strNewProfileName, void* pReserved);
+
+@DllImport("wlanapi")
+uint WlanGetProfileList(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, void* pReserved, 
+                        WLAN_PROFILE_INFO_LIST** ppProfileList);
+
+@DllImport("wlanapi")
+uint WlanSetProfileList(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, uint dwItems, char* strProfileNames, 
+                        void* pReserved);
+
+@DllImport("wlanapi")
+uint WlanSetProfilePosition(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, const(wchar)* strProfileName, 
+                            uint dwPosition, void* pReserved);
+
+@DllImport("wlanapi")
+uint WlanSetProfileCustomUserData(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, const(wchar)* strProfileName, 
+                                  uint dwDataSize, char* pData, void* pReserved);
+
+@DllImport("wlanapi")
+uint WlanGetProfileCustomUserData(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, const(wchar)* strProfileName, 
+                                  void* pReserved, uint* pdwDataSize, ubyte** ppData);
+
+@DllImport("wlanapi")
+uint WlanSetFilterList(HANDLE hClientHandle, WLAN_FILTER_LIST_TYPE wlanFilterListType, 
+                       const(DOT11_NETWORK_LIST)* pNetworkList, void* pReserved);
+
+@DllImport("wlanapi")
+uint WlanGetFilterList(HANDLE hClientHandle, WLAN_FILTER_LIST_TYPE wlanFilterListType, void* pReserved, 
+                       DOT11_NETWORK_LIST** ppNetworkList);
+
+@DllImport("wlanapi")
+uint WlanSetPsdIEDataList(HANDLE hClientHandle, const(wchar)* strFormat, const(WLAN_RAW_DATA_LIST)* pPsdIEDataList, 
+                          void* pReserved);
+
+@DllImport("wlanapi")
+uint WlanSaveTemporaryProfile(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, const(wchar)* strProfileName, 
+                              const(wchar)* strAllUserProfileSecurity, uint dwFlags, BOOL bOverWrite, 
+                              void* pReserved);
+
+@DllImport("wlanapi")
+uint WlanDeviceServiceCommand(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, GUID* pDeviceServiceGuid, 
+                              uint dwOpCode, uint dwInBufferSize, char* pInBuffer, uint dwOutBufferSize, 
+                              char* pOutBuffer, uint* pdwBytesReturned);
+
+@DllImport("wlanapi")
+uint WlanGetSupportedDeviceServices(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, 
+                                    WLAN_DEVICE_SERVICE_GUID_LIST** ppDevSvcGuidList);
+
+@DllImport("wlanapi")
+uint WlanRegisterDeviceServiceNotification(HANDLE hClientHandle, 
+                                           const(WLAN_DEVICE_SERVICE_GUID_LIST)* pDevSvcGuidList);
+
+@DllImport("wlanapi")
+uint WlanExtractPsdIEDataList(HANDLE hClientHandle, uint dwIeDataSize, char* pRawIeData, const(wchar)* strFormat, 
+                              void* pReserved, WLAN_RAW_DATA_LIST** ppPsdIEDataList);
+
+@DllImport("wlanapi")
+uint WlanReasonCodeToString(uint dwReasonCode, uint dwBufferSize, const(wchar)* pStringBuffer, void* pReserved);
+
+@DllImport("wlanapi")
+void* WlanAllocateMemory(uint dwMemorySize);
+
+@DllImport("wlanapi")
+void WlanFreeMemory(void* pMemory);
+
+@DllImport("wlanapi")
+uint WlanSetSecuritySettings(HANDLE hClientHandle, WLAN_SECURABLE_OBJECT SecurableObject, 
+                             const(wchar)* strModifiedSDDL);
+
+@DllImport("wlanapi")
+uint WlanGetSecuritySettings(HANDLE hClientHandle, WLAN_SECURABLE_OBJECT SecurableObject, 
+                             WLAN_OPCODE_VALUE_TYPE* pValueType, ushort** pstrCurrentSDDL, uint* pdwGrantedAccess);
+
+@DllImport("wlanapi")
+uint WlanUIEditProfile(uint dwClientVersion, const(wchar)* wstrProfileName, GUID* pInterfaceGuid, HWND hWnd, 
+                       WL_DISPLAY_PAGES wlStartPage, void* pReserved, uint* pWlanReasonCode);
+
+@DllImport("wlanapi")
+uint WlanHostedNetworkStartUsing(HANDLE hClientHandle, WLAN_HOSTED_NETWORK_REASON* pFailReason, void* pvReserved);
+
+@DllImport("wlanapi")
+uint WlanHostedNetworkStopUsing(HANDLE hClientHandle, WLAN_HOSTED_NETWORK_REASON* pFailReason, void* pvReserved);
+
+@DllImport("wlanapi")
+uint WlanHostedNetworkForceStart(HANDLE hClientHandle, WLAN_HOSTED_NETWORK_REASON* pFailReason, void* pvReserved);
+
+@DllImport("wlanapi")
+uint WlanHostedNetworkForceStop(HANDLE hClientHandle, WLAN_HOSTED_NETWORK_REASON* pFailReason, void* pvReserved);
+
+@DllImport("wlanapi")
+uint WlanHostedNetworkQueryProperty(HANDLE hClientHandle, WLAN_HOSTED_NETWORK_OPCODE OpCode, uint* pdwDataSize, 
+                                    void** ppvData, WLAN_OPCODE_VALUE_TYPE* pWlanOpcodeValueType, void* pvReserved);
+
+@DllImport("wlanapi")
+uint WlanHostedNetworkSetProperty(HANDLE hClientHandle, WLAN_HOSTED_NETWORK_OPCODE OpCode, uint dwDataSize, 
+                                  char* pvData, WLAN_HOSTED_NETWORK_REASON* pFailReason, void* pvReserved);
+
+@DllImport("wlanapi")
+uint WlanHostedNetworkInitSettings(HANDLE hClientHandle, WLAN_HOSTED_NETWORK_REASON* pFailReason, void* pvReserved);
+
+@DllImport("wlanapi")
+uint WlanHostedNetworkRefreshSecuritySettings(HANDLE hClientHandle, WLAN_HOSTED_NETWORK_REASON* pFailReason, 
+                                              void* pvReserved);
+
+@DllImport("wlanapi")
+uint WlanHostedNetworkQueryStatus(HANDLE hClientHandle, WLAN_HOSTED_NETWORK_STATUS** ppWlanHostedNetworkStatus, 
+                                  void* pvReserved);
+
+@DllImport("wlanapi")
+uint WlanHostedNetworkSetSecondaryKey(HANDLE hClientHandle, uint dwKeyLength, char* pucKeyData, BOOL bIsPassPhrase, 
+                                      BOOL bPersistent, WLAN_HOSTED_NETWORK_REASON* pFailReason, void* pvReserved);
+
+@DllImport("wlanapi")
+uint WlanHostedNetworkQuerySecondaryKey(HANDLE hClientHandle, uint* pdwKeyLength, ubyte** ppucKeyData, 
+                                        int* pbIsPassPhrase, int* pbPersistent, 
+                                        WLAN_HOSTED_NETWORK_REASON* pFailReason, void* pvReserved);
+
+@DllImport("wlanapi")
+uint WlanRegisterVirtualStationNotification(HANDLE hClientHandle, BOOL bRegister, void* pReserved);
+
+@DllImport("wlanapi")
+uint WFDOpenHandle(uint dwClientVersion, uint* pdwNegotiatedVersion, ptrdiff_t* phClientHandle);
+
+@DllImport("wlanapi")
+uint WFDCloseHandle(HANDLE hClientHandle);
+
+@DllImport("wlanapi")
+uint WFDStartOpenSession(HANDLE hClientHandle, ubyte** pDeviceAddress, void* pvContext, 
+                         WFD_OPEN_SESSION_COMPLETE_CALLBACK pfnCallback, ptrdiff_t* phSessionHandle);
+
+@DllImport("wlanapi")
+uint WFDCancelOpenSession(HANDLE hSessionHandle);
+
+@DllImport("wlanapi")
+uint WFDOpenLegacySession(HANDLE hClientHandle, ubyte** pLegacyMacAddress, HANDLE* phSessionHandle, 
+                          GUID* pGuidSessionInterface);
+
+@DllImport("wlanapi")
+uint WFDCloseSession(HANDLE hSessionHandle);
+
+@DllImport("wlanapi")
+uint WFDUpdateDeviceVisibility(ubyte** pDeviceAddress);
+
+
+// Interfaces
+
+@GUID("DD06A84F-83BD-4D01-8AB9-2389FEA0869E")
 struct Dot11AdHocManager;
 
-enum DOT11_ADHOC_CIPHER_ALGORITHM
-{
-    DOT11_ADHOC_CIPHER_ALGO_INVALID = -1,
-    DOT11_ADHOC_CIPHER_ALGO_NONE = 0,
-    DOT11_ADHOC_CIPHER_ALGO_CCMP = 4,
-    DOT11_ADHOC_CIPHER_ALGO_WEP = 257,
-}
-
-enum DOT11_ADHOC_AUTH_ALGORITHM
-{
-    DOT11_ADHOC_AUTH_ALGO_INVALID = -1,
-    DOT11_ADHOC_AUTH_ALGO_80211_OPEN = 1,
-    DOT11_ADHOC_AUTH_ALGO_RSNA_PSK = 7,
-}
-
-enum DOT11_ADHOC_NETWORK_CONNECTION_STATUS
-{
-    DOT11_ADHOC_NETWORK_CONNECTION_STATUS_INVALID = 0,
-    DOT11_ADHOC_NETWORK_CONNECTION_STATUS_DISCONNECTED = 11,
-    DOT11_ADHOC_NETWORK_CONNECTION_STATUS_CONNECTING = 12,
-    DOT11_ADHOC_NETWORK_CONNECTION_STATUS_CONNECTED = 13,
-    DOT11_ADHOC_NETWORK_CONNECTION_STATUS_FORMED = 14,
-}
-
-enum DOT11_ADHOC_CONNECT_FAIL_REASON
-{
-    DOT11_ADHOC_CONNECT_FAIL_DOMAIN_MISMATCH = 0,
-    DOT11_ADHOC_CONNECT_FAIL_PASSPHRASE_MISMATCH = 1,
-    DOT11_ADHOC_CONNECT_FAIL_OTHER = 2,
-}
-
-const GUID IID_IDot11AdHocManager = {0x8F10CC26, 0xCF0D, 0x42A0, [0xAC, 0xBE, 0xE2, 0xDE, 0x70, 0x07, 0x38, 0x4D]};
-@GUID(0x8F10CC26, 0xCF0D, 0x42A0, [0xAC, 0xBE, 0xE2, 0xDE, 0x70, 0x07, 0x38, 0x4D]);
+@GUID("8F10CC26-CF0D-42A0-ACBE-E2DE7007384D")
 interface IDot11AdHocManager : IUnknown
 {
-    HRESULT CreateNetwork(const(wchar)* Name, const(wchar)* Password, int GeographicalId, IDot11AdHocInterface pInterface, IDot11AdHocSecuritySettings pSecurity, Guid* pContextGuid, IDot11AdHocNetwork* pIAdHoc);
-    HRESULT CommitCreatedNetwork(IDot11AdHocNetwork pIAdHoc, ubyte fSaveProfile, ubyte fMakeSavedProfileUserSpecific);
-    HRESULT GetIEnumDot11AdHocNetworks(Guid* pContextGuid, IEnumDot11AdHocNetworks* ppEnum);
+    HRESULT CreateNetwork(const(wchar)* Name, const(wchar)* Password, int GeographicalId, 
+                          IDot11AdHocInterface pInterface, IDot11AdHocSecuritySettings pSecurity, GUID* pContextGuid, 
+                          IDot11AdHocNetwork* pIAdHoc);
+    HRESULT CommitCreatedNetwork(IDot11AdHocNetwork pIAdHoc, ubyte fSaveProfile, 
+                                 ubyte fMakeSavedProfileUserSpecific);
+    HRESULT GetIEnumDot11AdHocNetworks(GUID* pContextGuid, IEnumDot11AdHocNetworks* ppEnum);
     HRESULT GetIEnumDot11AdHocInterfaces(IEnumDot11AdHocInterfaces* ppEnum);
-    HRESULT GetNetwork(Guid* NetworkSignature, IDot11AdHocNetwork* pNetwork);
+    HRESULT GetNetwork(GUID* NetworkSignature, IDot11AdHocNetwork* pNetwork);
 }
 
-const GUID IID_IDot11AdHocManagerNotificationSink = {0x8F10CC27, 0xCF0D, 0x42A0, [0xAC, 0xBE, 0xE2, 0xDE, 0x70, 0x07, 0x38, 0x4D]};
-@GUID(0x8F10CC27, 0xCF0D, 0x42A0, [0xAC, 0xBE, 0xE2, 0xDE, 0x70, 0x07, 0x38, 0x4D]);
+@GUID("8F10CC27-CF0D-42A0-ACBE-E2DE7007384D")
 interface IDot11AdHocManagerNotificationSink : IUnknown
 {
     HRESULT OnNetworkAdd(IDot11AdHocNetwork pIAdHocNetwork);
-    HRESULT OnNetworkRemove(Guid* Signature);
+    HRESULT OnNetworkRemove(GUID* Signature);
     HRESULT OnInterfaceAdd(IDot11AdHocInterface pIAdHocInterface);
-    HRESULT OnInterfaceRemove(Guid* Signature);
+    HRESULT OnInterfaceRemove(GUID* Signature);
 }
 
-const GUID IID_IEnumDot11AdHocNetworks = {0x8F10CC28, 0xCF0D, 0x42A0, [0xAC, 0xBE, 0xE2, 0xDE, 0x70, 0x07, 0x38, 0x4D]};
-@GUID(0x8F10CC28, 0xCF0D, 0x42A0, [0xAC, 0xBE, 0xE2, 0xDE, 0x70, 0x07, 0x38, 0x4D]);
+@GUID("8F10CC28-CF0D-42A0-ACBE-E2DE7007384D")
 interface IEnumDot11AdHocNetworks : IUnknown
 {
     HRESULT Next(uint cElt, IDot11AdHocNetwork* rgElt, uint* pcEltFetched);
@@ -4296,8 +4791,7 @@ interface IEnumDot11AdHocNetworks : IUnknown
     HRESULT Clone(IEnumDot11AdHocNetworks* ppEnum);
 }
 
-const GUID IID_IDot11AdHocNetwork = {0x8F10CC29, 0xCF0D, 0x42A0, [0xAC, 0xBE, 0xE2, 0xDE, 0x70, 0x07, 0x38, 0x4D]};
-@GUID(0x8F10CC29, 0xCF0D, 0x42A0, [0xAC, 0xBE, 0xE2, 0xDE, 0x70, 0x07, 0x38, 0x4D]);
+@GUID("8F10CC29-CF0D-42A0-ACBE-E2DE7007384D")
 interface IDot11AdHocNetwork : IUnknown
 {
     HRESULT GetStatus(DOT11_ADHOC_NETWORK_CONNECTION_STATUS* eStatus);
@@ -4307,38 +4801,36 @@ interface IDot11AdHocNetwork : IUnknown
     HRESULT DeleteProfile();
     HRESULT GetSignalQuality(uint* puStrengthValue, uint* puStrengthMax);
     HRESULT GetSecuritySetting(IDot11AdHocSecuritySettings* pAdHocSecuritySetting);
-    HRESULT GetContextGuid(Guid* pContextGuid);
-    HRESULT GetSignature(Guid* pSignature);
+    HRESULT GetContextGuid(GUID* pContextGuid);
+    HRESULT GetSignature(GUID* pSignature);
     HRESULT GetInterface(IDot11AdHocInterface* pAdHocInterface);
-    HRESULT Connect(const(wchar)* Passphrase, int GeographicalId, ubyte fSaveProfile, ubyte fMakeSavedProfileUserSpecific);
+    HRESULT Connect(const(wchar)* Passphrase, int GeographicalId, ubyte fSaveProfile, 
+                    ubyte fMakeSavedProfileUserSpecific);
     HRESULT Disconnect();
 }
 
-const GUID IID_IDot11AdHocNetworkNotificationSink = {0x8F10CC2A, 0xCF0D, 0x42A0, [0xAC, 0xBE, 0xE2, 0xDE, 0x70, 0x07, 0x38, 0x4D]};
-@GUID(0x8F10CC2A, 0xCF0D, 0x42A0, [0xAC, 0xBE, 0xE2, 0xDE, 0x70, 0x07, 0x38, 0x4D]);
+@GUID("8F10CC2A-CF0D-42A0-ACBE-E2DE7007384D")
 interface IDot11AdHocNetworkNotificationSink : IUnknown
 {
     HRESULT OnStatusChange(DOT11_ADHOC_NETWORK_CONNECTION_STATUS eStatus);
     HRESULT OnConnectFail(DOT11_ADHOC_CONNECT_FAIL_REASON eFailReason);
 }
 
-const GUID IID_IDot11AdHocInterface = {0x8F10CC2B, 0xCF0D, 0x42A0, [0xAC, 0xBE, 0xE2, 0xDE, 0x70, 0x07, 0x38, 0x4D]};
-@GUID(0x8F10CC2B, 0xCF0D, 0x42A0, [0xAC, 0xBE, 0xE2, 0xDE, 0x70, 0x07, 0x38, 0x4D]);
+@GUID("8F10CC2B-CF0D-42A0-ACBE-E2DE7007384D")
 interface IDot11AdHocInterface : IUnknown
 {
-    HRESULT GetDeviceSignature(Guid* pSignature);
+    HRESULT GetDeviceSignature(GUID* pSignature);
     HRESULT GetFriendlyName(ushort** ppszName);
     HRESULT IsDot11d(ubyte* pf11d);
     HRESULT IsAdHocCapable(ubyte* pfAdHocCapable);
     HRESULT IsRadioOn(ubyte* pfIsRadioOn);
     HRESULT GetActiveNetwork(IDot11AdHocNetwork* ppNetwork);
     HRESULT GetIEnumSecuritySettings(IEnumDot11AdHocSecuritySettings* ppEnum);
-    HRESULT GetIEnumDot11AdHocNetworks(Guid* pFilterGuid, IEnumDot11AdHocNetworks* ppEnum);
+    HRESULT GetIEnumDot11AdHocNetworks(GUID* pFilterGuid, IEnumDot11AdHocNetworks* ppEnum);
     HRESULT GetStatus(DOT11_ADHOC_NETWORK_CONNECTION_STATUS* pState);
 }
 
-const GUID IID_IEnumDot11AdHocInterfaces = {0x8F10CC2C, 0xCF0D, 0x42A0, [0xAC, 0xBE, 0xE2, 0xDE, 0x70, 0x07, 0x38, 0x4D]};
-@GUID(0x8F10CC2C, 0xCF0D, 0x42A0, [0xAC, 0xBE, 0xE2, 0xDE, 0x70, 0x07, 0x38, 0x4D]);
+@GUID("8F10CC2C-CF0D-42A0-ACBE-E2DE7007384D")
 interface IEnumDot11AdHocInterfaces : IUnknown
 {
     HRESULT Next(uint cElt, IDot11AdHocInterface* rgElt, uint* pcEltFetched);
@@ -4347,8 +4839,7 @@ interface IEnumDot11AdHocInterfaces : IUnknown
     HRESULT Clone(IEnumDot11AdHocInterfaces* ppEnum);
 }
 
-const GUID IID_IEnumDot11AdHocSecuritySettings = {0x8F10CC2D, 0xCF0D, 0x42A0, [0xAC, 0xBE, 0xE2, 0xDE, 0x70, 0x07, 0x38, 0x4D]};
-@GUID(0x8F10CC2D, 0xCF0D, 0x42A0, [0xAC, 0xBE, 0xE2, 0xDE, 0x70, 0x07, 0x38, 0x4D]);
+@GUID("8F10CC2D-CF0D-42A0-ACBE-E2DE7007384D")
 interface IEnumDot11AdHocSecuritySettings : IUnknown
 {
     HRESULT Next(uint cElt, IDot11AdHocSecuritySettings* rgElt, uint* pcEltFetched);
@@ -4357,201 +4848,31 @@ interface IEnumDot11AdHocSecuritySettings : IUnknown
     HRESULT Clone(IEnumDot11AdHocSecuritySettings* ppEnum);
 }
 
-const GUID IID_IDot11AdHocSecuritySettings = {0x8F10CC2E, 0xCF0D, 0x42A0, [0xAC, 0xBE, 0xE2, 0xDE, 0x70, 0x07, 0x38, 0x4D]};
-@GUID(0x8F10CC2E, 0xCF0D, 0x42A0, [0xAC, 0xBE, 0xE2, 0xDE, 0x70, 0x07, 0x38, 0x4D]);
+@GUID("8F10CC2E-CF0D-42A0-ACBE-E2DE7007384D")
 interface IDot11AdHocSecuritySettings : IUnknown
 {
     HRESULT GetDot11AuthAlgorithm(DOT11_ADHOC_AUTH_ALGORITHM* pAuth);
     HRESULT GetDot11CipherAlgorithm(DOT11_ADHOC_CIPHER_ALGORITHM* pCipher);
 }
 
-const GUID IID_IDot11AdHocInterfaceNotificationSink = {0x8F10CC2F, 0xCF0D, 0x42A0, [0xAC, 0xBE, 0xE2, 0xDE, 0x70, 0x07, 0x38, 0x4D]};
-@GUID(0x8F10CC2F, 0xCF0D, 0x42A0, [0xAC, 0xBE, 0xE2, 0xDE, 0x70, 0x07, 0x38, 0x4D]);
+@GUID("8F10CC2F-CF0D-42A0-ACBE-E2DE7007384D")
 interface IDot11AdHocInterfaceNotificationSink : IUnknown
 {
     HRESULT OnConnectionStatusChange(DOT11_ADHOC_NETWORK_CONNECTION_STATUS eStatus);
 }
 
-@DllImport("wlanapi.dll")
-uint WlanOpenHandle(uint dwClientVersion, void* pReserved, uint* pdwNegotiatedVersion, int* phClientHandle);
 
-@DllImport("wlanapi.dll")
-uint WlanCloseHandle(HANDLE hClientHandle, void* pReserved);
+// GUIDs
 
-@DllImport("wlanapi.dll")
-uint WlanEnumInterfaces(HANDLE hClientHandle, void* pReserved, WLAN_INTERFACE_INFO_LIST** ppInterfaceList);
+const GUID CLSID_Dot11AdHocManager = GUIDOF!Dot11AdHocManager;
 
-@DllImport("wlanapi.dll")
-uint WlanSetAutoConfigParameter(HANDLE hClientHandle, WLAN_AUTOCONF_OPCODE OpCode, uint dwDataSize, char* pData, void* pReserved);
-
-@DllImport("wlanapi.dll")
-uint WlanQueryAutoConfigParameter(HANDLE hClientHandle, WLAN_AUTOCONF_OPCODE OpCode, void* pReserved, uint* pdwDataSize, void** ppData, WLAN_OPCODE_VALUE_TYPE* pWlanOpcodeValueType);
-
-@DllImport("wlanapi.dll")
-uint WlanGetInterfaceCapability(HANDLE hClientHandle, const(Guid)* pInterfaceGuid, void* pReserved, WLAN_INTERFACE_CAPABILITY** ppCapability);
-
-@DllImport("wlanapi.dll")
-uint WlanSetInterface(HANDLE hClientHandle, const(Guid)* pInterfaceGuid, WLAN_INTF_OPCODE OpCode, uint dwDataSize, char* pData, void* pReserved);
-
-@DllImport("wlanapi.dll")
-uint WlanQueryInterface(HANDLE hClientHandle, const(Guid)* pInterfaceGuid, WLAN_INTF_OPCODE OpCode, void* pReserved, uint* pdwDataSize, void** ppData, WLAN_OPCODE_VALUE_TYPE* pWlanOpcodeValueType);
-
-@DllImport("wlanapi.dll")
-uint WlanIhvControl(HANDLE hClientHandle, const(Guid)* pInterfaceGuid, WLAN_IHV_CONTROL_TYPE Type, uint dwInBufferSize, char* pInBuffer, uint dwOutBufferSize, char* pOutBuffer, uint* pdwBytesReturned);
-
-@DllImport("wlanapi.dll")
-uint WlanScan(HANDLE hClientHandle, const(Guid)* pInterfaceGuid, const(DOT11_SSID)* pDot11Ssid, const(WLAN_RAW_DATA)* pIeData, void* pReserved);
-
-@DllImport("wlanapi.dll")
-uint WlanGetAvailableNetworkList(HANDLE hClientHandle, const(Guid)* pInterfaceGuid, uint dwFlags, void* pReserved, WLAN_AVAILABLE_NETWORK_LIST** ppAvailableNetworkList);
-
-@DllImport("wlanapi.dll")
-uint WlanGetAvailableNetworkList2(HANDLE hClientHandle, const(Guid)* pInterfaceGuid, uint dwFlags, void* pReserved, WLAN_AVAILABLE_NETWORK_LIST_V2** ppAvailableNetworkList);
-
-@DllImport("wlanapi.dll")
-uint WlanGetNetworkBssList(HANDLE hClientHandle, const(Guid)* pInterfaceGuid, const(DOT11_SSID)* pDot11Ssid, DOT11_BSS_TYPE dot11BssType, BOOL bSecurityEnabled, void* pReserved, WLAN_BSS_LIST** ppWlanBssList);
-
-@DllImport("wlanapi.dll")
-uint WlanConnect(HANDLE hClientHandle, const(Guid)* pInterfaceGuid, const(WLAN_CONNECTION_PARAMETERS)* pConnectionParameters, void* pReserved);
-
-@DllImport("wlanapi.dll")
-uint WlanConnect2(HANDLE hClientHandle, const(Guid)* pInterfaceGuid, const(WLAN_CONNECTION_PARAMETERS_V2)* pConnectionParameters, void* pReserved);
-
-@DllImport("wlanapi.dll")
-uint WlanDisconnect(HANDLE hClientHandle, const(Guid)* pInterfaceGuid, void* pReserved);
-
-@DllImport("wlanapi.dll")
-uint WlanRegisterNotification(HANDLE hClientHandle, uint dwNotifSource, BOOL bIgnoreDuplicate, WLAN_NOTIFICATION_CALLBACK funcCallback, void* pCallbackContext, void* pReserved, uint* pdwPrevNotifSource);
-
-@DllImport("wlanapi.dll")
-uint WlanGetProfile(HANDLE hClientHandle, const(Guid)* pInterfaceGuid, const(wchar)* strProfileName, void* pReserved, ushort** pstrProfileXml, uint* pdwFlags, uint* pdwGrantedAccess);
-
-@DllImport("wlanapi.dll")
-uint WlanSetProfileEapUserData(HANDLE hClientHandle, const(Guid)* pInterfaceGuid, const(wchar)* strProfileName, EAP_METHOD_TYPE eapType, uint dwFlags, uint dwEapUserDataSize, char* pbEapUserData, void* pReserved);
-
-@DllImport("wlanapi.dll")
-uint WlanSetProfileEapXmlUserData(HANDLE hClientHandle, const(Guid)* pInterfaceGuid, const(wchar)* strProfileName, uint dwFlags, const(wchar)* strEapXmlUserData, void* pReserved);
-
-@DllImport("wlanapi.dll")
-uint WlanSetProfile(HANDLE hClientHandle, const(Guid)* pInterfaceGuid, uint dwFlags, const(wchar)* strProfileXml, const(wchar)* strAllUserProfileSecurity, BOOL bOverwrite, void* pReserved, uint* pdwReasonCode);
-
-@DllImport("wlanapi.dll")
-uint WlanDeleteProfile(HANDLE hClientHandle, const(Guid)* pInterfaceGuid, const(wchar)* strProfileName, void* pReserved);
-
-@DllImport("wlanapi.dll")
-uint WlanRenameProfile(HANDLE hClientHandle, const(Guid)* pInterfaceGuid, const(wchar)* strOldProfileName, const(wchar)* strNewProfileName, void* pReserved);
-
-@DllImport("wlanapi.dll")
-uint WlanGetProfileList(HANDLE hClientHandle, const(Guid)* pInterfaceGuid, void* pReserved, WLAN_PROFILE_INFO_LIST** ppProfileList);
-
-@DllImport("wlanapi.dll")
-uint WlanSetProfileList(HANDLE hClientHandle, const(Guid)* pInterfaceGuid, uint dwItems, char* strProfileNames, void* pReserved);
-
-@DllImport("wlanapi.dll")
-uint WlanSetProfilePosition(HANDLE hClientHandle, const(Guid)* pInterfaceGuid, const(wchar)* strProfileName, uint dwPosition, void* pReserved);
-
-@DllImport("wlanapi.dll")
-uint WlanSetProfileCustomUserData(HANDLE hClientHandle, const(Guid)* pInterfaceGuid, const(wchar)* strProfileName, uint dwDataSize, char* pData, void* pReserved);
-
-@DllImport("wlanapi.dll")
-uint WlanGetProfileCustomUserData(HANDLE hClientHandle, const(Guid)* pInterfaceGuid, const(wchar)* strProfileName, void* pReserved, uint* pdwDataSize, ubyte** ppData);
-
-@DllImport("wlanapi.dll")
-uint WlanSetFilterList(HANDLE hClientHandle, WLAN_FILTER_LIST_TYPE wlanFilterListType, const(DOT11_NETWORK_LIST)* pNetworkList, void* pReserved);
-
-@DllImport("wlanapi.dll")
-uint WlanGetFilterList(HANDLE hClientHandle, WLAN_FILTER_LIST_TYPE wlanFilterListType, void* pReserved, DOT11_NETWORK_LIST** ppNetworkList);
-
-@DllImport("wlanapi.dll")
-uint WlanSetPsdIEDataList(HANDLE hClientHandle, const(wchar)* strFormat, const(WLAN_RAW_DATA_LIST)* pPsdIEDataList, void* pReserved);
-
-@DllImport("wlanapi.dll")
-uint WlanSaveTemporaryProfile(HANDLE hClientHandle, const(Guid)* pInterfaceGuid, const(wchar)* strProfileName, const(wchar)* strAllUserProfileSecurity, uint dwFlags, BOOL bOverWrite, void* pReserved);
-
-@DllImport("wlanapi.dll")
-uint WlanDeviceServiceCommand(HANDLE hClientHandle, const(Guid)* pInterfaceGuid, Guid* pDeviceServiceGuid, uint dwOpCode, uint dwInBufferSize, char* pInBuffer, uint dwOutBufferSize, char* pOutBuffer, uint* pdwBytesReturned);
-
-@DllImport("wlanapi.dll")
-uint WlanGetSupportedDeviceServices(HANDLE hClientHandle, const(Guid)* pInterfaceGuid, WLAN_DEVICE_SERVICE_GUID_LIST** ppDevSvcGuidList);
-
-@DllImport("wlanapi.dll")
-uint WlanRegisterDeviceServiceNotification(HANDLE hClientHandle, const(WLAN_DEVICE_SERVICE_GUID_LIST)* pDevSvcGuidList);
-
-@DllImport("wlanapi.dll")
-uint WlanExtractPsdIEDataList(HANDLE hClientHandle, uint dwIeDataSize, char* pRawIeData, const(wchar)* strFormat, void* pReserved, WLAN_RAW_DATA_LIST** ppPsdIEDataList);
-
-@DllImport("wlanapi.dll")
-uint WlanReasonCodeToString(uint dwReasonCode, uint dwBufferSize, const(wchar)* pStringBuffer, void* pReserved);
-
-@DllImport("wlanapi.dll")
-void* WlanAllocateMemory(uint dwMemorySize);
-
-@DllImport("wlanapi.dll")
-void WlanFreeMemory(void* pMemory);
-
-@DllImport("wlanapi.dll")
-uint WlanSetSecuritySettings(HANDLE hClientHandle, WLAN_SECURABLE_OBJECT SecurableObject, const(wchar)* strModifiedSDDL);
-
-@DllImport("wlanapi.dll")
-uint WlanGetSecuritySettings(HANDLE hClientHandle, WLAN_SECURABLE_OBJECT SecurableObject, WLAN_OPCODE_VALUE_TYPE* pValueType, ushort** pstrCurrentSDDL, uint* pdwGrantedAccess);
-
-@DllImport("wlanapi.dll")
-uint WlanUIEditProfile(uint dwClientVersion, const(wchar)* wstrProfileName, Guid* pInterfaceGuid, HWND hWnd, WL_DISPLAY_PAGES wlStartPage, void* pReserved, uint* pWlanReasonCode);
-
-@DllImport("wlanapi.dll")
-uint WlanHostedNetworkStartUsing(HANDLE hClientHandle, WLAN_HOSTED_NETWORK_REASON* pFailReason, void* pvReserved);
-
-@DllImport("wlanapi.dll")
-uint WlanHostedNetworkStopUsing(HANDLE hClientHandle, WLAN_HOSTED_NETWORK_REASON* pFailReason, void* pvReserved);
-
-@DllImport("wlanapi.dll")
-uint WlanHostedNetworkForceStart(HANDLE hClientHandle, WLAN_HOSTED_NETWORK_REASON* pFailReason, void* pvReserved);
-
-@DllImport("wlanapi.dll")
-uint WlanHostedNetworkForceStop(HANDLE hClientHandle, WLAN_HOSTED_NETWORK_REASON* pFailReason, void* pvReserved);
-
-@DllImport("wlanapi.dll")
-uint WlanHostedNetworkQueryProperty(HANDLE hClientHandle, WLAN_HOSTED_NETWORK_OPCODE OpCode, uint* pdwDataSize, void** ppvData, WLAN_OPCODE_VALUE_TYPE* pWlanOpcodeValueType, void* pvReserved);
-
-@DllImport("wlanapi.dll")
-uint WlanHostedNetworkSetProperty(HANDLE hClientHandle, WLAN_HOSTED_NETWORK_OPCODE OpCode, uint dwDataSize, char* pvData, WLAN_HOSTED_NETWORK_REASON* pFailReason, void* pvReserved);
-
-@DllImport("wlanapi.dll")
-uint WlanHostedNetworkInitSettings(HANDLE hClientHandle, WLAN_HOSTED_NETWORK_REASON* pFailReason, void* pvReserved);
-
-@DllImport("wlanapi.dll")
-uint WlanHostedNetworkRefreshSecuritySettings(HANDLE hClientHandle, WLAN_HOSTED_NETWORK_REASON* pFailReason, void* pvReserved);
-
-@DllImport("wlanapi.dll")
-uint WlanHostedNetworkQueryStatus(HANDLE hClientHandle, WLAN_HOSTED_NETWORK_STATUS** ppWlanHostedNetworkStatus, void* pvReserved);
-
-@DllImport("wlanapi.dll")
-uint WlanHostedNetworkSetSecondaryKey(HANDLE hClientHandle, uint dwKeyLength, char* pucKeyData, BOOL bIsPassPhrase, BOOL bPersistent, WLAN_HOSTED_NETWORK_REASON* pFailReason, void* pvReserved);
-
-@DllImport("wlanapi.dll")
-uint WlanHostedNetworkQuerySecondaryKey(HANDLE hClientHandle, uint* pdwKeyLength, ubyte** ppucKeyData, int* pbIsPassPhrase, int* pbPersistent, WLAN_HOSTED_NETWORK_REASON* pFailReason, void* pvReserved);
-
-@DllImport("wlanapi.dll")
-uint WlanRegisterVirtualStationNotification(HANDLE hClientHandle, BOOL bRegister, void* pReserved);
-
-@DllImport("wlanapi.dll")
-uint WFDOpenHandle(uint dwClientVersion, uint* pdwNegotiatedVersion, int* phClientHandle);
-
-@DllImport("wlanapi.dll")
-uint WFDCloseHandle(HANDLE hClientHandle);
-
-@DllImport("wlanapi.dll")
-uint WFDStartOpenSession(HANDLE hClientHandle, ubyte** pDeviceAddress, void* pvContext, WFD_OPEN_SESSION_COMPLETE_CALLBACK pfnCallback, int* phSessionHandle);
-
-@DllImport("wlanapi.dll")
-uint WFDCancelOpenSession(HANDLE hSessionHandle);
-
-@DllImport("wlanapi.dll")
-uint WFDOpenLegacySession(HANDLE hClientHandle, ubyte** pLegacyMacAddress, HANDLE* phSessionHandle, Guid* pGuidSessionInterface);
-
-@DllImport("wlanapi.dll")
-uint WFDCloseSession(HANDLE hSessionHandle);
-
-@DllImport("wlanapi.dll")
-uint WFDUpdateDeviceVisibility(ubyte** pDeviceAddress);
-
+const GUID IID_IDot11AdHocInterface                 = GUIDOF!IDot11AdHocInterface;
+const GUID IID_IDot11AdHocInterfaceNotificationSink = GUIDOF!IDot11AdHocInterfaceNotificationSink;
+const GUID IID_IDot11AdHocManager                   = GUIDOF!IDot11AdHocManager;
+const GUID IID_IDot11AdHocManagerNotificationSink   = GUIDOF!IDot11AdHocManagerNotificationSink;
+const GUID IID_IDot11AdHocNetwork                   = GUIDOF!IDot11AdHocNetwork;
+const GUID IID_IDot11AdHocNetworkNotificationSink   = GUIDOF!IDot11AdHocNetworkNotificationSink;
+const GUID IID_IDot11AdHocSecuritySettings          = GUIDOF!IDot11AdHocSecuritySettings;
+const GUID IID_IEnumDot11AdHocInterfaces            = GUIDOF!IEnumDot11AdHocInterfaces;
+const GUID IID_IEnumDot11AdHocNetworks              = GUIDOF!IEnumDot11AdHocNetworks;
+const GUID IID_IEnumDot11AdHocSecuritySettings      = GUIDOF!IEnumDot11AdHocSecuritySettings;

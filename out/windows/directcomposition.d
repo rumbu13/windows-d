@@ -1,59 +1,75 @@
 module windows.directcomposition;
 
-public import system;
-public import windows.com;
-public import windows.direct2d;
-public import windows.direct3d9;
-public import windows.displaydevices;
-public import windows.dxgi;
-public import windows.systemservices;
-public import windows.windowsandmessaging;
+public import windows.core;
+public import windows.com : HRESULT, IUnknown;
+public import windows.direct2d : D2D1_2DAFFINETRANSFORM_INTERPOLATION_MODE, D2D1_BLEND_MODE, D2D1_BORDER_MODE,
+                                 D2D1_COLORMATRIX_ALPHA_MODE, D2D1_COMPOSITE_MODE, D2D1_TURBULENCE_NOISE,
+                                 D2D_MATRIX_3X2_F, D2D_MATRIX_4X4_F, D2D_MATRIX_5X4_F, D2D_RECT_F, D2D_VECTOR_2F,
+                                 D2D_VECTOR_4F;
+public import windows.direct3d9 : D3DMATRIX;
+public import windows.displaydevices : POINT, RECT;
+public import windows.dxgi : DXGI_ALPHA_MODE, DXGI_FORMAT, DXGI_RATIONAL, DXGI_RGBA, IDXGIDevice;
+public import windows.systemservices : BOOL, HANDLE, LARGE_INTEGER, SECURITY_ATTRIBUTES;
+public import windows.windowsandmessaging : HWND;
 
 extern(Windows):
 
-enum DCOMPOSITION_BITMAP_INTERPOLATION_MODE
-{
-    DCOMPOSITION_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR = 0,
-    DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR = 1,
-    DCOMPOSITION_BITMAP_INTERPOLATION_MODE_INHERIT = -1,
-}
 
-enum DCOMPOSITION_BORDER_MODE
-{
-    DCOMPOSITION_BORDER_MODE_SOFT = 0,
-    DCOMPOSITION_BORDER_MODE_HARD = 1,
-    DCOMPOSITION_BORDER_MODE_INHERIT = -1,
-}
+// Enums
 
-enum DCOMPOSITION_COMPOSITE_MODE
-{
-    DCOMPOSITION_COMPOSITE_MODE_SOURCE_OVER = 0,
-    DCOMPOSITION_COMPOSITE_MODE_DESTINATION_INVERT = 1,
-    DCOMPOSITION_COMPOSITE_MODE_MIN_BLEND = 2,
-    DCOMPOSITION_COMPOSITE_MODE_INHERIT = -1,
-}
 
-enum DCOMPOSITION_BACKFACE_VISIBILITY
+enum : int
 {
-    DCOMPOSITION_BACKFACE_VISIBILITY_VISIBLE = 0,
-    DCOMPOSITION_BACKFACE_VISIBILITY_HIDDEN = 1,
-    DCOMPOSITION_BACKFACE_VISIBILITY_INHERIT = -1,
+    DCOMPOSITION_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR = 0x00000000,
+    DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR           = 0x00000001,
+    DCOMPOSITION_BITMAP_INTERPOLATION_MODE_INHERIT          = 0xffffffff,
 }
+alias DCOMPOSITION_BITMAP_INTERPOLATION_MODE = int;
 
-enum DCOMPOSITION_OPACITY_MODE
+enum : int
 {
-    DCOMPOSITION_OPACITY_MODE_LAYER = 0,
-    DCOMPOSITION_OPACITY_MODE_MULTIPLY = 1,
-    DCOMPOSITION_OPACITY_MODE_INHERIT = -1,
+    DCOMPOSITION_BORDER_MODE_SOFT    = 0x00000000,
+    DCOMPOSITION_BORDER_MODE_HARD    = 0x00000001,
+    DCOMPOSITION_BORDER_MODE_INHERIT = 0xffffffff,
 }
+alias DCOMPOSITION_BORDER_MODE = int;
 
-enum DCOMPOSITION_DEPTH_MODE
+enum : int
 {
-    DCOMPOSITION_DEPTH_MODE_TREE = 0,
-    DCOMPOSITION_DEPTH_MODE_SPATIAL = 1,
-    DCOMPOSITION_DEPTH_MODE_SORTED = 3,
-    DCOMPOSITION_DEPTH_MODE_INHERIT = -1,
+    DCOMPOSITION_COMPOSITE_MODE_SOURCE_OVER        = 0x00000000,
+    DCOMPOSITION_COMPOSITE_MODE_DESTINATION_INVERT = 0x00000001,
+    DCOMPOSITION_COMPOSITE_MODE_MIN_BLEND          = 0x00000002,
+    DCOMPOSITION_COMPOSITE_MODE_INHERIT            = 0xffffffff,
 }
+alias DCOMPOSITION_COMPOSITE_MODE = int;
+
+enum : int
+{
+    DCOMPOSITION_BACKFACE_VISIBILITY_VISIBLE = 0x00000000,
+    DCOMPOSITION_BACKFACE_VISIBILITY_HIDDEN  = 0x00000001,
+    DCOMPOSITION_BACKFACE_VISIBILITY_INHERIT = 0xffffffff,
+}
+alias DCOMPOSITION_BACKFACE_VISIBILITY = int;
+
+enum : int
+{
+    DCOMPOSITION_OPACITY_MODE_LAYER    = 0x00000000,
+    DCOMPOSITION_OPACITY_MODE_MULTIPLY = 0x00000001,
+    DCOMPOSITION_OPACITY_MODE_INHERIT  = 0xffffffff,
+}
+alias DCOMPOSITION_OPACITY_MODE = int;
+
+enum : int
+{
+    DCOMPOSITION_DEPTH_MODE_TREE    = 0x00000000,
+    DCOMPOSITION_DEPTH_MODE_SPATIAL = 0x00000001,
+    DCOMPOSITION_DEPTH_MODE_SORTED  = 0x00000003,
+    DCOMPOSITION_DEPTH_MODE_INHERIT = 0xffffffff,
+}
+alias DCOMPOSITION_DEPTH_MODE = int;
+
+// Structs
+
 
 struct DCOMPOSITION_FRAME_STATISTICS
 {
@@ -64,20 +80,43 @@ struct DCOMPOSITION_FRAME_STATISTICS
     LARGE_INTEGER nextEstimatedFrameTime;
 }
 
-const GUID IID_IDCompositionAnimation = {0xCBFD91D9, 0x51B2, 0x45E4, [0xB3, 0xDE, 0xD1, 0x9C, 0xCF, 0xB8, 0x63, 0xC5]};
-@GUID(0xCBFD91D9, 0x51B2, 0x45E4, [0xB3, 0xDE, 0xD1, 0x9C, 0xCF, 0xB8, 0x63, 0xC5]);
+// Functions
+
+@DllImport("dcomp")
+HRESULT DCompositionCreateDevice(IDXGIDevice dxgiDevice, const(GUID)* iid, void** dcompositionDevice);
+
+@DllImport("dcomp")
+HRESULT DCompositionCreateDevice2(IUnknown renderingDevice, const(GUID)* iid, void** dcompositionDevice);
+
+@DllImport("dcomp")
+HRESULT DCompositionCreateDevice3(IUnknown renderingDevice, const(GUID)* iid, void** dcompositionDevice);
+
+@DllImport("dcomp")
+HRESULT DCompositionCreateSurfaceHandle(uint desiredAccess, SECURITY_ATTRIBUTES* securityAttributes, 
+                                        HANDLE* surfaceHandle);
+
+@DllImport("dcomp")
+HRESULT DCompositionAttachMouseWheelToHwnd(IDCompositionVisual visual, HWND hwnd, BOOL enable);
+
+@DllImport("dcomp")
+HRESULT DCompositionAttachMouseDragToHwnd(IDCompositionVisual visual, HWND hwnd, BOOL enable);
+
+
+// Interfaces
+
+@GUID("CBFD91D9-51B2-45E4-B3DE-D19CCFB863C5")
 interface IDCompositionAnimation : IUnknown
 {
     HRESULT Reset();
     HRESULT SetAbsoluteBeginTime(LARGE_INTEGER beginTime);
-    HRESULT AddCubic(double beginOffset, float constantCoefficient, float linearCoefficient, float quadraticCoefficient, float cubicCoefficient);
+    HRESULT AddCubic(double beginOffset, float constantCoefficient, float linearCoefficient, 
+                     float quadraticCoefficient, float cubicCoefficient);
     HRESULT AddSinusoidal(double beginOffset, float bias, float amplitude, float frequency, float phase);
     HRESULT AddRepeat(double beginOffset, double durationToRepeat);
     HRESULT End(double endOffset, float endValue);
 }
 
-const GUID IID_IDCompositionDevice = {0xC37EA93A, 0xE7AA, 0x450D, [0xB1, 0x6F, 0x97, 0x46, 0xCB, 0x04, 0x07, 0xF3]};
-@GUID(0xC37EA93A, 0xE7AA, 0x450D, [0xB1, 0x6F, 0x97, 0x46, 0xCB, 0x04, 0x07, 0xF3]);
+@GUID("C37EA93A-E7AA-450D-B16F-9746CB0407F3")
 interface IDCompositionDevice : IUnknown
 {
     HRESULT Commit();
@@ -85,8 +124,10 @@ interface IDCompositionDevice : IUnknown
     HRESULT GetFrameStatistics(DCOMPOSITION_FRAME_STATISTICS* statistics);
     HRESULT CreateTargetForHwnd(HWND hwnd, BOOL topmost, IDCompositionTarget* target);
     HRESULT CreateVisual(IDCompositionVisual* visual);
-    HRESULT CreateSurface(uint width, uint height, DXGI_FORMAT pixelFormat, DXGI_ALPHA_MODE alphaMode, IDCompositionSurface* surface);
-    HRESULT CreateVirtualSurface(uint initialWidth, uint initialHeight, DXGI_FORMAT pixelFormat, DXGI_ALPHA_MODE alphaMode, IDCompositionVirtualSurface* virtualSurface);
+    HRESULT CreateSurface(uint width, uint height, DXGI_FORMAT pixelFormat, DXGI_ALPHA_MODE alphaMode, 
+                          IDCompositionSurface* surface);
+    HRESULT CreateVirtualSurface(uint initialWidth, uint initialHeight, DXGI_FORMAT pixelFormat, 
+                                 DXGI_ALPHA_MODE alphaMode, IDCompositionVirtualSurface* virtualSurface);
     HRESULT CreateSurfaceFromHandle(HANDLE handle, IUnknown* surface);
     HRESULT CreateSurfaceFromHwnd(HWND hwnd, IUnknown* surface);
     HRESULT CreateTranslateTransform(IDCompositionTranslateTransform* translateTransform);
@@ -106,15 +147,13 @@ interface IDCompositionDevice : IUnknown
     HRESULT CheckDeviceState(int* pfValid);
 }
 
-const GUID IID_IDCompositionTarget = {0xEACDD04C, 0x117E, 0x4E17, [0x88, 0xF4, 0xD1, 0xB1, 0x2B, 0x0E, 0x3D, 0x89]};
-@GUID(0xEACDD04C, 0x117E, 0x4E17, [0x88, 0xF4, 0xD1, 0xB1, 0x2B, 0x0E, 0x3D, 0x89]);
+@GUID("EACDD04C-117E-4E17-88F4-D1B12B0E3D89")
 interface IDCompositionTarget : IUnknown
 {
     HRESULT SetRoot(IDCompositionVisual visual);
 }
 
-const GUID IID_IDCompositionVisual = {0x4D93059D, 0x097B, 0x4651, [0x9A, 0x60, 0xF0, 0xF2, 0x51, 0x16, 0xE2, 0xF3]};
-@GUID(0x4D93059D, 0x097B, 0x4651, [0x9A, 0x60, 0xF0, 0xF2, 0x51, 0x16, 0xE2, 0xF3]);
+@GUID("4D93059D-097B-4651-9A60-F0F25116E2F3")
 interface IDCompositionVisual : IUnknown
 {
     HRESULT SetOffsetX(float offsetX);
@@ -136,26 +175,22 @@ interface IDCompositionVisual : IUnknown
     HRESULT SetCompositeMode(DCOMPOSITION_COMPOSITE_MODE compositeMode);
 }
 
-const GUID IID_IDCompositionEffect = {0xEC81B08F, 0xBFCB, 0x4E8D, [0xB1, 0x93, 0xA9, 0x15, 0x58, 0x79, 0x99, 0xE8]};
-@GUID(0xEC81B08F, 0xBFCB, 0x4E8D, [0xB1, 0x93, 0xA9, 0x15, 0x58, 0x79, 0x99, 0xE8]);
+@GUID("EC81B08F-BFCB-4E8D-B193-A915587999E8")
 interface IDCompositionEffect : IUnknown
 {
 }
 
-const GUID IID_IDCompositionTransform3D = {0x71185722, 0x246B, 0x41F2, [0xAA, 0xD1, 0x04, 0x43, 0xF7, 0xF4, 0xBF, 0xC2]};
-@GUID(0x71185722, 0x246B, 0x41F2, [0xAA, 0xD1, 0x04, 0x43, 0xF7, 0xF4, 0xBF, 0xC2]);
+@GUID("71185722-246B-41F2-AAD1-0443F7F4BFC2")
 interface IDCompositionTransform3D : IDCompositionEffect
 {
 }
 
-const GUID IID_IDCompositionTransform = {0xFD55FAA7, 0x37E0, 0x4C20, [0x95, 0xD2, 0x9B, 0xE4, 0x5B, 0xC3, 0x3F, 0x55]};
-@GUID(0xFD55FAA7, 0x37E0, 0x4C20, [0x95, 0xD2, 0x9B, 0xE4, 0x5B, 0xC3, 0x3F, 0x55]);
+@GUID("FD55FAA7-37E0-4C20-95D2-9BE45BC33F55")
 interface IDCompositionTransform : IDCompositionTransform3D
 {
 }
 
-const GUID IID_IDCompositionTranslateTransform = {0x06791122, 0xC6F0, 0x417D, [0x83, 0x23, 0x26, 0x9E, 0x98, 0x7F, 0x59, 0x54]};
-@GUID(0x06791122, 0xC6F0, 0x417D, [0x83, 0x23, 0x26, 0x9E, 0x98, 0x7F, 0x59, 0x54]);
+@GUID("06791122-C6F0-417D-8323-269E987F5954")
 interface IDCompositionTranslateTransform : IDCompositionTransform
 {
     HRESULT SetOffsetX(float offsetX);
@@ -164,8 +199,7 @@ interface IDCompositionTranslateTransform : IDCompositionTransform
     HRESULT SetOffsetY(IDCompositionAnimation animation);
 }
 
-const GUID IID_IDCompositionScaleTransform = {0x71FDE914, 0x40EF, 0x45EF, [0xBD, 0x51, 0x68, 0xB0, 0x37, 0xC3, 0x39, 0xF9]};
-@GUID(0x71FDE914, 0x40EF, 0x45EF, [0xBD, 0x51, 0x68, 0xB0, 0x37, 0xC3, 0x39, 0xF9]);
+@GUID("71FDE914-40EF-45EF-BD51-68B037C339F9")
 interface IDCompositionScaleTransform : IDCompositionTransform
 {
     HRESULT SetScaleX(float scaleX);
@@ -178,8 +212,7 @@ interface IDCompositionScaleTransform : IDCompositionTransform
     HRESULT SetCenterY(IDCompositionAnimation animation);
 }
 
-const GUID IID_IDCompositionRotateTransform = {0x641ED83C, 0xAE96, 0x46C5, [0x90, 0xDC, 0x32, 0x77, 0x4C, 0xC5, 0xC6, 0xD5]};
-@GUID(0x641ED83C, 0xAE96, 0x46C5, [0x90, 0xDC, 0x32, 0x77, 0x4C, 0xC5, 0xC6, 0xD5]);
+@GUID("641ED83C-AE96-46C5-90DC-32774CC5C6D5")
 interface IDCompositionRotateTransform : IDCompositionTransform
 {
     HRESULT SetAngle(float angle);
@@ -190,8 +223,7 @@ interface IDCompositionRotateTransform : IDCompositionTransform
     HRESULT SetCenterY(IDCompositionAnimation animation);
 }
 
-const GUID IID_IDCompositionSkewTransform = {0xE57AA735, 0xDCDB, 0x4C72, [0x9C, 0x61, 0x05, 0x91, 0xF5, 0x88, 0x89, 0xEE]};
-@GUID(0xE57AA735, 0xDCDB, 0x4C72, [0x9C, 0x61, 0x05, 0x91, 0xF5, 0x88, 0x89, 0xEE]);
+@GUID("E57AA735-DCDB-4C72-9C61-0591F58889EE")
 interface IDCompositionSkewTransform : IDCompositionTransform
 {
     HRESULT SetAngleX(float angleX);
@@ -204,8 +236,7 @@ interface IDCompositionSkewTransform : IDCompositionTransform
     HRESULT SetCenterY(IDCompositionAnimation animation);
 }
 
-const GUID IID_IDCompositionMatrixTransform = {0x16CDFF07, 0xC503, 0x419C, [0x83, 0xF2, 0x09, 0x65, 0xC7, 0xAF, 0x1F, 0xA6]};
-@GUID(0x16CDFF07, 0xC503, 0x419C, [0x83, 0xF2, 0x09, 0x65, 0xC7, 0xAF, 0x1F, 0xA6]);
+@GUID("16CDFF07-C503-419C-83F2-0965C7AF1FA6")
 interface IDCompositionMatrixTransform : IDCompositionTransform
 {
     HRESULT SetMatrix(const(D2D_MATRIX_3X2_F)* matrix);
@@ -213,8 +244,7 @@ interface IDCompositionMatrixTransform : IDCompositionTransform
     HRESULT SetMatrixElement(int row, int column, IDCompositionAnimation animation);
 }
 
-const GUID IID_IDCompositionEffectGroup = {0xA7929A74, 0xE6B2, 0x4BD6, [0x8B, 0x95, 0x40, 0x40, 0x11, 0x9C, 0xA3, 0x4D]};
-@GUID(0xA7929A74, 0xE6B2, 0x4BD6, [0x8B, 0x95, 0x40, 0x40, 0x11, 0x9C, 0xA3, 0x4D]);
+@GUID("A7929A74-E6B2-4BD6-8B95-4040119CA34D")
 interface IDCompositionEffectGroup : IDCompositionEffect
 {
     HRESULT SetOpacity(float opacity);
@@ -222,8 +252,7 @@ interface IDCompositionEffectGroup : IDCompositionEffect
     HRESULT SetTransform3D(IDCompositionTransform3D transform3D);
 }
 
-const GUID IID_IDCompositionTranslateTransform3D = {0x91636D4B, 0x9BA1, 0x4532, [0xAA, 0xF7, 0xE3, 0x34, 0x49, 0x94, 0xD7, 0x88]};
-@GUID(0x91636D4B, 0x9BA1, 0x4532, [0xAA, 0xF7, 0xE3, 0x34, 0x49, 0x94, 0xD7, 0x88]);
+@GUID("91636D4B-9BA1-4532-AAF7-E3344994D788")
 interface IDCompositionTranslateTransform3D : IDCompositionTransform3D
 {
     HRESULT SetOffsetX(float offsetX);
@@ -234,8 +263,7 @@ interface IDCompositionTranslateTransform3D : IDCompositionTransform3D
     HRESULT SetOffsetZ(IDCompositionAnimation animation);
 }
 
-const GUID IID_IDCompositionScaleTransform3D = {0x2A9E9EAD, 0x364B, 0x4B15, [0xA7, 0xC4, 0xA1, 0x99, 0x7F, 0x78, 0xB3, 0x89]};
-@GUID(0x2A9E9EAD, 0x364B, 0x4B15, [0xA7, 0xC4, 0xA1, 0x99, 0x7F, 0x78, 0xB3, 0x89]);
+@GUID("2A9E9EAD-364B-4B15-A7C4-A1997F78B389")
 interface IDCompositionScaleTransform3D : IDCompositionTransform3D
 {
     HRESULT SetScaleX(float scaleX);
@@ -252,8 +280,7 @@ interface IDCompositionScaleTransform3D : IDCompositionTransform3D
     HRESULT SetCenterZ(IDCompositionAnimation animation);
 }
 
-const GUID IID_IDCompositionRotateTransform3D = {0xD8F5B23F, 0xD429, 0x4A91, [0xB5, 0x5A, 0xD2, 0xF4, 0x5F, 0xD7, 0x5B, 0x18]};
-@GUID(0xD8F5B23F, 0xD429, 0x4A91, [0xB5, 0x5A, 0xD2, 0xF4, 0x5F, 0xD7, 0x5B, 0x18]);
+@GUID("D8F5B23F-D429-4A91-B55A-D2F45FD75B18")
 interface IDCompositionRotateTransform3D : IDCompositionTransform3D
 {
     HRESULT SetAngle(float angle);
@@ -272,8 +299,7 @@ interface IDCompositionRotateTransform3D : IDCompositionTransform3D
     HRESULT SetCenterZ(IDCompositionAnimation animation);
 }
 
-const GUID IID_IDCompositionMatrixTransform3D = {0x4B3363F0, 0x643B, 0x41B7, [0xB6, 0xE0, 0xCC, 0xF2, 0x2D, 0x34, 0x46, 0x7C]};
-@GUID(0x4B3363F0, 0x643B, 0x41B7, [0xB6, 0xE0, 0xCC, 0xF2, 0x2D, 0x34, 0x46, 0x7C]);
+@GUID("4B3363F0-643B-41B7-B6E0-CCF22D34467C")
 interface IDCompositionMatrixTransform3D : IDCompositionTransform3D
 {
     HRESULT SetMatrix(const(D3DMATRIX)* matrix);
@@ -281,14 +307,12 @@ interface IDCompositionMatrixTransform3D : IDCompositionTransform3D
     HRESULT SetMatrixElement(int row, int column, IDCompositionAnimation animation);
 }
 
-const GUID IID_IDCompositionClip = {0x64AC3703, 0x9D3F, 0x45EC, [0xA1, 0x09, 0x7C, 0xAC, 0x0E, 0x7A, 0x13, 0xA7]};
-@GUID(0x64AC3703, 0x9D3F, 0x45EC, [0xA1, 0x09, 0x7C, 0xAC, 0x0E, 0x7A, 0x13, 0xA7]);
+@GUID("64AC3703-9D3F-45EC-A109-7CAC0E7A13A7")
 interface IDCompositionClip : IUnknown
 {
 }
 
-const GUID IID_IDCompositionRectangleClip = {0x9842AD7D, 0xD9CF, 0x4908, [0xAE, 0xD7, 0x48, 0xB5, 0x1D, 0xA5, 0xE7, 0xC2]};
-@GUID(0x9842AD7D, 0xD9CF, 0x4908, [0xAE, 0xD7, 0x48, 0xB5, 0x1D, 0xA5, 0xE7, 0xC2]);
+@GUID("9842AD7D-D9CF-4908-AED7-48B51DA5E7C2")
 interface IDCompositionRectangleClip : IDCompositionClip
 {
     HRESULT SetLeft(float left);
@@ -317,27 +341,24 @@ interface IDCompositionRectangleClip : IDCompositionClip
     HRESULT SetBottomRightRadiusY(IDCompositionAnimation animation);
 }
 
-const GUID IID_IDCompositionSurface = {0xBB8A4953, 0x2C99, 0x4F5A, [0x96, 0xF5, 0x48, 0x19, 0x02, 0x7F, 0xA3, 0xAC]};
-@GUID(0xBB8A4953, 0x2C99, 0x4F5A, [0x96, 0xF5, 0x48, 0x19, 0x02, 0x7F, 0xA3, 0xAC]);
+@GUID("BB8A4953-2C99-4F5A-96F5-4819027FA3AC")
 interface IDCompositionSurface : IUnknown
 {
-    HRESULT BeginDraw(const(RECT)* updateRect, const(Guid)* iid, void** updateObject, POINT* updateOffset);
+    HRESULT BeginDraw(const(RECT)* updateRect, const(GUID)* iid, void** updateObject, POINT* updateOffset);
     HRESULT EndDraw();
     HRESULT SuspendDraw();
     HRESULT ResumeDraw();
     HRESULT Scroll(const(RECT)* scrollRect, const(RECT)* clipRect, int offsetX, int offsetY);
 }
 
-const GUID IID_IDCompositionVirtualSurface = {0xAE471C51, 0x5F53, 0x4A24, [0x8D, 0x3E, 0xD0, 0xC3, 0x9C, 0x30, 0xB3, 0xF0]};
-@GUID(0xAE471C51, 0x5F53, 0x4A24, [0x8D, 0x3E, 0xD0, 0xC3, 0x9C, 0x30, 0xB3, 0xF0]);
+@GUID("AE471C51-5F53-4A24-8D3E-D0C39C30B3F0")
 interface IDCompositionVirtualSurface : IDCompositionSurface
 {
     HRESULT Resize(uint width, uint height);
     HRESULT Trim(char* rectangles, uint count);
 }
 
-const GUID IID_IDCompositionDevice2 = {0x75F6468D, 0x1B8E, 0x447C, [0x9B, 0xC6, 0x75, 0xFE, 0xA8, 0x0B, 0x5B, 0x25]};
-@GUID(0x75F6468D, 0x1B8E, 0x447C, [0x9B, 0xC6, 0x75, 0xFE, 0xA8, 0x0B, 0x5B, 0x25]);
+@GUID("75F6468D-1B8E-447C-9BC6-75FEA80B5B25")
 interface IDCompositionDevice2 : IUnknown
 {
     HRESULT Commit();
@@ -345,8 +366,10 @@ interface IDCompositionDevice2 : IUnknown
     HRESULT GetFrameStatistics(DCOMPOSITION_FRAME_STATISTICS* statistics);
     HRESULT CreateVisual(IDCompositionVisual2* visual);
     HRESULT CreateSurfaceFactory(IUnknown renderingDevice, IDCompositionSurfaceFactory* surfaceFactory);
-    HRESULT CreateSurface(uint width, uint height, DXGI_FORMAT pixelFormat, DXGI_ALPHA_MODE alphaMode, IDCompositionSurface* surface);
-    HRESULT CreateVirtualSurface(uint initialWidth, uint initialHeight, DXGI_FORMAT pixelFormat, DXGI_ALPHA_MODE alphaMode, IDCompositionVirtualSurface* virtualSurface);
+    HRESULT CreateSurface(uint width, uint height, DXGI_FORMAT pixelFormat, DXGI_ALPHA_MODE alphaMode, 
+                          IDCompositionSurface* surface);
+    HRESULT CreateVirtualSurface(uint initialWidth, uint initialHeight, DXGI_FORMAT pixelFormat, 
+                                 DXGI_ALPHA_MODE alphaMode, IDCompositionVirtualSurface* virtualSurface);
     HRESULT CreateTranslateTransform(IDCompositionTranslateTransform* translateTransform);
     HRESULT CreateScaleTransform(IDCompositionScaleTransform* scaleTransform);
     HRESULT CreateRotateTransform(IDCompositionRotateTransform* rotateTransform);
@@ -363,8 +386,7 @@ interface IDCompositionDevice2 : IUnknown
     HRESULT CreateAnimation(IDCompositionAnimation* animation);
 }
 
-const GUID IID_IDCompositionDesktopDevice = {0x5F4633FE, 0x1E08, 0x4CB8, [0x8C, 0x75, 0xCE, 0x24, 0x33, 0x3F, 0x56, 0x02]};
-@GUID(0x5F4633FE, 0x1E08, 0x4CB8, [0x8C, 0x75, 0xCE, 0x24, 0x33, 0x3F, 0x56, 0x02]);
+@GUID("5F4633FE-1E08-4CB8-8C75-CE24333F5602")
 interface IDCompositionDesktopDevice : IDCompositionDevice2
 {
     HRESULT CreateTargetForHwnd(HWND hwnd, BOOL topmost, IDCompositionTarget* target);
@@ -372,32 +394,30 @@ interface IDCompositionDesktopDevice : IDCompositionDevice2
     HRESULT CreateSurfaceFromHwnd(HWND hwnd, IUnknown* surface);
 }
 
-const GUID IID_IDCompositionDeviceDebug = {0xA1A3C64A, 0x224F, 0x4A81, [0x97, 0x73, 0x4F, 0x03, 0xA8, 0x9D, 0x3C, 0x6C]};
-@GUID(0xA1A3C64A, 0x224F, 0x4A81, [0x97, 0x73, 0x4F, 0x03, 0xA8, 0x9D, 0x3C, 0x6C]);
+@GUID("A1A3C64A-224F-4A81-9773-4F03A89D3C6C")
 interface IDCompositionDeviceDebug : IUnknown
 {
     HRESULT EnableDebugCounters();
     HRESULT DisableDebugCounters();
 }
 
-const GUID IID_IDCompositionSurfaceFactory = {0xE334BC12, 0x3937, 0x4E02, [0x85, 0xEB, 0xFC, 0xF4, 0xEB, 0x30, 0xD2, 0xC8]};
-@GUID(0xE334BC12, 0x3937, 0x4E02, [0x85, 0xEB, 0xFC, 0xF4, 0xEB, 0x30, 0xD2, 0xC8]);
+@GUID("E334BC12-3937-4E02-85EB-FCF4EB30D2C8")
 interface IDCompositionSurfaceFactory : IUnknown
 {
-    HRESULT CreateSurface(uint width, uint height, DXGI_FORMAT pixelFormat, DXGI_ALPHA_MODE alphaMode, IDCompositionSurface* surface);
-    HRESULT CreateVirtualSurface(uint initialWidth, uint initialHeight, DXGI_FORMAT pixelFormat, DXGI_ALPHA_MODE alphaMode, IDCompositionVirtualSurface* virtualSurface);
+    HRESULT CreateSurface(uint width, uint height, DXGI_FORMAT pixelFormat, DXGI_ALPHA_MODE alphaMode, 
+                          IDCompositionSurface* surface);
+    HRESULT CreateVirtualSurface(uint initialWidth, uint initialHeight, DXGI_FORMAT pixelFormat, 
+                                 DXGI_ALPHA_MODE alphaMode, IDCompositionVirtualSurface* virtualSurface);
 }
 
-const GUID IID_IDCompositionVisual2 = {0xE8DE1639, 0x4331, 0x4B26, [0xBC, 0x5F, 0x6A, 0x32, 0x1D, 0x34, 0x7A, 0x85]};
-@GUID(0xE8DE1639, 0x4331, 0x4B26, [0xBC, 0x5F, 0x6A, 0x32, 0x1D, 0x34, 0x7A, 0x85]);
+@GUID("E8DE1639-4331-4B26-BC5F-6A321D347A85")
 interface IDCompositionVisual2 : IDCompositionVisual
 {
     HRESULT SetOpacityMode(DCOMPOSITION_OPACITY_MODE mode);
     HRESULT SetBackFaceVisibility(DCOMPOSITION_BACKFACE_VISIBILITY visibility);
 }
 
-const GUID IID_IDCompositionVisualDebug = {0xFED2B808, 0x5EB4, 0x43A0, [0xAE, 0xA3, 0x35, 0xF6, 0x52, 0x80, 0xF9, 0x1B]};
-@GUID(0xFED2B808, 0x5EB4, 0x43A0, [0xAE, 0xA3, 0x35, 0xF6, 0x52, 0x80, 0xF9, 0x1B]);
+@GUID("FED2B808-5EB4-43A0-AEA3-35F65280F91B")
 interface IDCompositionVisualDebug : IDCompositionVisual2
 {
     HRESULT EnableHeatMap(const(DXGI_RGBA)* color);
@@ -406,8 +426,7 @@ interface IDCompositionVisualDebug : IDCompositionVisual2
     HRESULT DisableRedrawRegions();
 }
 
-const GUID IID_IDCompositionVisual3 = {0x2775F462, 0xB6C1, 0x4015, [0xB0, 0xBE, 0xB3, 0xE7, 0xD6, 0xA4, 0x97, 0x6D]};
-@GUID(0x2775F462, 0xB6C1, 0x4015, [0xB0, 0xBE, 0xB3, 0xE7, 0xD6, 0xA4, 0x97, 0x6D]);
+@GUID("2775F462-B6C1-4015-B0BE-B3E7D6A4976D")
 interface IDCompositionVisual3 : IDCompositionVisualDebug
 {
     HRESULT SetDepthMode(DCOMPOSITION_DEPTH_MODE mode);
@@ -420,8 +439,7 @@ interface IDCompositionVisual3 : IDCompositionVisualDebug
     HRESULT SetVisible(BOOL visible);
 }
 
-const GUID IID_IDCompositionDevice3 = {0x0987CB06, 0xF916, 0x48BF, [0x8D, 0x35, 0xCE, 0x76, 0x41, 0x78, 0x1B, 0xD9]};
-@GUID(0x0987CB06, 0xF916, 0x48BF, [0x8D, 0x35, 0xCE, 0x76, 0x41, 0x78, 0x1B, 0xD9]);
+@GUID("0987CB06-F916-48BF-8D35-CE7641781BD9")
 interface IDCompositionDevice3 : IDCompositionDevice2
 {
     HRESULT CreateGaussianBlurEffect(IDCompositionGaussianBlurEffect* gaussianBlurEffect);
@@ -439,15 +457,13 @@ interface IDCompositionDevice3 : IDCompositionDevice2
     HRESULT CreateAffineTransform2DEffect(IDCompositionAffineTransform2DEffect* affineTransform2dEffect);
 }
 
-const GUID IID_IDCompositionFilterEffect = {0x30C421D5, 0x8CB2, 0x4E9F, [0xB1, 0x33, 0x37, 0xBE, 0x27, 0x0D, 0x4A, 0xC2]};
-@GUID(0x30C421D5, 0x8CB2, 0x4E9F, [0xB1, 0x33, 0x37, 0xBE, 0x27, 0x0D, 0x4A, 0xC2]);
+@GUID("30C421D5-8CB2-4E9F-B133-37BE270D4AC2")
 interface IDCompositionFilterEffect : IDCompositionEffect
 {
     HRESULT SetInput(uint index, IUnknown input, uint flags);
 }
 
-const GUID IID_IDCompositionGaussianBlurEffect = {0x45D4D0B7, 0x1BD4, 0x454E, [0x88, 0x94, 0x2B, 0xFA, 0x68, 0x44, 0x30, 0x33]};
-@GUID(0x45D4D0B7, 0x1BD4, 0x454E, [0x88, 0x94, 0x2B, 0xFA, 0x68, 0x44, 0x30, 0x33]);
+@GUID("45D4D0B7-1BD4-454E-8894-2BFA68443033")
 interface IDCompositionGaussianBlurEffect : IDCompositionFilterEffect
 {
     HRESULT SetStandardDeviation(float amount);
@@ -455,8 +471,7 @@ interface IDCompositionGaussianBlurEffect : IDCompositionFilterEffect
     HRESULT SetBorderMode(D2D1_BORDER_MODE mode);
 }
 
-const GUID IID_IDCompositionBrightnessEffect = {0x6027496E, 0xCB3A, 0x49AB, [0x93, 0x4F, 0xD7, 0x98, 0xDA, 0x4F, 0x7D, 0xA6]};
-@GUID(0x6027496E, 0xCB3A, 0x49AB, [0x93, 0x4F, 0xD7, 0x98, 0xDA, 0x4F, 0x7D, 0xA6]);
+@GUID("6027496E-CB3A-49AB-934F-D798DA4F7DA6")
 interface IDCompositionBrightnessEffect : IDCompositionFilterEffect
 {
     HRESULT SetWhitePoint(const(D2D_VECTOR_2F)* whitePoint);
@@ -471,8 +486,7 @@ interface IDCompositionBrightnessEffect : IDCompositionFilterEffect
     HRESULT SetBlackPointY(IDCompositionAnimation animation);
 }
 
-const GUID IID_IDCompositionColorMatrixEffect = {0xC1170A22, 0x3CE2, 0x4966, [0x90, 0xD4, 0x55, 0x40, 0x8B, 0xFC, 0x84, 0xC4]};
-@GUID(0xC1170A22, 0x3CE2, 0x4966, [0x90, 0xD4, 0x55, 0x40, 0x8B, 0xFC, 0x84, 0xC4]);
+@GUID("C1170A22-3CE2-4966-90D4-55408BFC84C4")
 interface IDCompositionColorMatrixEffect : IDCompositionFilterEffect
 {
     HRESULT SetMatrix(const(D2D_MATRIX_5X4_F)* matrix);
@@ -482,8 +496,7 @@ interface IDCompositionColorMatrixEffect : IDCompositionFilterEffect
     HRESULT SetClampOutput(BOOL clamp);
 }
 
-const GUID IID_IDCompositionShadowEffect = {0x4AD18AC0, 0xCFD2, 0x4C2F, [0xBB, 0x62, 0x96, 0xE5, 0x4F, 0xDB, 0x68, 0x79]};
-@GUID(0x4AD18AC0, 0xCFD2, 0x4C2F, [0xBB, 0x62, 0x96, 0xE5, 0x4F, 0xDB, 0x68, 0x79]);
+@GUID("4AD18AC0-CFD2-4C2F-BB62-96E54FDB6879")
 interface IDCompositionShadowEffect : IDCompositionFilterEffect
 {
     HRESULT SetStandardDeviation(float amount);
@@ -499,24 +512,21 @@ interface IDCompositionShadowEffect : IDCompositionFilterEffect
     HRESULT SetAlpha(IDCompositionAnimation animation);
 }
 
-const GUID IID_IDCompositionHueRotationEffect = {0x6DB9F920, 0x0770, 0x4781, [0xB0, 0xC6, 0x38, 0x19, 0x12, 0xF9, 0xD1, 0x67]};
-@GUID(0x6DB9F920, 0x0770, 0x4781, [0xB0, 0xC6, 0x38, 0x19, 0x12, 0xF9, 0xD1, 0x67]);
+@GUID("6DB9F920-0770-4781-B0C6-381912F9D167")
 interface IDCompositionHueRotationEffect : IDCompositionFilterEffect
 {
     HRESULT SetAngle(float amountDegrees);
     HRESULT SetAngle(IDCompositionAnimation animation);
 }
 
-const GUID IID_IDCompositionSaturationEffect = {0xA08DEBDA, 0x3258, 0x4FA4, [0x9F, 0x16, 0x91, 0x74, 0xD3, 0xFE, 0x93, 0xB1]};
-@GUID(0xA08DEBDA, 0x3258, 0x4FA4, [0x9F, 0x16, 0x91, 0x74, 0xD3, 0xFE, 0x93, 0xB1]);
+@GUID("A08DEBDA-3258-4FA4-9F16-9174D3FE93B1")
 interface IDCompositionSaturationEffect : IDCompositionFilterEffect
 {
     HRESULT SetSaturation(float ratio);
     HRESULT SetSaturation(IDCompositionAnimation animation);
 }
 
-const GUID IID_IDCompositionTurbulenceEffect = {0xA6A55BDA, 0xC09C, 0x49F3, [0x91, 0x93, 0xA4, 0x19, 0x22, 0xC8, 0x97, 0x15]};
-@GUID(0xA6A55BDA, 0xC09C, 0x49F3, [0x91, 0x93, 0xA4, 0x19, 0x22, 0xC8, 0x97, 0x15]);
+@GUID("A6A55BDA-C09C-49F3-9193-A41922C89715")
 interface IDCompositionTurbulenceEffect : IDCompositionFilterEffect
 {
     HRESULT SetOffset(const(D2D_VECTOR_2F)* offset);
@@ -528,8 +538,7 @@ interface IDCompositionTurbulenceEffect : IDCompositionFilterEffect
     HRESULT SetStitchable(BOOL stitchable);
 }
 
-const GUID IID_IDCompositionLinearTransferEffect = {0x4305EE5B, 0xC4A0, 0x4C88, [0x93, 0x85, 0x67, 0x12, 0x4E, 0x01, 0x76, 0x83]};
-@GUID(0x4305EE5B, 0xC4A0, 0x4C88, [0x93, 0x85, 0x67, 0x12, 0x4E, 0x01, 0x76, 0x83]);
+@GUID("4305EE5B-C4A0-4C88-9385-67124E017683")
 interface IDCompositionLinearTransferEffect : IDCompositionFilterEffect
 {
     HRESULT SetRedYIntercept(float redYIntercept);
@@ -555,8 +564,7 @@ interface IDCompositionLinearTransferEffect : IDCompositionFilterEffect
     HRESULT SetClampOutput(BOOL clampOutput);
 }
 
-const GUID IID_IDCompositionTableTransferEffect = {0x9B7E82E2, 0x69C5, 0x4EB4, [0xA5, 0xF5, 0xA7, 0x03, 0x3F, 0x51, 0x32, 0xCD]};
-@GUID(0x9B7E82E2, 0x69C5, 0x4EB4, [0xA5, 0xF5, 0xA7, 0x03, 0x3F, 0x51, 0x32, 0xCD]);
+@GUID("9B7E82E2-69C5-4EB4-A5F5-A7033F5132CD")
 interface IDCompositionTableTransferEffect : IDCompositionFilterEffect
 {
     HRESULT SetRedTable(char* tableValues, uint count);
@@ -578,22 +586,19 @@ interface IDCompositionTableTransferEffect : IDCompositionFilterEffect
     HRESULT SetAlphaTableValue(uint index, IDCompositionAnimation animation);
 }
 
-const GUID IID_IDCompositionCompositeEffect = {0x576616C0, 0xA231, 0x494D, [0xA3, 0x8D, 0x00, 0xFD, 0x5E, 0xC4, 0xDB, 0x46]};
-@GUID(0x576616C0, 0xA231, 0x494D, [0xA3, 0x8D, 0x00, 0xFD, 0x5E, 0xC4, 0xDB, 0x46]);
+@GUID("576616C0-A231-494D-A38D-00FD5EC4DB46")
 interface IDCompositionCompositeEffect : IDCompositionFilterEffect
 {
     HRESULT SetMode(D2D1_COMPOSITE_MODE mode);
 }
 
-const GUID IID_IDCompositionBlendEffect = {0x33ECDC0A, 0x578A, 0x4A11, [0x9C, 0x14, 0x0C, 0xB9, 0x05, 0x17, 0xF9, 0xC5]};
-@GUID(0x33ECDC0A, 0x578A, 0x4A11, [0x9C, 0x14, 0x0C, 0xB9, 0x05, 0x17, 0xF9, 0xC5]);
+@GUID("33ECDC0A-578A-4A11-9C14-0CB90517F9C5")
 interface IDCompositionBlendEffect : IDCompositionFilterEffect
 {
     HRESULT SetMode(D2D1_BLEND_MODE mode);
 }
 
-const GUID IID_IDCompositionArithmeticCompositeEffect = {0x3B67DFA8, 0xE3DD, 0x4E61, [0xB6, 0x40, 0x46, 0xC2, 0xF3, 0xD7, 0x39, 0xDC]};
-@GUID(0x3B67DFA8, 0xE3DD, 0x4E61, [0xB6, 0x40, 0x46, 0xC2, 0xF3, 0xD7, 0x39, 0xDC]);
+@GUID("3B67DFA8-E3DD-4E61-B640-46C2F3D739DC")
 interface IDCompositionArithmeticCompositeEffect : IDCompositionFilterEffect
 {
     HRESULT SetCoefficients(const(D2D_VECTOR_4F)* coefficients);
@@ -608,8 +613,7 @@ interface IDCompositionArithmeticCompositeEffect : IDCompositionFilterEffect
     HRESULT SetCoefficient4(IDCompositionAnimation animation);
 }
 
-const GUID IID_IDCompositionAffineTransform2DEffect = {0x0B74B9E8, 0xCDD6, 0x492F, [0xBB, 0xBC, 0x5E, 0xD3, 0x21, 0x57, 0x02, 0x6D]};
-@GUID(0x0B74B9E8, 0xCDD6, 0x492F, [0xBB, 0xBC, 0x5E, 0xD3, 0x21, 0x57, 0x02, 0x6D]);
+@GUID("0B74B9E8-CDD6-492F-BBBC-5ED32157026D")
 interface IDCompositionAffineTransform2DEffect : IDCompositionFilterEffect
 {
     HRESULT SetInterpolationMode(D2D1_2DAFFINETRANSFORM_INTERPOLATION_MODE interpolationMode);
@@ -621,21 +625,50 @@ interface IDCompositionAffineTransform2DEffect : IDCompositionFilterEffect
     HRESULT SetSharpness(IDCompositionAnimation animation);
 }
 
-@DllImport("dcomp.dll")
-HRESULT DCompositionCreateDevice(IDXGIDevice dxgiDevice, const(Guid)* iid, void** dcompositionDevice);
 
-@DllImport("dcomp.dll")
-HRESULT DCompositionCreateDevice2(IUnknown renderingDevice, const(Guid)* iid, void** dcompositionDevice);
+// GUIDs
 
-@DllImport("dcomp.dll")
-HRESULT DCompositionCreateDevice3(IUnknown renderingDevice, const(Guid)* iid, void** dcompositionDevice);
 
-@DllImport("dcomp.dll")
-HRESULT DCompositionCreateSurfaceHandle(uint desiredAccess, SECURITY_ATTRIBUTES* securityAttributes, HANDLE* surfaceHandle);
-
-@DllImport("dcomp.dll")
-HRESULT DCompositionAttachMouseWheelToHwnd(IDCompositionVisual visual, HWND hwnd, BOOL enable);
-
-@DllImport("dcomp.dll")
-HRESULT DCompositionAttachMouseDragToHwnd(IDCompositionVisual visual, HWND hwnd, BOOL enable);
-
+const GUID IID_IDCompositionAffineTransform2DEffect   = GUIDOF!IDCompositionAffineTransform2DEffect;
+const GUID IID_IDCompositionAnimation                 = GUIDOF!IDCompositionAnimation;
+const GUID IID_IDCompositionArithmeticCompositeEffect = GUIDOF!IDCompositionArithmeticCompositeEffect;
+const GUID IID_IDCompositionBlendEffect               = GUIDOF!IDCompositionBlendEffect;
+const GUID IID_IDCompositionBrightnessEffect          = GUIDOF!IDCompositionBrightnessEffect;
+const GUID IID_IDCompositionClip                      = GUIDOF!IDCompositionClip;
+const GUID IID_IDCompositionColorMatrixEffect         = GUIDOF!IDCompositionColorMatrixEffect;
+const GUID IID_IDCompositionCompositeEffect           = GUIDOF!IDCompositionCompositeEffect;
+const GUID IID_IDCompositionDesktopDevice             = GUIDOF!IDCompositionDesktopDevice;
+const GUID IID_IDCompositionDevice                    = GUIDOF!IDCompositionDevice;
+const GUID IID_IDCompositionDevice2                   = GUIDOF!IDCompositionDevice2;
+const GUID IID_IDCompositionDevice3                   = GUIDOF!IDCompositionDevice3;
+const GUID IID_IDCompositionDeviceDebug               = GUIDOF!IDCompositionDeviceDebug;
+const GUID IID_IDCompositionEffect                    = GUIDOF!IDCompositionEffect;
+const GUID IID_IDCompositionEffectGroup               = GUIDOF!IDCompositionEffectGroup;
+const GUID IID_IDCompositionFilterEffect              = GUIDOF!IDCompositionFilterEffect;
+const GUID IID_IDCompositionGaussianBlurEffect        = GUIDOF!IDCompositionGaussianBlurEffect;
+const GUID IID_IDCompositionHueRotationEffect         = GUIDOF!IDCompositionHueRotationEffect;
+const GUID IID_IDCompositionLinearTransferEffect      = GUIDOF!IDCompositionLinearTransferEffect;
+const GUID IID_IDCompositionMatrixTransform           = GUIDOF!IDCompositionMatrixTransform;
+const GUID IID_IDCompositionMatrixTransform3D         = GUIDOF!IDCompositionMatrixTransform3D;
+const GUID IID_IDCompositionRectangleClip             = GUIDOF!IDCompositionRectangleClip;
+const GUID IID_IDCompositionRotateTransform           = GUIDOF!IDCompositionRotateTransform;
+const GUID IID_IDCompositionRotateTransform3D         = GUIDOF!IDCompositionRotateTransform3D;
+const GUID IID_IDCompositionSaturationEffect          = GUIDOF!IDCompositionSaturationEffect;
+const GUID IID_IDCompositionScaleTransform            = GUIDOF!IDCompositionScaleTransform;
+const GUID IID_IDCompositionScaleTransform3D          = GUIDOF!IDCompositionScaleTransform3D;
+const GUID IID_IDCompositionShadowEffect              = GUIDOF!IDCompositionShadowEffect;
+const GUID IID_IDCompositionSkewTransform             = GUIDOF!IDCompositionSkewTransform;
+const GUID IID_IDCompositionSurface                   = GUIDOF!IDCompositionSurface;
+const GUID IID_IDCompositionSurfaceFactory            = GUIDOF!IDCompositionSurfaceFactory;
+const GUID IID_IDCompositionTableTransferEffect       = GUIDOF!IDCompositionTableTransferEffect;
+const GUID IID_IDCompositionTarget                    = GUIDOF!IDCompositionTarget;
+const GUID IID_IDCompositionTransform                 = GUIDOF!IDCompositionTransform;
+const GUID IID_IDCompositionTransform3D               = GUIDOF!IDCompositionTransform3D;
+const GUID IID_IDCompositionTranslateTransform        = GUIDOF!IDCompositionTranslateTransform;
+const GUID IID_IDCompositionTranslateTransform3D      = GUIDOF!IDCompositionTranslateTransform3D;
+const GUID IID_IDCompositionTurbulenceEffect          = GUIDOF!IDCompositionTurbulenceEffect;
+const GUID IID_IDCompositionVirtualSurface            = GUIDOF!IDCompositionVirtualSurface;
+const GUID IID_IDCompositionVisual                    = GUIDOF!IDCompositionVisual;
+const GUID IID_IDCompositionVisual2                   = GUIDOF!IDCompositionVisual2;
+const GUID IID_IDCompositionVisual3                   = GUIDOF!IDCompositionVisual3;
+const GUID IID_IDCompositionVisualDebug               = GUIDOF!IDCompositionVisualDebug;

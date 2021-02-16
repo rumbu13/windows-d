@@ -1,642 +1,889 @@
 module windows.networkpolicyserver;
 
-public import windows.automation;
-public import windows.com;
+public import windows.core;
+public import windows.automation : BSTR, IDispatch, VARIANT;
+public import windows.com : HRESULT, IUnknown;
 
 extern(Windows):
 
-const GUID CLSID_SdoMachine = {0xE9218AE7, 0x9E91, 0x11D1, [0xBF, 0x60, 0x00, 0x80, 0xC7, 0x84, 0x6B, 0xC0]};
-@GUID(0xE9218AE7, 0x9E91, 0x11D1, [0xBF, 0x60, 0x00, 0x80, 0xC7, 0x84, 0x6B, 0xC0]);
+
+// Enums
+
+
+enum : uint
+{
+    ATTRIBUTE_UNDEFINED                                  = 0x00000000,
+    ATTRIBUTE_MIN_VALUE                                  = 0x00000001,
+    RADIUS_ATTRIBUTE_USER_NAME                           = 0x00000001,
+    RADIUS_ATTRIBUTE_USER_PASSWORD                       = 0x00000002,
+    RADIUS_ATTRIBUTE_CHAP_PASSWORD                       = 0x00000003,
+    RADIUS_ATTRIBUTE_NAS_IP_ADDRESS                      = 0x00000004,
+    RADIUS_ATTRIBUTE_NAS_PORT                            = 0x00000005,
+    RADIUS_ATTRIBUTE_SERVICE_TYPE                        = 0x00000006,
+    RADIUS_ATTRIBUTE_FRAMED_PROTOCOL                     = 0x00000007,
+    RADIUS_ATTRIBUTE_FRAMED_IP_ADDRESS                   = 0x00000008,
+    RADIUS_ATTRIBUTE_FRAMED_IP_NETMASK                   = 0x00000009,
+    RADIUS_ATTRIBUTE_FRAMED_ROUTING                      = 0x0000000a,
+    RADIUS_ATTRIBUTE_FILTER_ID                           = 0x0000000b,
+    RADIUS_ATTRIBUTE_FRAMED_MTU                          = 0x0000000c,
+    RADIUS_ATTRIBUTE_FRAMED_COMPRESSION                  = 0x0000000d,
+    RADIUS_ATTRIBUTE_LOGIN_IP_HOST                       = 0x0000000e,
+    RADIUS_ATTRIBUTE_LOGIN_SERVICE                       = 0x0000000f,
+    RADIUS_ATTRIBUTE_LOGIN_TCP_PORT                      = 0x00000010,
+    RADIUS_ATTRIBUTE_UNASSIGNED1                         = 0x00000011,
+    RADIUS_ATTRIBUTE_REPLY_MESSAGE                       = 0x00000012,
+    RADIUS_ATTRIBUTE_CALLBACK_NUMBER                     = 0x00000013,
+    RADIUS_ATTRIBUTE_CALLBACK_ID                         = 0x00000014,
+    RADIUS_ATTRIBUTE_UNASSIGNED2                         = 0x00000015,
+    RADIUS_ATTRIBUTE_FRAMED_ROUTE                        = 0x00000016,
+    RADIUS_ATTRIBUTE_FRAMED_IPX_NETWORK                  = 0x00000017,
+    RADIUS_ATTRIBUTE_STATE                               = 0x00000018,
+    RADIUS_ATTRIBUTE_CLASS                               = 0x00000019,
+    RADIUS_ATTRIBUTE_VENDOR_SPECIFIC                     = 0x0000001a,
+    RADIUS_ATTRIBUTE_SESSION_TIMEOUT                     = 0x0000001b,
+    RADIUS_ATTRIBUTE_IDLE_TIMEOUT                        = 0x0000001c,
+    RADIUS_ATTRIBUTE_TERMINATION_ACTION                  = 0x0000001d,
+    RADIUS_ATTRIBUTE_CALLED_STATION_ID                   = 0x0000001e,
+    RADIUS_ATTRIBUTE_CALLING_STATION_ID                  = 0x0000001f,
+    RADIUS_ATTRIBUTE_NAS_IDENTIFIER                      = 0x00000020,
+    RADIUS_ATTRIBUTE_PROXY_STATE                         = 0x00000021,
+    RADIUS_ATTRIBUTE_LOGIN_LAT_SERVICE                   = 0x00000022,
+    RADIUS_ATTRIBUTE_LOGIN_LAT_NODE                      = 0x00000023,
+    RADIUS_ATTRIBUTE_LOGIN_LAT_GROUP                     = 0x00000024,
+    RADIUS_ATTRIBUTE_FRAMED_APPLETALK_LINK               = 0x00000025,
+    RADIUS_ATTRIBUTE_FRAMED_APPLETALK_NET                = 0x00000026,
+    RADIUS_ATTRIBUTE_FRAMED_APPLETALK_ZONE               = 0x00000027,
+    RADIUS_ATTRIBUTE_ACCT_STATUS_TYPE                    = 0x00000028,
+    RADIUS_ATTRIBUTE_ACCT_DELAY_TIME                     = 0x00000029,
+    RADIUS_ATTRIBUTE_ACCT_INPUT_OCTETS                   = 0x0000002a,
+    RADIUS_ATTRIBUTE_ACCT_OUTPUT_OCTETS                  = 0x0000002b,
+    RADIUS_ATTRIBUTE_ACCT_SESSION_ID                     = 0x0000002c,
+    RADIUS_ATTRIBUTE_ACCT_AUTHENTIC                      = 0x0000002d,
+    RADIUS_ATTRIBUTE_ACCT_SESSION_TIME                   = 0x0000002e,
+    RADIUS_ATTRIBUTE_ACCT_INPUT_PACKETS                  = 0x0000002f,
+    RADIUS_ATTRIBUTE_ACCT_OUTPUT_PACKETS                 = 0x00000030,
+    RADIUS_ATTRIBUTE_ACCT_TERMINATE_CAUSE                = 0x00000031,
+    RADIUS_ATTRIBUTE_ACCT_MULTI_SSN_ID                   = 0x00000032,
+    RADIUS_ATTRIBUTE_ACCT_LINK_COUNT                     = 0x00000033,
+    RADIUS_ATTRIBUTE_CHAP_CHALLENGE                      = 0x0000003c,
+    RADIUS_ATTRIBUTE_NAS_PORT_TYPE                       = 0x0000003d,
+    RADIUS_ATTRIBUTE_PORT_LIMIT                          = 0x0000003e,
+    RADIUS_ATTRIBUTE_LOGIN_LAT_PORT                      = 0x0000003f,
+    RADIUS_ATTRIBUTE_TUNNEL_TYPE                         = 0x00000040,
+    RADIUS_ATTRIBUTE_TUNNEL_MEDIUM_TYPE                  = 0x00000041,
+    RADIUS_ATTRIBUTE_TUNNEL_CLIENT_ENDPT                 = 0x00000042,
+    RADIUS_ATTRIBUTE_TUNNEL_SERVER_ENDPT                 = 0x00000043,
+    RADIUS_ATTRIBUTE_ACCT_TUNNEL_CONN                    = 0x00000044,
+    RADIUS_ATTRIBUTE_TUNNEL_PASSWORD                     = 0x00000045,
+    RADIUS_ATTRIBUTE_ARAP_PASSWORD                       = 0x00000046,
+    RADIUS_ATTRIBUTE_ARAP_FEATURES                       = 0x00000047,
+    RADIUS_ATTRIBUTE_ARAP_ZONE_ACCESS                    = 0x00000048,
+    RADIUS_ATTRIBUTE_ARAP_SECURITY                       = 0x00000049,
+    RADIUS_ATTRIBUTE_ARAP_SECURITY_DATA                  = 0x0000004a,
+    RADIUS_ATTRIBUTE_PASSWORD_RETRY                      = 0x0000004b,
+    RADIUS_ATTRIBUTE_PROMPT                              = 0x0000004c,
+    RADIUS_ATTRIBUTE_CONNECT_INFO                        = 0x0000004d,
+    RADIUS_ATTRIBUTE_CONFIGURATION_TOKEN                 = 0x0000004e,
+    RADIUS_ATTRIBUTE_EAP_MESSAGE                         = 0x0000004f,
+    RADIUS_ATTRIBUTE_SIGNATURE                           = 0x00000050,
+    RADIUS_ATTRIBUTE_TUNNEL_PVT_GROUP_ID                 = 0x00000051,
+    RADIUS_ATTRIBUTE_TUNNEL_ASSIGNMENT_ID                = 0x00000052,
+    RADIUS_ATTRIBUTE_TUNNEL_PREFERENCE                   = 0x00000053,
+    RADIUS_ATTRIBUTE_ARAP_CHALLENGE_RESPONSE             = 0x00000054,
+    RADIUS_ATTRIBUTE_ACCT_INTERIM_INTERVAL               = 0x00000055,
+    RADIUS_ATTRIBUTE_NAS_IPv6_ADDRESS                    = 0x0000005f,
+    RADIUS_ATTRIBUTE_FRAMED_INTERFACE_ID                 = 0x00000060,
+    RADIUS_ATTRIBUTE_FRAMED_IPv6_PREFIX                  = 0x00000061,
+    RADIUS_ATTRIBUTE_LOGIN_IPv6_HOST                     = 0x00000062,
+    RADIUS_ATTRIBUTE_FRAMED_IPv6_ROUTE                   = 0x00000063,
+    RADIUS_ATTRIBUTE_FRAMED_IPv6_POOL                    = 0x00000064,
+    IAS_ATTRIBUTE_SAVED_RADIUS_FRAMED_IP_ADDRESS         = 0x00001000,
+    IAS_ATTRIBUTE_SAVED_RADIUS_CALLBACK_NUMBER           = 0x00001001,
+    IAS_ATTRIBUTE_NP_CALLING_STATION_ID                  = 0x00001002,
+    IAS_ATTRIBUTE_SAVED_NP_CALLING_STATION_ID            = 0x00001003,
+    IAS_ATTRIBUTE_SAVED_RADIUS_FRAMED_ROUTE              = 0x00001004,
+    IAS_ATTRIBUTE_IGNORE_USER_DIALIN_PROPERTIES          = 0x00001005,
+    IAS_ATTRIBUTE_NP_TIME_OF_DAY                         = 0x00001006,
+    IAS_ATTRIBUTE_NP_CALLED_STATION_ID                   = 0x00001007,
+    IAS_ATTRIBUTE_NP_ALLOWED_PORT_TYPES                  = 0x00001008,
+    IAS_ATTRIBUTE_NP_AUTHENTICATION_TYPE                 = 0x00001009,
+    IAS_ATTRIBUTE_NP_ALLOWED_EAP_TYPE                    = 0x0000100a,
+    IAS_ATTRIBUTE_SHARED_SECRET                          = 0x0000100b,
+    IAS_ATTRIBUTE_CLIENT_IP_ADDRESS                      = 0x0000100c,
+    IAS_ATTRIBUTE_CLIENT_PACKET_HEADER                   = 0x0000100d,
+    IAS_ATTRIBUTE_TOKEN_GROUPS                           = 0x0000100e,
+    IAS_ATTRIBUTE_ALLOW_DIALIN                           = 0x0000100f,
+    IAS_ATTRIBUTE_REQUEST_ID                             = 0x00001010,
+    IAS_ATTRIBUTE_MANIPULATION_TARGET                    = 0x00001011,
+    IAS_ATTRIBUTE_MANIPULATION_RULE                      = 0x00001012,
+    IAS_ATTRIBUTE_ORIGINAL_USER_NAME                     = 0x00001013,
+    IAS_ATTRIBUTE_CLIENT_VENDOR_TYPE                     = 0x00001014,
+    IAS_ATTRIBUTE_CLIENT_UDP_PORT                        = 0x00001015,
+    MS_ATTRIBUTE_CHAP_CHALLENGE                          = 0x00001016,
+    MS_ATTRIBUTE_CHAP_RESPONSE                           = 0x00001017,
+    MS_ATTRIBUTE_CHAP_DOMAIN                             = 0x00001018,
+    MS_ATTRIBUTE_CHAP_ERROR                              = 0x00001019,
+    MS_ATTRIBUTE_CHAP_CPW1                               = 0x0000101a,
+    MS_ATTRIBUTE_CHAP_CPW2                               = 0x0000101b,
+    MS_ATTRIBUTE_CHAP_LM_ENC_PW                          = 0x0000101c,
+    MS_ATTRIBUTE_CHAP_NT_ENC_PW                          = 0x0000101d,
+    MS_ATTRIBUTE_CHAP_MPPE_KEYS                          = 0x0000101e,
+    IAS_ATTRIBUTE_AUTHENTICATION_TYPE                    = 0x0000101f,
+    IAS_ATTRIBUTE_CLIENT_NAME                            = 0x00001020,
+    IAS_ATTRIBUTE_NT4_ACCOUNT_NAME                       = 0x00001021,
+    IAS_ATTRIBUTE_FULLY_QUALIFIED_USER_NAME              = 0x00001022,
+    IAS_ATTRIBUTE_NTGROUPS                               = 0x00001023,
+    IAS_ATTRIBUTE_EAP_FRIENDLY_NAME                      = 0x00001024,
+    IAS_ATTRIBUTE_AUTH_PROVIDER_TYPE                     = 0x00001025,
+    MS_ATTRIBUTE_ACCT_AUTH_TYPE                          = 0x00001026,
+    MS_ATTRIBUTE_ACCT_EAP_TYPE                           = 0x00001027,
+    IAS_ATTRIBUTE_PACKET_TYPE                            = 0x00001028,
+    IAS_ATTRIBUTE_AUTH_PROVIDER_NAME                     = 0x00001029,
+    IAS_ATTRIBUTE_ACCT_PROVIDER_TYPE                     = 0x0000102a,
+    IAS_ATTRIBUTE_ACCT_PROVIDER_NAME                     = 0x0000102b,
+    MS_ATTRIBUTE_MPPE_SEND_KEY                           = 0x0000102c,
+    MS_ATTRIBUTE_MPPE_RECV_KEY                           = 0x0000102d,
+    IAS_ATTRIBUTE_REASON_CODE                            = 0x0000102e,
+    MS_ATTRIBUTE_FILTER                                  = 0x0000102f,
+    MS_ATTRIBUTE_CHAP2_RESPONSE                          = 0x00001030,
+    MS_ATTRIBUTE_CHAP2_SUCCESS                           = 0x00001031,
+    MS_ATTRIBUTE_CHAP2_CPW                               = 0x00001032,
+    MS_ATTRIBUTE_RAS_VENDOR                              = 0x00001033,
+    MS_ATTRIBUTE_RAS_VERSION                             = 0x00001034,
+    IAS_ATTRIBUTE_NP_NAME                                = 0x00001035,
+    MS_ATTRIBUTE_PRIMARY_DNS_SERVER                      = 0x00001036,
+    MS_ATTRIBUTE_SECONDARY_DNS_SERVER                    = 0x00001037,
+    MS_ATTRIBUTE_PRIMARY_NBNS_SERVER                     = 0x00001038,
+    MS_ATTRIBUTE_SECONDARY_NBNS_SERVER                   = 0x00001039,
+    IAS_ATTRIBUTE_PROXY_POLICY_NAME                      = 0x0000103a,
+    IAS_ATTRIBUTE_PROVIDER_TYPE                          = 0x0000103b,
+    IAS_ATTRIBUTE_PROVIDER_NAME                          = 0x0000103c,
+    IAS_ATTRIBUTE_REMOTE_SERVER_ADDRESS                  = 0x0000103d,
+    IAS_ATTRIBUTE_GENERATE_CLASS_ATTRIBUTE               = 0x0000103e,
+    MS_ATTRIBUTE_RAS_CLIENT_NAME                         = 0x0000103f,
+    MS_ATTRIBUTE_RAS_CLIENT_VERSION                      = 0x00001040,
+    IAS_ATTRIBUTE_ALLOWED_CERTIFICATE_EKU                = 0x00001041,
+    IAS_ATTRIBUTE_EXTENSION_STATE                        = 0x00001042,
+    IAS_ATTRIBUTE_GENERATE_SESSION_TIMEOUT               = 0x00001043,
+    IAS_ATTRIBUTE_SESSION_TIMEOUT                        = 0x00001044,
+    MS_ATTRIBUTE_QUARANTINE_IPFILTER                     = 0x00001045,
+    MS_ATTRIBUTE_QUARANTINE_SESSION_TIMEOUT              = 0x00001046,
+    MS_ATTRIBUTE_USER_SECURITY_IDENTITY                  = 0x00001047,
+    IAS_ATTRIBUTE_REMOTE_RADIUS_TO_WINDOWS_USER_MAPPING  = 0x00001048,
+    IAS_ATTRIBUTE_PASSPORT_USER_MAPPING_UPN_SUFFIX       = 0x00001049,
+    IAS_ATTRIBUTE_TUNNEL_TAG                             = 0x0000104a,
+    IAS_ATTRIBUTE_NP_PEAPUPFRONT_ENABLED                 = 0x0000104b,
+    IAS_ATTRIBUTE_CERTIFICATE_EKU                        = 0x00001fa1,
+    IAS_ATTRIBUTE_EAP_CONFIG                             = 0x00001fa2,
+    IAS_ATTRIBUTE_PEAP_EMBEDDED_EAP_TYPEID               = 0x00001fa3,
+    IAS_ATTRIBUTE_PEAP_FAST_ROAMED_SESSION               = 0x00001fa4,
+    IAS_ATTRIBUTE_EAP_TYPEID                             = 0x00001fa5,
+    MS_ATTRIBUTE_EAP_TLV                                 = 0x00001fa6,
+    IAS_ATTRIBUTE_REJECT_REASON_CODE                     = 0x00001fa7,
+    IAS_ATTRIBUTE_PROXY_EAP_CONFIG                       = 0x00001fa8,
+    IAS_ATTRIBUTE_EAP_SESSION                            = 0x00001fa9,
+    IAS_ATTRIBUTE_IS_REPLAY                              = 0x00001faa,
+    IAS_ATTRIBUTE_CLEAR_TEXT_PASSWORD                    = 0x00001fab,
+    MS_ATTRIBUTE_IDENTITY_TYPE                           = 0x00001fac,
+    MS_ATTRIBUTE_SERVICE_CLASS                           = 0x00001fad,
+    MS_ATTRIBUTE_QUARANTINE_USER_CLASS                   = 0x00001fae,
+    MS_ATTRIBUTE_QUARANTINE_STATE                        = 0x00001faf,
+    IAS_ATTRIBUTE_OVERRIDE_RAP_AUTH                      = 0x00001fb0,
+    IAS_ATTRIBUTE_PEAP_CHANNEL_UP                        = 0x00001fb1,
+    IAS_ATTRIBUTE_NAME_MAPPED                            = 0x00001fb2,
+    IAS_ATTRIBUTE_POLICY_ENFORCED                        = 0x00001fb3,
+    IAS_ATTRIBUTE_MACHINE_NTGROUPS                       = 0x00001fb4,
+    IAS_ATTRIBUTE_USER_NTGROUPS                          = 0x00001fb5,
+    IAS_ATTRIBUTE_MACHINE_TOKEN_GROUPS                   = 0x00001fb6,
+    IAS_ATTRIBUTE_USER_TOKEN_GROUPS                      = 0x00001fb7,
+    MS_ATTRIBUTE_QUARANTINE_GRACE_TIME                   = 0x00001fb8,
+    IAS_ATTRIBUTE_QUARANTINE_URL                         = 0x00001fb9,
+    IAS_ATTRIBUTE_QUARANTINE_FIXUP_SERVERS               = 0x00001fba,
+    MS_ATTRIBUTE_NOT_QUARANTINE_CAPABLE                  = 0x00001fbb,
+    IAS_ATTRIBUTE_QUARANTINE_SYSTEM_HEALTH_RESULT        = 0x00001fbc,
+    IAS_ATTRIBUTE_QUARANTINE_SYSTEM_HEALTH_VALIDATORS    = 0x00001fbd,
+    IAS_ATTRIBUTE_MACHINE_NAME                           = 0x00001fbe,
+    IAS_ATTRIBUTE_NT4_MACHINE_NAME                       = 0x00001fbf,
+    IAS_ATTRIBUTE_QUARANTINE_SESSION_HANDLE              = 0x00001fc0,
+    IAS_ATTRIBUTE_FULLY_QUALIFIED_MACHINE_NAME           = 0x00001fc1,
+    IAS_ATTRIBUTE_QUARANTINE_FIXUP_SERVERS_CONFIGURATION = 0x00001fc2,
+    IAS_ATTRIBUTE_CLIENT_QUARANTINE_COMPATIBLE           = 0x00001fc3,
+    MS_ATTRIBUTE_NETWORK_ACCESS_SERVER_TYPE              = 0x00001fc4,
+    IAS_ATTRIBUTE_QUARANTINE_SESSION_ID                  = 0x00001fc5,
+    MS_ATTRIBUTE_AFW_QUARANTINE_ZONE                     = 0x00001fc6,
+    MS_ATTRIBUTE_AFW_PROTECTION_LEVEL                    = 0x00001fc7,
+    IAS_ATTRIBUTE_QUARANTINE_UPDATE_NON_COMPLIANT        = 0x00001fc8,
+    IAS_ATTRIBUTE_REQUEST_START_TIME                     = 0x00001fc9,
+    MS_ATTRIBUTE_MACHINE_NAME                            = 0x00001fca,
+    IAS_ATTRIBUTE_CLIENT_IPv6_ADDRESS                    = 0x00001fcb,
+    IAS_ATTRIBUTE_SAVED_RADIUS_FRAMED_INTERFACE_ID       = 0x00001fcc,
+    IAS_ATTRIBUTE_SAVED_RADIUS_FRAMED_IPv6_PREFIX        = 0x00001fcd,
+    IAS_ATTRIBUTE_SAVED_RADIUS_FRAMED_IPv6_ROUTE         = 0x00001fce,
+    MS_ATTRIBUTE_QUARANTINE_GRACE_TIME_CONFIGURATION     = 0x00001fcf,
+    MS_ATTRIBUTE_IPv6_FILTER                             = 0x00001fd0,
+    MS_ATTRIBUTE_IPV4_REMEDIATION_SERVERS                = 0x00001fd1,
+    MS_ATTRIBUTE_IPV6_REMEDIATION_SERVERS                = 0x00001fd2,
+    IAS_ATTRIBUTE_PROXY_RETRY_COUNT                      = 0x00001fd3,
+    IAS_ATTRIBUTE_MACHINE_INVENTORY                      = 0x00001fd4,
+    IAS_ATTRIBUTE_ABSOLUTE_TIME                          = 0x00001fd5,
+    MS_ATTRIBUTE_QUARANTINE_SOH                          = 0x00001fd6,
+    IAS_ATTRIBUTE_EAP_TYPES_CONFIGURED_IN_PROXYPOLICY    = 0x00001fd7,
+    MS_ATTRIBUTE_HCAP_LOCATION_GROUP_NAME                = 0x00001fd8,
+    MS_ATTRIBUTE_EXTENDED_QUARANTINE_STATE               = 0x00001fd9,
+    IAS_ATTRIBUTE_SOH_CARRIER_EAPTLV                     = 0x00001fda,
+    MS_ATTRIBUTE_HCAP_USER_GROUPS                        = 0x00001fdb,
+    IAS_ATTRIBUTE_SAVED_MACHINE_HEALTHCHECK_ONLY         = 0x00001fdc,
+    IAS_ATTRIBUTE_POLICY_EVALUATED_SHV                   = 0x00001fdd,
+    MS_ATTRIBUTE_RAS_CORRELATION_ID                      = 0x00001fde,
+    MS_ATTRIBUTE_HCAP_USER_NAME                          = 0x00001fdf,
+    IAS_ATTRIBUTE_NT4_HCAP_ACCOUNT_NAME                  = 0x00001fe0,
+    IAS_ATTRIBUTE_USER_TOKEN_SID                         = 0x00001fe1,
+    IAS_ATTRIBUTE_MACHINE_TOKEN_SID                      = 0x00001fe2,
+    IAS_ATTRIBUTE_MACHINE_VALIDATED                      = 0x00001fe3,
+    MS_ATTRIBUTE_USER_IPv4_ADDRESS                       = 0x00001fe4,
+    MS_ATTRIBUTE_USER_IPv6_ADDRESS                       = 0x00001fe5,
+    MS_ATTRIBUTE_TSG_DEVICE_REDIRECTION                  = 0x00001fe6,
+    IAS_ATTRIBUTE_ACCEPT_REASON_CODE                     = 0x00001fe7,
+    IAS_ATTRIBUTE_LOGGING_RESULT                         = 0x00001fe8,
+    IAS_ATTRIBUTE_SERVER_IP_ADDRESS                      = 0x00001fe9,
+    IAS_ATTRIBUTE_SERVER_IPv6_ADDRESS                    = 0x00001fea,
+    IAS_ATTRIBUTE_RADIUS_USERNAME_ENCODING_ASCII         = 0x00001feb,
+    MS_ATTRIBUTE_RAS_ROUTING_DOMAIN_ID                   = 0x00001fec,
+    IAS_ATTRIBUTE_CERTIFICATE_THUMBPRINT                 = 0x0000203a,
+    RAS_ATTRIBUTE_ENCRYPTION_TYPE                        = 0xffffffa6,
+    RAS_ATTRIBUTE_ENCRYPTION_POLICY                      = 0xffffffa7,
+    RAS_ATTRIBUTE_BAP_REQUIRED                           = 0xffffffa8,
+    RAS_ATTRIBUTE_BAP_LINE_DOWN_TIME                     = 0xffffffa9,
+    RAS_ATTRIBUTE_BAP_LINE_DOWN_LIMIT                    = 0xffffffaa,
+}
+alias ATTRIBUTEID = uint;
+
+enum : int
+{
+    IAS_LOGGING_UNLIMITED_SIZE         = 0x00000000,
+    IAS_LOGGING_DAILY                  = 0x00000001,
+    IAS_LOGGING_WEEKLY                 = 0x00000002,
+    IAS_LOGGING_MONTHLY                = 0x00000003,
+    IAS_LOGGING_WHEN_FILE_SIZE_REACHES = 0x00000004,
+}
+alias NEW_LOG_FILE_FREQUENCY = int;
+
+enum : int
+{
+    IAS_AUTH_INVALID     = 0x00000000,
+    IAS_AUTH_PAP         = 0x00000001,
+    IAS_AUTH_MD5CHAP     = 0x00000002,
+    IAS_AUTH_MSCHAP      = 0x00000003,
+    IAS_AUTH_MSCHAP2     = 0x00000004,
+    IAS_AUTH_EAP         = 0x00000005,
+    IAS_AUTH_ARAP        = 0x00000006,
+    IAS_AUTH_NONE        = 0x00000007,
+    IAS_AUTH_CUSTOM      = 0x00000008,
+    IAS_AUTH_MSCHAP_CPW  = 0x00000009,
+    IAS_AUTH_MSCHAP2_CPW = 0x0000000a,
+    IAS_AUTH_PEAP        = 0x0000000b,
+}
+alias AUTHENTICATION_TYPE = int;
+
+enum : int
+{
+    IAS_IDENTITY_NO_DEFAULT = 0x00000001,
+}
+alias IDENTITY_TYPE = int;
+
+enum : int
+{
+    IAS_SYNTAX_BOOLEAN          = 0x00000001,
+    IAS_SYNTAX_INTEGER          = 0x00000002,
+    IAS_SYNTAX_ENUMERATOR       = 0x00000003,
+    IAS_SYNTAX_INETADDR         = 0x00000004,
+    IAS_SYNTAX_STRING           = 0x00000005,
+    IAS_SYNTAX_OCTETSTRING      = 0x00000006,
+    IAS_SYNTAX_UTCTIME          = 0x00000007,
+    IAS_SYNTAX_PROVIDERSPECIFIC = 0x00000008,
+    IAS_SYNTAX_UNSIGNEDINTEGER  = 0x00000009,
+    IAS_SYNTAX_INETADDR6        = 0x0000000a,
+}
+alias ATTRIBUTESYNTAX = int;
+
+enum : int
+{
+    MULTIVALUED             = 0x00000001,
+    ALLOWEDINPROFILE        = 0x00000002,
+    ALLOWEDINCONDITION      = 0x00000004,
+    ALLOWEDINPROXYPROFILE   = 0x00000008,
+    ALLOWEDINPROXYCONDITION = 0x00000010,
+    ALLOWEDINVPNDIALUP      = 0x00000020,
+    ALLOWEDIN8021X          = 0x00000040,
+}
+alias ATTRIBUTERESTRICTIONS = int;
+
+enum : int
+{
+    ATTRIBUTE_FILTER_NONE        = 0x00000000,
+    ATTRIBUTE_FILTER_VPN_DIALUP  = 0x00000001,
+    ATTRIBUTE_FILTER_IEEE_802_1x = 0x00000002,
+}
+alias ATTRIBUTEFILTER = int;
+
+enum : int
+{
+    NAME         = 0x00000001,
+    SYNTAX       = 0x00000002,
+    RESTRICTIONS = 0x00000003,
+    DESCRIPTION  = 0x00000004,
+    VENDORID     = 0x00000005,
+    LDAPNAME     = 0x00000006,
+    VENDORTYPE   = 0x00000007,
+}
+alias ATTRIBUTEINFO = int;
+
+enum : int
+{
+    PROPERTY_SDO_RESERVED       = 0x00000000,
+    PROPERTY_SDO_CLASS          = 0x00000001,
+    PROPERTY_SDO_NAME           = 0x00000002,
+    PROPERTY_SDO_DESCRIPTION    = 0x00000003,
+    PROPERTY_SDO_ID             = 0x00000004,
+    PROPERTY_SDO_DATASTORE_NAME = 0x00000005,
+    PROPERTY_SDO_TEMPLATE_GUID  = 0x00000006,
+    PROPERTY_SDO_OPAQUE         = 0x00000007,
+    PROPERTY_SDO_START          = 0x00000400,
+}
+alias IASCOMMONPROPERTIES = int;
+
+enum : int
+{
+    PROPERTY_USER_CALLING_STATION_ID               = 0x00000400,
+    PROPERTY_USER_SAVED_CALLING_STATION_ID         = 0x00000401,
+    PROPERTY_USER_RADIUS_CALLBACK_NUMBER           = 0x00000402,
+    PROPERTY_USER_RADIUS_FRAMED_ROUTE              = 0x00000403,
+    PROPERTY_USER_RADIUS_FRAMED_IP_ADDRESS         = 0x00000404,
+    PROPERTY_USER_SAVED_RADIUS_CALLBACK_NUMBER     = 0x00000405,
+    PROPERTY_USER_SAVED_RADIUS_FRAMED_ROUTE        = 0x00000406,
+    PROPERTY_USER_SAVED_RADIUS_FRAMED_IP_ADDRESS   = 0x00000407,
+    PROPERTY_USER_ALLOW_DIALIN                     = 0x00000408,
+    PROPERTY_USER_SERVICE_TYPE                     = 0x00000409,
+    PROPERTY_USER_RADIUS_FRAMED_IPV6_ROUTE         = 0x0000040a,
+    PROPERTY_USER_SAVED_RADIUS_FRAMED_IPV6_ROUTE   = 0x0000040b,
+    PROPERTY_USER_RADIUS_FRAMED_INTERFACE_ID       = 0x0000040c,
+    PROPERTY_USER_SAVED_RADIUS_FRAMED_INTERFACE_ID = 0x0000040d,
+    PROPERTY_USER_RADIUS_FRAMED_IPV6_PREFIX        = 0x0000040e,
+    PROPERTY_USER_SAVED_RADIUS_FRAMED_IPV6_PREFIX  = 0x0000040f,
+}
+alias USERPROPERTIES = int;
+
+enum : int
+{
+    PROPERTY_DICTIONARY_ATTRIBUTES_COLLECTION = 0x00000400,
+    PROPERTY_DICTIONARY_LOCATION              = 0x00000401,
+}
+alias DICTIONARYPROPERTIES = int;
+
+enum : int
+{
+    PROPERTY_ATTRIBUTE_ID                       = 0x00000400,
+    PROPERTY_ATTRIBUTE_VENDOR_ID                = 0x00000401,
+    PROPERTY_ATTRIBUTE_VENDOR_TYPE_ID           = 0x00000402,
+    PROPERTY_ATTRIBUTE_IS_ENUMERABLE            = 0x00000403,
+    PROPERTY_ATTRIBUTE_ENUM_NAMES               = 0x00000404,
+    PROPERTY_ATTRIBUTE_ENUM_VALUES              = 0x00000405,
+    PROPERTY_ATTRIBUTE_SYNTAX                   = 0x00000406,
+    PROPERTY_ATTRIBUTE_ALLOW_MULTIPLE           = 0x00000407,
+    PROPERTY_ATTRIBUTE_ALLOW_LOG_ORDINAL        = 0x00000408,
+    PROPERTY_ATTRIBUTE_ALLOW_IN_PROFILE         = 0x00000409,
+    PROPERTY_ATTRIBUTE_ALLOW_IN_CONDITION       = 0x0000040a,
+    PROPERTY_ATTRIBUTE_DISPLAY_NAME             = 0x0000040b,
+    PROPERTY_ATTRIBUTE_VALUE                    = 0x0000040c,
+    PROPERTY_ATTRIBUTE_ALLOW_IN_PROXY_PROFILE   = 0x0000040d,
+    PROPERTY_ATTRIBUTE_ALLOW_IN_PROXY_CONDITION = 0x0000040e,
+    PROPERTY_ATTRIBUTE_ALLOW_IN_VPNDIALUP       = 0x0000040f,
+    PROPERTY_ATTRIBUTE_ALLOW_IN_8021X           = 0x00000410,
+    PROPERTY_ATTRIBUTE_ENUM_FILTERS             = 0x00000411,
+}
+alias ATTRIBUTEPROPERTIES = int;
+
+enum : int
+{
+    PROPERTY_IAS_RADIUSSERVERGROUPS_COLLECTION      = 0x00000400,
+    PROPERTY_IAS_POLICIES_COLLECTION                = 0x00000401,
+    PROPERTY_IAS_PROFILES_COLLECTION                = 0x00000402,
+    PROPERTY_IAS_PROTOCOLS_COLLECTION               = 0x00000403,
+    PROPERTY_IAS_AUDITORS_COLLECTION                = 0x00000404,
+    PROPERTY_IAS_REQUESTHANDLERS_COLLECTION         = 0x00000405,
+    PROPERTY_IAS_PROXYPOLICIES_COLLECTION           = 0x00000406,
+    PROPERTY_IAS_PROXYPROFILES_COLLECTION           = 0x00000407,
+    PROPERTY_IAS_REMEDIATIONSERVERGROUPS_COLLECTION = 0x00000408,
+    PROPERTY_IAS_SHVTEMPLATES_COLLECTION            = 0x00000409,
+}
+alias IASPROPERTIES = int;
+
+enum : int
+{
+    PROPERTY_TEMPLATES_POLICIES_TEMPLATES                = 0x00000400,
+    PROPERTY_TEMPLATES_PROFILES_TEMPLATES                = 0x00000401,
+    PROPERTY_TEMPLATES_PROFILES_COLLECTION               = 0x00000402,
+    PROPERTY_TEMPLATES_PROXYPOLICIES_TEMPLATES           = 0x00000403,
+    PROPERTY_TEMPLATES_PROXYPROFILES_TEMPLATES           = 0x00000404,
+    PROPERTY_TEMPLATES_PROXYPROFILES_COLLECTION          = 0x00000405,
+    PROPERTY_TEMPLATES_REMEDIATIONSERVERGROUPS_TEMPLATES = 0x00000406,
+    PROPERTY_TEMPLATES_SHVTEMPLATES_TEMPLATES            = 0x00000407,
+    PROPERTY_TEMPLATES_CLIENTS_TEMPLATES                 = 0x00000408,
+    PROPERTY_TEMPLATES_RADIUSSERVERS_TEMPLATES           = 0x00000409,
+    PROPERTY_TEMPLATES_SHAREDSECRETS_TEMPLATES           = 0x0000040a,
+    PROPERTY_TEMPLATES_IPFILTERS_TEMPLATES               = 0x0000040b,
+}
+alias TEMPLATESPROPERTIES = int;
+
+enum : int
+{
+    PROPERTY_CLIENT_REQUIRE_SIGNATURE     = 0x00000400,
+    PROPERTY_CLIENT_UNUSED                = 0x00000401,
+    PROPERTY_CLIENT_SHARED_SECRET         = 0x00000402,
+    PROPERTY_CLIENT_NAS_MANUFACTURER      = 0x00000403,
+    PROPERTY_CLIENT_ADDRESS               = 0x00000404,
+    PROPERTY_CLIENT_QUARANTINE_COMPATIBLE = 0x00000405,
+    PROPERTY_CLIENT_ENABLED               = 0x00000406,
+    PROPERTY_CLIENT_SECRET_TEMPLATE_GUID  = 0x00000407,
+}
+alias CLIENTPROPERTIES = int;
+
+enum : int
+{
+    PROPERTY_NAS_VENDOR_ID = 0x00000400,
+}
+alias VENDORPROPERTIES = int;
+
+enum : int
+{
+    PROPERTY_PROFILE_ATTRIBUTES_COLLECTION  = 0x00000400,
+    PROPERTY_PROFILE_IPFILTER_TEMPLATE_GUID = 0x00000401,
+}
+alias PROFILEPROPERTIES = int;
+
+enum : int
+{
+    PROPERTY_POLICY_CONSTRAINT            = 0x00000400,
+    PROPERTY_POLICY_MERIT                 = 0x00000401,
+    PROPERTY_POLICY_UNUSED0               = 0x00000402,
+    PROPERTY_POLICY_UNUSED1               = 0x00000403,
+    PROPERTY_POLICY_PROFILE_NAME          = 0x00000404,
+    PROPERTY_POLICY_ACTION                = 0x00000405,
+    PROPERTY_POLICY_CONDITIONS_COLLECTION = 0x00000406,
+    PROPERTY_POLICY_ENABLED               = 0x00000407,
+    PROPERTY_POLICY_SOURCETAG             = 0x00000408,
+}
+alias POLICYPROPERTIES = int;
+
+enum : int
+{
+    PROPERTY_CONDITION_TEXT = 0x00000400,
+}
+alias CONDITIONPROPERTIES = int;
+
+enum : int
+{
+    PROPERTY_RADIUSSERVERGROUP_SERVERS_COLLECTION = 0x00000400,
+}
+alias RADIUSSERVERGROUPPROPERTIES = int;
+
+enum : int
+{
+    PROPERTY_RADIUSSERVER_AUTH_PORT                 = 0x00000400,
+    PROPERTY_RADIUSSERVER_AUTH_SECRET               = 0x00000401,
+    PROPERTY_RADIUSSERVER_ACCT_PORT                 = 0x00000402,
+    PROPERTY_RADIUSSERVER_ACCT_SECRET               = 0x00000403,
+    PROPERTY_RADIUSSERVER_ADDRESS                   = 0x00000404,
+    PROPERTY_RADIUSSERVER_FORWARD_ACCT_ONOFF        = 0x00000405,
+    PROPERTY_RADIUSSERVER_PRIORITY                  = 0x00000406,
+    PROPERTY_RADIUSSERVER_WEIGHT                    = 0x00000407,
+    PROPERTY_RADIUSSERVER_TIMEOUT                   = 0x00000408,
+    PROPERTY_RADIUSSERVER_MAX_LOST                  = 0x00000409,
+    PROPERTY_RADIUSSERVER_BLACKOUT                  = 0x0000040a,
+    PROPERTY_RADIUSSERVER_SEND_SIGNATURE            = 0x0000040b,
+    PROPERTY_RADIUSSERVER_AUTH_SECRET_TEMPLATE_GUID = 0x0000040c,
+    PROPERTY_RADIUSSERVER_ACCT_SECRET_TEMPLATE_GUID = 0x0000040d,
+}
+alias RADIUSSERVERPROPERTIES = int;
+
+enum : int
+{
+    PROPERTY_REMEDIATIONSERVERGROUP_SERVERS_COLLECTION = 0x00000400,
+}
+alias REMEDIATIONSERVERGROUPPROPERTIES = int;
+
+enum : int
+{
+    PROPERTY_REMEDIATIONSERVER_ADDRESS       = 0x00000400,
+    PROPERTY_REMEDIATIONSERVER_FRIENDLY_NAME = 0x00000401,
+}
+alias REMEDIATIONSERVERPROPERTIES = int;
+
+enum : int
+{
+    PROPERTY_SHV_COMBINATION_TYPE = 0x00000400,
+    PROPERTY_SHV_LIST             = 0x00000401,
+    PROPERTY_SHVCONFIG_LIST       = 0x00000402,
+}
+alias SHVTEMPLATEPROPERTIES = int;
+
+enum : int
+{
+    PROPERTY_IPFILTER_ATTRIBUTES_COLLECTION = 0x00000400,
+}
+alias IPFILTERPROPERTIES = int;
+
+enum : int
+{
+    PROPERTY_SHAREDSECRET_STRING = 0x00000400,
+}
+alias SHAREDSECRETPROPERTIES = int;
+
+enum : int
+{
+    PROPERTY_COMPONENT_ID      = 0x00000400,
+    PROPERTY_COMPONENT_PROG_ID = 0x00000401,
+    PROPERTY_COMPONENT_START   = 0x00000402,
+}
+alias IASCOMPONENTPROPERTIES = int;
+
+enum : int
+{
+    PROPERTY_PROTOCOL_REQUEST_HANDLER = 0x00000402,
+    PROPERTY_PROTOCOL_START           = 0x00000403,
+}
+alias PROTOCOLPROPERTIES = int;
+
+enum : int
+{
+    PROPERTY_RADIUS_ACCOUNTING_PORT     = 0x00000403,
+    PROPERTY_RADIUS_AUTHENTICATION_PORT = 0x00000404,
+    PROPERTY_RADIUS_CLIENTS_COLLECTION  = 0x00000405,
+    PROPERTY_RADIUS_VENDORS_COLLECTION  = 0x00000406,
+}
+alias RADIUSPROPERTIES = int;
+
+enum : int
+{
+    PROPERTY_EVENTLOG_LOG_APPLICATION_EVENTS = 0x00000402,
+    PROPERTY_EVENTLOG_LOG_MALFORMED          = 0x00000403,
+    PROPERTY_EVENTLOG_LOG_DEBUG              = 0x00000404,
+}
+alias NTEVENTLOGPROPERTIES = int;
+
+enum : int
+{
+    PROPERTY_NAMES_REALMS = 0x00000402,
+}
+alias NAMESPROPERTIES = int;
+
+enum : int
+{
+    PROPERTY_NTSAM_ALLOW_LM_AUTHENTICATION = 0x00000402,
+}
+alias NTSAMPROPERTIES = int;
+
+enum : int
+{
+    PROPERTY_ACCOUNTING_LOG_ACCOUNTING             = 0x00000402,
+    PROPERTY_ACCOUNTING_LOG_ACCOUNTING_INTERIM     = 0x00000403,
+    PROPERTY_ACCOUNTING_LOG_AUTHENTICATION         = 0x00000404,
+    PROPERTY_ACCOUNTING_LOG_OPEN_NEW_FREQUENCY     = 0x00000405,
+    PROPERTY_ACCOUNTING_LOG_OPEN_NEW_SIZE          = 0x00000406,
+    PROPERTY_ACCOUNTING_LOG_FILE_DIRECTORY         = 0x00000407,
+    PROPERTY_ACCOUNTING_LOG_IAS1_FORMAT            = 0x00000408,
+    PROPERTY_ACCOUNTING_LOG_ENABLE_LOGGING         = 0x00000409,
+    PROPERTY_ACCOUNTING_LOG_DELETE_IF_FULL         = 0x0000040a,
+    PROPERTY_ACCOUNTING_SQL_MAX_SESSIONS           = 0x0000040b,
+    PROPERTY_ACCOUNTING_LOG_AUTHENTICATION_INTERIM = 0x0000040c,
+    PROPERTY_ACCOUNTING_LOG_FILE_IS_BACKUP         = 0x0000040d,
+    PROPERTY_ACCOUNTING_DISCARD_REQUEST_ON_FAILURE = 0x0000040e,
+}
+alias ACCOUNTINGPROPERTIES = int;
+
+enum : int
+{
+    PROPERTY_NAP_POLICIES_COLLECTION  = 0x00000402,
+    PROPERTY_SHV_TEMPLATES_COLLECTION = 0x00000403,
+}
+alias NAPPROPERTIES = int;
+
+enum : int
+{
+    PROPERTY_RADIUSPROXY_SERVERGROUPS = 0x00000402,
+}
+alias RADIUSPROXYPROPERTIES = int;
+
+enum : int
+{
+    PROPERTY_REMEDIATIONSERVERS_SERVERGROUPS = 0x00000402,
+}
+alias REMEDIATIONSERVERSPROPERTIES = int;
+
+enum : int
+{
+    SHV_COMBINATION_TYPE_ALL_PASS                 = 0x00000000,
+    SHV_COMBINATION_TYPE_ALL_FAIL                 = 0x00000001,
+    SHV_COMBINATION_TYPE_ONE_OR_MORE_PASS         = 0x00000002,
+    SHV_COMBINATION_TYPE_ONE_OR_MORE_FAIL         = 0x00000003,
+    SHV_COMBINATION_TYPE_ONE_OR_MORE_INFECTED     = 0x00000004,
+    SHV_COMBINATION_TYPE_ONE_OR_MORE_TRANSITIONAL = 0x00000005,
+    SHV_COMBINATION_TYPE_ONE_OR_MORE_UNKNOWN      = 0x00000006,
+    SHV_COMBINATION_TYPE_MAX                      = 0x00000007,
+}
+alias SHV_COMBINATION_TYPE = int;
+
+enum : int
+{
+    SERVICE_TYPE_IAS       = 0x00000000,
+    SERVICE_TYPE_RAS       = 0x00000001,
+    SERVICE_TYPE_RAMGMTSVC = 0x00000002,
+    SERVICE_TYPE_MAX       = 0x00000003,
+}
+alias SERVICE_TYPE = int;
+
+enum : int
+{
+    SYSTEM_TYPE_NT4_WORKSTATION    = 0x00000000,
+    SYSTEM_TYPE_NT5_WORKSTATION    = 0x00000001,
+    SYSTEM_TYPE_NT6_WORKSTATION    = 0x00000002,
+    SYSTEM_TYPE_NT6_1_WORKSTATION  = 0x00000003,
+    SYSTEM_TYPE_NT6_2_WORKSTATION  = 0x00000004,
+    SYSTEM_TYPE_NT6_3_WORKSTATION  = 0x00000005,
+    SYSTEM_TYPE_NT10_0_WORKSTATION = 0x00000006,
+    SYSTEM_TYPE_NT4_SERVER         = 0x00000007,
+    SYSTEM_TYPE_NT5_SERVER         = 0x00000008,
+    SYSTEM_TYPE_NT6_SERVER         = 0x00000009,
+    SYSTEM_TYPE_NT6_1_SERVER       = 0x0000000a,
+    SYSTEM_TYPE_NT6_2_SERVER       = 0x0000000b,
+    SYSTEM_TYPE_NT6_3_SERVER       = 0x0000000c,
+    SYSTEM_TYPE_NT10_0_SERVER      = 0x0000000d,
+}
+alias IASOSTYPE = int;
+
+enum : int
+{
+    DOMAIN_TYPE_NONE  = 0x00000000,
+    DOMAIN_TYPE_NT4   = 0x00000001,
+    DOMAIN_TYPE_NT5   = 0x00000002,
+    DOMAIN_TYPE_MIXED = 0x00000003,
+}
+alias IASDOMAINTYPE = int;
+
+enum : int
+{
+    DATA_STORE_LOCAL     = 0x00000000,
+    DATA_STORE_DIRECTORY = 0x00000001,
+}
+alias IASDATASTORE = int;
+
+enum : int
+{
+    ratMinimum                = 0x00000000,
+    ratUserName               = 0x00000001,
+    ratUserPassword           = 0x00000002,
+    ratCHAPPassword           = 0x00000003,
+    ratNASIPAddress           = 0x00000004,
+    ratNASPort                = 0x00000005,
+    ratServiceType            = 0x00000006,
+    ratFramedProtocol         = 0x00000007,
+    ratFramedIPAddress        = 0x00000008,
+    ratFramedIPNetmask        = 0x00000009,
+    ratFramedRouting          = 0x0000000a,
+    ratFilterId               = 0x0000000b,
+    ratFramedMTU              = 0x0000000c,
+    ratFramedCompression      = 0x0000000d,
+    ratLoginIPHost            = 0x0000000e,
+    ratLoginService           = 0x0000000f,
+    ratLoginPort              = 0x00000010,
+    ratReplyMessage           = 0x00000012,
+    ratCallbackNumber         = 0x00000013,
+    ratCallbackId             = 0x00000014,
+    ratFramedRoute            = 0x00000016,
+    ratFramedIPXNetwork       = 0x00000017,
+    ratState                  = 0x00000018,
+    ratClass                  = 0x00000019,
+    ratVendorSpecific         = 0x0000001a,
+    ratSessionTimeout         = 0x0000001b,
+    ratIdleTimeout            = 0x0000001c,
+    ratTerminationAction      = 0x0000001d,
+    ratCalledStationId        = 0x0000001e,
+    ratCallingStationId       = 0x0000001f,
+    ratNASIdentifier          = 0x00000020,
+    ratProxyState             = 0x00000021,
+    ratLoginLATService        = 0x00000022,
+    ratLoginLATNode           = 0x00000023,
+    ratLoginLATGroup          = 0x00000024,
+    ratFramedAppleTalkLink    = 0x00000025,
+    ratFramedAppleTalkNetwork = 0x00000026,
+    ratFramedAppleTalkZone    = 0x00000027,
+    ratAcctStatusType         = 0x00000028,
+    ratAcctDelayTime          = 0x00000029,
+    ratAcctInputOctets        = 0x0000002a,
+    ratAcctOutputOctets       = 0x0000002b,
+    ratAcctSessionId          = 0x0000002c,
+    ratAcctAuthentic          = 0x0000002d,
+    ratAcctSessionTime        = 0x0000002e,
+    ratAcctInputPackets       = 0x0000002f,
+    ratAcctOutputPackets      = 0x00000030,
+    ratAcctTerminationCause   = 0x00000031,
+    ratCHAPChallenge          = 0x0000003c,
+    ratNASPortType            = 0x0000003d,
+    ratPortLimit              = 0x0000003e,
+    ratTunnelType             = 0x00000040,
+    ratMediumType             = 0x00000041,
+    ratTunnelPassword         = 0x00000045,
+    ratTunnelPrivateGroupID   = 0x00000051,
+    ratNASIPv6Address         = 0x0000005f,
+    ratFramedInterfaceId      = 0x00000060,
+    ratFramedIPv6Prefix       = 0x00000061,
+    ratLoginIPv6Host          = 0x00000062,
+    ratFramedIPv6Route        = 0x00000063,
+    ratFramedIPv6Pool         = 0x00000064,
+    ratCode                   = 0x00000106,
+    ratIdentifier             = 0x00000107,
+    ratAuthenticator          = 0x00000108,
+    ratSrcIPAddress           = 0x00000109,
+    ratSrcPort                = 0x0000010a,
+    ratProvider               = 0x0000010b,
+    ratStrippedUserName       = 0x0000010c,
+    ratFQUserName             = 0x0000010d,
+    ratPolicyName             = 0x0000010e,
+    ratUniqueId               = 0x0000010f,
+    ratExtensionState         = 0x00000110,
+    ratEAPTLV                 = 0x00000111,
+    ratRejectReasonCode       = 0x00000112,
+    ratCRPPolicyName          = 0x00000113,
+    ratProviderName           = 0x00000114,
+    ratClearTextPassword      = 0x00000115,
+    ratSrcIPv6Address         = 0x00000116,
+    ratCertificateThumbprint  = 0x00000117,
+}
+alias RADIUS_ATTRIBUTE_TYPE = int;
+
+enum : int
+{
+    rcUnknown            = 0x00000000,
+    rcAccessRequest      = 0x00000001,
+    rcAccessAccept       = 0x00000002,
+    rcAccessReject       = 0x00000003,
+    rcAccountingRequest  = 0x00000004,
+    rcAccountingResponse = 0x00000005,
+    rcAccessChallenge    = 0x0000000b,
+    rcDiscard            = 0x00000100,
+}
+alias RADIUS_CODE = int;
+
+enum : int
+{
+    rapUnknown   = 0x00000000,
+    rapUsersFile = 0x00000001,
+    rapProxy     = 0x00000002,
+    rapWindowsNT = 0x00000003,
+    rapMCIS      = 0x00000004,
+    rapODBC      = 0x00000005,
+    rapNone      = 0x00000006,
+}
+alias RADIUS_AUTHENTICATION_PROVIDER = int;
+
+enum : int
+{
+    rrrcUndefined             = 0x00000000,
+    rrrcAccountUnknown        = 0x00000001,
+    rrrcAccountDisabled       = 0x00000002,
+    rrrcAccountExpired        = 0x00000003,
+    rrrcAuthenticationFailure = 0x00000004,
+}
+alias RADIUS_REJECT_REASON_CODE = int;
+
+enum : int
+{
+    rdtUnknown     = 0x00000000,
+    rdtString      = 0x00000001,
+    rdtAddress     = 0x00000002,
+    rdtInteger     = 0x00000003,
+    rdtTime        = 0x00000004,
+    rdtIpv6Address = 0x00000005,
+}
+alias RADIUS_DATA_TYPE = int;
+
+enum : int
+{
+    raContinue = 0x00000000,
+    raReject   = 0x00000001,
+    raAccept   = 0x00000002,
+}
+alias RADIUS_ACTION = int;
+
+enum : int
+{
+    repAuthentication = 0x00000000,
+    repAuthorization  = 0x00000001,
+}
+alias RADIUS_EXTENSION_POINT = int;
+
+// Callbacks
+
+alias PRADIUS_EXTENSION_INIT = uint function();
+alias PRADIUS_EXTENSION_TERM = void function();
+alias PRADIUS_EXTENSION_PROCESS = uint function(const(RADIUS_ATTRIBUTE)* pAttrs, RADIUS_ACTION* pfAction);
+alias PRADIUS_EXTENSION_PROCESS_EX = uint function(const(RADIUS_ATTRIBUTE)* pInAttrs, RADIUS_ATTRIBUTE** pOutAttrs, 
+                                                   RADIUS_ACTION* pfAction);
+alias PRADIUS_EXTENSION_FREE_ATTRIBUTES = void function(RADIUS_ATTRIBUTE* pAttrs);
+alias PRADIUS_EXTENSION_PROCESS_2 = uint function(RADIUS_EXTENSION_CONTROL_BLOCK* pECB);
+
+// Structs
+
+
+struct RADIUS_ATTRIBUTE
+{
+    uint             dwAttrType;
+    RADIUS_DATA_TYPE fDataType;
+    uint             cbDataLength;
+    union
+    {
+        uint          dwValue;
+        const(ubyte)* lpValue;
+    }
+}
+
+struct RADIUS_VSA_FORMAT
+{
+    ubyte[4] VendorId;
+    ubyte    VendorType;
+    ubyte    VendorLength;
+    ubyte[1] AttributeSpecific;
+}
+
+struct RADIUS_ATTRIBUTE_ARRAY
+{
+    uint             cbSize;
+    ptrdiff_t        Add;
+    const(ptrdiff_t) AttributeAt;
+    ptrdiff_t        GetSize;
+    ptrdiff_t        InsertAt;
+    ptrdiff_t        RemoveAt;
+    ptrdiff_t        SetAt;
+}
+
+struct RADIUS_EXTENSION_CONTROL_BLOCK
+{
+    uint        cbSize;
+    uint        dwVersion;
+    RADIUS_EXTENSION_POINT repPoint;
+    RADIUS_CODE rcRequestType;
+    RADIUS_CODE rcResponseType;
+    ptrdiff_t   GetRequest;
+    ptrdiff_t   GetResponse;
+    ptrdiff_t   SetResponseType;
+}
+
+// Interfaces
+
+@GUID("E9218AE7-9E91-11D1-BF60-0080C7846BC0")
 struct SdoMachine;
 
-enum ATTRIBUTEID
-{
-    ATTRIBUTE_UNDEFINED = 0,
-    ATTRIBUTE_MIN_VALUE = 1,
-    RADIUS_ATTRIBUTE_USER_NAME = 1,
-    RADIUS_ATTRIBUTE_USER_PASSWORD = 2,
-    RADIUS_ATTRIBUTE_CHAP_PASSWORD = 3,
-    RADIUS_ATTRIBUTE_NAS_IP_ADDRESS = 4,
-    RADIUS_ATTRIBUTE_NAS_PORT = 5,
-    RADIUS_ATTRIBUTE_SERVICE_TYPE = 6,
-    RADIUS_ATTRIBUTE_FRAMED_PROTOCOL = 7,
-    RADIUS_ATTRIBUTE_FRAMED_IP_ADDRESS = 8,
-    RADIUS_ATTRIBUTE_FRAMED_IP_NETMASK = 9,
-    RADIUS_ATTRIBUTE_FRAMED_ROUTING = 10,
-    RADIUS_ATTRIBUTE_FILTER_ID = 11,
-    RADIUS_ATTRIBUTE_FRAMED_MTU = 12,
-    RADIUS_ATTRIBUTE_FRAMED_COMPRESSION = 13,
-    RADIUS_ATTRIBUTE_LOGIN_IP_HOST = 14,
-    RADIUS_ATTRIBUTE_LOGIN_SERVICE = 15,
-    RADIUS_ATTRIBUTE_LOGIN_TCP_PORT = 16,
-    RADIUS_ATTRIBUTE_UNASSIGNED1 = 17,
-    RADIUS_ATTRIBUTE_REPLY_MESSAGE = 18,
-    RADIUS_ATTRIBUTE_CALLBACK_NUMBER = 19,
-    RADIUS_ATTRIBUTE_CALLBACK_ID = 20,
-    RADIUS_ATTRIBUTE_UNASSIGNED2 = 21,
-    RADIUS_ATTRIBUTE_FRAMED_ROUTE = 22,
-    RADIUS_ATTRIBUTE_FRAMED_IPX_NETWORK = 23,
-    RADIUS_ATTRIBUTE_STATE = 24,
-    RADIUS_ATTRIBUTE_CLASS = 25,
-    RADIUS_ATTRIBUTE_VENDOR_SPECIFIC = 26,
-    RADIUS_ATTRIBUTE_SESSION_TIMEOUT = 27,
-    RADIUS_ATTRIBUTE_IDLE_TIMEOUT = 28,
-    RADIUS_ATTRIBUTE_TERMINATION_ACTION = 29,
-    RADIUS_ATTRIBUTE_CALLED_STATION_ID = 30,
-    RADIUS_ATTRIBUTE_CALLING_STATION_ID = 31,
-    RADIUS_ATTRIBUTE_NAS_IDENTIFIER = 32,
-    RADIUS_ATTRIBUTE_PROXY_STATE = 33,
-    RADIUS_ATTRIBUTE_LOGIN_LAT_SERVICE = 34,
-    RADIUS_ATTRIBUTE_LOGIN_LAT_NODE = 35,
-    RADIUS_ATTRIBUTE_LOGIN_LAT_GROUP = 36,
-    RADIUS_ATTRIBUTE_FRAMED_APPLETALK_LINK = 37,
-    RADIUS_ATTRIBUTE_FRAMED_APPLETALK_NET = 38,
-    RADIUS_ATTRIBUTE_FRAMED_APPLETALK_ZONE = 39,
-    RADIUS_ATTRIBUTE_ACCT_STATUS_TYPE = 40,
-    RADIUS_ATTRIBUTE_ACCT_DELAY_TIME = 41,
-    RADIUS_ATTRIBUTE_ACCT_INPUT_OCTETS = 42,
-    RADIUS_ATTRIBUTE_ACCT_OUTPUT_OCTETS = 43,
-    RADIUS_ATTRIBUTE_ACCT_SESSION_ID = 44,
-    RADIUS_ATTRIBUTE_ACCT_AUTHENTIC = 45,
-    RADIUS_ATTRIBUTE_ACCT_SESSION_TIME = 46,
-    RADIUS_ATTRIBUTE_ACCT_INPUT_PACKETS = 47,
-    RADIUS_ATTRIBUTE_ACCT_OUTPUT_PACKETS = 48,
-    RADIUS_ATTRIBUTE_ACCT_TERMINATE_CAUSE = 49,
-    RADIUS_ATTRIBUTE_ACCT_MULTI_SSN_ID = 50,
-    RADIUS_ATTRIBUTE_ACCT_LINK_COUNT = 51,
-    RADIUS_ATTRIBUTE_CHAP_CHALLENGE = 60,
-    RADIUS_ATTRIBUTE_NAS_PORT_TYPE = 61,
-    RADIUS_ATTRIBUTE_PORT_LIMIT = 62,
-    RADIUS_ATTRIBUTE_LOGIN_LAT_PORT = 63,
-    RADIUS_ATTRIBUTE_TUNNEL_TYPE = 64,
-    RADIUS_ATTRIBUTE_TUNNEL_MEDIUM_TYPE = 65,
-    RADIUS_ATTRIBUTE_TUNNEL_CLIENT_ENDPT = 66,
-    RADIUS_ATTRIBUTE_TUNNEL_SERVER_ENDPT = 67,
-    RADIUS_ATTRIBUTE_ACCT_TUNNEL_CONN = 68,
-    RADIUS_ATTRIBUTE_TUNNEL_PASSWORD = 69,
-    RADIUS_ATTRIBUTE_ARAP_PASSWORD = 70,
-    RADIUS_ATTRIBUTE_ARAP_FEATURES = 71,
-    RADIUS_ATTRIBUTE_ARAP_ZONE_ACCESS = 72,
-    RADIUS_ATTRIBUTE_ARAP_SECURITY = 73,
-    RADIUS_ATTRIBUTE_ARAP_SECURITY_DATA = 74,
-    RADIUS_ATTRIBUTE_PASSWORD_RETRY = 75,
-    RADIUS_ATTRIBUTE_PROMPT = 76,
-    RADIUS_ATTRIBUTE_CONNECT_INFO = 77,
-    RADIUS_ATTRIBUTE_CONFIGURATION_TOKEN = 78,
-    RADIUS_ATTRIBUTE_EAP_MESSAGE = 79,
-    RADIUS_ATTRIBUTE_SIGNATURE = 80,
-    RADIUS_ATTRIBUTE_TUNNEL_PVT_GROUP_ID = 81,
-    RADIUS_ATTRIBUTE_TUNNEL_ASSIGNMENT_ID = 82,
-    RADIUS_ATTRIBUTE_TUNNEL_PREFERENCE = 83,
-    RADIUS_ATTRIBUTE_ARAP_CHALLENGE_RESPONSE = 84,
-    RADIUS_ATTRIBUTE_ACCT_INTERIM_INTERVAL = 85,
-    RADIUS_ATTRIBUTE_NAS_IPv6_ADDRESS = 95,
-    RADIUS_ATTRIBUTE_FRAMED_INTERFACE_ID = 96,
-    RADIUS_ATTRIBUTE_FRAMED_IPv6_PREFIX = 97,
-    RADIUS_ATTRIBUTE_LOGIN_IPv6_HOST = 98,
-    RADIUS_ATTRIBUTE_FRAMED_IPv6_ROUTE = 99,
-    RADIUS_ATTRIBUTE_FRAMED_IPv6_POOL = 100,
-    IAS_ATTRIBUTE_SAVED_RADIUS_FRAMED_IP_ADDRESS = 4096,
-    IAS_ATTRIBUTE_SAVED_RADIUS_CALLBACK_NUMBER = 4097,
-    IAS_ATTRIBUTE_NP_CALLING_STATION_ID = 4098,
-    IAS_ATTRIBUTE_SAVED_NP_CALLING_STATION_ID = 4099,
-    IAS_ATTRIBUTE_SAVED_RADIUS_FRAMED_ROUTE = 4100,
-    IAS_ATTRIBUTE_IGNORE_USER_DIALIN_PROPERTIES = 4101,
-    IAS_ATTRIBUTE_NP_TIME_OF_DAY = 4102,
-    IAS_ATTRIBUTE_NP_CALLED_STATION_ID = 4103,
-    IAS_ATTRIBUTE_NP_ALLOWED_PORT_TYPES = 4104,
-    IAS_ATTRIBUTE_NP_AUTHENTICATION_TYPE = 4105,
-    IAS_ATTRIBUTE_NP_ALLOWED_EAP_TYPE = 4106,
-    IAS_ATTRIBUTE_SHARED_SECRET = 4107,
-    IAS_ATTRIBUTE_CLIENT_IP_ADDRESS = 4108,
-    IAS_ATTRIBUTE_CLIENT_PACKET_HEADER = 4109,
-    IAS_ATTRIBUTE_TOKEN_GROUPS = 4110,
-    IAS_ATTRIBUTE_ALLOW_DIALIN = 4111,
-    IAS_ATTRIBUTE_REQUEST_ID = 4112,
-    IAS_ATTRIBUTE_MANIPULATION_TARGET = 4113,
-    IAS_ATTRIBUTE_MANIPULATION_RULE = 4114,
-    IAS_ATTRIBUTE_ORIGINAL_USER_NAME = 4115,
-    IAS_ATTRIBUTE_CLIENT_VENDOR_TYPE = 4116,
-    IAS_ATTRIBUTE_CLIENT_UDP_PORT = 4117,
-    MS_ATTRIBUTE_CHAP_CHALLENGE = 4118,
-    MS_ATTRIBUTE_CHAP_RESPONSE = 4119,
-    MS_ATTRIBUTE_CHAP_DOMAIN = 4120,
-    MS_ATTRIBUTE_CHAP_ERROR = 4121,
-    MS_ATTRIBUTE_CHAP_CPW1 = 4122,
-    MS_ATTRIBUTE_CHAP_CPW2 = 4123,
-    MS_ATTRIBUTE_CHAP_LM_ENC_PW = 4124,
-    MS_ATTRIBUTE_CHAP_NT_ENC_PW = 4125,
-    MS_ATTRIBUTE_CHAP_MPPE_KEYS = 4126,
-    IAS_ATTRIBUTE_AUTHENTICATION_TYPE = 4127,
-    IAS_ATTRIBUTE_CLIENT_NAME = 4128,
-    IAS_ATTRIBUTE_NT4_ACCOUNT_NAME = 4129,
-    IAS_ATTRIBUTE_FULLY_QUALIFIED_USER_NAME = 4130,
-    IAS_ATTRIBUTE_NTGROUPS = 4131,
-    IAS_ATTRIBUTE_EAP_FRIENDLY_NAME = 4132,
-    IAS_ATTRIBUTE_AUTH_PROVIDER_TYPE = 4133,
-    MS_ATTRIBUTE_ACCT_AUTH_TYPE = 4134,
-    MS_ATTRIBUTE_ACCT_EAP_TYPE = 4135,
-    IAS_ATTRIBUTE_PACKET_TYPE = 4136,
-    IAS_ATTRIBUTE_AUTH_PROVIDER_NAME = 4137,
-    IAS_ATTRIBUTE_ACCT_PROVIDER_TYPE = 4138,
-    IAS_ATTRIBUTE_ACCT_PROVIDER_NAME = 4139,
-    MS_ATTRIBUTE_MPPE_SEND_KEY = 4140,
-    MS_ATTRIBUTE_MPPE_RECV_KEY = 4141,
-    IAS_ATTRIBUTE_REASON_CODE = 4142,
-    MS_ATTRIBUTE_FILTER = 4143,
-    MS_ATTRIBUTE_CHAP2_RESPONSE = 4144,
-    MS_ATTRIBUTE_CHAP2_SUCCESS = 4145,
-    MS_ATTRIBUTE_CHAP2_CPW = 4146,
-    MS_ATTRIBUTE_RAS_VENDOR = 4147,
-    MS_ATTRIBUTE_RAS_VERSION = 4148,
-    IAS_ATTRIBUTE_NP_NAME = 4149,
-    MS_ATTRIBUTE_PRIMARY_DNS_SERVER = 4150,
-    MS_ATTRIBUTE_SECONDARY_DNS_SERVER = 4151,
-    MS_ATTRIBUTE_PRIMARY_NBNS_SERVER = 4152,
-    MS_ATTRIBUTE_SECONDARY_NBNS_SERVER = 4153,
-    IAS_ATTRIBUTE_PROXY_POLICY_NAME = 4154,
-    IAS_ATTRIBUTE_PROVIDER_TYPE = 4155,
-    IAS_ATTRIBUTE_PROVIDER_NAME = 4156,
-    IAS_ATTRIBUTE_REMOTE_SERVER_ADDRESS = 4157,
-    IAS_ATTRIBUTE_GENERATE_CLASS_ATTRIBUTE = 4158,
-    MS_ATTRIBUTE_RAS_CLIENT_NAME = 4159,
-    MS_ATTRIBUTE_RAS_CLIENT_VERSION = 4160,
-    IAS_ATTRIBUTE_ALLOWED_CERTIFICATE_EKU = 4161,
-    IAS_ATTRIBUTE_EXTENSION_STATE = 4162,
-    IAS_ATTRIBUTE_GENERATE_SESSION_TIMEOUT = 4163,
-    IAS_ATTRIBUTE_SESSION_TIMEOUT = 4164,
-    MS_ATTRIBUTE_QUARANTINE_IPFILTER = 4165,
-    MS_ATTRIBUTE_QUARANTINE_SESSION_TIMEOUT = 4166,
-    MS_ATTRIBUTE_USER_SECURITY_IDENTITY = 4167,
-    IAS_ATTRIBUTE_REMOTE_RADIUS_TO_WINDOWS_USER_MAPPING = 4168,
-    IAS_ATTRIBUTE_PASSPORT_USER_MAPPING_UPN_SUFFIX = 4169,
-    IAS_ATTRIBUTE_TUNNEL_TAG = 4170,
-    IAS_ATTRIBUTE_NP_PEAPUPFRONT_ENABLED = 4171,
-    IAS_ATTRIBUTE_CERTIFICATE_EKU = 8097,
-    IAS_ATTRIBUTE_EAP_CONFIG = 8098,
-    IAS_ATTRIBUTE_PEAP_EMBEDDED_EAP_TYPEID = 8099,
-    IAS_ATTRIBUTE_PEAP_FAST_ROAMED_SESSION = 8100,
-    IAS_ATTRIBUTE_EAP_TYPEID = 8101,
-    MS_ATTRIBUTE_EAP_TLV = 8102,
-    IAS_ATTRIBUTE_REJECT_REASON_CODE = 8103,
-    IAS_ATTRIBUTE_PROXY_EAP_CONFIG = 8104,
-    IAS_ATTRIBUTE_EAP_SESSION = 8105,
-    IAS_ATTRIBUTE_IS_REPLAY = 8106,
-    IAS_ATTRIBUTE_CLEAR_TEXT_PASSWORD = 8107,
-    MS_ATTRIBUTE_IDENTITY_TYPE = 8108,
-    MS_ATTRIBUTE_SERVICE_CLASS = 8109,
-    MS_ATTRIBUTE_QUARANTINE_USER_CLASS = 8110,
-    MS_ATTRIBUTE_QUARANTINE_STATE = 8111,
-    IAS_ATTRIBUTE_OVERRIDE_RAP_AUTH = 8112,
-    IAS_ATTRIBUTE_PEAP_CHANNEL_UP = 8113,
-    IAS_ATTRIBUTE_NAME_MAPPED = 8114,
-    IAS_ATTRIBUTE_POLICY_ENFORCED = 8115,
-    IAS_ATTRIBUTE_MACHINE_NTGROUPS = 8116,
-    IAS_ATTRIBUTE_USER_NTGROUPS = 8117,
-    IAS_ATTRIBUTE_MACHINE_TOKEN_GROUPS = 8118,
-    IAS_ATTRIBUTE_USER_TOKEN_GROUPS = 8119,
-    MS_ATTRIBUTE_QUARANTINE_GRACE_TIME = 8120,
-    IAS_ATTRIBUTE_QUARANTINE_URL = 8121,
-    IAS_ATTRIBUTE_QUARANTINE_FIXUP_SERVERS = 8122,
-    MS_ATTRIBUTE_NOT_QUARANTINE_CAPABLE = 8123,
-    IAS_ATTRIBUTE_QUARANTINE_SYSTEM_HEALTH_RESULT = 8124,
-    IAS_ATTRIBUTE_QUARANTINE_SYSTEM_HEALTH_VALIDATORS = 8125,
-    IAS_ATTRIBUTE_MACHINE_NAME = 8126,
-    IAS_ATTRIBUTE_NT4_MACHINE_NAME = 8127,
-    IAS_ATTRIBUTE_QUARANTINE_SESSION_HANDLE = 8128,
-    IAS_ATTRIBUTE_FULLY_QUALIFIED_MACHINE_NAME = 8129,
-    IAS_ATTRIBUTE_QUARANTINE_FIXUP_SERVERS_CONFIGURATION = 8130,
-    IAS_ATTRIBUTE_CLIENT_QUARANTINE_COMPATIBLE = 8131,
-    MS_ATTRIBUTE_NETWORK_ACCESS_SERVER_TYPE = 8132,
-    IAS_ATTRIBUTE_QUARANTINE_SESSION_ID = 8133,
-    MS_ATTRIBUTE_AFW_QUARANTINE_ZONE = 8134,
-    MS_ATTRIBUTE_AFW_PROTECTION_LEVEL = 8135,
-    IAS_ATTRIBUTE_QUARANTINE_UPDATE_NON_COMPLIANT = 8136,
-    IAS_ATTRIBUTE_REQUEST_START_TIME = 8137,
-    MS_ATTRIBUTE_MACHINE_NAME = 8138,
-    IAS_ATTRIBUTE_CLIENT_IPv6_ADDRESS = 8139,
-    IAS_ATTRIBUTE_SAVED_RADIUS_FRAMED_INTERFACE_ID = 8140,
-    IAS_ATTRIBUTE_SAVED_RADIUS_FRAMED_IPv6_PREFIX = 8141,
-    IAS_ATTRIBUTE_SAVED_RADIUS_FRAMED_IPv6_ROUTE = 8142,
-    MS_ATTRIBUTE_QUARANTINE_GRACE_TIME_CONFIGURATION = 8143,
-    MS_ATTRIBUTE_IPv6_FILTER = 8144,
-    MS_ATTRIBUTE_IPV4_REMEDIATION_SERVERS = 8145,
-    MS_ATTRIBUTE_IPV6_REMEDIATION_SERVERS = 8146,
-    IAS_ATTRIBUTE_PROXY_RETRY_COUNT = 8147,
-    IAS_ATTRIBUTE_MACHINE_INVENTORY = 8148,
-    IAS_ATTRIBUTE_ABSOLUTE_TIME = 8149,
-    MS_ATTRIBUTE_QUARANTINE_SOH = 8150,
-    IAS_ATTRIBUTE_EAP_TYPES_CONFIGURED_IN_PROXYPOLICY = 8151,
-    MS_ATTRIBUTE_HCAP_LOCATION_GROUP_NAME = 8152,
-    MS_ATTRIBUTE_EXTENDED_QUARANTINE_STATE = 8153,
-    IAS_ATTRIBUTE_SOH_CARRIER_EAPTLV = 8154,
-    MS_ATTRIBUTE_HCAP_USER_GROUPS = 8155,
-    IAS_ATTRIBUTE_SAVED_MACHINE_HEALTHCHECK_ONLY = 8156,
-    IAS_ATTRIBUTE_POLICY_EVALUATED_SHV = 8157,
-    MS_ATTRIBUTE_RAS_CORRELATION_ID = 8158,
-    MS_ATTRIBUTE_HCAP_USER_NAME = 8159,
-    IAS_ATTRIBUTE_NT4_HCAP_ACCOUNT_NAME = 8160,
-    IAS_ATTRIBUTE_USER_TOKEN_SID = 8161,
-    IAS_ATTRIBUTE_MACHINE_TOKEN_SID = 8162,
-    IAS_ATTRIBUTE_MACHINE_VALIDATED = 8163,
-    MS_ATTRIBUTE_USER_IPv4_ADDRESS = 8164,
-    MS_ATTRIBUTE_USER_IPv6_ADDRESS = 8165,
-    MS_ATTRIBUTE_TSG_DEVICE_REDIRECTION = 8166,
-    IAS_ATTRIBUTE_ACCEPT_REASON_CODE = 8167,
-    IAS_ATTRIBUTE_LOGGING_RESULT = 8168,
-    IAS_ATTRIBUTE_SERVER_IP_ADDRESS = 8169,
-    IAS_ATTRIBUTE_SERVER_IPv6_ADDRESS = 8170,
-    IAS_ATTRIBUTE_RADIUS_USERNAME_ENCODING_ASCII = 8171,
-    MS_ATTRIBUTE_RAS_ROUTING_DOMAIN_ID = 8172,
-    IAS_ATTRIBUTE_CERTIFICATE_THUMBPRINT = 8250,
-    RAS_ATTRIBUTE_ENCRYPTION_TYPE = 4294967206,
-    RAS_ATTRIBUTE_ENCRYPTION_POLICY = 4294967207,
-    RAS_ATTRIBUTE_BAP_REQUIRED = 4294967208,
-    RAS_ATTRIBUTE_BAP_LINE_DOWN_TIME = 4294967209,
-    RAS_ATTRIBUTE_BAP_LINE_DOWN_LIMIT = 4294967210,
-}
-
-enum NEW_LOG_FILE_FREQUENCY
-{
-    IAS_LOGGING_UNLIMITED_SIZE = 0,
-    IAS_LOGGING_DAILY = 1,
-    IAS_LOGGING_WEEKLY = 2,
-    IAS_LOGGING_MONTHLY = 3,
-    IAS_LOGGING_WHEN_FILE_SIZE_REACHES = 4,
-}
-
-enum AUTHENTICATION_TYPE
-{
-    IAS_AUTH_INVALID = 0,
-    IAS_AUTH_PAP = 1,
-    IAS_AUTH_MD5CHAP = 2,
-    IAS_AUTH_MSCHAP = 3,
-    IAS_AUTH_MSCHAP2 = 4,
-    IAS_AUTH_EAP = 5,
-    IAS_AUTH_ARAP = 6,
-    IAS_AUTH_NONE = 7,
-    IAS_AUTH_CUSTOM = 8,
-    IAS_AUTH_MSCHAP_CPW = 9,
-    IAS_AUTH_MSCHAP2_CPW = 10,
-    IAS_AUTH_PEAP = 11,
-}
-
-enum IDENTITY_TYPE
-{
-    IAS_IDENTITY_NO_DEFAULT = 1,
-}
-
-enum ATTRIBUTESYNTAX
-{
-    IAS_SYNTAX_BOOLEAN = 1,
-    IAS_SYNTAX_INTEGER = 2,
-    IAS_SYNTAX_ENUMERATOR = 3,
-    IAS_SYNTAX_INETADDR = 4,
-    IAS_SYNTAX_STRING = 5,
-    IAS_SYNTAX_OCTETSTRING = 6,
-    IAS_SYNTAX_UTCTIME = 7,
-    IAS_SYNTAX_PROVIDERSPECIFIC = 8,
-    IAS_SYNTAX_UNSIGNEDINTEGER = 9,
-    IAS_SYNTAX_INETADDR6 = 10,
-}
-
-enum ATTRIBUTERESTRICTIONS
-{
-    MULTIVALUED = 1,
-    ALLOWEDINPROFILE = 2,
-    ALLOWEDINCONDITION = 4,
-    ALLOWEDINPROXYPROFILE = 8,
-    ALLOWEDINPROXYCONDITION = 16,
-    ALLOWEDINVPNDIALUP = 32,
-    ALLOWEDIN8021X = 64,
-}
-
-enum ATTRIBUTEFILTER
-{
-    ATTRIBUTE_FILTER_NONE = 0,
-    ATTRIBUTE_FILTER_VPN_DIALUP = 1,
-    ATTRIBUTE_FILTER_IEEE_802_1x = 2,
-}
-
-enum ATTRIBUTEINFO
-{
-    NAME = 1,
-    SYNTAX = 2,
-    RESTRICTIONS = 3,
-    DESCRIPTION = 4,
-    VENDORID = 5,
-    LDAPNAME = 6,
-    VENDORTYPE = 7,
-}
-
-enum IASCOMMONPROPERTIES
-{
-    PROPERTY_SDO_RESERVED = 0,
-    PROPERTY_SDO_CLASS = 1,
-    PROPERTY_SDO_NAME = 2,
-    PROPERTY_SDO_DESCRIPTION = 3,
-    PROPERTY_SDO_ID = 4,
-    PROPERTY_SDO_DATASTORE_NAME = 5,
-    PROPERTY_SDO_TEMPLATE_GUID = 6,
-    PROPERTY_SDO_OPAQUE = 7,
-    PROPERTY_SDO_START = 1024,
-}
-
-enum USERPROPERTIES
-{
-    PROPERTY_USER_CALLING_STATION_ID = 1024,
-    PROPERTY_USER_SAVED_CALLING_STATION_ID = 1025,
-    PROPERTY_USER_RADIUS_CALLBACK_NUMBER = 1026,
-    PROPERTY_USER_RADIUS_FRAMED_ROUTE = 1027,
-    PROPERTY_USER_RADIUS_FRAMED_IP_ADDRESS = 1028,
-    PROPERTY_USER_SAVED_RADIUS_CALLBACK_NUMBER = 1029,
-    PROPERTY_USER_SAVED_RADIUS_FRAMED_ROUTE = 1030,
-    PROPERTY_USER_SAVED_RADIUS_FRAMED_IP_ADDRESS = 1031,
-    PROPERTY_USER_ALLOW_DIALIN = 1032,
-    PROPERTY_USER_SERVICE_TYPE = 1033,
-    PROPERTY_USER_RADIUS_FRAMED_IPV6_ROUTE = 1034,
-    PROPERTY_USER_SAVED_RADIUS_FRAMED_IPV6_ROUTE = 1035,
-    PROPERTY_USER_RADIUS_FRAMED_INTERFACE_ID = 1036,
-    PROPERTY_USER_SAVED_RADIUS_FRAMED_INTERFACE_ID = 1037,
-    PROPERTY_USER_RADIUS_FRAMED_IPV6_PREFIX = 1038,
-    PROPERTY_USER_SAVED_RADIUS_FRAMED_IPV6_PREFIX = 1039,
-}
-
-enum DICTIONARYPROPERTIES
-{
-    PROPERTY_DICTIONARY_ATTRIBUTES_COLLECTION = 1024,
-    PROPERTY_DICTIONARY_LOCATION = 1025,
-}
-
-enum ATTRIBUTEPROPERTIES
-{
-    PROPERTY_ATTRIBUTE_ID = 1024,
-    PROPERTY_ATTRIBUTE_VENDOR_ID = 1025,
-    PROPERTY_ATTRIBUTE_VENDOR_TYPE_ID = 1026,
-    PROPERTY_ATTRIBUTE_IS_ENUMERABLE = 1027,
-    PROPERTY_ATTRIBUTE_ENUM_NAMES = 1028,
-    PROPERTY_ATTRIBUTE_ENUM_VALUES = 1029,
-    PROPERTY_ATTRIBUTE_SYNTAX = 1030,
-    PROPERTY_ATTRIBUTE_ALLOW_MULTIPLE = 1031,
-    PROPERTY_ATTRIBUTE_ALLOW_LOG_ORDINAL = 1032,
-    PROPERTY_ATTRIBUTE_ALLOW_IN_PROFILE = 1033,
-    PROPERTY_ATTRIBUTE_ALLOW_IN_CONDITION = 1034,
-    PROPERTY_ATTRIBUTE_DISPLAY_NAME = 1035,
-    PROPERTY_ATTRIBUTE_VALUE = 1036,
-    PROPERTY_ATTRIBUTE_ALLOW_IN_PROXY_PROFILE = 1037,
-    PROPERTY_ATTRIBUTE_ALLOW_IN_PROXY_CONDITION = 1038,
-    PROPERTY_ATTRIBUTE_ALLOW_IN_VPNDIALUP = 1039,
-    PROPERTY_ATTRIBUTE_ALLOW_IN_8021X = 1040,
-    PROPERTY_ATTRIBUTE_ENUM_FILTERS = 1041,
-}
-
-enum IASPROPERTIES
-{
-    PROPERTY_IAS_RADIUSSERVERGROUPS_COLLECTION = 1024,
-    PROPERTY_IAS_POLICIES_COLLECTION = 1025,
-    PROPERTY_IAS_PROFILES_COLLECTION = 1026,
-    PROPERTY_IAS_PROTOCOLS_COLLECTION = 1027,
-    PROPERTY_IAS_AUDITORS_COLLECTION = 1028,
-    PROPERTY_IAS_REQUESTHANDLERS_COLLECTION = 1029,
-    PROPERTY_IAS_PROXYPOLICIES_COLLECTION = 1030,
-    PROPERTY_IAS_PROXYPROFILES_COLLECTION = 1031,
-    PROPERTY_IAS_REMEDIATIONSERVERGROUPS_COLLECTION = 1032,
-    PROPERTY_IAS_SHVTEMPLATES_COLLECTION = 1033,
-}
-
-enum TEMPLATESPROPERTIES
-{
-    PROPERTY_TEMPLATES_POLICIES_TEMPLATES = 1024,
-    PROPERTY_TEMPLATES_PROFILES_TEMPLATES = 1025,
-    PROPERTY_TEMPLATES_PROFILES_COLLECTION = 1026,
-    PROPERTY_TEMPLATES_PROXYPOLICIES_TEMPLATES = 1027,
-    PROPERTY_TEMPLATES_PROXYPROFILES_TEMPLATES = 1028,
-    PROPERTY_TEMPLATES_PROXYPROFILES_COLLECTION = 1029,
-    PROPERTY_TEMPLATES_REMEDIATIONSERVERGROUPS_TEMPLATES = 1030,
-    PROPERTY_TEMPLATES_SHVTEMPLATES_TEMPLATES = 1031,
-    PROPERTY_TEMPLATES_CLIENTS_TEMPLATES = 1032,
-    PROPERTY_TEMPLATES_RADIUSSERVERS_TEMPLATES = 1033,
-    PROPERTY_TEMPLATES_SHAREDSECRETS_TEMPLATES = 1034,
-    PROPERTY_TEMPLATES_IPFILTERS_TEMPLATES = 1035,
-}
-
-enum CLIENTPROPERTIES
-{
-    PROPERTY_CLIENT_REQUIRE_SIGNATURE = 1024,
-    PROPERTY_CLIENT_UNUSED = 1025,
-    PROPERTY_CLIENT_SHARED_SECRET = 1026,
-    PROPERTY_CLIENT_NAS_MANUFACTURER = 1027,
-    PROPERTY_CLIENT_ADDRESS = 1028,
-    PROPERTY_CLIENT_QUARANTINE_COMPATIBLE = 1029,
-    PROPERTY_CLIENT_ENABLED = 1030,
-    PROPERTY_CLIENT_SECRET_TEMPLATE_GUID = 1031,
-}
-
-enum VENDORPROPERTIES
-{
-    PROPERTY_NAS_VENDOR_ID = 1024,
-}
-
-enum PROFILEPROPERTIES
-{
-    PROPERTY_PROFILE_ATTRIBUTES_COLLECTION = 1024,
-    PROPERTY_PROFILE_IPFILTER_TEMPLATE_GUID = 1025,
-}
-
-enum POLICYPROPERTIES
-{
-    PROPERTY_POLICY_CONSTRAINT = 1024,
-    PROPERTY_POLICY_MERIT = 1025,
-    PROPERTY_POLICY_UNUSED0 = 1026,
-    PROPERTY_POLICY_UNUSED1 = 1027,
-    PROPERTY_POLICY_PROFILE_NAME = 1028,
-    PROPERTY_POLICY_ACTION = 1029,
-    PROPERTY_POLICY_CONDITIONS_COLLECTION = 1030,
-    PROPERTY_POLICY_ENABLED = 1031,
-    PROPERTY_POLICY_SOURCETAG = 1032,
-}
-
-enum CONDITIONPROPERTIES
-{
-    PROPERTY_CONDITION_TEXT = 1024,
-}
-
-enum RADIUSSERVERGROUPPROPERTIES
-{
-    PROPERTY_RADIUSSERVERGROUP_SERVERS_COLLECTION = 1024,
-}
-
-enum RADIUSSERVERPROPERTIES
-{
-    PROPERTY_RADIUSSERVER_AUTH_PORT = 1024,
-    PROPERTY_RADIUSSERVER_AUTH_SECRET = 1025,
-    PROPERTY_RADIUSSERVER_ACCT_PORT = 1026,
-    PROPERTY_RADIUSSERVER_ACCT_SECRET = 1027,
-    PROPERTY_RADIUSSERVER_ADDRESS = 1028,
-    PROPERTY_RADIUSSERVER_FORWARD_ACCT_ONOFF = 1029,
-    PROPERTY_RADIUSSERVER_PRIORITY = 1030,
-    PROPERTY_RADIUSSERVER_WEIGHT = 1031,
-    PROPERTY_RADIUSSERVER_TIMEOUT = 1032,
-    PROPERTY_RADIUSSERVER_MAX_LOST = 1033,
-    PROPERTY_RADIUSSERVER_BLACKOUT = 1034,
-    PROPERTY_RADIUSSERVER_SEND_SIGNATURE = 1035,
-    PROPERTY_RADIUSSERVER_AUTH_SECRET_TEMPLATE_GUID = 1036,
-    PROPERTY_RADIUSSERVER_ACCT_SECRET_TEMPLATE_GUID = 1037,
-}
-
-enum REMEDIATIONSERVERGROUPPROPERTIES
-{
-    PROPERTY_REMEDIATIONSERVERGROUP_SERVERS_COLLECTION = 1024,
-}
-
-enum REMEDIATIONSERVERPROPERTIES
-{
-    PROPERTY_REMEDIATIONSERVER_ADDRESS = 1024,
-    PROPERTY_REMEDIATIONSERVER_FRIENDLY_NAME = 1025,
-}
-
-enum SHVTEMPLATEPROPERTIES
-{
-    PROPERTY_SHV_COMBINATION_TYPE = 1024,
-    PROPERTY_SHV_LIST = 1025,
-    PROPERTY_SHVCONFIG_LIST = 1026,
-}
-
-enum IPFILTERPROPERTIES
-{
-    PROPERTY_IPFILTER_ATTRIBUTES_COLLECTION = 1024,
-}
-
-enum SHAREDSECRETPROPERTIES
-{
-    PROPERTY_SHAREDSECRET_STRING = 1024,
-}
-
-enum IASCOMPONENTPROPERTIES
-{
-    PROPERTY_COMPONENT_ID = 1024,
-    PROPERTY_COMPONENT_PROG_ID = 1025,
-    PROPERTY_COMPONENT_START = 1026,
-}
-
-enum PROTOCOLPROPERTIES
-{
-    PROPERTY_PROTOCOL_REQUEST_HANDLER = 1026,
-    PROPERTY_PROTOCOL_START = 1027,
-}
-
-enum RADIUSPROPERTIES
-{
-    PROPERTY_RADIUS_ACCOUNTING_PORT = 1027,
-    PROPERTY_RADIUS_AUTHENTICATION_PORT = 1028,
-    PROPERTY_RADIUS_CLIENTS_COLLECTION = 1029,
-    PROPERTY_RADIUS_VENDORS_COLLECTION = 1030,
-}
-
-enum NTEVENTLOGPROPERTIES
-{
-    PROPERTY_EVENTLOG_LOG_APPLICATION_EVENTS = 1026,
-    PROPERTY_EVENTLOG_LOG_MALFORMED = 1027,
-    PROPERTY_EVENTLOG_LOG_DEBUG = 1028,
-}
-
-enum NAMESPROPERTIES
-{
-    PROPERTY_NAMES_REALMS = 1026,
-}
-
-enum NTSAMPROPERTIES
-{
-    PROPERTY_NTSAM_ALLOW_LM_AUTHENTICATION = 1026,
-}
-
-enum ACCOUNTINGPROPERTIES
-{
-    PROPERTY_ACCOUNTING_LOG_ACCOUNTING = 1026,
-    PROPERTY_ACCOUNTING_LOG_ACCOUNTING_INTERIM = 1027,
-    PROPERTY_ACCOUNTING_LOG_AUTHENTICATION = 1028,
-    PROPERTY_ACCOUNTING_LOG_OPEN_NEW_FREQUENCY = 1029,
-    PROPERTY_ACCOUNTING_LOG_OPEN_NEW_SIZE = 1030,
-    PROPERTY_ACCOUNTING_LOG_FILE_DIRECTORY = 1031,
-    PROPERTY_ACCOUNTING_LOG_IAS1_FORMAT = 1032,
-    PROPERTY_ACCOUNTING_LOG_ENABLE_LOGGING = 1033,
-    PROPERTY_ACCOUNTING_LOG_DELETE_IF_FULL = 1034,
-    PROPERTY_ACCOUNTING_SQL_MAX_SESSIONS = 1035,
-    PROPERTY_ACCOUNTING_LOG_AUTHENTICATION_INTERIM = 1036,
-    PROPERTY_ACCOUNTING_LOG_FILE_IS_BACKUP = 1037,
-    PROPERTY_ACCOUNTING_DISCARD_REQUEST_ON_FAILURE = 1038,
-}
-
-enum NAPPROPERTIES
-{
-    PROPERTY_NAP_POLICIES_COLLECTION = 1026,
-    PROPERTY_SHV_TEMPLATES_COLLECTION = 1027,
-}
-
-enum RADIUSPROXYPROPERTIES
-{
-    PROPERTY_RADIUSPROXY_SERVERGROUPS = 1026,
-}
-
-enum REMEDIATIONSERVERSPROPERTIES
-{
-    PROPERTY_REMEDIATIONSERVERS_SERVERGROUPS = 1026,
-}
-
-enum SHV_COMBINATION_TYPE
-{
-    SHV_COMBINATION_TYPE_ALL_PASS = 0,
-    SHV_COMBINATION_TYPE_ALL_FAIL = 1,
-    SHV_COMBINATION_TYPE_ONE_OR_MORE_PASS = 2,
-    SHV_COMBINATION_TYPE_ONE_OR_MORE_FAIL = 3,
-    SHV_COMBINATION_TYPE_ONE_OR_MORE_INFECTED = 4,
-    SHV_COMBINATION_TYPE_ONE_OR_MORE_TRANSITIONAL = 5,
-    SHV_COMBINATION_TYPE_ONE_OR_MORE_UNKNOWN = 6,
-    SHV_COMBINATION_TYPE_MAX = 7,
-}
-
-enum SERVICE_TYPE
-{
-    SERVICE_TYPE_IAS = 0,
-    SERVICE_TYPE_RAS = 1,
-    SERVICE_TYPE_RAMGMTSVC = 2,
-    SERVICE_TYPE_MAX = 3,
-}
-
-enum IASOSTYPE
-{
-    SYSTEM_TYPE_NT4_WORKSTATION = 0,
-    SYSTEM_TYPE_NT5_WORKSTATION = 1,
-    SYSTEM_TYPE_NT6_WORKSTATION = 2,
-    SYSTEM_TYPE_NT6_1_WORKSTATION = 3,
-    SYSTEM_TYPE_NT6_2_WORKSTATION = 4,
-    SYSTEM_TYPE_NT6_3_WORKSTATION = 5,
-    SYSTEM_TYPE_NT10_0_WORKSTATION = 6,
-    SYSTEM_TYPE_NT4_SERVER = 7,
-    SYSTEM_TYPE_NT5_SERVER = 8,
-    SYSTEM_TYPE_NT6_SERVER = 9,
-    SYSTEM_TYPE_NT6_1_SERVER = 10,
-    SYSTEM_TYPE_NT6_2_SERVER = 11,
-    SYSTEM_TYPE_NT6_3_SERVER = 12,
-    SYSTEM_TYPE_NT10_0_SERVER = 13,
-}
-
-enum IASDOMAINTYPE
-{
-    DOMAIN_TYPE_NONE = 0,
-    DOMAIN_TYPE_NT4 = 1,
-    DOMAIN_TYPE_NT5 = 2,
-    DOMAIN_TYPE_MIXED = 3,
-}
-
-enum IASDATASTORE
-{
-    DATA_STORE_LOCAL = 0,
-    DATA_STORE_DIRECTORY = 1,
-}
-
-const GUID IID_ISdoMachine = {0x479F6E75, 0x49A2, 0x11D2, [0x8E, 0xCA, 0x00, 0xC0, 0x4F, 0xC2, 0xF5, 0x19]};
-@GUID(0x479F6E75, 0x49A2, 0x11D2, [0x8E, 0xCA, 0x00, 0xC0, 0x4F, 0xC2, 0xF5, 0x19]);
+@GUID("479F6E75-49A2-11D2-8ECA-00C04FC2F519")
 interface ISdoMachine : IDispatch
 {
     HRESULT Attach(BSTR bstrComputerName);
@@ -650,19 +897,18 @@ interface ISdoMachine : IDispatch
     HRESULT GetSDOSchema(IUnknown* ppSDOSchema);
 }
 
-const GUID IID_ISdoMachine2 = {0x518E5FFE, 0xD8CE, 0x4F7E, [0xA5, 0xDB, 0xB4, 0x0A, 0x35, 0x41, 0x9D, 0x3B]};
-@GUID(0x518E5FFE, 0xD8CE, 0x4F7E, [0xA5, 0xDB, 0xB4, 0x0A, 0x35, 0x41, 0x9D, 0x3B]);
+@GUID("518E5FFE-D8CE-4F7E-A5DB-B40A35419D3B")
 interface ISdoMachine2 : ISdoMachine
 {
     HRESULT GetTemplatesSDO(BSTR bstrServiceName, IUnknown* ppTemplatesSDO);
     HRESULT EnableTemplates();
-    HRESULT SyncConfigAgainstTemplates(BSTR bstrServiceName, IUnknown* ppConfigRoot, IUnknown* ppTemplatesRoot, short bForcedSync);
+    HRESULT SyncConfigAgainstTemplates(BSTR bstrServiceName, IUnknown* ppConfigRoot, IUnknown* ppTemplatesRoot, 
+                                       short bForcedSync);
     HRESULT ImportRemoteTemplates(IUnknown pLocalTemplatesRoot, BSTR bstrRemoteMachineName);
     HRESULT Reload();
 }
 
-const GUID IID_ISdoServiceControl = {0x479F6E74, 0x49A2, 0x11D2, [0x8E, 0xCA, 0x00, 0xC0, 0x4F, 0xC2, 0xF5, 0x19]};
-@GUID(0x479F6E74, 0x49A2, 0x11D2, [0x8E, 0xCA, 0x00, 0xC0, 0x4F, 0xC2, 0xF5, 0x19]);
+@GUID("479F6E74-49A2-11D2-8ECA-00C04FC2F519")
 interface ISdoServiceControl : IDispatch
 {
     HRESULT StartServiceA();
@@ -671,8 +917,7 @@ interface ISdoServiceControl : IDispatch
     HRESULT ResetService();
 }
 
-const GUID IID_ISdo = {0x56BC53DE, 0x96DB, 0x11D1, [0xBF, 0x3F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]};
-@GUID(0x56BC53DE, 0x96DB, 0x11D1, [0xBF, 0x3F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
+@GUID("56BC53DE-96DB-11D1-BF3F-000000000000")
 interface ISdo : IDispatch
 {
     HRESULT GetPropertyInfo(int Id, IUnknown* ppPropertyInfo);
@@ -684,8 +929,7 @@ interface ISdo : IDispatch
     HRESULT get__NewEnum(IUnknown* ppEnumVARIANT);
 }
 
-const GUID IID_ISdoCollection = {0x56BC53E2, 0x96DB, 0x11D1, [0xBF, 0x3F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]};
-@GUID(0x56BC53E2, 0x96DB, 0x11D1, [0xBF, 0x3F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
+@GUID("56BC53E2-96DB-11D1-BF3F-000000000000")
 interface ISdoCollection : IDispatch
 {
     HRESULT get_Count(int* pCount);
@@ -698,8 +942,7 @@ interface ISdoCollection : IDispatch
     HRESULT get__NewEnum(IUnknown* ppEnumVARIANT);
 }
 
-const GUID IID_ITemplateSdo = {0x8AA85302, 0xD2E2, 0x4E20, [0x8B, 0x1F, 0xA5, 0x71, 0xE4, 0x37, 0xD6, 0xC9]};
-@GUID(0x8AA85302, 0xD2E2, 0x4E20, [0x8B, 0x1F, 0xA5, 0x71, 0xE4, 0x37, 0xD6, 0xC9]);
+@GUID("8AA85302-D2E2-4E20-8B1F-A571E437D6C9")
 interface ITemplateSdo : ISdo
 {
     HRESULT AddToCollection(BSTR bstrName, IDispatch pCollection, IDispatch* ppItem);
@@ -707,8 +950,7 @@ interface ITemplateSdo : ISdo
     HRESULT AddToSdoAsProperty(IDispatch pSdoTarget, int id);
 }
 
-const GUID IID_ISdoDictionaryOld = {0xD432E5F4, 0x53D8, 0x11D2, [0x9A, 0x3A, 0x00, 0xC0, 0x4F, 0xB9, 0x98, 0xAC]};
-@GUID(0xD432E5F4, 0x53D8, 0x11D2, [0x9A, 0x3A, 0x00, 0xC0, 0x4F, 0xB9, 0x98, 0xAC]);
+@GUID("D432E5F4-53D8-11D2-9A3A-00C04FB998AC")
 interface ISdoDictionaryOld : IDispatch
 {
     HRESULT EnumAttributes(VARIANT* Id, VARIANT* pValues);
@@ -718,186 +960,15 @@ interface ISdoDictionaryOld : IDispatch
     HRESULT GetAttributeID(BSTR bstrAttributeName, ATTRIBUTEID* pId);
 }
 
-enum RADIUS_ATTRIBUTE_TYPE
-{
-    ratMinimum = 0,
-    ratUserName = 1,
-    ratUserPassword = 2,
-    ratCHAPPassword = 3,
-    ratNASIPAddress = 4,
-    ratNASPort = 5,
-    ratServiceType = 6,
-    ratFramedProtocol = 7,
-    ratFramedIPAddress = 8,
-    ratFramedIPNetmask = 9,
-    ratFramedRouting = 10,
-    ratFilterId = 11,
-    ratFramedMTU = 12,
-    ratFramedCompression = 13,
-    ratLoginIPHost = 14,
-    ratLoginService = 15,
-    ratLoginPort = 16,
-    ratReplyMessage = 18,
-    ratCallbackNumber = 19,
-    ratCallbackId = 20,
-    ratFramedRoute = 22,
-    ratFramedIPXNetwork = 23,
-    ratState = 24,
-    ratClass = 25,
-    ratVendorSpecific = 26,
-    ratSessionTimeout = 27,
-    ratIdleTimeout = 28,
-    ratTerminationAction = 29,
-    ratCalledStationId = 30,
-    ratCallingStationId = 31,
-    ratNASIdentifier = 32,
-    ratProxyState = 33,
-    ratLoginLATService = 34,
-    ratLoginLATNode = 35,
-    ratLoginLATGroup = 36,
-    ratFramedAppleTalkLink = 37,
-    ratFramedAppleTalkNetwork = 38,
-    ratFramedAppleTalkZone = 39,
-    ratAcctStatusType = 40,
-    ratAcctDelayTime = 41,
-    ratAcctInputOctets = 42,
-    ratAcctOutputOctets = 43,
-    ratAcctSessionId = 44,
-    ratAcctAuthentic = 45,
-    ratAcctSessionTime = 46,
-    ratAcctInputPackets = 47,
-    ratAcctOutputPackets = 48,
-    ratAcctTerminationCause = 49,
-    ratCHAPChallenge = 60,
-    ratNASPortType = 61,
-    ratPortLimit = 62,
-    ratTunnelType = 64,
-    ratMediumType = 65,
-    ratTunnelPassword = 69,
-    ratTunnelPrivateGroupID = 81,
-    ratNASIPv6Address = 95,
-    ratFramedInterfaceId = 96,
-    ratFramedIPv6Prefix = 97,
-    ratLoginIPv6Host = 98,
-    ratFramedIPv6Route = 99,
-    ratFramedIPv6Pool = 100,
-    ratCode = 262,
-    ratIdentifier = 263,
-    ratAuthenticator = 264,
-    ratSrcIPAddress = 265,
-    ratSrcPort = 266,
-    ratProvider = 267,
-    ratStrippedUserName = 268,
-    ratFQUserName = 269,
-    ratPolicyName = 270,
-    ratUniqueId = 271,
-    ratExtensionState = 272,
-    ratEAPTLV = 273,
-    ratRejectReasonCode = 274,
-    ratCRPPolicyName = 275,
-    ratProviderName = 276,
-    ratClearTextPassword = 277,
-    ratSrcIPv6Address = 278,
-    ratCertificateThumbprint = 279,
-}
 
-enum RADIUS_CODE
-{
-    rcUnknown = 0,
-    rcAccessRequest = 1,
-    rcAccessAccept = 2,
-    rcAccessReject = 3,
-    rcAccountingRequest = 4,
-    rcAccountingResponse = 5,
-    rcAccessChallenge = 11,
-    rcDiscard = 256,
-}
+// GUIDs
 
-enum RADIUS_AUTHENTICATION_PROVIDER
-{
-    rapUnknown = 0,
-    rapUsersFile = 1,
-    rapProxy = 2,
-    rapWindowsNT = 3,
-    rapMCIS = 4,
-    rapODBC = 5,
-    rapNone = 6,
-}
+const GUID CLSID_SdoMachine = GUIDOF!SdoMachine;
 
-enum RADIUS_REJECT_REASON_CODE
-{
-    rrrcUndefined = 0,
-    rrrcAccountUnknown = 1,
-    rrrcAccountDisabled = 2,
-    rrrcAccountExpired = 3,
-    rrrcAuthenticationFailure = 4,
-}
-
-enum RADIUS_DATA_TYPE
-{
-    rdtUnknown = 0,
-    rdtString = 1,
-    rdtAddress = 2,
-    rdtInteger = 3,
-    rdtTime = 4,
-    rdtIpv6Address = 5,
-}
-
-struct RADIUS_ATTRIBUTE
-{
-    uint dwAttrType;
-    RADIUS_DATA_TYPE fDataType;
-    uint cbDataLength;
-    _Anonymous_e__Union Anonymous;
-}
-
-struct RADIUS_VSA_FORMAT
-{
-    ubyte VendorId;
-    ubyte VendorType;
-    ubyte VendorLength;
-    ubyte AttributeSpecific;
-}
-
-enum RADIUS_ACTION
-{
-    raContinue = 0,
-    raReject = 1,
-    raAccept = 2,
-}
-
-alias PRADIUS_EXTENSION_INIT = extern(Windows) uint function();
-alias PRADIUS_EXTENSION_TERM = extern(Windows) void function();
-alias PRADIUS_EXTENSION_PROCESS = extern(Windows) uint function(const(RADIUS_ATTRIBUTE)* pAttrs, RADIUS_ACTION* pfAction);
-alias PRADIUS_EXTENSION_PROCESS_EX = extern(Windows) uint function(const(RADIUS_ATTRIBUTE)* pInAttrs, RADIUS_ATTRIBUTE** pOutAttrs, RADIUS_ACTION* pfAction);
-alias PRADIUS_EXTENSION_FREE_ATTRIBUTES = extern(Windows) void function(RADIUS_ATTRIBUTE* pAttrs);
-enum RADIUS_EXTENSION_POINT
-{
-    repAuthentication = 0,
-    repAuthorization = 1,
-}
-
-struct RADIUS_ATTRIBUTE_ARRAY
-{
-    uint cbSize;
-    int Add;
-    const(int) AttributeAt;
-    int GetSize;
-    int InsertAt;
-    int RemoveAt;
-    int SetAt;
-}
-
-struct RADIUS_EXTENSION_CONTROL_BLOCK
-{
-    uint cbSize;
-    uint dwVersion;
-    RADIUS_EXTENSION_POINT repPoint;
-    RADIUS_CODE rcRequestType;
-    RADIUS_CODE rcResponseType;
-    int GetRequest;
-    int GetResponse;
-    int SetResponseType;
-}
-
-alias PRADIUS_EXTENSION_PROCESS_2 = extern(Windows) uint function(RADIUS_EXTENSION_CONTROL_BLOCK* pECB);
+const GUID IID_ISdo               = GUIDOF!ISdo;
+const GUID IID_ISdoCollection     = GUIDOF!ISdoCollection;
+const GUID IID_ISdoDictionaryOld  = GUIDOF!ISdoDictionaryOld;
+const GUID IID_ISdoMachine        = GUIDOF!ISdoMachine;
+const GUID IID_ISdoMachine2       = GUIDOF!ISdoMachine2;
+const GUID IID_ISdoServiceControl = GUIDOF!ISdoServiceControl;
+const GUID IID_ITemplateSdo       = GUIDOF!ITemplateSdo;

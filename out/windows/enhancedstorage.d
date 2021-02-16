@@ -1,56 +1,55 @@
 module windows.enhancedstorage;
 
-public import windows.com;
-public import windows.systemservices;
-public import windows.windowsportabledevices;
+public import windows.core;
+public import windows.com : HRESULT, IUnknown;
+public import windows.systemservices : BOOL;
+public import windows.windowsportabledevices : IPortableDevice;
 
 extern(Windows):
 
+
+// Enums
+
+
+enum : int
+{
+    ACT_UNAUTHORIZED = 0x00000000,
+    ACT_AUTHORIZED   = 0x00000001,
+}
+alias ACT_AUTHORIZATION_STATE_VALUE = int;
+
+// Structs
+
+
 struct ENHANCED_STORAGE_PASSWORD_SILO_INFORMATION
 {
-    ubyte CurrentAdminFailures;
-    ubyte CurrentUserFailures;
-    uint TotalUserAuthenticationCount;
-    uint TotalAdminAuthenticationCount;
-    BOOL FipsCompliant;
-    BOOL SecurityIDAvailable;
-    BOOL InitializeInProgress;
-    BOOL ITMSArmed;
-    BOOL ITMSArmable;
-    BOOL UserCreated;
-    BOOL ResetOnPORDefault;
-    BOOL ResetOnPORCurrent;
-    ubyte MaxAdminFailures;
-    ubyte MaxUserFailures;
-    uint TimeToCompleteInitialization;
-    uint TimeRemainingToCompleteInitialization;
-    uint MinTimeToAuthenticate;
-    ubyte MaxAdminPasswordSize;
-    ubyte MinAdminPasswordSize;
-    ubyte MaxAdminHintSize;
-    ubyte MaxUserPasswordSize;
-    ubyte MinUserPasswordSize;
-    ubyte MaxUserHintSize;
-    ubyte MaxUserNameSize;
-    ubyte MaxSiloNameSize;
+    ubyte  CurrentAdminFailures;
+    ubyte  CurrentUserFailures;
+    uint   TotalUserAuthenticationCount;
+    uint   TotalAdminAuthenticationCount;
+    BOOL   FipsCompliant;
+    BOOL   SecurityIDAvailable;
+    BOOL   InitializeInProgress;
+    BOOL   ITMSArmed;
+    BOOL   ITMSArmable;
+    BOOL   UserCreated;
+    BOOL   ResetOnPORDefault;
+    BOOL   ResetOnPORCurrent;
+    ubyte  MaxAdminFailures;
+    ubyte  MaxUserFailures;
+    uint   TimeToCompleteInitialization;
+    uint   TimeRemainingToCompleteInitialization;
+    uint   MinTimeToAuthenticate;
+    ubyte  MaxAdminPasswordSize;
+    ubyte  MinAdminPasswordSize;
+    ubyte  MaxAdminHintSize;
+    ubyte  MaxUserPasswordSize;
+    ubyte  MinUserPasswordSize;
+    ubyte  MaxUserHintSize;
+    ubyte  MaxUserNameSize;
+    ubyte  MaxSiloNameSize;
     ushort MaxChallengeSize;
 }
-
-const GUID CLSID_EnumEnhancedStorageACT = {0xFE841493, 0x835C, 0x4FA3, [0xB6, 0xCC, 0xB4, 0xB2, 0xD4, 0x71, 0x98, 0x48]};
-@GUID(0xFE841493, 0x835C, 0x4FA3, [0xB6, 0xCC, 0xB4, 0xB2, 0xD4, 0x71, 0x98, 0x48]);
-struct EnumEnhancedStorageACT;
-
-const GUID CLSID_EnhancedStorageACT = {0xAF076A15, 0x2ECE, 0x4AD4, [0xBB, 0x21, 0x29, 0xF0, 0x40, 0xE1, 0x76, 0xD8]};
-@GUID(0xAF076A15, 0x2ECE, 0x4AD4, [0xBB, 0x21, 0x29, 0xF0, 0x40, 0xE1, 0x76, 0xD8]);
-struct EnhancedStorageACT;
-
-const GUID CLSID_EnhancedStorageSilo = {0xCB25220C, 0x76C7, 0x4FEE, [0x84, 0x2B, 0xF3, 0x38, 0x3C, 0xD0, 0x22, 0xBC]};
-@GUID(0xCB25220C, 0x76C7, 0x4FEE, [0x84, 0x2B, 0xF3, 0x38, 0x3C, 0xD0, 0x22, 0xBC]);
-struct EnhancedStorageSilo;
-
-const GUID CLSID_EnhancedStorageSiloAction = {0x886D29DD, 0xB506, 0x466B, [0x9F, 0xBF, 0xB4, 0x4F, 0xF3, 0x83, 0xFB, 0x3F]};
-@GUID(0x886D29DD, 0xB506, 0x466B, [0x9F, 0xBF, 0xB4, 0x4F, 0xF3, 0x83, 0xFB, 0x3F]);
-struct EnhancedStorageSiloAction;
 
 struct ACT_AUTHORIZATION_STATE
 {
@@ -59,7 +58,7 @@ struct ACT_AUTHORIZATION_STATE
 
 struct SILO_INFO
 {
-    uint ulSTID;
+    uint  ulSTID;
     ubyte SpecificationMajor;
     ubyte SpecificationMinor;
     ubyte ImplementationMajor;
@@ -68,22 +67,28 @@ struct SILO_INFO
     ubyte capabilities;
 }
 
-enum ACT_AUTHORIZATION_STATE_VALUE
-{
-    ACT_UNAUTHORIZED = 0,
-    ACT_AUTHORIZED = 1,
-}
+// Interfaces
 
-const GUID IID_IEnumEnhancedStorageACT = {0x09B224BD, 0x1335, 0x4631, [0xA7, 0xFF, 0xCF, 0xD3, 0xA9, 0x26, 0x46, 0xD7]};
-@GUID(0x09B224BD, 0x1335, 0x4631, [0xA7, 0xFF, 0xCF, 0xD3, 0xA9, 0x26, 0x46, 0xD7]);
+@GUID("FE841493-835C-4FA3-B6CC-B4B2D4719848")
+struct EnumEnhancedStorageACT;
+
+@GUID("AF076A15-2ECE-4AD4-BB21-29F040E176D8")
+struct EnhancedStorageACT;
+
+@GUID("CB25220C-76C7-4FEE-842B-F3383CD022BC")
+struct EnhancedStorageSilo;
+
+@GUID("886D29DD-B506-466B-9FBF-B44FF383FB3F")
+struct EnhancedStorageSiloAction;
+
+@GUID("09B224BD-1335-4631-A7FF-CFD3A92646D7")
 interface IEnumEnhancedStorageACT : IUnknown
 {
     HRESULT GetACTs(IEnhancedStorageACT** pppIEnhancedStorageACTs, uint* pcEnhancedStorageACTs);
     HRESULT GetMatchingACT(const(wchar)* szVolume, IEnhancedStorageACT* ppIEnhancedStorageACT);
 }
 
-const GUID IID_IEnhancedStorageACT = {0x6E7781F4, 0xE0F2, 0x4239, [0xB9, 0x76, 0xA0, 0x1A, 0xBA, 0xB5, 0x29, 0x30]};
-@GUID(0x6E7781F4, 0xE0F2, 0x4239, [0xB9, 0x76, 0xA0, 0x1A, 0xBA, 0xB5, 0x29, 0x30]);
+@GUID("6E7781F4-E0F2-4239-B976-A01ABAB52930")
 interface IEnhancedStorageACT : IUnknown
 {
     HRESULT Authorize(uint hwndParent, uint dwFlags);
@@ -94,16 +99,14 @@ interface IEnhancedStorageACT : IUnknown
     HRESULT GetSilos(IEnhancedStorageSilo** pppIEnhancedStorageSilos, uint* pcEnhancedStorageSilos);
 }
 
-const GUID IID_IEnhancedStorageACT2 = {0x4DA57D2E, 0x8EB3, 0x41F6, [0xA0, 0x7E, 0x98, 0xB5, 0x2B, 0x88, 0x24, 0x2B]};
-@GUID(0x4DA57D2E, 0x8EB3, 0x41F6, [0xA0, 0x7E, 0x98, 0xB5, 0x2B, 0x88, 0x24, 0x2B]);
+@GUID("4DA57D2E-8EB3-41F6-A07E-98B52B88242B")
 interface IEnhancedStorageACT2 : IEnhancedStorageACT
 {
     HRESULT GetDeviceName(ushort** ppwszDeviceName);
     HRESULT IsDeviceRemovable(int* pIsDeviceRemovable);
 }
 
-const GUID IID_IEnhancedStorageACT3 = {0x022150A1, 0x113D, 0x11DF, [0xBB, 0x61, 0x00, 0x1A, 0xA0, 0x1B, 0xBC, 0x58]};
-@GUID(0x022150A1, 0x113D, 0x11DF, [0xBB, 0x61, 0x00, 0x1A, 0xA0, 0x1B, 0xBC, 0x58]);
+@GUID("022150A1-113D-11DF-BB61-001AA01BBC58")
 interface IEnhancedStorageACT3 : IEnhancedStorageACT2
 {
     HRESULT UnauthorizeEx(uint dwFlags);
@@ -111,19 +114,19 @@ interface IEnhancedStorageACT3 : IEnhancedStorageACT2
     HRESULT GetShellExtSupport(int* pShellExtSupport);
 }
 
-const GUID IID_IEnhancedStorageSilo = {0x5AEF78C6, 0x2242, 0x4703, [0xBF, 0x49, 0x44, 0xB2, 0x93, 0x57, 0xA3, 0x59]};
-@GUID(0x5AEF78C6, 0x2242, 0x4703, [0xBF, 0x49, 0x44, 0xB2, 0x93, 0x57, 0xA3, 0x59]);
+@GUID("5AEF78C6-2242-4703-BF49-44B29357A359")
 interface IEnhancedStorageSilo : IUnknown
 {
     HRESULT GetInfo(SILO_INFO* pSiloInfo);
-    HRESULT GetActions(IEnhancedStorageSiloAction** pppIEnhancedStorageSiloActions, uint* pcEnhancedStorageSiloActions);
-    HRESULT SendCommand(ubyte Command, ubyte* pbCommandBuffer, uint cbCommandBuffer, ubyte* pbResponseBuffer, uint* pcbResponseBuffer);
+    HRESULT GetActions(IEnhancedStorageSiloAction** pppIEnhancedStorageSiloActions, 
+                       uint* pcEnhancedStorageSiloActions);
+    HRESULT SendCommand(ubyte Command, ubyte* pbCommandBuffer, uint cbCommandBuffer, ubyte* pbResponseBuffer, 
+                        uint* pcbResponseBuffer);
     HRESULT GetPortableDevice(IPortableDevice* ppIPortableDevice);
     HRESULT GetDevicePath(ushort** ppwszSiloDevicePath);
 }
 
-const GUID IID_IEnhancedStorageSiloAction = {0xB6F7F311, 0x206F, 0x4FF8, [0x9C, 0x4B, 0x27, 0xEF, 0xEE, 0x77, 0xA8, 0x6F]};
-@GUID(0xB6F7F311, 0x206F, 0x4FF8, [0x9C, 0x4B, 0x27, 0xEF, 0xEE, 0x77, 0xA8, 0x6F]);
+@GUID("B6F7F311-206F-4FF8-9C4B-27EFEE77A86F")
 interface IEnhancedStorageSiloAction : IUnknown
 {
     HRESULT GetName(ushort** ppwszActionName);
@@ -131,3 +134,17 @@ interface IEnhancedStorageSiloAction : IUnknown
     HRESULT Invoke();
 }
 
+
+// GUIDs
+
+const GUID CLSID_EnhancedStorageACT        = GUIDOF!EnhancedStorageACT;
+const GUID CLSID_EnhancedStorageSilo       = GUIDOF!EnhancedStorageSilo;
+const GUID CLSID_EnhancedStorageSiloAction = GUIDOF!EnhancedStorageSiloAction;
+const GUID CLSID_EnumEnhancedStorageACT    = GUIDOF!EnumEnhancedStorageACT;
+
+const GUID IID_IEnhancedStorageACT        = GUIDOF!IEnhancedStorageACT;
+const GUID IID_IEnhancedStorageACT2       = GUIDOF!IEnhancedStorageACT2;
+const GUID IID_IEnhancedStorageACT3       = GUIDOF!IEnhancedStorageACT3;
+const GUID IID_IEnhancedStorageSilo       = GUIDOF!IEnhancedStorageSilo;
+const GUID IID_IEnhancedStorageSiloAction = GUIDOF!IEnhancedStorageSiloAction;
+const GUID IID_IEnumEnhancedStorageACT    = GUIDOF!IEnumEnhancedStorageACT;

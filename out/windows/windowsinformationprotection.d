@@ -1,57 +1,34 @@
 module windows.windowsinformationprotection;
 
-public import system;
-public import windows.appxpackaging;
-public import windows.com;
-public import windows.systemservices;
-public import windows.winrt;
-public import windows.windowsandmessaging;
+public import windows.core;
+public import windows.appxpackaging : PACKAGE_ID;
+public import windows.com : HRESULT, IUnknown;
+public import windows.systemservices : HANDLE, NTSTATUS;
+public import windows.winrt : IInspectable;
+public import windows.windowsandmessaging : HWND;
 
 extern(Windows):
 
-const GUID IID_IProtectionPolicyManagerInterop = {0x4652651D, 0xC1FE, 0x4BA1, [0x9F, 0x0A, 0xC0, 0xF5, 0x65, 0x96, 0xF7, 0x21]};
-@GUID(0x4652651D, 0xC1FE, 0x4BA1, [0x9F, 0x0A, 0xC0, 0xF5, 0x65, 0x96, 0xF7, 0x21]);
-interface IProtectionPolicyManagerInterop : IInspectable
-{
-    HRESULT RequestAccessForWindowAsync(HWND appWindow, int sourceIdentity, int targetIdentity, const(Guid)* riid, void** asyncOperation);
-    HRESULT GetForWindow(HWND appWindow, const(Guid)* riid, void** result);
-}
 
-const GUID IID_IProtectionPolicyManagerInterop2 = {0x157CFBE4, 0xA78D, 0x4156, [0xB3, 0x84, 0x61, 0xFD, 0xAC, 0x41, 0xE6, 0x86]};
-@GUID(0x157CFBE4, 0xA78D, 0x4156, [0xB3, 0x84, 0x61, 0xFD, 0xAC, 0x41, 0xE6, 0x86]);
-interface IProtectionPolicyManagerInterop2 : IInspectable
-{
-    HRESULT RequestAccessForAppWithWindowAsync(HWND appWindow, int sourceIdentity, int appPackageFamilyName, const(Guid)* riid, void** asyncOperation);
-    HRESULT RequestAccessWithAuditingInfoForWindowAsync(HWND appWindow, int sourceIdentity, int targetIdentity, IUnknown auditInfoUnk, const(Guid)* riid, void** asyncOperation);
-    HRESULT RequestAccessWithMessageForWindowAsync(HWND appWindow, int sourceIdentity, int targetIdentity, IUnknown auditInfoUnk, int messageFromApp, const(Guid)* riid, void** asyncOperation);
-    HRESULT RequestAccessForAppWithAuditingInfoForWindowAsync(HWND appWindow, int sourceIdentity, int appPackageFamilyName, IUnknown auditInfoUnk, const(Guid)* riid, void** asyncOperation);
-    HRESULT RequestAccessForAppWithMessageForWindowAsync(HWND appWindow, int sourceIdentity, int appPackageFamilyName, IUnknown auditInfoUnk, int messageFromApp, const(Guid)* riid, void** asyncOperation);
-}
+// Enums
 
-const GUID IID_IProtectionPolicyManagerInterop3 = {0xC1C03933, 0xB398, 0x4D93, [0xB0, 0xFD, 0x29, 0x72, 0xAD, 0xF8, 0x02, 0xC2]};
-@GUID(0xC1C03933, 0xB398, 0x4D93, [0xB0, 0xFD, 0x29, 0x72, 0xAD, 0xF8, 0x02, 0xC2]);
-interface IProtectionPolicyManagerInterop3 : IInspectable
+
+enum : int
 {
-    HRESULT RequestAccessWithBehaviorForWindowAsync(HWND appWindow, int sourceIdentity, int targetIdentity, IUnknown auditInfoUnk, int messageFromApp, uint behavior, const(Guid)* riid, void** asyncOperation);
-    HRESULT RequestAccessForAppWithBehaviorForWindowAsync(HWND appWindow, int sourceIdentity, int appPackageFamilyName, IUnknown auditInfoUnk, int messageFromApp, uint behavior, const(Guid)* riid, void** asyncOperation);
-    HRESULT RequestAccessToFilesForAppForWindowAsync(HWND appWindow, IUnknown sourceItemListUnk, int appPackageFamilyName, IUnknown auditInfoUnk, const(Guid)* riid, void** asyncOperation);
-    HRESULT RequestAccessToFilesForAppWithMessageAndBehaviorForWindowAsync(HWND appWindow, IUnknown sourceItemListUnk, int appPackageFamilyName, IUnknown auditInfoUnk, int messageFromApp, uint behavior, const(Guid)* riid, void** asyncOperation);
-    HRESULT RequestAccessToFilesForProcessForWindowAsync(HWND appWindow, IUnknown sourceItemListUnk, uint processId, IUnknown auditInfoUnk, const(Guid)* riid, void** asyncOperation);
-    HRESULT RequestAccessToFilesForProcessWithMessageAndBehaviorForWindowAsync(HWND appWindow, IUnknown sourceItemListUnk, uint processId, IUnknown auditInfoUnk, int messageFromApp, uint behavior, const(Guid)* riid, void** asyncOperation);
+    ENTERPRISE_POLICY_NONE        = 0x00000000,
+    ENTERPRISE_POLICY_ALLOWED     = 0x00000001,
+    ENTERPRISE_POLICY_ENLIGHTENED = 0x00000002,
+    ENTERPRISE_POLICY_EXEMPT      = 0x00000004,
 }
+alias ENTERPRISE_DATA_POLICIES = int;
+
+// Structs
+
 
 struct HTHREAD_NETWORK_CONTEXT
 {
-    uint ThreadId;
+    uint   ThreadId;
     HANDLE ThreadContext;
-}
-
-enum ENTERPRISE_DATA_POLICIES
-{
-    ENTERPRISE_POLICY_NONE = 0,
-    ENTERPRISE_POLICY_ALLOWED = 1,
-    ENTERPRISE_POLICY_ENLIGHTENED = 2,
-    ENTERPRISE_POLICY_EXEMPT = 4,
 }
 
 struct FILE_UNPROTECT_OPTIONS
@@ -59,36 +36,109 @@ struct FILE_UNPROTECT_OPTIONS
     bool audit;
 }
 
-@DllImport("srpapi.dll")
+// Functions
+
+@DllImport("srpapi")
 HRESULT SrpCreateThreadNetworkContext(const(wchar)* enterpriseId, HTHREAD_NETWORK_CONTEXT* threadNetworkContext);
 
-@DllImport("srpapi.dll")
+@DllImport("srpapi")
 HRESULT SrpCloseThreadNetworkContext(HTHREAD_NETWORK_CONTEXT* threadNetworkContext);
 
-@DllImport("srpapi.dll")
+@DllImport("srpapi")
 HRESULT SrpSetTokenEnterpriseId(HANDLE tokenHandle, const(wchar)* enterpriseId);
 
-@DllImport("srpapi.dll")
+@DllImport("srpapi")
 HRESULT SrpGetEnterpriseIds(HANDLE tokenHandle, uint* numberOfBytes, char* enterpriseIds, uint* enterpriseIdCount);
 
-@DllImport("srpapi.dll")
+@DllImport("srpapi")
 HRESULT SrpEnablePermissiveModeFileEncryption(const(wchar)* enterpriseId);
 
-@DllImport("srpapi.dll")
+@DllImport("srpapi")
 HRESULT SrpDisablePermissiveModeFileEncryption();
 
-@DllImport("srpapi.dll")
+@DllImport("srpapi")
 HRESULT SrpGetEnterprisePolicy(HANDLE tokenHandle, ENTERPRISE_DATA_POLICIES* policyFlags);
 
-@DllImport("srpapi.dll")
+@DllImport("srpapi")
 NTSTATUS SrpIsTokenService(HANDLE TokenHandle, ubyte* IsTokenService);
 
-@DllImport("srpapi.dll")
+@DllImport("srpapi")
 HRESULT SrpDoesPolicyAllowAppExecution(const(PACKAGE_ID)* packageId, int* isAllowed);
 
-@DllImport("efswrt.dll")
+@DllImport("efswrt")
 HRESULT ProtectFileToEnterpriseIdentity(const(wchar)* fileOrFolderPath, const(wchar)* identity);
 
-@DllImport("efswrt.dll")
+@DllImport("efswrt")
 HRESULT UnprotectFile(const(wchar)* fileOrFolderPath, const(FILE_UNPROTECT_OPTIONS)* options);
 
+
+// Interfaces
+
+@GUID("4652651D-C1FE-4BA1-9F0A-C0F56596F721")
+interface IProtectionPolicyManagerInterop : IInspectable
+{
+    HRESULT RequestAccessForWindowAsync(HWND appWindow, ptrdiff_t sourceIdentity, ptrdiff_t targetIdentity, 
+                                        const(GUID)* riid, void** asyncOperation);
+    HRESULT GetForWindow(HWND appWindow, const(GUID)* riid, void** result);
+}
+
+@GUID("157CFBE4-A78D-4156-B384-61FDAC41E686")
+interface IProtectionPolicyManagerInterop2 : IInspectable
+{
+    HRESULT RequestAccessForAppWithWindowAsync(HWND appWindow, ptrdiff_t sourceIdentity, 
+                                               ptrdiff_t appPackageFamilyName, const(GUID)* riid, 
+                                               void** asyncOperation);
+    HRESULT RequestAccessWithAuditingInfoForWindowAsync(HWND appWindow, ptrdiff_t sourceIdentity, 
+                                                        ptrdiff_t targetIdentity, IUnknown auditInfoUnk, 
+                                                        const(GUID)* riid, void** asyncOperation);
+    HRESULT RequestAccessWithMessageForWindowAsync(HWND appWindow, ptrdiff_t sourceIdentity, 
+                                                   ptrdiff_t targetIdentity, IUnknown auditInfoUnk, 
+                                                   ptrdiff_t messageFromApp, const(GUID)* riid, 
+                                                   void** asyncOperation);
+    HRESULT RequestAccessForAppWithAuditingInfoForWindowAsync(HWND appWindow, ptrdiff_t sourceIdentity, 
+                                                              ptrdiff_t appPackageFamilyName, IUnknown auditInfoUnk, 
+                                                              const(GUID)* riid, void** asyncOperation);
+    HRESULT RequestAccessForAppWithMessageForWindowAsync(HWND appWindow, ptrdiff_t sourceIdentity, 
+                                                         ptrdiff_t appPackageFamilyName, IUnknown auditInfoUnk, 
+                                                         ptrdiff_t messageFromApp, const(GUID)* riid, 
+                                                         void** asyncOperation);
+}
+
+@GUID("C1C03933-B398-4D93-B0FD-2972ADF802C2")
+interface IProtectionPolicyManagerInterop3 : IInspectable
+{
+    HRESULT RequestAccessWithBehaviorForWindowAsync(HWND appWindow, ptrdiff_t sourceIdentity, 
+                                                    ptrdiff_t targetIdentity, IUnknown auditInfoUnk, 
+                                                    ptrdiff_t messageFromApp, uint behavior, const(GUID)* riid, 
+                                                    void** asyncOperation);
+    HRESULT RequestAccessForAppWithBehaviorForWindowAsync(HWND appWindow, ptrdiff_t sourceIdentity, 
+                                                          ptrdiff_t appPackageFamilyName, IUnknown auditInfoUnk, 
+                                                          ptrdiff_t messageFromApp, uint behavior, const(GUID)* riid, 
+                                                          void** asyncOperation);
+    HRESULT RequestAccessToFilesForAppForWindowAsync(HWND appWindow, IUnknown sourceItemListUnk, 
+                                                     ptrdiff_t appPackageFamilyName, IUnknown auditInfoUnk, 
+                                                     const(GUID)* riid, void** asyncOperation);
+    HRESULT RequestAccessToFilesForAppWithMessageAndBehaviorForWindowAsync(HWND appWindow, 
+                                                                           IUnknown sourceItemListUnk, 
+                                                                           ptrdiff_t appPackageFamilyName, 
+                                                                           IUnknown auditInfoUnk, 
+                                                                           ptrdiff_t messageFromApp, uint behavior, 
+                                                                           const(GUID)* riid, void** asyncOperation);
+    HRESULT RequestAccessToFilesForProcessForWindowAsync(HWND appWindow, IUnknown sourceItemListUnk, 
+                                                         uint processId, IUnknown auditInfoUnk, const(GUID)* riid, 
+                                                         void** asyncOperation);
+    HRESULT RequestAccessToFilesForProcessWithMessageAndBehaviorForWindowAsync(HWND appWindow, 
+                                                                               IUnknown sourceItemListUnk, 
+                                                                               uint processId, IUnknown auditInfoUnk, 
+                                                                               ptrdiff_t messageFromApp, 
+                                                                               uint behavior, const(GUID)* riid, 
+                                                                               void** asyncOperation);
+}
+
+
+// GUIDs
+
+
+const GUID IID_IProtectionPolicyManagerInterop  = GUIDOF!IProtectionPolicyManagerInterop;
+const GUID IID_IProtectionPolicyManagerInterop2 = GUIDOF!IProtectionPolicyManagerInterop2;
+const GUID IID_IProtectionPolicyManagerInterop3 = GUIDOF!IProtectionPolicyManagerInterop3;

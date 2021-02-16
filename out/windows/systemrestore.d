@@ -1,44 +1,56 @@
 module windows.systemrestore;
 
-public import windows.systemservices;
-public import windows.windowsprogramming;
+public import windows.core;
+public import windows.systemservices : BOOL;
+public import windows.windowsprogramming : FILETIME;
 
 extern(Windows):
 
+
+// Structs
+
+
 struct RESTOREPOINTINFOA
 {
-    uint dwEventType;
-    uint dwRestorePtType;
-    long llSequenceNumber;
-    byte szDescription;
+align (1):
+    uint     dwEventType;
+    uint     dwRestorePtType;
+    long     llSequenceNumber;
+    byte[64] szDescription;
 }
 
 struct RESTOREPOINTINFOW
 {
-    uint dwEventType;
-    uint dwRestorePtType;
-    long llSequenceNumber;
-    ushort szDescription;
+align (1):
+    uint        dwEventType;
+    uint        dwRestorePtType;
+    long        llSequenceNumber;
+    ushort[256] szDescription;
 }
 
 struct _RESTOREPTINFOEX
 {
-    FILETIME ftCreation;
-    uint dwEventType;
-    uint dwRestorePtType;
-    uint dwRPNum;
-    ushort szDescription;
+align (1):
+    FILETIME    ftCreation;
+    uint        dwEventType;
+    uint        dwRestorePtType;
+    uint        dwRPNum;
+    ushort[256] szDescription;
 }
 
 struct STATEMGRSTATUS
 {
+align (1):
     uint nStatus;
     long llSequenceNumber;
 }
 
-@DllImport("sfc.dll")
+// Functions
+
+@DllImport("sfc")
 BOOL SRSetRestorePointA(RESTOREPOINTINFOA* pRestorePtSpec, STATEMGRSTATUS* pSMgrStatus);
 
-@DllImport("sfc.dll")
+@DllImport("sfc")
 BOOL SRSetRestorePointW(RESTOREPOINTINFOW* pRestorePtSpec, STATEMGRSTATUS* pSMgrStatus);
+
 

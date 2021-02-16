@@ -1,246 +1,245 @@
 module windows.grouppolicymanagementconsole;
 
-public import windows.automation;
-public import windows.com;
+public import windows.core;
+public import windows.automation : BSTR, IDispatch, IEnumVARIANT, VARIANT;
+public import windows.com : HRESULT;
 
 extern(Windows):
 
-const GUID CLSID_GPM = {0xF5694708, 0x88FE, 0x4B35, [0xBA, 0xBF, 0xE5, 0x61, 0x62, 0xD5, 0xFB, 0xC8]};
-@GUID(0xF5694708, 0x88FE, 0x4B35, [0xBA, 0xBF, 0xE5, 0x61, 0x62, 0xD5, 0xFB, 0xC8]);
+
+// Enums
+
+
+enum : int
+{
+    rsopUnknown  = 0x00000000,
+    rsopPlanning = 0x00000001,
+    rsopLogging  = 0x00000002,
+}
+alias __MIDL___MIDL_itf_gpmgmt_0000_0000_0001 = int;
+
+enum GPMPermissionType : int
+{
+    permGPOApply                 = 0x00010000,
+    permGPORead                  = 0x00010100,
+    permGPOEdit                  = 0x00010101,
+    permGPOEditSecurityAndDelete = 0x00010102,
+    permGPOCustom                = 0x00010103,
+    permWMIFilterEdit            = 0x00020000,
+    permWMIFilterFullControl     = 0x00020001,
+    permWMIFilterCustom          = 0x00020002,
+    permSOMLink                  = 0x001c0000,
+    permSOMLogging               = 0x00180100,
+    permSOMPlanning              = 0x00180200,
+    permSOMWMICreate             = 0x00100300,
+    permSOMWMIFullControl        = 0x00100301,
+    permSOMGPOCreate             = 0x00100400,
+    permStarterGPORead           = 0x00030500,
+    permStarterGPOEdit           = 0x00030501,
+    permStarterGPOFullControl    = 0x00030502,
+    permStarterGPOCustom         = 0x00030503,
+    permSOMStarterGPOCreate      = 0x00100500,
+}
+
+enum GPMSearchProperty : int
+{
+    gpoPermissions                 = 0x00000000,
+    gpoEffectivePermissions        = 0x00000001,
+    gpoDisplayName                 = 0x00000002,
+    gpoWMIFilter                   = 0x00000003,
+    gpoID                          = 0x00000004,
+    gpoComputerExtensions          = 0x00000005,
+    gpoUserExtensions              = 0x00000006,
+    somLinks                       = 0x00000007,
+    gpoDomain                      = 0x00000008,
+    backupMostRecent               = 0x00000009,
+    starterGPOPermissions          = 0x0000000a,
+    starterGPOEffectivePermissions = 0x0000000b,
+    starterGPODisplayName          = 0x0000000c,
+    starterGPOID                   = 0x0000000d,
+    starterGPODomain               = 0x0000000e,
+}
+
+enum : int
+{
+    opEquals      = 0x00000000,
+    opContains    = 0x00000001,
+    opNotContains = 0x00000002,
+    opNotEquals   = 0x00000003,
+}
+alias __MIDL___MIDL_itf_gpmgmt_0000_0000_0004 = int;
+
+enum : int
+{
+    repXML                    = 0x00000000,
+    repHTML                   = 0x00000001,
+    repInfraXML               = 0x00000002,
+    repInfraRefreshXML        = 0x00000003,
+    repClientHealthXML        = 0x00000004,
+    repClientHealthRefreshXML = 0x00000005,
+}
+alias __MIDL___MIDL_itf_gpmgmt_0000_0000_0005 = int;
+
+enum : int
+{
+    typeUser           = 0x00000000,
+    typeComputer       = 0x00000001,
+    typeLocalGroup     = 0x00000002,
+    typeGlobalGroup    = 0x00000003,
+    typeUniversalGroup = 0x00000004,
+    typeUNCPath        = 0x00000005,
+    typeUnknown        = 0x00000006,
+}
+alias __MIDL___MIDL_itf_gpmgmt_0000_0000_0006 = int;
+
+enum : int
+{
+    opDestinationSameAsSource   = 0x00000000,
+    opDestinationNone           = 0x00000001,
+    opDestinationByRelativeName = 0x00000002,
+    opDestinationSet            = 0x00000003,
+}
+alias __MIDL___MIDL_itf_gpmgmt_0000_0000_0007 = int;
+
+enum GPMReportingOptions : int
+{
+    opReportLegacy   = 0x00000000,
+    opReportComments = 0x00000001,
+}
+
+enum : int
+{
+    somSite   = 0x00000000,
+    somDomain = 0x00000001,
+    somOU     = 0x00000002,
+}
+alias __MIDL_IGPMSOM_0001 = int;
+
+enum GPMBackupType : int
+{
+    typeGPO        = 0x00000000,
+    typeStarterGPO = 0x00000001,
+}
+
+enum GPMStarterGPOType : int
+{
+    typeSystem = 0x00000000,
+    typeCustom = 0x00000001,
+}
+
+// Interfaces
+
+@GUID("F5694708-88FE-4B35-BABF-E56162D5FBC8")
 struct GPM;
 
-const GUID CLSID_GPMDomain = {0x710901BE, 0x1050, 0x4CB1, [0x83, 0x8A, 0xC5, 0xCF, 0xF2, 0x59, 0xE1, 0x83]};
-@GUID(0x710901BE, 0x1050, 0x4CB1, [0x83, 0x8A, 0xC5, 0xCF, 0xF2, 0x59, 0xE1, 0x83]);
+@GUID("710901BE-1050-4CB1-838A-C5CFF259E183")
 struct GPMDomain;
 
-const GUID CLSID_GPMSitesContainer = {0x229F5C42, 0x852C, 0x4B30, [0x94, 0x5F, 0xC5, 0x22, 0xBE, 0x9B, 0xD3, 0x86]};
-@GUID(0x229F5C42, 0x852C, 0x4B30, [0x94, 0x5F, 0xC5, 0x22, 0xBE, 0x9B, 0xD3, 0x86]);
+@GUID("229F5C42-852C-4B30-945F-C522BE9BD386")
 struct GPMSitesContainer;
 
-const GUID CLSID_GPMBackupDir = {0xFCE4A59D, 0x0F21, 0x4AFA, [0xB8, 0x59, 0xE6, 0xD0, 0xC6, 0x2C, 0xD1, 0x0C]};
-@GUID(0xFCE4A59D, 0x0F21, 0x4AFA, [0xB8, 0x59, 0xE6, 0xD0, 0xC6, 0x2C, 0xD1, 0x0C]);
+@GUID("FCE4A59D-0F21-4AFA-B859-E6D0C62CD10C")
 struct GPMBackupDir;
 
-const GUID CLSID_GPMSOM = {0x32D93FAC, 0x450E, 0x44CF, [0x82, 0x9C, 0x8B, 0x22, 0xFF, 0x6B, 0xDA, 0xE1]};
-@GUID(0x32D93FAC, 0x450E, 0x44CF, [0x82, 0x9C, 0x8B, 0x22, 0xFF, 0x6B, 0xDA, 0xE1]);
+@GUID("32D93FAC-450E-44CF-829C-8B22FF6BDAE1")
 struct GPMSOM;
 
-const GUID CLSID_GPMSearchCriteria = {0x17AACA26, 0x5CE0, 0x44FA, [0x8C, 0xC0, 0x52, 0x59, 0xE6, 0x48, 0x35, 0x66]};
-@GUID(0x17AACA26, 0x5CE0, 0x44FA, [0x8C, 0xC0, 0x52, 0x59, 0xE6, 0x48, 0x35, 0x66]);
+@GUID("17AACA26-5CE0-44FA-8CC0-5259E6483566")
 struct GPMSearchCriteria;
 
-const GUID CLSID_GPMPermission = {0x5871A40A, 0xE9C0, 0x46EC, [0x91, 0x3E, 0x94, 0x4E, 0xF9, 0x22, 0x5A, 0x94]};
-@GUID(0x5871A40A, 0xE9C0, 0x46EC, [0x91, 0x3E, 0x94, 0x4E, 0xF9, 0x22, 0x5A, 0x94]);
+@GUID("5871A40A-E9C0-46EC-913E-944EF9225A94")
 struct GPMPermission;
 
-const GUID CLSID_GPMSecurityInfo = {0x547A5E8F, 0x9162, 0x4516, [0xA4, 0xDF, 0x9D, 0xDB, 0x96, 0x86, 0xD8, 0x46]};
-@GUID(0x547A5E8F, 0x9162, 0x4516, [0xA4, 0xDF, 0x9D, 0xDB, 0x96, 0x86, 0xD8, 0x46]);
+@GUID("547A5E8F-9162-4516-A4DF-9DDB9686D846")
 struct GPMSecurityInfo;
 
-const GUID CLSID_GPMBackup = {0xED1A54B8, 0x5EFA, 0x482A, [0x93, 0xC0, 0x8A, 0xD8, 0x6F, 0x0D, 0x68, 0xC3]};
-@GUID(0xED1A54B8, 0x5EFA, 0x482A, [0x93, 0xC0, 0x8A, 0xD8, 0x6F, 0x0D, 0x68, 0xC3]);
+@GUID("ED1A54B8-5EFA-482A-93C0-8AD86F0D68C3")
 struct GPMBackup;
 
-const GUID CLSID_GPMBackupCollection = {0xEB8F035B, 0x70DB, 0x4A9F, [0x96, 0x76, 0x37, 0xC2, 0x59, 0x94, 0xE9, 0xDC]};
-@GUID(0xEB8F035B, 0x70DB, 0x4A9F, [0x96, 0x76, 0x37, 0xC2, 0x59, 0x94, 0xE9, 0xDC]);
+@GUID("EB8F035B-70DB-4A9F-9676-37C25994E9DC")
 struct GPMBackupCollection;
 
-const GUID CLSID_GPMSOMCollection = {0x24C1F147, 0x3720, 0x4F5B, [0xA9, 0xC3, 0x06, 0xB4, 0xE4, 0xF9, 0x31, 0xD2]};
-@GUID(0x24C1F147, 0x3720, 0x4F5B, [0xA9, 0xC3, 0x06, 0xB4, 0xE4, 0xF9, 0x31, 0xD2]);
+@GUID("24C1F147-3720-4F5B-A9C3-06B4E4F931D2")
 struct GPMSOMCollection;
 
-const GUID CLSID_GPMWMIFilter = {0x626745D8, 0x0DEA, 0x4062, [0xBF, 0x60, 0xCF, 0xC5, 0xB1, 0xCA, 0x12, 0x86]};
-@GUID(0x626745D8, 0x0DEA, 0x4062, [0xBF, 0x60, 0xCF, 0xC5, 0xB1, 0xCA, 0x12, 0x86]);
+@GUID("626745D8-0DEA-4062-BF60-CFC5B1CA1286")
 struct GPMWMIFilter;
 
-const GUID CLSID_GPMWMIFilterCollection = {0x74DC6D28, 0xE820, 0x47D6, [0xA0, 0xB8, 0xF0, 0x8D, 0x93, 0xD7, 0xFA, 0x33]};
-@GUID(0x74DC6D28, 0xE820, 0x47D6, [0xA0, 0xB8, 0xF0, 0x8D, 0x93, 0xD7, 0xFA, 0x33]);
+@GUID("74DC6D28-E820-47D6-A0B8-F08D93D7FA33")
 struct GPMWMIFilterCollection;
 
-const GUID CLSID_GPMRSOP = {0x489B0CAF, 0x9EC2, 0x4EB7, [0x91, 0xF5, 0xB6, 0xF7, 0x1D, 0x43, 0xDA, 0x8C]};
-@GUID(0x489B0CAF, 0x9EC2, 0x4EB7, [0x91, 0xF5, 0xB6, 0xF7, 0x1D, 0x43, 0xDA, 0x8C]);
+@GUID("489B0CAF-9EC2-4EB7-91F5-B6F71D43DA8C")
 struct GPMRSOP;
 
-const GUID CLSID_GPMGPO = {0xD2CE2994, 0x59B5, 0x4064, [0xB5, 0x81, 0x4D, 0x68, 0x48, 0x6A, 0x16, 0xC4]};
-@GUID(0xD2CE2994, 0x59B5, 0x4064, [0xB5, 0x81, 0x4D, 0x68, 0x48, 0x6A, 0x16, 0xC4]);
+@GUID("D2CE2994-59B5-4064-B581-4D68486A16C4")
 struct GPMGPO;
 
-const GUID CLSID_GPMGPOCollection = {0x7A057325, 0x832D, 0x4DE3, [0xA4, 0x1F, 0xC7, 0x80, 0x43, 0x6A, 0x4E, 0x09]};
-@GUID(0x7A057325, 0x832D, 0x4DE3, [0xA4, 0x1F, 0xC7, 0x80, 0x43, 0x6A, 0x4E, 0x09]);
+@GUID("7A057325-832D-4DE3-A41F-C780436A4E09")
 struct GPMGPOCollection;
 
-const GUID CLSID_GPMGPOLink = {0xC1DF9880, 0x5303, 0x42C6, [0x8A, 0x3C, 0x04, 0x88, 0xE1, 0xBF, 0x73, 0x64]};
-@GUID(0xC1DF9880, 0x5303, 0x42C6, [0x8A, 0x3C, 0x04, 0x88, 0xE1, 0xBF, 0x73, 0x64]);
+@GUID("C1DF9880-5303-42C6-8A3C-0488E1BF7364")
 struct GPMGPOLink;
 
-const GUID CLSID_GPMGPOLinksCollection = {0xF6ED581A, 0x49A5, 0x47E2, [0xB7, 0x71, 0xFD, 0x8D, 0xC0, 0x2B, 0x62, 0x59]};
-@GUID(0xF6ED581A, 0x49A5, 0x47E2, [0xB7, 0x71, 0xFD, 0x8D, 0xC0, 0x2B, 0x62, 0x59]);
+@GUID("F6ED581A-49A5-47E2-B771-FD8DC02B6259")
 struct GPMGPOLinksCollection;
 
-const GUID CLSID_GPMAsyncCancel = {0x372796A9, 0x76EC, 0x479D, [0xAD, 0x6C, 0x55, 0x63, 0x18, 0xED, 0x5F, 0x9D]};
-@GUID(0x372796A9, 0x76EC, 0x479D, [0xAD, 0x6C, 0x55, 0x63, 0x18, 0xED, 0x5F, 0x9D]);
+@GUID("372796A9-76EC-479D-AD6C-556318ED5F9D")
 struct GPMAsyncCancel;
 
-const GUID CLSID_GPMStatusMsgCollection = {0x2824E4BE, 0x4BCC, 0x4CAC, [0x9E, 0x60, 0x0E, 0x3E, 0xD7, 0xF1, 0x24, 0x96]};
-@GUID(0x2824E4BE, 0x4BCC, 0x4CAC, [0x9E, 0x60, 0x0E, 0x3E, 0xD7, 0xF1, 0x24, 0x96]);
+@GUID("2824E4BE-4BCC-4CAC-9E60-0E3ED7F12496")
 struct GPMStatusMsgCollection;
 
-const GUID CLSID_GPMStatusMessage = {0x4B77CC94, 0xD255, 0x409B, [0xBC, 0x62, 0x37, 0x08, 0x81, 0x71, 0x5A, 0x19]};
-@GUID(0x4B77CC94, 0xD255, 0x409B, [0xBC, 0x62, 0x37, 0x08, 0x81, 0x71, 0x5A, 0x19]);
+@GUID("4B77CC94-D255-409B-BC62-370881715A19")
 struct GPMStatusMessage;
 
-const GUID CLSID_GPMTrustee = {0xC54A700D, 0x19B6, 0x4211, [0xBC, 0xB0, 0xE8, 0xE2, 0x47, 0x5E, 0x47, 0x1E]};
-@GUID(0xC54A700D, 0x19B6, 0x4211, [0xBC, 0xB0, 0xE8, 0xE2, 0x47, 0x5E, 0x47, 0x1E]);
+@GUID("C54A700D-19B6-4211-BCB0-E8E2475E471E")
 struct GPMTrustee;
 
-const GUID CLSID_GPMClientSideExtension = {0xC1A2E70E, 0x659C, 0x4B1A, [0x94, 0x0B, 0xF8, 0x8B, 0x0A, 0xF9, 0xC8, 0xA4]};
-@GUID(0xC1A2E70E, 0x659C, 0x4B1A, [0x94, 0x0B, 0xF8, 0x8B, 0x0A, 0xF9, 0xC8, 0xA4]);
+@GUID("C1A2E70E-659C-4B1A-940B-F88B0AF9C8A4")
 struct GPMClientSideExtension;
 
-const GUID CLSID_GPMCSECollection = {0xCF92B828, 0x2D44, 0x4B61, [0xB1, 0x0A, 0xB3, 0x27, 0xAF, 0xD4, 0x2D, 0xA8]};
-@GUID(0xCF92B828, 0x2D44, 0x4B61, [0xB1, 0x0A, 0xB3, 0x27, 0xAF, 0xD4, 0x2D, 0xA8]);
+@GUID("CF92B828-2D44-4B61-B10A-B327AFD42DA8")
 struct GPMCSECollection;
 
-const GUID CLSID_GPMConstants = {0x3855E880, 0xCD9E, 0x4D0C, [0x9E, 0xAF, 0x15, 0x79, 0x28, 0x3A, 0x18, 0x88]};
-@GUID(0x3855E880, 0xCD9E, 0x4D0C, [0x9E, 0xAF, 0x15, 0x79, 0x28, 0x3A, 0x18, 0x88]);
+@GUID("3855E880-CD9E-4D0C-9EAF-1579283A1888")
 struct GPMConstants;
 
-const GUID CLSID_GPMResult = {0x92101AC0, 0x9287, 0x4206, [0xA3, 0xB2, 0x4B, 0xDB, 0x73, 0xD2, 0x25, 0xF6]};
-@GUID(0x92101AC0, 0x9287, 0x4206, [0xA3, 0xB2, 0x4B, 0xDB, 0x73, 0xD2, 0x25, 0xF6]);
+@GUID("92101AC0-9287-4206-A3B2-4BDB73D225F6")
 struct GPMResult;
 
-const GUID CLSID_GPMMapEntryCollection = {0x0CF75D5B, 0xA3A1, 0x4C55, [0xB4, 0xFE, 0x9E, 0x14, 0x9C, 0x41, 0xF6, 0x6D]};
-@GUID(0x0CF75D5B, 0xA3A1, 0x4C55, [0xB4, 0xFE, 0x9E, 0x14, 0x9C, 0x41, 0xF6, 0x6D]);
+@GUID("0CF75D5B-A3A1-4C55-B4FE-9E149C41F66D")
 struct GPMMapEntryCollection;
 
-const GUID CLSID_GPMMapEntry = {0x8C975253, 0x5431, 0x4471, [0xB3, 0x5D, 0x06, 0x26, 0xC9, 0x28, 0x25, 0x8A]};
-@GUID(0x8C975253, 0x5431, 0x4471, [0xB3, 0x5D, 0x06, 0x26, 0xC9, 0x28, 0x25, 0x8A]);
+@GUID("8C975253-5431-4471-B35D-0626C928258A")
 struct GPMMapEntry;
 
-const GUID CLSID_GPMMigrationTable = {0x55AF4043, 0x2A06, 0x4F72, [0xAB, 0xEF, 0x63, 0x1B, 0x44, 0x07, 0x9C, 0x76]};
-@GUID(0x55AF4043, 0x2A06, 0x4F72, [0xAB, 0xEF, 0x63, 0x1B, 0x44, 0x07, 0x9C, 0x76]);
+@GUID("55AF4043-2A06-4F72-ABEF-631B44079C76")
 struct GPMMigrationTable;
 
-const GUID CLSID_GPMBackupDirEx = {0xE8C0988A, 0xCF03, 0x4C5B, [0x8B, 0xE2, 0x2A, 0xA9, 0xAD, 0x32, 0xAA, 0xDA]};
-@GUID(0xE8C0988A, 0xCF03, 0x4C5B, [0x8B, 0xE2, 0x2A, 0xA9, 0xAD, 0x32, 0xAA, 0xDA]);
+@GUID("E8C0988A-CF03-4C5B-8BE2-2AA9AD32AADA")
 struct GPMBackupDirEx;
 
-const GUID CLSID_GPMStarterGPOBackupCollection = {0xE75EA59D, 0x1AEB, 0x4CB5, [0xA7, 0x8A, 0x28, 0x1D, 0xAA, 0x58, 0x24, 0x06]};
-@GUID(0xE75EA59D, 0x1AEB, 0x4CB5, [0xA7, 0x8A, 0x28, 0x1D, 0xAA, 0x58, 0x24, 0x06]);
+@GUID("E75EA59D-1AEB-4CB5-A78A-281DAA582406")
 struct GPMStarterGPOBackupCollection;
 
-const GUID CLSID_GPMStarterGPOBackup = {0x389E400A, 0xD8EF, 0x455B, [0xA8, 0x61, 0x5F, 0x9C, 0xA3, 0x4A, 0x6A, 0x02]};
-@GUID(0x389E400A, 0xD8EF, 0x455B, [0xA8, 0x61, 0x5F, 0x9C, 0xA3, 0x4A, 0x6A, 0x02]);
+@GUID("389E400A-D8EF-455B-A861-5F9CA34A6A02")
 struct GPMStarterGPOBackup;
 
-const GUID CLSID_GPMTemplate = {0xECF1D454, 0x71DA, 0x4E2F, [0xA8, 0xC0, 0x81, 0x85, 0x46, 0x59, 0x11, 0xD9]};
-@GUID(0xECF1D454, 0x71DA, 0x4E2F, [0xA8, 0xC0, 0x81, 0x85, 0x46, 0x59, 0x11, 0xD9]);
+@GUID("ECF1D454-71DA-4E2F-A8C0-8185465911D9")
 struct GPMTemplate;
 
-const GUID CLSID_GPMStarterGPOCollection = {0x82F8AA8B, 0x49BA, 0x43B2, [0x95, 0x6E, 0x33, 0x97, 0xF9, 0xB9, 0x4C, 0x3A]};
-@GUID(0x82F8AA8B, 0x49BA, 0x43B2, [0x95, 0x6E, 0x33, 0x97, 0xF9, 0xB9, 0x4C, 0x3A]);
+@GUID("82F8AA8B-49BA-43B2-956E-3397F9B94C3A")
 struct GPMStarterGPOCollection;
 
-enum __MIDL___MIDL_itf_gpmgmt_0000_0000_0001
-{
-    rsopUnknown = 0,
-    rsopPlanning = 1,
-    rsopLogging = 2,
-}
-
-enum GPMPermissionType
-{
-    permGPOApply = 65536,
-    permGPORead = 65792,
-    permGPOEdit = 65793,
-    permGPOEditSecurityAndDelete = 65794,
-    permGPOCustom = 65795,
-    permWMIFilterEdit = 131072,
-    permWMIFilterFullControl = 131073,
-    permWMIFilterCustom = 131074,
-    permSOMLink = 1835008,
-    permSOMLogging = 1573120,
-    permSOMPlanning = 1573376,
-    permSOMWMICreate = 1049344,
-    permSOMWMIFullControl = 1049345,
-    permSOMGPOCreate = 1049600,
-    permStarterGPORead = 197888,
-    permStarterGPOEdit = 197889,
-    permStarterGPOFullControl = 197890,
-    permStarterGPOCustom = 197891,
-    permSOMStarterGPOCreate = 1049856,
-}
-
-enum GPMSearchProperty
-{
-    gpoPermissions = 0,
-    gpoEffectivePermissions = 1,
-    gpoDisplayName = 2,
-    gpoWMIFilter = 3,
-    gpoID = 4,
-    gpoComputerExtensions = 5,
-    gpoUserExtensions = 6,
-    somLinks = 7,
-    gpoDomain = 8,
-    backupMostRecent = 9,
-    starterGPOPermissions = 10,
-    starterGPOEffectivePermissions = 11,
-    starterGPODisplayName = 12,
-    starterGPOID = 13,
-    starterGPODomain = 14,
-}
-
-enum __MIDL___MIDL_itf_gpmgmt_0000_0000_0004
-{
-    opEquals = 0,
-    opContains = 1,
-    opNotContains = 2,
-    opNotEquals = 3,
-}
-
-enum __MIDL___MIDL_itf_gpmgmt_0000_0000_0005
-{
-    repXML = 0,
-    repHTML = 1,
-    repInfraXML = 2,
-    repInfraRefreshXML = 3,
-    repClientHealthXML = 4,
-    repClientHealthRefreshXML = 5,
-}
-
-enum __MIDL___MIDL_itf_gpmgmt_0000_0000_0006
-{
-    typeUser = 0,
-    typeComputer = 1,
-    typeLocalGroup = 2,
-    typeGlobalGroup = 3,
-    typeUniversalGroup = 4,
-    typeUNCPath = 5,
-    typeUnknown = 6,
-}
-
-enum __MIDL___MIDL_itf_gpmgmt_0000_0000_0007
-{
-    opDestinationSameAsSource = 0,
-    opDestinationNone = 1,
-    opDestinationByRelativeName = 2,
-    opDestinationSet = 3,
-}
-
-enum GPMReportingOptions
-{
-    opReportLegacy = 0,
-    opReportComments = 1,
-}
-
-const GUID IID_IGPM = {0xF5FAE809, 0x3BD6, 0x4DA9, [0xA6, 0x5E, 0x17, 0x66, 0x5B, 0x41, 0xD7, 0x63]};
-@GUID(0xF5FAE809, 0x3BD6, 0x4DA9, [0xA6, 0x5E, 0x17, 0x66, 0x5B, 0x41, 0xD7, 0x63]);
+@GUID("F5FAE809-3BD6-4DA9-A65E-17665B41D763")
 interface IGPM : IDispatch
 {
     HRESULT GetDomain(BSTR bstrDomain, BSTR bstrDomainController, int lDCFlags, IGPMDomain* pIGPMDomain);
     HRESULT GetBackupDir(BSTR bstrBackupDir, IGPMBackupDir* pIGPMBackupDir);
-    HRESULT GetSitesContainer(BSTR bstrForest, BSTR bstrDomain, BSTR bstrDomainController, int lDCFlags, IGPMSitesContainer* ppIGPMSitesContainer);
-    HRESULT GetRSOP(__MIDL___MIDL_itf_gpmgmt_0000_0000_0001 gpmRSoPMode, BSTR bstrNamespace, int lFlags, IGPMRSOP* ppIGPMRSOP);
+    HRESULT GetSitesContainer(BSTR bstrForest, BSTR bstrDomain, BSTR bstrDomainController, int lDCFlags, 
+                              IGPMSitesContainer* ppIGPMSitesContainer);
+    HRESULT GetRSOP(__MIDL___MIDL_itf_gpmgmt_0000_0000_0001 gpmRSoPMode, BSTR bstrNamespace, int lFlags, 
+                    IGPMRSOP* ppIGPMRSOP);
     HRESULT CreatePermission(BSTR bstrTrustee, GPMPermissionType perm, short bInheritable, IGPMPermission* ppPerm);
     HRESULT CreateSearchCriteria(IGPMSearchCriteria* ppIGPMSearchCriteria);
     HRESULT CreateTrustee(BSTR bstrTrustee, IGPMTrustee* ppIGPMTrustee);
@@ -251,8 +250,7 @@ interface IGPM : IDispatch
     HRESULT InitializeReporting(BSTR bstrAdmPath);
 }
 
-const GUID IID_IGPMDomain = {0x6B21CC14, 0x5A00, 0x4F44, [0xA7, 0x38, 0xFE, 0xEC, 0x8A, 0x94, 0xC7, 0xE3]};
-@GUID(0x6B21CC14, 0x5A00, 0x4F44, [0xA7, 0x38, 0xFE, 0xEC, 0x8A, 0x94, 0xC7, 0xE3]);
+@GUID("6B21CC14-5A00-4F44-A738-FEEC8A94C7E3")
 interface IGPMDomain : IDispatch
 {
     HRESULT get_DomainController(BSTR* pVal);
@@ -260,15 +258,16 @@ interface IGPMDomain : IDispatch
     HRESULT CreateGPO(IGPMGPO* ppNewGPO);
     HRESULT GetGPO(BSTR bstrGuid, IGPMGPO* ppGPO);
     HRESULT SearchGPOs(IGPMSearchCriteria pIGPMSearchCriteria, IGPMGPOCollection* ppIGPMGPOCollection);
-    HRESULT RestoreGPO(IGPMBackup pIGPMBackup, int lDCFlags, VARIANT* pvarGPMProgress, VARIANT* pvarGPMCancel, IGPMResult* ppIGPMResult);
+    HRESULT RestoreGPO(IGPMBackup pIGPMBackup, int lDCFlags, VARIANT* pvarGPMProgress, VARIANT* pvarGPMCancel, 
+                       IGPMResult* ppIGPMResult);
     HRESULT GetSOM(BSTR bstrPath, IGPMSOM* ppSOM);
     HRESULT SearchSOMs(IGPMSearchCriteria pIGPMSearchCriteria, IGPMSOMCollection* ppIGPMSOMCollection);
     HRESULT GetWMIFilter(BSTR bstrPath, IGPMWMIFilter* ppWMIFilter);
-    HRESULT SearchWMIFilters(IGPMSearchCriteria pIGPMSearchCriteria, IGPMWMIFilterCollection* ppIGPMWMIFilterCollection);
+    HRESULT SearchWMIFilters(IGPMSearchCriteria pIGPMSearchCriteria, 
+                             IGPMWMIFilterCollection* ppIGPMWMIFilterCollection);
 }
 
-const GUID IID_IGPMBackupDir = {0xB1568BED, 0x0A93, 0x4ACC, [0x81, 0x0F, 0xAF, 0xE7, 0x08, 0x10, 0x19, 0xB9]};
-@GUID(0xB1568BED, 0x0A93, 0x4ACC, [0x81, 0x0F, 0xAF, 0xE7, 0x08, 0x10, 0x19, 0xB9]);
+@GUID("B1568BED-0A93-4ACC-810F-AFE7081019B9")
 interface IGPMBackupDir : IDispatch
 {
     HRESULT get_BackupDirectory(BSTR* pVal);
@@ -276,8 +275,7 @@ interface IGPMBackupDir : IDispatch
     HRESULT SearchBackups(IGPMSearchCriteria pIGPMSearchCriteria, IGPMBackupCollection* ppIGPMBackupCollection);
 }
 
-const GUID IID_IGPMSitesContainer = {0x4725A899, 0x2782, 0x4D27, [0xA6, 0xBB, 0xD4, 0x99, 0x24, 0x6F, 0xFD, 0x72]};
-@GUID(0x4725A899, 0x2782, 0x4D27, [0xA6, 0xBB, 0xD4, 0x99, 0x24, 0x6F, 0xFD, 0x72]);
+@GUID("4725A899-2782-4D27-A6BB-D499246FFD72")
 interface IGPMSitesContainer : IDispatch
 {
     HRESULT get_DomainController(BSTR* pVal);
@@ -287,15 +285,14 @@ interface IGPMSitesContainer : IDispatch
     HRESULT SearchSites(IGPMSearchCriteria pIGPMSearchCriteria, IGPMSOMCollection* ppIGPMSOMCollection);
 }
 
-const GUID IID_IGPMSearchCriteria = {0xD6F11C42, 0x829B, 0x48D4, [0x83, 0xF5, 0x36, 0x15, 0xB6, 0x7D, 0xFC, 0x22]};
-@GUID(0xD6F11C42, 0x829B, 0x48D4, [0x83, 0xF5, 0x36, 0x15, 0xB6, 0x7D, 0xFC, 0x22]);
+@GUID("D6F11C42-829B-48D4-83F5-3615B67DFC22")
 interface IGPMSearchCriteria : IDispatch
 {
-    HRESULT Add(GPMSearchProperty searchProperty, __MIDL___MIDL_itf_gpmgmt_0000_0000_0004 searchOperation, VARIANT varValue);
+    HRESULT Add(GPMSearchProperty searchProperty, __MIDL___MIDL_itf_gpmgmt_0000_0000_0004 searchOperation, 
+                VARIANT varValue);
 }
 
-const GUID IID_IGPMTrustee = {0x3B466DA8, 0xC1A4, 0x4B2A, [0x99, 0x9A, 0xBE, 0xFC, 0xDD, 0x56, 0xCE, 0xFB]};
-@GUID(0x3B466DA8, 0xC1A4, 0x4B2A, [0x99, 0x9A, 0xBE, 0xFC, 0xDD, 0x56, 0xCE, 0xFB]);
+@GUID("3B466DA8-C1A4-4B2A-999A-BEFCDD56CEFB")
 interface IGPMTrustee : IDispatch
 {
     HRESULT get_TrusteeSid(BSTR* bstrVal);
@@ -305,8 +302,7 @@ interface IGPMTrustee : IDispatch
     HRESULT get_TrusteeType(int* lVal);
 }
 
-const GUID IID_IGPMPermission = {0x35EBCA40, 0xE1A1, 0x4A02, [0x89, 0x05, 0xD7, 0x94, 0x16, 0xFB, 0x46, 0x4A]};
-@GUID(0x35EBCA40, 0xE1A1, 0x4A02, [0x89, 0x05, 0xD7, 0x94, 0x16, 0xFB, 0x46, 0x4A]);
+@GUID("35EBCA40-E1A1-4A02-8905-D79416FB464A")
 interface IGPMPermission : IDispatch
 {
     HRESULT get_Inherited(short* pVal);
@@ -316,8 +312,7 @@ interface IGPMPermission : IDispatch
     HRESULT get_Trustee(IGPMTrustee* ppIGPMTrustee);
 }
 
-const GUID IID_IGPMSecurityInfo = {0xB6C31ED4, 0x1C93, 0x4D3E, [0xAE, 0x84, 0xEB, 0x6D, 0x61, 0x16, 0x1B, 0x60]};
-@GUID(0xB6C31ED4, 0x1C93, 0x4D3E, [0xAE, 0x84, 0xEB, 0x6D, 0x61, 0x16, 0x1B, 0x60]);
+@GUID("B6C31ED4-1C93-4D3E-AE84-EB6D61161B60")
 interface IGPMSecurityInfo : IDispatch
 {
     HRESULT get_Count(int* pVal);
@@ -328,8 +323,7 @@ interface IGPMSecurityInfo : IDispatch
     HRESULT RemoveTrustee(BSTR bstrTrustee);
 }
 
-const GUID IID_IGPMBackup = {0xD8A16A35, 0x3B0D, 0x416B, [0x8D, 0x02, 0x4D, 0xF6, 0xF9, 0x5A, 0x71, 0x19]};
-@GUID(0xD8A16A35, 0x3B0D, 0x416B, [0x8D, 0x02, 0x4D, 0xF6, 0xF9, 0x5A, 0x71, 0x19]);
+@GUID("D8A16A35-3B0D-416B-8D02-4DF6F95A7119")
 interface IGPMBackup : IDispatch
 {
     HRESULT get_ID(BSTR* pVal);
@@ -340,12 +334,13 @@ interface IGPMBackup : IDispatch
     HRESULT get_Comment(BSTR* pVal);
     HRESULT get_BackupDir(BSTR* pVal);
     HRESULT Delete();
-    HRESULT GenerateReport(__MIDL___MIDL_itf_gpmgmt_0000_0000_0005 gpmReportType, VARIANT* pvarGPMProgress, VARIANT* pvarGPMCancel, IGPMResult* ppIGPMResult);
-    HRESULT GenerateReportToFile(__MIDL___MIDL_itf_gpmgmt_0000_0000_0005 gpmReportType, BSTR bstrTargetFilePath, IGPMResult* ppIGPMResult);
+    HRESULT GenerateReport(__MIDL___MIDL_itf_gpmgmt_0000_0000_0005 gpmReportType, VARIANT* pvarGPMProgress, 
+                           VARIANT* pvarGPMCancel, IGPMResult* ppIGPMResult);
+    HRESULT GenerateReportToFile(__MIDL___MIDL_itf_gpmgmt_0000_0000_0005 gpmReportType, BSTR bstrTargetFilePath, 
+                                 IGPMResult* ppIGPMResult);
 }
 
-const GUID IID_IGPMBackupCollection = {0xC786FC0F, 0x26D8, 0x4BAB, [0xA7, 0x45, 0x39, 0xCA, 0x7E, 0x80, 0x0C, 0xAC]};
-@GUID(0xC786FC0F, 0x26D8, 0x4BAB, [0xA7, 0x45, 0x39, 0xCA, 0x7E, 0x80, 0x0C, 0xAC]);
+@GUID("C786FC0F-26D8-4BAB-A745-39CA7E800CAC")
 interface IGPMBackupCollection : IDispatch
 {
     HRESULT get_Count(int* pVal);
@@ -353,15 +348,7 @@ interface IGPMBackupCollection : IDispatch
     HRESULT get__NewEnum(IEnumVARIANT* ppIGPMBackup);
 }
 
-enum __MIDL_IGPMSOM_0001
-{
-    somSite = 0,
-    somDomain = 1,
-    somOU = 2,
-}
-
-const GUID IID_IGPMSOM = {0xC0A7F09E, 0x05A1, 0x4F0C, [0x81, 0x58, 0x9E, 0x5C, 0x33, 0x68, 0x4F, 0x6B]};
-@GUID(0xC0A7F09E, 0x05A1, 0x4F0C, [0x81, 0x58, 0x9E, 0x5C, 0x33, 0x68, 0x4F, 0x6B]);
+@GUID("C0A7F09E-05A1-4F0C-8158-9E5C33684F6B")
 interface IGPMSOM : IDispatch
 {
     HRESULT get_GPOInheritanceBlocked(short* pVal);
@@ -376,8 +363,7 @@ interface IGPMSOM : IDispatch
     HRESULT SetSecurityInfo(IGPMSecurityInfo pSecurityInfo);
 }
 
-const GUID IID_IGPMSOMCollection = {0xADC1688E, 0x00E4, 0x4495, [0xAB, 0xBA, 0xBE, 0xD2, 0x00, 0xDF, 0x0C, 0xAB]};
-@GUID(0xADC1688E, 0x00E4, 0x4495, [0xAB, 0xBA, 0xBE, 0xD2, 0x00, 0xDF, 0x0C, 0xAB]);
+@GUID("ADC1688E-00E4-4495-ABBA-BED200DF0CAB")
 interface IGPMSOMCollection : IDispatch
 {
     HRESULT get_Count(int* pVal);
@@ -385,8 +371,7 @@ interface IGPMSOMCollection : IDispatch
     HRESULT get__NewEnum(IEnumVARIANT* ppIGPMSOM);
 }
 
-const GUID IID_IGPMWMIFilter = {0xEF2FF9B4, 0x3C27, 0x459A, [0xB9, 0x79, 0x03, 0x83, 0x05, 0xCE, 0xC7, 0x5D]};
-@GUID(0xEF2FF9B4, 0x3C27, 0x459A, [0xB9, 0x79, 0x03, 0x83, 0x05, 0xCE, 0xC7, 0x5D]);
+@GUID("EF2FF9B4-3C27-459A-B979-038305CEC75D")
 interface IGPMWMIFilter : IDispatch
 {
     HRESULT get_Path(BSTR* pVal);
@@ -399,8 +384,7 @@ interface IGPMWMIFilter : IDispatch
     HRESULT SetSecurityInfo(IGPMSecurityInfo pSecurityInfo);
 }
 
-const GUID IID_IGPMWMIFilterCollection = {0x5782D582, 0x1A36, 0x4661, [0x8A, 0x94, 0xC3, 0xC3, 0x25, 0x51, 0x94, 0x5B]};
-@GUID(0x5782D582, 0x1A36, 0x4661, [0x8A, 0x94, 0xC3, 0xC3, 0x25, 0x51, 0x94, 0x5B]);
+@GUID("5782D582-1A36-4661-8A94-C3C32551945B")
 interface IGPMWMIFilterCollection : IDispatch
 {
     HRESULT get_Count(int* pVal);
@@ -408,8 +392,7 @@ interface IGPMWMIFilterCollection : IDispatch
     HRESULT get__NewEnum(IEnumVARIANT* pVal);
 }
 
-const GUID IID_IGPMRSOP = {0x49ED785A, 0x3237, 0x4FF2, [0xB1, 0xF0, 0xFD, 0xF5, 0xA8, 0xD5, 0xA1, 0xEE]};
-@GUID(0x49ED785A, 0x3237, 0x4FF2, [0xB1, 0xF0, 0xFD, 0xF5, 0xA8, 0xD5, 0xA1, 0xEE]);
+@GUID("49ED785A-3237-4FF2-B1F0-FDF5A8D5A1EE")
 interface IGPMRSOP : IDispatch
 {
     HRESULT get_Mode(__MIDL___MIDL_itf_gpmgmt_0000_0000_0001* pVal);
@@ -445,12 +428,13 @@ interface IGPMRSOP : IDispatch
     HRESULT LoggingEnumerateUsers(VARIANT* varVal);
     HRESULT CreateQueryResults();
     HRESULT ReleaseQueryResults();
-    HRESULT GenerateReport(__MIDL___MIDL_itf_gpmgmt_0000_0000_0005 gpmReportType, VARIANT* pvarGPMProgress, VARIANT* pvarGPMCancel, IGPMResult* ppIGPMResult);
-    HRESULT GenerateReportToFile(__MIDL___MIDL_itf_gpmgmt_0000_0000_0005 gpmReportType, BSTR bstrTargetFilePath, IGPMResult* ppIGPMResult);
+    HRESULT GenerateReport(__MIDL___MIDL_itf_gpmgmt_0000_0000_0005 gpmReportType, VARIANT* pvarGPMProgress, 
+                           VARIANT* pvarGPMCancel, IGPMResult* ppIGPMResult);
+    HRESULT GenerateReportToFile(__MIDL___MIDL_itf_gpmgmt_0000_0000_0005 gpmReportType, BSTR bstrTargetFilePath, 
+                                 IGPMResult* ppIGPMResult);
 }
 
-const GUID IID_IGPMGPO = {0x58CC4352, 0x1CA3, 0x48E5, [0x98, 0x64, 0x1D, 0xA4, 0xD6, 0xE0, 0xD6, 0x0F]};
-@GUID(0x58CC4352, 0x1CA3, 0x48E5, [0x98, 0x64, 0x1D, 0xA4, 0xD6, 0xE0, 0xD6, 0x0F]);
+@GUID("58CC4352-1CA3-48E5-9864-1DA4D6E0D60F")
 interface IGPMGPO : IDispatch
 {
     HRESULT get_DisplayName(BSTR* pVal);
@@ -473,19 +457,23 @@ interface IGPMGPO : IDispatch
     HRESULT GetSecurityInfo(IGPMSecurityInfo* ppSecurityInfo);
     HRESULT SetSecurityInfo(IGPMSecurityInfo pSecurityInfo);
     HRESULT Delete();
-    HRESULT Backup(BSTR bstrBackupDir, BSTR bstrComment, VARIANT* pvarGPMProgress, VARIANT* pvarGPMCancel, IGPMResult* ppIGPMResult);
-    HRESULT Import(int lFlags, IGPMBackup pIGPMBackup, VARIANT* pvarMigrationTable, VARIANT* pvarGPMProgress, VARIANT* pvarGPMCancel, IGPMResult* ppIGPMResult);
-    HRESULT GenerateReport(__MIDL___MIDL_itf_gpmgmt_0000_0000_0005 gpmReportType, VARIANT* pvarGPMProgress, VARIANT* pvarGPMCancel, IGPMResult* ppIGPMResult);
-    HRESULT GenerateReportToFile(__MIDL___MIDL_itf_gpmgmt_0000_0000_0005 gpmReportType, BSTR bstrTargetFilePath, IGPMResult* ppIGPMResult);
-    HRESULT CopyTo(int lFlags, IGPMDomain pIGPMDomain, VARIANT* pvarNewDisplayName, VARIANT* pvarMigrationTable, VARIANT* pvarGPMProgress, VARIANT* pvarGPMCancel, IGPMResult* ppIGPMResult);
+    HRESULT Backup(BSTR bstrBackupDir, BSTR bstrComment, VARIANT* pvarGPMProgress, VARIANT* pvarGPMCancel, 
+                   IGPMResult* ppIGPMResult);
+    HRESULT Import(int lFlags, IGPMBackup pIGPMBackup, VARIANT* pvarMigrationTable, VARIANT* pvarGPMProgress, 
+                   VARIANT* pvarGPMCancel, IGPMResult* ppIGPMResult);
+    HRESULT GenerateReport(__MIDL___MIDL_itf_gpmgmt_0000_0000_0005 gpmReportType, VARIANT* pvarGPMProgress, 
+                           VARIANT* pvarGPMCancel, IGPMResult* ppIGPMResult);
+    HRESULT GenerateReportToFile(__MIDL___MIDL_itf_gpmgmt_0000_0000_0005 gpmReportType, BSTR bstrTargetFilePath, 
+                                 IGPMResult* ppIGPMResult);
+    HRESULT CopyTo(int lFlags, IGPMDomain pIGPMDomain, VARIANT* pvarNewDisplayName, VARIANT* pvarMigrationTable, 
+                   VARIANT* pvarGPMProgress, VARIANT* pvarGPMCancel, IGPMResult* ppIGPMResult);
     HRESULT SetSecurityDescriptor(int lFlags, IDispatch pSD);
     HRESULT GetSecurityDescriptor(int lFlags, IDispatch* ppSD);
     HRESULT IsACLConsistent(short* pvbConsistent);
     HRESULT MakeACLConsistent();
 }
 
-const GUID IID_IGPMGPOCollection = {0xF0F0D5CF, 0x70CA, 0x4C39, [0x9E, 0x29, 0xB6, 0x42, 0xF8, 0x72, 0x6C, 0x01]};
-@GUID(0xF0F0D5CF, 0x70CA, 0x4C39, [0x9E, 0x29, 0xB6, 0x42, 0xF8, 0x72, 0x6C, 0x01]);
+@GUID("F0F0D5CF-70CA-4C39-9E29-B642F8726C01")
 interface IGPMGPOCollection : IDispatch
 {
     HRESULT get_Count(int* pVal);
@@ -493,8 +481,7 @@ interface IGPMGPOCollection : IDispatch
     HRESULT get__NewEnum(IEnumVARIANT* ppIGPMGPOs);
 }
 
-const GUID IID_IGPMGPOLink = {0x434B99BD, 0x5DE7, 0x478A, [0x80, 0x9C, 0xC2, 0x51, 0x72, 0x1D, 0xF7, 0x0C]};
-@GUID(0x434B99BD, 0x5DE7, 0x478A, [0x80, 0x9C, 0xC2, 0x51, 0x72, 0x1D, 0xF7, 0x0C]);
+@GUID("434B99BD-5DE7-478A-809C-C251721DF70C")
 interface IGPMGPOLink : IDispatch
 {
     HRESULT get_GPOID(BSTR* pVal);
@@ -508,8 +495,7 @@ interface IGPMGPOLink : IDispatch
     HRESULT Delete();
 }
 
-const GUID IID_IGPMGPOLinksCollection = {0x189D7B68, 0x16BD, 0x4D0D, [0xA2, 0xEC, 0x2E, 0x6A, 0xA2, 0x28, 0x8C, 0x7F]};
-@GUID(0x189D7B68, 0x16BD, 0x4D0D, [0xA2, 0xEC, 0x2E, 0x6A, 0xA2, 0x28, 0x8C, 0x7F]);
+@GUID("189D7B68-16BD-4D0D-A2EC-2E6AA2288C7F")
 interface IGPMGPOLinksCollection : IDispatch
 {
     HRESULT get_Count(int* pVal);
@@ -517,8 +503,7 @@ interface IGPMGPOLinksCollection : IDispatch
     HRESULT get__NewEnum(IEnumVARIANT* ppIGPMLinks);
 }
 
-const GUID IID_IGPMCSECollection = {0x2E52A97D, 0x0A4A, 0x4A6F, [0x85, 0xDB, 0x20, 0x16, 0x22, 0x45, 0x5D, 0xA0]};
-@GUID(0x2E52A97D, 0x0A4A, 0x4A6F, [0x85, 0xDB, 0x20, 0x16, 0x22, 0x45, 0x5D, 0xA0]);
+@GUID("2E52A97D-0A4A-4A6F-85DB-201622455DA0")
 interface IGPMCSECollection : IDispatch
 {
     HRESULT get_Count(int* pVal);
@@ -526,8 +511,7 @@ interface IGPMCSECollection : IDispatch
     HRESULT get__NewEnum(IEnumVARIANT* ppIGPMCSEs);
 }
 
-const GUID IID_IGPMClientSideExtension = {0x69DA7488, 0xB8DB, 0x415E, [0x92, 0x66, 0x90, 0x1B, 0xE4, 0xD4, 0x99, 0x28]};
-@GUID(0x69DA7488, 0xB8DB, 0x415E, [0x92, 0x66, 0x90, 0x1B, 0xE4, 0xD4, 0x99, 0x28]);
+@GUID("69DA7488-B8DB-415E-9266-901BE4D49928")
 interface IGPMClientSideExtension : IDispatch
 {
     HRESULT get_ID(BSTR* pVal);
@@ -536,22 +520,20 @@ interface IGPMClientSideExtension : IDispatch
     HRESULT IsComputerEnabled(short* pvbEnabled);
 }
 
-const GUID IID_IGPMAsyncCancel = {0xDDC67754, 0xBE67, 0x4541, [0x81, 0x66, 0xF4, 0x81, 0x66, 0x86, 0x8C, 0x9C]};
-@GUID(0xDDC67754, 0xBE67, 0x4541, [0x81, 0x66, 0xF4, 0x81, 0x66, 0x86, 0x8C, 0x9C]);
+@GUID("DDC67754-BE67-4541-8166-F48166868C9C")
 interface IGPMAsyncCancel : IDispatch
 {
     HRESULT Cancel();
 }
 
-const GUID IID_IGPMAsyncProgress = {0x6AAC29F8, 0x5948, 0x4324, [0xBF, 0x70, 0x42, 0x38, 0x18, 0x94, 0x2D, 0xBC]};
-@GUID(0x6AAC29F8, 0x5948, 0x4324, [0xBF, 0x70, 0x42, 0x38, 0x18, 0x94, 0x2D, 0xBC]);
+@GUID("6AAC29F8-5948-4324-BF70-423818942DBC")
 interface IGPMAsyncProgress : IDispatch
 {
-    HRESULT Status(int lProgressNumerator, int lProgressDenominator, HRESULT hrStatus, VARIANT* pResult, IGPMStatusMsgCollection ppIGPMStatusMsgCollection);
+    HRESULT Status(int lProgressNumerator, int lProgressDenominator, HRESULT hrStatus, VARIANT* pResult, 
+                   IGPMStatusMsgCollection ppIGPMStatusMsgCollection);
 }
 
-const GUID IID_IGPMStatusMsgCollection = {0x9B6E1AF0, 0x1A92, 0x40F3, [0xA5, 0x9D, 0xF3, 0x6A, 0xC1, 0xF7, 0x28, 0xB7]};
-@GUID(0x9B6E1AF0, 0x1A92, 0x40F3, [0xA5, 0x9D, 0xF3, 0x6A, 0xC1, 0xF7, 0x28, 0xB7]);
+@GUID("9B6E1AF0-1A92-40F3-A59D-F36AC1F728B7")
 interface IGPMStatusMsgCollection : IDispatch
 {
     HRESULT get_Count(int* pVal);
@@ -559,8 +541,7 @@ interface IGPMStatusMsgCollection : IDispatch
     HRESULT get__NewEnum(IEnumVARIANT* pVal);
 }
 
-const GUID IID_IGPMStatusMessage = {0x8496C22F, 0xF3DE, 0x4A1F, [0x8F, 0x58, 0x60, 0x3C, 0xAA, 0xA9, 0x3D, 0x7B]};
-@GUID(0x8496C22F, 0xF3DE, 0x4A1F, [0x8F, 0x58, 0x60, 0x3C, 0xAA, 0xA9, 0x3D, 0x7B]);
+@GUID("8496C22F-F3DE-4A1F-8F58-603CAAA93D7B")
 interface IGPMStatusMessage : IDispatch
 {
     HRESULT get_ObjectPath(BSTR* pVal);
@@ -571,8 +552,7 @@ interface IGPMStatusMessage : IDispatch
     HRESULT get_Message(BSTR* pVal);
 }
 
-const GUID IID_IGPMConstants = {0x50EF73E6, 0xD35C, 0x4C8D, [0xBE, 0x63, 0x7E, 0xA5, 0xD2, 0xAA, 0xC5, 0xC4]};
-@GUID(0x50EF73E6, 0xD35C, 0x4C8D, [0xBE, 0x63, 0x7E, 0xA5, 0xD2, 0xAA, 0xC5, 0xC4]);
+@GUID("50EF73E6-D35C-4C8D-BE63-7EA5D2AAC5C4")
 interface IGPMConstants : IDispatch
 {
     HRESULT get_PermGPOApply(GPMPermissionType* pVal);
@@ -637,8 +617,7 @@ interface IGPMConstants : IDispatch
     HRESULT get_RsopPlanningAssumeCompWQLFilterTrue(int* pVal);
 }
 
-const GUID IID_IGPMResult = {0x86DFF7E9, 0xF76F, 0x42AB, [0x95, 0x70, 0xCE, 0xBC, 0x6B, 0xE8, 0xA5, 0x2D]};
-@GUID(0x86DFF7E9, 0xF76F, 0x42AB, [0x95, 0x70, 0xCE, 0xBC, 0x6B, 0xE8, 0xA5, 0x2D]);
+@GUID("86DFF7E9-F76F-42AB-9570-CEBC6BE8A52D")
 interface IGPMResult : IDispatch
 {
     HRESULT get_Status(IGPMStatusMsgCollection* ppIGPMStatusMsgCollection);
@@ -646,8 +625,7 @@ interface IGPMResult : IDispatch
     HRESULT OverallStatus();
 }
 
-const GUID IID_IGPMMapEntryCollection = {0xBB0BF49B, 0xE53F, 0x443F, [0xB8, 0x07, 0x8B, 0xE2, 0x2B, 0xFB, 0x6D, 0x42]};
-@GUID(0xBB0BF49B, 0xE53F, 0x443F, [0xB8, 0x07, 0x8B, 0xE2, 0x2B, 0xFB, 0x6D, 0x42]);
+@GUID("BB0BF49B-E53F-443F-B807-8BE22BFB6D42")
 interface IGPMMapEntryCollection : IDispatch
 {
     HRESULT get_Count(int* pVal);
@@ -655,8 +633,7 @@ interface IGPMMapEntryCollection : IDispatch
     HRESULT get__NewEnum(IEnumVARIANT* pVal);
 }
 
-const GUID IID_IGPMMapEntry = {0x8E79AD06, 0x2381, 0x4444, [0xBE, 0x4C, 0xFF, 0x69, 0x3E, 0x6E, 0x6F, 0x2B]};
-@GUID(0x8E79AD06, 0x2381, 0x4444, [0xBE, 0x4C, 0xFF, 0x69, 0x3E, 0x6E, 0x6F, 0x2B]);
+@GUID("8E79AD06-2381-4444-BE4C-FF693E6E6F2B")
 interface IGPMMapEntry : IDispatch
 {
     HRESULT get_Source(BSTR* pbstrSource);
@@ -665,13 +642,13 @@ interface IGPMMapEntry : IDispatch
     HRESULT get_EntryType(__MIDL___MIDL_itf_gpmgmt_0000_0000_0006* pgpmEntryType);
 }
 
-const GUID IID_IGPMMigrationTable = {0x48F823B1, 0xEFAF, 0x470B, [0xB6, 0xED, 0x40, 0xD1, 0x4E, 0xE1, 0xA4, 0xEC]};
-@GUID(0x48F823B1, 0xEFAF, 0x470B, [0xB6, 0xED, 0x40, 0xD1, 0x4E, 0xE1, 0xA4, 0xEC]);
+@GUID("48F823B1-EFAF-470B-B6ED-40D14EE1A4EC")
 interface IGPMMigrationTable : IDispatch
 {
     HRESULT Save(BSTR bstrMigrationTablePath);
     HRESULT Add(int lFlags, VARIANT var);
-    HRESULT AddEntry(BSTR bstrSource, __MIDL___MIDL_itf_gpmgmt_0000_0000_0006 gpmEntryType, VARIANT* pvarDestination, IGPMMapEntry* ppEntry);
+    HRESULT AddEntry(BSTR bstrSource, __MIDL___MIDL_itf_gpmgmt_0000_0000_0006 gpmEntryType, 
+                     VARIANT* pvarDestination, IGPMMapEntry* ppEntry);
     HRESULT GetEntry(BSTR bstrSource, IGPMMapEntry* ppEntry);
     HRESULT DeleteEntry(BSTR bstrSource);
     HRESULT UpdateDestination(BSTR bstrSource, VARIANT* pvarDestination, IGPMMapEntry* ppEntry);
@@ -679,20 +656,7 @@ interface IGPMMigrationTable : IDispatch
     HRESULT GetEntries(IGPMMapEntryCollection* ppEntries);
 }
 
-enum GPMBackupType
-{
-    typeGPO = 0,
-    typeStarterGPO = 1,
-}
-
-enum GPMStarterGPOType
-{
-    typeSystem = 0,
-    typeCustom = 1,
-}
-
-const GUID IID_IGPMBackupDirEx = {0xF8DC55ED, 0x3BA0, 0x4864, [0xAA, 0xD4, 0xD3, 0x65, 0x18, 0x9E, 0xE1, 0xD5]};
-@GUID(0xF8DC55ED, 0x3BA0, 0x4864, [0xAA, 0xD4, 0xD3, 0x65, 0x18, 0x9E, 0xE1, 0xD5]);
+@GUID("F8DC55ED-3BA0-4864-AAD4-D365189EE1D5")
 interface IGPMBackupDirEx : IDispatch
 {
     HRESULT get_BackupDir(BSTR* pbstrBackupDir);
@@ -701,8 +665,7 @@ interface IGPMBackupDirEx : IDispatch
     HRESULT SearchBackups(IGPMSearchCriteria pIGPMSearchCriteria, VARIANT* pvarBackupCollection);
 }
 
-const GUID IID_IGPMStarterGPOBackupCollection = {0xC998031D, 0xADD0, 0x4BB5, [0x8D, 0xEA, 0x29, 0x85, 0x05, 0xD8, 0x42, 0x3B]};
-@GUID(0xC998031D, 0xADD0, 0x4BB5, [0x8D, 0xEA, 0x29, 0x85, 0x05, 0xD8, 0x42, 0x3B]);
+@GUID("C998031D-ADD0-4BB5-8DEA-298505D8423B")
 interface IGPMStarterGPOBackupCollection : IDispatch
 {
     HRESULT get_Count(int* pVal);
@@ -710,8 +673,7 @@ interface IGPMStarterGPOBackupCollection : IDispatch
     HRESULT get__NewEnum(IEnumVARIANT* ppIGPMTmplBackup);
 }
 
-const GUID IID_IGPMStarterGPOBackup = {0x51D98EDA, 0xA87E, 0x43DD, [0xB8, 0x0A, 0x0B, 0x66, 0xEF, 0x19, 0x38, 0xD6]};
-@GUID(0x51D98EDA, 0xA87E, 0x43DD, [0xB8, 0x0A, 0x0B, 0x66, 0xEF, 0x19, 0x38, 0xD6]);
+@GUID("51D98EDA-A87E-43DD-B80A-0B66EF1938D6")
 interface IGPMStarterGPOBackup : IDispatch
 {
     HRESULT get_BackupDir(BSTR* pbstrBackupDir);
@@ -723,20 +685,20 @@ interface IGPMStarterGPOBackup : IDispatch
     HRESULT get_Timestamp(double* pTimestamp);
     HRESULT get_Type(GPMStarterGPOType* pType);
     HRESULT Delete();
-    HRESULT GenerateReport(__MIDL___MIDL_itf_gpmgmt_0000_0000_0005 gpmReportType, VARIANT* pvarGPMProgress, VARIANT* pvarGPMCancel, IGPMResult* ppIGPMResult);
-    HRESULT GenerateReportToFile(__MIDL___MIDL_itf_gpmgmt_0000_0000_0005 gpmReportType, BSTR bstrTargetFilePath, IGPMResult* ppIGPMResult);
+    HRESULT GenerateReport(__MIDL___MIDL_itf_gpmgmt_0000_0000_0005 gpmReportType, VARIANT* pvarGPMProgress, 
+                           VARIANT* pvarGPMCancel, IGPMResult* ppIGPMResult);
+    HRESULT GenerateReportToFile(__MIDL___MIDL_itf_gpmgmt_0000_0000_0005 gpmReportType, BSTR bstrTargetFilePath, 
+                                 IGPMResult* ppIGPMResult);
 }
 
-const GUID IID_IGPM2 = {0x00238F8A, 0x3D86, 0x41AC, [0x8F, 0x5E, 0x06, 0xA6, 0x63, 0x8A, 0x63, 0x4A]};
-@GUID(0x00238F8A, 0x3D86, 0x41AC, [0x8F, 0x5E, 0x06, 0xA6, 0x63, 0x8A, 0x63, 0x4A]);
+@GUID("00238F8A-3D86-41AC-8F5E-06A6638A634A")
 interface IGPM2 : IGPM
 {
     HRESULT GetBackupDirEx(BSTR bstrBackupDir, GPMBackupType backupDirType, IGPMBackupDirEx* ppIGPMBackupDirEx);
     HRESULT InitializeReportingEx(BSTR bstrAdmPath, int reportingOptions);
 }
 
-const GUID IID_IGPMStarterGPO = {0xDFC3F61B, 0x8880, 0x4490, [0x93, 0x37, 0xD2, 0x9C, 0x7B, 0xA8, 0xC2, 0xF0]};
-@GUID(0xDFC3F61B, 0x8880, 0x4490, [0x93, 0x37, 0xD2, 0x9C, 0x7B, 0xA8, 0xC2, 0xF0]);
+@GUID("DFC3F61B-8880-4490-9337-D29C7BA8C2F0")
 interface IGPMStarterGPO : IDispatch
 {
     HRESULT get_DisplayName(BSTR* pVal);
@@ -753,17 +715,22 @@ interface IGPMStarterGPO : IDispatch
     HRESULT get_UserVersion(ushort* pVal);
     HRESULT get_StarterGPOVersion(BSTR* pVal);
     HRESULT Delete();
-    HRESULT Save(BSTR bstrSaveFile, short bOverwrite, short bSaveAsSystem, VARIANT* bstrLanguage, VARIANT* bstrAuthor, VARIANT* bstrProduct, VARIANT* bstrUniqueID, VARIANT* bstrVersion, VARIANT* pvarGPMProgress, VARIANT* pvarGPMCancel, IGPMResult* ppIGPMResult);
-    HRESULT Backup(BSTR bstrBackupDir, BSTR bstrComment, VARIANT* pvarGPMProgress, VARIANT* pvarGPMCancel, IGPMResult* ppIGPMResult);
-    HRESULT CopyTo(VARIANT* pvarNewDisplayName, VARIANT* pvarGPMProgress, VARIANT* pvarGPMCancel, IGPMResult* ppIGPMResult);
-    HRESULT GenerateReport(__MIDL___MIDL_itf_gpmgmt_0000_0000_0005 gpmReportType, VARIANT* pvarGPMProgress, VARIANT* pvarGPMCancel, IGPMResult* ppIGPMResult);
-    HRESULT GenerateReportToFile(__MIDL___MIDL_itf_gpmgmt_0000_0000_0005 gpmReportType, BSTR bstrTargetFilePath, IGPMResult* ppIGPMResult);
+    HRESULT Save(BSTR bstrSaveFile, short bOverwrite, short bSaveAsSystem, VARIANT* bstrLanguage, 
+                 VARIANT* bstrAuthor, VARIANT* bstrProduct, VARIANT* bstrUniqueID, VARIANT* bstrVersion, 
+                 VARIANT* pvarGPMProgress, VARIANT* pvarGPMCancel, IGPMResult* ppIGPMResult);
+    HRESULT Backup(BSTR bstrBackupDir, BSTR bstrComment, VARIANT* pvarGPMProgress, VARIANT* pvarGPMCancel, 
+                   IGPMResult* ppIGPMResult);
+    HRESULT CopyTo(VARIANT* pvarNewDisplayName, VARIANT* pvarGPMProgress, VARIANT* pvarGPMCancel, 
+                   IGPMResult* ppIGPMResult);
+    HRESULT GenerateReport(__MIDL___MIDL_itf_gpmgmt_0000_0000_0005 gpmReportType, VARIANT* pvarGPMProgress, 
+                           VARIANT* pvarGPMCancel, IGPMResult* ppIGPMResult);
+    HRESULT GenerateReportToFile(__MIDL___MIDL_itf_gpmgmt_0000_0000_0005 gpmReportType, BSTR bstrTargetFilePath, 
+                                 IGPMResult* ppIGPMResult);
     HRESULT GetSecurityInfo(IGPMSecurityInfo* ppSecurityInfo);
     HRESULT SetSecurityInfo(IGPMSecurityInfo pSecurityInfo);
 }
 
-const GUID IID_IGPMStarterGPOCollection = {0x2E522729, 0x2219, 0x44AD, [0x93, 0x3A, 0x64, 0xDF, 0xD6, 0x50, 0xC4, 0x23]};
-@GUID(0x2E522729, 0x2219, 0x44AD, [0x93, 0x3A, 0x64, 0xDF, 0xD6, 0x50, 0xC4, 0x23]);
+@GUID("2E522729-2219-44AD-933A-64DFD650C423")
 interface IGPMStarterGPOCollection : IDispatch
 {
     HRESULT get_Count(int* pVal);
@@ -771,20 +738,21 @@ interface IGPMStarterGPOCollection : IDispatch
     HRESULT get__NewEnum(IEnumVARIANT* ppIGPMTemplates);
 }
 
-const GUID IID_IGPMDomain2 = {0x7CA6BB8B, 0xF1EB, 0x490A, [0x93, 0x8D, 0x3C, 0x4E, 0x51, 0xC7, 0x68, 0xE6]};
-@GUID(0x7CA6BB8B, 0xF1EB, 0x490A, [0x93, 0x8D, 0x3C, 0x4E, 0x51, 0xC7, 0x68, 0xE6]);
+@GUID("7CA6BB8B-F1EB-490A-938D-3C4E51C768E6")
 interface IGPMDomain2 : IGPMDomain
 {
     HRESULT CreateStarterGPO(IGPMStarterGPO* ppnewTemplate);
     HRESULT CreateGPOFromStarterGPO(IGPMStarterGPO pGPOTemplate, IGPMGPO* ppnewGPO);
     HRESULT GetStarterGPO(BSTR bstrGuid, IGPMStarterGPO* ppTemplate);
-    HRESULT SearchStarterGPOs(IGPMSearchCriteria pIGPMSearchCriteria, IGPMStarterGPOCollection* ppIGPMTemplateCollection);
-    HRESULT LoadStarterGPO(BSTR bstrLoadFile, short bOverwrite, VARIANT* pvarGPMProgress, VARIANT* pvarGPMCancel, IGPMResult* ppIGPMResult);
-    HRESULT RestoreStarterGPO(IGPMStarterGPOBackup pIGPMTmplBackup, VARIANT* pvarGPMProgress, VARIANT* pvarGPMCancel, IGPMResult* ppIGPMResult);
+    HRESULT SearchStarterGPOs(IGPMSearchCriteria pIGPMSearchCriteria, 
+                              IGPMStarterGPOCollection* ppIGPMTemplateCollection);
+    HRESULT LoadStarterGPO(BSTR bstrLoadFile, short bOverwrite, VARIANT* pvarGPMProgress, VARIANT* pvarGPMCancel, 
+                           IGPMResult* ppIGPMResult);
+    HRESULT RestoreStarterGPO(IGPMStarterGPOBackup pIGPMTmplBackup, VARIANT* pvarGPMProgress, 
+                              VARIANT* pvarGPMCancel, IGPMResult* ppIGPMResult);
 }
 
-const GUID IID_IGPMConstants2 = {0x05AE21B0, 0xAC09, 0x4032, [0xA2, 0x6F, 0x9E, 0x7D, 0xA7, 0x86, 0xDC, 0x19]};
-@GUID(0x05AE21B0, 0xAC09, 0x4032, [0xA2, 0x6F, 0x9E, 0x7D, 0xA7, 0x86, 0xDC, 0x19]);
+@GUID("05AE21B0-AC09-4032-A26F-9E7DA786DC19")
 interface IGPMConstants2 : IGPMConstants
 {
     HRESULT get_BackupTypeGPO(GPMBackupType* pVal);
@@ -804,26 +772,24 @@ interface IGPMConstants2 : IGPMConstants
     HRESULT get_ReportComments(GPMReportingOptions* pVal);
 }
 
-const GUID IID_IGPMGPO2 = {0x8A66A210, 0xB78B, 0x4D99, [0x88, 0xE2, 0xC3, 0x06, 0xA8, 0x17, 0xC9, 0x25]};
-@GUID(0x8A66A210, 0xB78B, 0x4D99, [0x88, 0xE2, 0xC3, 0x06, 0xA8, 0x17, 0xC9, 0x25]);
+@GUID("8A66A210-B78B-4D99-88E2-C306A817C925")
 interface IGPMGPO2 : IGPMGPO
 {
     HRESULT get_Description(BSTR* pVal);
     HRESULT put_Description(BSTR newVal);
 }
 
-const GUID IID_IGPMDomain3 = {0x0077FDFE, 0x88C7, 0x4ACF, [0xA1, 0x1D, 0xD1, 0x0A, 0x7C, 0x31, 0x0A, 0x03]};
-@GUID(0x0077FDFE, 0x88C7, 0x4ACF, [0xA1, 0x1D, 0xD1, 0x0A, 0x7C, 0x31, 0x0A, 0x03]);
+@GUID("0077FDFE-88C7-4ACF-A11D-D10A7C310A03")
 interface IGPMDomain3 : IGPMDomain2
 {
-    HRESULT GenerateReport(__MIDL___MIDL_itf_gpmgmt_0000_0000_0005 gpmReportType, VARIANT* pvarGPMProgress, VARIANT* pvarGPMCancel, IGPMResult* ppIGPMResult);
+    HRESULT GenerateReport(__MIDL___MIDL_itf_gpmgmt_0000_0000_0005 gpmReportType, VARIANT* pvarGPMProgress, 
+                           VARIANT* pvarGPMCancel, IGPMResult* ppIGPMResult);
     HRESULT get_InfrastructureDC(BSTR* pVal);
     HRESULT put_InfrastructureDC(BSTR newVal);
     HRESULT put_InfrastructureFlags(uint dwFlags);
 }
 
-const GUID IID_IGPMGPO3 = {0x7CF123A1, 0xF94A, 0x4112, [0xBF, 0xAE, 0x6A, 0xA1, 0xDB, 0x9C, 0xB2, 0x48]};
-@GUID(0x7CF123A1, 0xF94A, 0x4112, [0xBF, 0xAE, 0x6A, 0xA1, 0xDB, 0x9C, 0xB2, 0x48]);
+@GUID("7CF123A1-F94A-4112-BFAE-6AA1DB9CB248")
 interface IGPMGPO3 : IGPMGPO2
 {
     HRESULT get_InfrastructureDC(BSTR* pVal);
@@ -831,3 +797,82 @@ interface IGPMGPO3 : IGPMGPO2
     HRESULT put_InfrastructureFlags(uint dwFlags);
 }
 
+
+// GUIDs
+
+const GUID CLSID_GPM                           = GUIDOF!GPM;
+const GUID CLSID_GPMAsyncCancel                = GUIDOF!GPMAsyncCancel;
+const GUID CLSID_GPMBackup                     = GUIDOF!GPMBackup;
+const GUID CLSID_GPMBackupCollection           = GUIDOF!GPMBackupCollection;
+const GUID CLSID_GPMBackupDir                  = GUIDOF!GPMBackupDir;
+const GUID CLSID_GPMBackupDirEx                = GUIDOF!GPMBackupDirEx;
+const GUID CLSID_GPMCSECollection              = GUIDOF!GPMCSECollection;
+const GUID CLSID_GPMClientSideExtension        = GUIDOF!GPMClientSideExtension;
+const GUID CLSID_GPMConstants                  = GUIDOF!GPMConstants;
+const GUID CLSID_GPMDomain                     = GUIDOF!GPMDomain;
+const GUID CLSID_GPMGPO                        = GUIDOF!GPMGPO;
+const GUID CLSID_GPMGPOCollection              = GUIDOF!GPMGPOCollection;
+const GUID CLSID_GPMGPOLink                    = GUIDOF!GPMGPOLink;
+const GUID CLSID_GPMGPOLinksCollection         = GUIDOF!GPMGPOLinksCollection;
+const GUID CLSID_GPMMapEntry                   = GUIDOF!GPMMapEntry;
+const GUID CLSID_GPMMapEntryCollection         = GUIDOF!GPMMapEntryCollection;
+const GUID CLSID_GPMMigrationTable             = GUIDOF!GPMMigrationTable;
+const GUID CLSID_GPMPermission                 = GUIDOF!GPMPermission;
+const GUID CLSID_GPMRSOP                       = GUIDOF!GPMRSOP;
+const GUID CLSID_GPMResult                     = GUIDOF!GPMResult;
+const GUID CLSID_GPMSOM                        = GUIDOF!GPMSOM;
+const GUID CLSID_GPMSOMCollection              = GUIDOF!GPMSOMCollection;
+const GUID CLSID_GPMSearchCriteria             = GUIDOF!GPMSearchCriteria;
+const GUID CLSID_GPMSecurityInfo               = GUIDOF!GPMSecurityInfo;
+const GUID CLSID_GPMSitesContainer             = GUIDOF!GPMSitesContainer;
+const GUID CLSID_GPMStarterGPOBackup           = GUIDOF!GPMStarterGPOBackup;
+const GUID CLSID_GPMStarterGPOBackupCollection = GUIDOF!GPMStarterGPOBackupCollection;
+const GUID CLSID_GPMStarterGPOCollection       = GUIDOF!GPMStarterGPOCollection;
+const GUID CLSID_GPMStatusMessage              = GUIDOF!GPMStatusMessage;
+const GUID CLSID_GPMStatusMsgCollection        = GUIDOF!GPMStatusMsgCollection;
+const GUID CLSID_GPMTemplate                   = GUIDOF!GPMTemplate;
+const GUID CLSID_GPMTrustee                    = GUIDOF!GPMTrustee;
+const GUID CLSID_GPMWMIFilter                  = GUIDOF!GPMWMIFilter;
+const GUID CLSID_GPMWMIFilterCollection        = GUIDOF!GPMWMIFilterCollection;
+
+const GUID IID_IGPM                           = GUIDOF!IGPM;
+const GUID IID_IGPM2                          = GUIDOF!IGPM2;
+const GUID IID_IGPMAsyncCancel                = GUIDOF!IGPMAsyncCancel;
+const GUID IID_IGPMAsyncProgress              = GUIDOF!IGPMAsyncProgress;
+const GUID IID_IGPMBackup                     = GUIDOF!IGPMBackup;
+const GUID IID_IGPMBackupCollection           = GUIDOF!IGPMBackupCollection;
+const GUID IID_IGPMBackupDir                  = GUIDOF!IGPMBackupDir;
+const GUID IID_IGPMBackupDirEx                = GUIDOF!IGPMBackupDirEx;
+const GUID IID_IGPMCSECollection              = GUIDOF!IGPMCSECollection;
+const GUID IID_IGPMClientSideExtension        = GUIDOF!IGPMClientSideExtension;
+const GUID IID_IGPMConstants                  = GUIDOF!IGPMConstants;
+const GUID IID_IGPMConstants2                 = GUIDOF!IGPMConstants2;
+const GUID IID_IGPMDomain                     = GUIDOF!IGPMDomain;
+const GUID IID_IGPMDomain2                    = GUIDOF!IGPMDomain2;
+const GUID IID_IGPMDomain3                    = GUIDOF!IGPMDomain3;
+const GUID IID_IGPMGPO                        = GUIDOF!IGPMGPO;
+const GUID IID_IGPMGPO2                       = GUIDOF!IGPMGPO2;
+const GUID IID_IGPMGPO3                       = GUIDOF!IGPMGPO3;
+const GUID IID_IGPMGPOCollection              = GUIDOF!IGPMGPOCollection;
+const GUID IID_IGPMGPOLink                    = GUIDOF!IGPMGPOLink;
+const GUID IID_IGPMGPOLinksCollection         = GUIDOF!IGPMGPOLinksCollection;
+const GUID IID_IGPMMapEntry                   = GUIDOF!IGPMMapEntry;
+const GUID IID_IGPMMapEntryCollection         = GUIDOF!IGPMMapEntryCollection;
+const GUID IID_IGPMMigrationTable             = GUIDOF!IGPMMigrationTable;
+const GUID IID_IGPMPermission                 = GUIDOF!IGPMPermission;
+const GUID IID_IGPMRSOP                       = GUIDOF!IGPMRSOP;
+const GUID IID_IGPMResult                     = GUIDOF!IGPMResult;
+const GUID IID_IGPMSOM                        = GUIDOF!IGPMSOM;
+const GUID IID_IGPMSOMCollection              = GUIDOF!IGPMSOMCollection;
+const GUID IID_IGPMSearchCriteria             = GUIDOF!IGPMSearchCriteria;
+const GUID IID_IGPMSecurityInfo               = GUIDOF!IGPMSecurityInfo;
+const GUID IID_IGPMSitesContainer             = GUIDOF!IGPMSitesContainer;
+const GUID IID_IGPMStarterGPO                 = GUIDOF!IGPMStarterGPO;
+const GUID IID_IGPMStarterGPOBackup           = GUIDOF!IGPMStarterGPOBackup;
+const GUID IID_IGPMStarterGPOBackupCollection = GUIDOF!IGPMStarterGPOBackupCollection;
+const GUID IID_IGPMStarterGPOCollection       = GUIDOF!IGPMStarterGPOCollection;
+const GUID IID_IGPMStatusMessage              = GUIDOF!IGPMStatusMessage;
+const GUID IID_IGPMStatusMsgCollection        = GUIDOF!IGPMStatusMsgCollection;
+const GUID IID_IGPMTrustee                    = GUIDOF!IGPMTrustee;
+const GUID IID_IGPMWMIFilter                  = GUIDOF!IGPMWMIFilter;
+const GUID IID_IGPMWMIFilterCollection        = GUIDOF!IGPMWMIFilterCollection;

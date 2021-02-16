@@ -1,15 +1,20 @@
 module windows.gamemode;
 
-public import windows.com;
+public import windows.core;
+public import windows.com : HRESULT;
 
 extern(Windows):
 
-@DllImport("api-ms-win-gaming-expandedresources-l1-1-0.dll")
+
+// Functions
+
+@DllImport("api-ms-win-gaming-expandedresources-l1-1-0")
 HRESULT HasExpandedResources(int* hasExpandedResources);
 
-@DllImport("api-ms-win-gaming-expandedresources-l1-1-0.dll")
+@DllImport("api-ms-win-gaming-expandedresources-l1-1-0")
 HRESULT GetExpandedResourceExclusiveCpuCount(uint* exclusiveCpuCount);
 
-@DllImport("api-ms-win-gaming-expandedresources-l1-1-0.dll")
+@DllImport("api-ms-win-gaming-expandedresources-l1-1-0")
 HRESULT ReleaseExclusiveCpuSets();
+
 

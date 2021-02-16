@@ -1,12 +1,72 @@
 module windows.netmanagement;
 
-public import system;
-public import windows.com;
-public import windows.security;
-public import windows.systemservices;
-public import windows.windowsprogramming;
+public import windows.core;
+public import windows.com : HRESULT;
+public import windows.security : CERT_CONTEXT, SID_NAME_USE;
+public import windows.systemservices : BOOL;
+public import windows.windowsprogramming : FILETIME;
 
 extern(Windows):
+
+
+// Enums
+
+
+enum : int
+{
+    NetValidateAuthentication = 0x00000001,
+    NetValidatePasswordChange = 0x00000002,
+    NetValidatePasswordReset  = 0x00000003,
+}
+alias NET_VALIDATE_PASSWORD_TYPE = int;
+
+enum : int
+{
+    NetSetupUnknown           = 0x00000000,
+    NetSetupMachine           = 0x00000001,
+    NetSetupWorkgroup         = 0x00000002,
+    NetSetupDomain            = 0x00000003,
+    NetSetupNonExistentDomain = 0x00000004,
+    NetSetupDnsMachine        = 0x00000005,
+}
+alias NETSETUP_NAME_TYPE = int;
+
+enum : int
+{
+    DSREG_UNKNOWN_JOIN   = 0x00000000,
+    DSREG_DEVICE_JOIN    = 0x00000001,
+    DSREG_WORKPLACE_JOIN = 0x00000002,
+}
+alias DSREG_JOIN_TYPE = int;
+
+enum : int
+{
+    NetPrimaryComputerName    = 0x00000000,
+    NetAlternateComputerNames = 0x00000001,
+    NetAllComputerNames       = 0x00000002,
+    NetComputerNameTypeMax    = 0x00000003,
+}
+alias NET_COMPUTER_NAME_TYPE = int;
+
+enum : int
+{
+    NetSetupUnknownStatus = 0x00000000,
+    NetSetupUnjoined      = 0x00000001,
+    NetSetupWorkgroupName = 0x00000002,
+    NetSetupDomainName    = 0x00000003,
+}
+alias NETSETUP_JOIN_STATUS = int;
+
+enum : int
+{
+    UseTransportType_None = 0x00000000,
+    UseTransportType_Wsk  = 0x00000001,
+    UseTransportType_Quic = 0x00000002,
+}
+alias TRANSPORT_TYPE = int;
+
+// Structs
+
 
 struct USER_INFO_0
 {
@@ -17,11 +77,11 @@ struct USER_INFO_1
 {
     const(wchar)* usri1_name;
     const(wchar)* usri1_password;
-    uint usri1_password_age;
-    uint usri1_priv;
+    uint          usri1_password_age;
+    uint          usri1_priv;
     const(wchar)* usri1_home_dir;
     const(wchar)* usri1_comment;
-    uint usri1_flags;
+    uint          usri1_flags;
     const(wchar)* usri1_script_path;
 }
 
@@ -29,94 +89,94 @@ struct USER_INFO_2
 {
     const(wchar)* usri2_name;
     const(wchar)* usri2_password;
-    uint usri2_password_age;
-    uint usri2_priv;
+    uint          usri2_password_age;
+    uint          usri2_priv;
     const(wchar)* usri2_home_dir;
     const(wchar)* usri2_comment;
-    uint usri2_flags;
+    uint          usri2_flags;
     const(wchar)* usri2_script_path;
-    uint usri2_auth_flags;
+    uint          usri2_auth_flags;
     const(wchar)* usri2_full_name;
     const(wchar)* usri2_usr_comment;
     const(wchar)* usri2_parms;
     const(wchar)* usri2_workstations;
-    uint usri2_last_logon;
-    uint usri2_last_logoff;
-    uint usri2_acct_expires;
-    uint usri2_max_storage;
-    uint usri2_units_per_week;
-    ubyte* usri2_logon_hours;
-    uint usri2_bad_pw_count;
-    uint usri2_num_logons;
+    uint          usri2_last_logon;
+    uint          usri2_last_logoff;
+    uint          usri2_acct_expires;
+    uint          usri2_max_storage;
+    uint          usri2_units_per_week;
+    ubyte*        usri2_logon_hours;
+    uint          usri2_bad_pw_count;
+    uint          usri2_num_logons;
     const(wchar)* usri2_logon_server;
-    uint usri2_country_code;
-    uint usri2_code_page;
+    uint          usri2_country_code;
+    uint          usri2_code_page;
 }
 
 struct USER_INFO_3
 {
     const(wchar)* usri3_name;
     const(wchar)* usri3_password;
-    uint usri3_password_age;
-    uint usri3_priv;
+    uint          usri3_password_age;
+    uint          usri3_priv;
     const(wchar)* usri3_home_dir;
     const(wchar)* usri3_comment;
-    uint usri3_flags;
+    uint          usri3_flags;
     const(wchar)* usri3_script_path;
-    uint usri3_auth_flags;
+    uint          usri3_auth_flags;
     const(wchar)* usri3_full_name;
     const(wchar)* usri3_usr_comment;
     const(wchar)* usri3_parms;
     const(wchar)* usri3_workstations;
-    uint usri3_last_logon;
-    uint usri3_last_logoff;
-    uint usri3_acct_expires;
-    uint usri3_max_storage;
-    uint usri3_units_per_week;
-    ubyte* usri3_logon_hours;
-    uint usri3_bad_pw_count;
-    uint usri3_num_logons;
+    uint          usri3_last_logon;
+    uint          usri3_last_logoff;
+    uint          usri3_acct_expires;
+    uint          usri3_max_storage;
+    uint          usri3_units_per_week;
+    ubyte*        usri3_logon_hours;
+    uint          usri3_bad_pw_count;
+    uint          usri3_num_logons;
     const(wchar)* usri3_logon_server;
-    uint usri3_country_code;
-    uint usri3_code_page;
-    uint usri3_user_id;
-    uint usri3_primary_group_id;
+    uint          usri3_country_code;
+    uint          usri3_code_page;
+    uint          usri3_user_id;
+    uint          usri3_primary_group_id;
     const(wchar)* usri3_profile;
     const(wchar)* usri3_home_dir_drive;
-    uint usri3_password_expired;
+    uint          usri3_password_expired;
 }
 
 struct USER_INFO_4
 {
     const(wchar)* usri4_name;
     const(wchar)* usri4_password;
-    uint usri4_password_age;
-    uint usri4_priv;
+    uint          usri4_password_age;
+    uint          usri4_priv;
     const(wchar)* usri4_home_dir;
     const(wchar)* usri4_comment;
-    uint usri4_flags;
+    uint          usri4_flags;
     const(wchar)* usri4_script_path;
-    uint usri4_auth_flags;
+    uint          usri4_auth_flags;
     const(wchar)* usri4_full_name;
     const(wchar)* usri4_usr_comment;
     const(wchar)* usri4_parms;
     const(wchar)* usri4_workstations;
-    uint usri4_last_logon;
-    uint usri4_last_logoff;
-    uint usri4_acct_expires;
-    uint usri4_max_storage;
-    uint usri4_units_per_week;
-    ubyte* usri4_logon_hours;
-    uint usri4_bad_pw_count;
-    uint usri4_num_logons;
+    uint          usri4_last_logon;
+    uint          usri4_last_logoff;
+    uint          usri4_acct_expires;
+    uint          usri4_max_storage;
+    uint          usri4_units_per_week;
+    ubyte*        usri4_logon_hours;
+    uint          usri4_bad_pw_count;
+    uint          usri4_num_logons;
     const(wchar)* usri4_logon_server;
-    uint usri4_country_code;
-    uint usri4_code_page;
-    void* usri4_user_sid;
-    uint usri4_primary_group_id;
+    uint          usri4_country_code;
+    uint          usri4_code_page;
+    void*         usri4_user_sid;
+    uint          usri4_primary_group_id;
     const(wchar)* usri4_profile;
     const(wchar)* usri4_home_dir_drive;
-    uint usri4_password_expired;
+    uint          usri4_password_expired;
 }
 
 struct USER_INFO_10
@@ -133,22 +193,22 @@ struct USER_INFO_11
     const(wchar)* usri11_comment;
     const(wchar)* usri11_usr_comment;
     const(wchar)* usri11_full_name;
-    uint usri11_priv;
-    uint usri11_auth_flags;
-    uint usri11_password_age;
+    uint          usri11_priv;
+    uint          usri11_auth_flags;
+    uint          usri11_password_age;
     const(wchar)* usri11_home_dir;
     const(wchar)* usri11_parms;
-    uint usri11_last_logon;
-    uint usri11_last_logoff;
-    uint usri11_bad_pw_count;
-    uint usri11_num_logons;
+    uint          usri11_last_logon;
+    uint          usri11_last_logoff;
+    uint          usri11_bad_pw_count;
+    uint          usri11_num_logons;
     const(wchar)* usri11_logon_server;
-    uint usri11_country_code;
+    uint          usri11_country_code;
     const(wchar)* usri11_workstations;
-    uint usri11_max_storage;
-    uint usri11_units_per_week;
-    ubyte* usri11_logon_hours;
-    uint usri11_code_page;
+    uint          usri11_max_storage;
+    uint          usri11_units_per_week;
+    ubyte*        usri11_logon_hours;
+    uint          usri11_code_page;
 }
 
 struct USER_INFO_20
@@ -156,41 +216,41 @@ struct USER_INFO_20
     const(wchar)* usri20_name;
     const(wchar)* usri20_full_name;
     const(wchar)* usri20_comment;
-    uint usri20_flags;
-    uint usri20_user_id;
+    uint          usri20_flags;
+    uint          usri20_user_id;
 }
 
 struct USER_INFO_21
 {
-    ubyte usri21_password;
+    ubyte[16] usri21_password;
 }
 
 struct USER_INFO_22
 {
     const(wchar)* usri22_name;
-    ubyte usri22_password;
-    uint usri22_password_age;
-    uint usri22_priv;
+    ubyte[16]     usri22_password;
+    uint          usri22_password_age;
+    uint          usri22_priv;
     const(wchar)* usri22_home_dir;
     const(wchar)* usri22_comment;
-    uint usri22_flags;
+    uint          usri22_flags;
     const(wchar)* usri22_script_path;
-    uint usri22_auth_flags;
+    uint          usri22_auth_flags;
     const(wchar)* usri22_full_name;
     const(wchar)* usri22_usr_comment;
     const(wchar)* usri22_parms;
     const(wchar)* usri22_workstations;
-    uint usri22_last_logon;
-    uint usri22_last_logoff;
-    uint usri22_acct_expires;
-    uint usri22_max_storage;
-    uint usri22_units_per_week;
-    ubyte* usri22_logon_hours;
-    uint usri22_bad_pw_count;
-    uint usri22_num_logons;
+    uint          usri22_last_logon;
+    uint          usri22_last_logoff;
+    uint          usri22_acct_expires;
+    uint          usri22_max_storage;
+    uint          usri22_units_per_week;
+    ubyte*        usri22_logon_hours;
+    uint          usri22_bad_pw_count;
+    uint          usri22_num_logons;
     const(wchar)* usri22_logon_server;
-    uint usri22_country_code;
-    uint usri22_code_page;
+    uint          usri22_country_code;
+    uint          usri22_code_page;
 }
 
 struct USER_INFO_23
@@ -198,17 +258,17 @@ struct USER_INFO_23
     const(wchar)* usri23_name;
     const(wchar)* usri23_full_name;
     const(wchar)* usri23_comment;
-    uint usri23_flags;
-    void* usri23_user_sid;
+    uint          usri23_flags;
+    void*         usri23_user_sid;
 }
 
 struct USER_INFO_24
 {
-    BOOL usri24_internet_identity;
-    uint usri24_flags;
+    BOOL          usri24_internet_identity;
+    uint          usri24_flags;
     const(wchar)* usri24_internet_provider_name;
     const(wchar)* usri24_internet_principal_name;
-    void* usri24_user_sid;
+    void*         usri24_user_sid;
 }
 
 struct USER_INFO_1003
@@ -278,7 +338,7 @@ struct USER_INFO_1018
 
 struct USER_INFO_1020
 {
-    uint usri1020_units_per_week;
+    uint   usri1020_units_per_week;
     ubyte* usri1020_logon_hours;
 }
 
@@ -323,14 +383,14 @@ struct USER_MODALS_INFO_0
 
 struct USER_MODALS_INFO_1
 {
-    uint usrmod1_role;
+    uint          usrmod1_role;
     const(wchar)* usrmod1_primary;
 }
 
 struct USER_MODALS_INFO_2
 {
     const(wchar)* usrmod2_domain_name;
-    void* usrmod2_domain_id;
+    void*         usrmod2_domain_id;
 }
 
 struct USER_MODALS_INFO_3
@@ -390,16 +450,16 @@ struct GROUP_INFO_2
 {
     const(wchar)* grpi2_name;
     const(wchar)* grpi2_comment;
-    uint grpi2_group_id;
-    uint grpi2_attributes;
+    uint          grpi2_group_id;
+    uint          grpi2_attributes;
 }
 
 struct GROUP_INFO_3
 {
     const(wchar)* grpi3_name;
     const(wchar)* grpi3_comment;
-    void* grpi3_group_sid;
-    uint grpi3_attributes;
+    void*         grpi3_group_sid;
+    uint          grpi3_attributes;
 }
 
 struct GROUP_INFO_1002
@@ -420,7 +480,7 @@ struct GROUP_USERS_INFO_0
 struct GROUP_USERS_INFO_1
 {
     const(wchar)* grui1_name;
-    uint grui1_attributes;
+    uint          grui1_attributes;
 }
 
 struct LOCALGROUP_INFO_0
@@ -446,15 +506,15 @@ struct LOCALGROUP_MEMBERS_INFO_0
 
 struct LOCALGROUP_MEMBERS_INFO_1
 {
-    void* lgrmi1_sid;
-    SID_NAME_USE lgrmi1_sidusage;
+    void*         lgrmi1_sid;
+    SID_NAME_USE  lgrmi1_sidusage;
     const(wchar)* lgrmi1_name;
 }
 
 struct LOCALGROUP_MEMBERS_INFO_2
 {
-    void* lgrmi2_sid;
-    SID_NAME_USE lgrmi2_sidusage;
+    void*         lgrmi2_sid;
+    SID_NAME_USE  lgrmi2_sidusage;
     const(wchar)* lgrmi2_domainandname;
 }
 
@@ -472,28 +532,28 @@ struct NET_DISPLAY_USER
 {
     const(wchar)* usri1_name;
     const(wchar)* usri1_comment;
-    uint usri1_flags;
+    uint          usri1_flags;
     const(wchar)* usri1_full_name;
-    uint usri1_user_id;
-    uint usri1_next_index;
+    uint          usri1_user_id;
+    uint          usri1_next_index;
 }
 
 struct NET_DISPLAY_MACHINE
 {
     const(wchar)* usri2_name;
     const(wchar)* usri2_comment;
-    uint usri2_flags;
-    uint usri2_user_id;
-    uint usri2_next_index;
+    uint          usri2_flags;
+    uint          usri2_user_id;
+    uint          usri2_next_index;
 }
 
 struct NET_DISPLAY_GROUP
 {
     const(wchar)* grpi3_name;
     const(wchar)* grpi3_comment;
-    uint grpi3_group_id;
-    uint grpi3_attributes;
-    uint grpi3_next_index;
+    uint          grpi3_group_id;
+    uint          grpi3_attributes;
+    uint          grpi3_next_index;
 }
 
 struct ACCESS_INFO_0
@@ -504,8 +564,8 @@ struct ACCESS_INFO_0
 struct ACCESS_INFO_1
 {
     const(wchar)* acc1_resource_name;
-    uint acc1_attr;
-    uint acc1_count;
+    uint          acc1_attr;
+    uint          acc1_count;
 }
 
 struct ACCESS_INFO_1002
@@ -516,30 +576,23 @@ struct ACCESS_INFO_1002
 struct ACCESS_LIST
 {
     const(wchar)* acl_ugname;
-    uint acl_access;
-}
-
-enum NET_VALIDATE_PASSWORD_TYPE
-{
-    NetValidateAuthentication = 1,
-    NetValidatePasswordChange = 2,
-    NetValidatePasswordReset = 3,
+    uint          acl_access;
 }
 
 struct NET_VALIDATE_PASSWORD_HASH
 {
-    uint Length;
+    uint   Length;
     ubyte* Hash;
 }
 
 struct NET_VALIDATE_PERSISTED_FIELDS
 {
-    uint PresentFields;
+    uint     PresentFields;
     FILETIME PasswordLastSet;
     FILETIME BadPasswordTime;
     FILETIME LockoutTime;
-    uint BadPasswordCount;
-    uint PasswordHistoryLength;
+    uint     BadPasswordCount;
+    uint     PasswordHistoryLength;
     NET_VALIDATE_PASSWORD_HASH* PasswordHistory;
 }
 
@@ -561,7 +614,7 @@ struct NET_VALIDATE_PASSWORD_CHANGE_INPUT_ARG
     const(wchar)* ClearPassword;
     const(wchar)* UserAccountName;
     NET_VALIDATE_PASSWORD_HASH HashedPassword;
-    ubyte PasswordMatch;
+    ubyte         PasswordMatch;
 }
 
 struct NET_VALIDATE_PASSWORD_RESET_INPUT_ARG
@@ -570,25 +623,8 @@ struct NET_VALIDATE_PASSWORD_RESET_INPUT_ARG
     const(wchar)* ClearPassword;
     const(wchar)* UserAccountName;
     NET_VALIDATE_PASSWORD_HASH HashedPassword;
-    ubyte PasswordMustChangeAtNextLogon;
-    ubyte ClearLockout;
-}
-
-enum NETSETUP_NAME_TYPE
-{
-    NetSetupUnknown = 0,
-    NetSetupMachine = 1,
-    NetSetupWorkgroup = 2,
-    NetSetupDomain = 3,
-    NetSetupNonExistentDomain = 4,
-    NetSetupDnsMachine = 5,
-}
-
-enum DSREG_JOIN_TYPE
-{
-    DSREG_UNKNOWN_JOIN = 0,
-    DSREG_DEVICE_JOIN = 1,
-    DSREG_WORKPLACE_JOIN = 2,
+    ubyte         PasswordMustChangeAtNextLogon;
+    ubyte         ClearLockout;
 }
 
 struct DSREG_USER_INFO
@@ -600,60 +636,44 @@ struct DSREG_USER_INFO
 
 struct DSREG_JOIN_INFO
 {
-    DSREG_JOIN_TYPE joinType;
-    CERT_CONTEXT* pJoinCertificate;
-    const(wchar)* pszDeviceId;
-    const(wchar)* pszIdpDomain;
-    const(wchar)* pszTenantId;
-    const(wchar)* pszJoinUserEmail;
-    const(wchar)* pszTenantDisplayName;
-    const(wchar)* pszMdmEnrollmentUrl;
-    const(wchar)* pszMdmTermsOfUseUrl;
-    const(wchar)* pszMdmComplianceUrl;
-    const(wchar)* pszUserSettingSyncUrl;
+    DSREG_JOIN_TYPE  joinType;
+    CERT_CONTEXT*    pJoinCertificate;
+    const(wchar)*    pszDeviceId;
+    const(wchar)*    pszIdpDomain;
+    const(wchar)*    pszTenantId;
+    const(wchar)*    pszJoinUserEmail;
+    const(wchar)*    pszTenantDisplayName;
+    const(wchar)*    pszMdmEnrollmentUrl;
+    const(wchar)*    pszMdmTermsOfUseUrl;
+    const(wchar)*    pszMdmComplianceUrl;
+    const(wchar)*    pszUserSettingSyncUrl;
     DSREG_USER_INFO* pUserInfo;
-}
-
-enum NET_COMPUTER_NAME_TYPE
-{
-    NetPrimaryComputerName = 0,
-    NetAlternateComputerNames = 1,
-    NetAllComputerNames = 2,
-    NetComputerNameTypeMax = 3,
 }
 
 struct NETSETUP_PROVISIONING_PARAMS
 {
-    uint dwVersion;
+    uint          dwVersion;
     const(wchar)* lpDomain;
     const(wchar)* lpHostName;
     const(wchar)* lpMachineAccountOU;
     const(wchar)* lpDcName;
-    uint dwProvisionOptions;
-    ushort** aCertTemplateNames;
-    uint cCertTemplateNames;
-    ushort** aMachinePolicyNames;
-    uint cMachinePolicyNames;
-    ushort** aMachinePolicyPaths;
-    uint cMachinePolicyPaths;
+    uint          dwProvisionOptions;
+    ushort**      aCertTemplateNames;
+    uint          cCertTemplateNames;
+    ushort**      aMachinePolicyNames;
+    uint          cMachinePolicyNames;
+    ushort**      aMachinePolicyPaths;
+    uint          cMachinePolicyPaths;
     const(wchar)* lpNetbiosName;
     const(wchar)* lpSiteName;
     const(wchar)* lpPrimaryDNSDomain;
 }
 
-enum NETSETUP_JOIN_STATUS
-{
-    NetSetupUnknownStatus = 0,
-    NetSetupUnjoined = 1,
-    NetSetupWorkgroupName = 2,
-    NetSetupDomainName = 3,
-}
-
 struct STD_ALERT
 {
-    uint alrt_timestamp;
-    ushort alrt_eventname;
-    ushort alrt_servicename;
+    uint       alrt_timestamp;
+    ushort[17] alrt_eventname;
+    ushort[81] alrt_servicename;
 }
 
 struct ADMIN_OTHER_INFO
@@ -865,15 +885,15 @@ struct CONFIG_INFO_0
 
 struct ERROR_LOG
 {
-    uint el_len;
-    uint el_reserved;
-    uint el_time;
-    uint el_error;
+    uint          el_len;
+    uint          el_reserved;
+    uint          el_time;
+    uint          el_error;
     const(wchar)* el_name;
     const(wchar)* el_text;
-    ubyte* el_data;
-    uint el_data_size;
-    uint el_nstrings;
+    ubyte*        el_data;
+    uint          el_data_size;
+    uint          el_nstrings;
 }
 
 struct MSG_INFO_0
@@ -884,7 +904,7 @@ struct MSG_INFO_0
 struct MSG_INFO_1
 {
     const(wchar)* msgi1_name;
-    uint msgi1_forward_flag;
+    uint          msgi1_forward_flag;
     const(wchar)* msgi1_forward;
 }
 
@@ -896,7 +916,7 @@ struct TIME_OF_DAY_INFO
     uint tod_mins;
     uint tod_secs;
     uint tod_hunds;
-    int tod_timezone;
+    int  tod_timezone;
     uint tod_tinterval;
     uint tod_day;
     uint tod_month;
@@ -906,144 +926,144 @@ struct TIME_OF_DAY_INFO
 
 struct AT_INFO
 {
-    uint JobTime;
-    uint DaysOfMonth;
-    ubyte DaysOfWeek;
-    ubyte Flags;
+    size_t        JobTime;
+    uint          DaysOfMonth;
+    ubyte         DaysOfWeek;
+    ubyte         Flags;
     const(wchar)* Command;
 }
 
 struct AT_ENUM
 {
-    uint JobId;
-    uint JobTime;
-    uint DaysOfMonth;
-    ubyte DaysOfWeek;
-    ubyte Flags;
+    uint          JobId;
+    size_t        JobTime;
+    uint          DaysOfMonth;
+    ubyte         DaysOfWeek;
+    ubyte         Flags;
     const(wchar)* Command;
 }
 
 struct SERVER_INFO_100
 {
-    uint sv100_platform_id;
+    uint          sv100_platform_id;
     const(wchar)* sv100_name;
 }
 
 struct SERVER_INFO_101
 {
-    uint sv101_platform_id;
+    uint          sv101_platform_id;
     const(wchar)* sv101_name;
-    uint sv101_version_major;
-    uint sv101_version_minor;
-    uint sv101_type;
+    uint          sv101_version_major;
+    uint          sv101_version_minor;
+    uint          sv101_type;
     const(wchar)* sv101_comment;
 }
 
 struct SERVER_INFO_102
 {
-    uint sv102_platform_id;
+    uint          sv102_platform_id;
     const(wchar)* sv102_name;
-    uint sv102_version_major;
-    uint sv102_version_minor;
-    uint sv102_type;
+    uint          sv102_version_major;
+    uint          sv102_version_minor;
+    uint          sv102_type;
     const(wchar)* sv102_comment;
-    uint sv102_users;
-    int sv102_disc;
-    BOOL sv102_hidden;
-    uint sv102_announce;
-    uint sv102_anndelta;
-    uint sv102_licenses;
+    uint          sv102_users;
+    int           sv102_disc;
+    BOOL          sv102_hidden;
+    uint          sv102_announce;
+    uint          sv102_anndelta;
+    uint          sv102_licenses;
     const(wchar)* sv102_userpath;
 }
 
 struct SERVER_INFO_103
 {
-    uint sv103_platform_id;
+    uint          sv103_platform_id;
     const(wchar)* sv103_name;
-    uint sv103_version_major;
-    uint sv103_version_minor;
-    uint sv103_type;
+    uint          sv103_version_major;
+    uint          sv103_version_minor;
+    uint          sv103_type;
     const(wchar)* sv103_comment;
-    uint sv103_users;
-    int sv103_disc;
-    BOOL sv103_hidden;
-    uint sv103_announce;
-    uint sv103_anndelta;
-    uint sv103_licenses;
+    uint          sv103_users;
+    int           sv103_disc;
+    BOOL          sv103_hidden;
+    uint          sv103_announce;
+    uint          sv103_anndelta;
+    uint          sv103_licenses;
     const(wchar)* sv103_userpath;
-    uint sv103_capabilities;
+    uint          sv103_capabilities;
 }
 
 struct SERVER_INFO_402
 {
-    uint sv402_ulist_mtime;
-    uint sv402_glist_mtime;
-    uint sv402_alist_mtime;
+    uint          sv402_ulist_mtime;
+    uint          sv402_glist_mtime;
+    uint          sv402_alist_mtime;
     const(wchar)* sv402_alerts;
-    uint sv402_security;
-    uint sv402_numadmin;
-    uint sv402_lanmask;
+    uint          sv402_security;
+    uint          sv402_numadmin;
+    uint          sv402_lanmask;
     const(wchar)* sv402_guestacct;
-    uint sv402_chdevs;
-    uint sv402_chdevq;
-    uint sv402_chdevjobs;
-    uint sv402_connections;
-    uint sv402_shares;
-    uint sv402_openfiles;
-    uint sv402_sessopens;
-    uint sv402_sessvcs;
-    uint sv402_sessreqs;
-    uint sv402_opensearch;
-    uint sv402_activelocks;
-    uint sv402_numreqbuf;
-    uint sv402_sizreqbuf;
-    uint sv402_numbigbuf;
-    uint sv402_numfiletasks;
-    uint sv402_alertsched;
-    uint sv402_erroralert;
-    uint sv402_logonalert;
-    uint sv402_accessalert;
-    uint sv402_diskalert;
-    uint sv402_netioalert;
-    uint sv402_maxauditsz;
+    uint          sv402_chdevs;
+    uint          sv402_chdevq;
+    uint          sv402_chdevjobs;
+    uint          sv402_connections;
+    uint          sv402_shares;
+    uint          sv402_openfiles;
+    uint          sv402_sessopens;
+    uint          sv402_sessvcs;
+    uint          sv402_sessreqs;
+    uint          sv402_opensearch;
+    uint          sv402_activelocks;
+    uint          sv402_numreqbuf;
+    uint          sv402_sizreqbuf;
+    uint          sv402_numbigbuf;
+    uint          sv402_numfiletasks;
+    uint          sv402_alertsched;
+    uint          sv402_erroralert;
+    uint          sv402_logonalert;
+    uint          sv402_accessalert;
+    uint          sv402_diskalert;
+    uint          sv402_netioalert;
+    uint          sv402_maxauditsz;
     const(wchar)* sv402_srvheuristics;
 }
 
 struct SERVER_INFO_403
 {
-    uint sv403_ulist_mtime;
-    uint sv403_glist_mtime;
-    uint sv403_alist_mtime;
+    uint          sv403_ulist_mtime;
+    uint          sv403_glist_mtime;
+    uint          sv403_alist_mtime;
     const(wchar)* sv403_alerts;
-    uint sv403_security;
-    uint sv403_numadmin;
-    uint sv403_lanmask;
+    uint          sv403_security;
+    uint          sv403_numadmin;
+    uint          sv403_lanmask;
     const(wchar)* sv403_guestacct;
-    uint sv403_chdevs;
-    uint sv403_chdevq;
-    uint sv403_chdevjobs;
-    uint sv403_connections;
-    uint sv403_shares;
-    uint sv403_openfiles;
-    uint sv403_sessopens;
-    uint sv403_sessvcs;
-    uint sv403_sessreqs;
-    uint sv403_opensearch;
-    uint sv403_activelocks;
-    uint sv403_numreqbuf;
-    uint sv403_sizreqbuf;
-    uint sv403_numbigbuf;
-    uint sv403_numfiletasks;
-    uint sv403_alertsched;
-    uint sv403_erroralert;
-    uint sv403_logonalert;
-    uint sv403_accessalert;
-    uint sv403_diskalert;
-    uint sv403_netioalert;
-    uint sv403_maxauditsz;
+    uint          sv403_chdevs;
+    uint          sv403_chdevq;
+    uint          sv403_chdevjobs;
+    uint          sv403_connections;
+    uint          sv403_shares;
+    uint          sv403_openfiles;
+    uint          sv403_sessopens;
+    uint          sv403_sessvcs;
+    uint          sv403_sessreqs;
+    uint          sv403_opensearch;
+    uint          sv403_activelocks;
+    uint          sv403_numreqbuf;
+    uint          sv403_sizreqbuf;
+    uint          sv403_numbigbuf;
+    uint          sv403_numfiletasks;
+    uint          sv403_alertsched;
+    uint          sv403_erroralert;
+    uint          sv403_logonalert;
+    uint          sv403_accessalert;
+    uint          sv403_diskalert;
+    uint          sv403_netioalert;
+    uint          sv403_maxauditsz;
     const(wchar)* sv403_srvheuristics;
-    uint sv403_auditedevents;
-    uint sv403_autoprofile;
+    uint          sv403_auditedevents;
+    uint          sv403_autoprofile;
     const(wchar)* sv403_autopath;
 }
 
@@ -1071,108 +1091,108 @@ struct SERVER_INFO_502
 
 struct SERVER_INFO_503
 {
-    uint sv503_sessopens;
-    uint sv503_sessvcs;
-    uint sv503_opensearch;
-    uint sv503_sizreqbuf;
-    uint sv503_initworkitems;
-    uint sv503_maxworkitems;
-    uint sv503_rawworkitems;
-    uint sv503_irpstacksize;
-    uint sv503_maxrawbuflen;
-    uint sv503_sessusers;
-    uint sv503_sessconns;
-    uint sv503_maxpagedmemoryusage;
-    uint sv503_maxnonpagedmemoryusage;
-    BOOL sv503_enablesoftcompat;
-    BOOL sv503_enableforcedlogoff;
-    BOOL sv503_timesource;
-    BOOL sv503_acceptdownlevelapis;
-    BOOL sv503_lmannounce;
+    uint          sv503_sessopens;
+    uint          sv503_sessvcs;
+    uint          sv503_opensearch;
+    uint          sv503_sizreqbuf;
+    uint          sv503_initworkitems;
+    uint          sv503_maxworkitems;
+    uint          sv503_rawworkitems;
+    uint          sv503_irpstacksize;
+    uint          sv503_maxrawbuflen;
+    uint          sv503_sessusers;
+    uint          sv503_sessconns;
+    uint          sv503_maxpagedmemoryusage;
+    uint          sv503_maxnonpagedmemoryusage;
+    BOOL          sv503_enablesoftcompat;
+    BOOL          sv503_enableforcedlogoff;
+    BOOL          sv503_timesource;
+    BOOL          sv503_acceptdownlevelapis;
+    BOOL          sv503_lmannounce;
     const(wchar)* sv503_domain;
-    uint sv503_maxcopyreadlen;
-    uint sv503_maxcopywritelen;
-    uint sv503_minkeepsearch;
-    uint sv503_maxkeepsearch;
-    uint sv503_minkeepcomplsearch;
-    uint sv503_maxkeepcomplsearch;
-    uint sv503_threadcountadd;
-    uint sv503_numblockthreads;
-    uint sv503_scavtimeout;
-    uint sv503_minrcvqueue;
-    uint sv503_minfreeworkitems;
-    uint sv503_xactmemsize;
-    uint sv503_threadpriority;
-    uint sv503_maxmpxct;
-    uint sv503_oplockbreakwait;
-    uint sv503_oplockbreakresponsewait;
-    BOOL sv503_enableoplocks;
-    BOOL sv503_enableoplockforceclose;
-    BOOL sv503_enablefcbopens;
-    BOOL sv503_enableraw;
-    BOOL sv503_enablesharednetdrives;
-    uint sv503_minfreeconnections;
-    uint sv503_maxfreeconnections;
+    uint          sv503_maxcopyreadlen;
+    uint          sv503_maxcopywritelen;
+    uint          sv503_minkeepsearch;
+    uint          sv503_maxkeepsearch;
+    uint          sv503_minkeepcomplsearch;
+    uint          sv503_maxkeepcomplsearch;
+    uint          sv503_threadcountadd;
+    uint          sv503_numblockthreads;
+    uint          sv503_scavtimeout;
+    uint          sv503_minrcvqueue;
+    uint          sv503_minfreeworkitems;
+    uint          sv503_xactmemsize;
+    uint          sv503_threadpriority;
+    uint          sv503_maxmpxct;
+    uint          sv503_oplockbreakwait;
+    uint          sv503_oplockbreakresponsewait;
+    BOOL          sv503_enableoplocks;
+    BOOL          sv503_enableoplockforceclose;
+    BOOL          sv503_enablefcbopens;
+    BOOL          sv503_enableraw;
+    BOOL          sv503_enablesharednetdrives;
+    uint          sv503_minfreeconnections;
+    uint          sv503_maxfreeconnections;
 }
 
 struct SERVER_INFO_599
 {
-    uint sv599_sessopens;
-    uint sv599_sessvcs;
-    uint sv599_opensearch;
-    uint sv599_sizreqbuf;
-    uint sv599_initworkitems;
-    uint sv599_maxworkitems;
-    uint sv599_rawworkitems;
-    uint sv599_irpstacksize;
-    uint sv599_maxrawbuflen;
-    uint sv599_sessusers;
-    uint sv599_sessconns;
-    uint sv599_maxpagedmemoryusage;
-    uint sv599_maxnonpagedmemoryusage;
-    BOOL sv599_enablesoftcompat;
-    BOOL sv599_enableforcedlogoff;
-    BOOL sv599_timesource;
-    BOOL sv599_acceptdownlevelapis;
-    BOOL sv599_lmannounce;
+    uint          sv599_sessopens;
+    uint          sv599_sessvcs;
+    uint          sv599_opensearch;
+    uint          sv599_sizreqbuf;
+    uint          sv599_initworkitems;
+    uint          sv599_maxworkitems;
+    uint          sv599_rawworkitems;
+    uint          sv599_irpstacksize;
+    uint          sv599_maxrawbuflen;
+    uint          sv599_sessusers;
+    uint          sv599_sessconns;
+    uint          sv599_maxpagedmemoryusage;
+    uint          sv599_maxnonpagedmemoryusage;
+    BOOL          sv599_enablesoftcompat;
+    BOOL          sv599_enableforcedlogoff;
+    BOOL          sv599_timesource;
+    BOOL          sv599_acceptdownlevelapis;
+    BOOL          sv599_lmannounce;
     const(wchar)* sv599_domain;
-    uint sv599_maxcopyreadlen;
-    uint sv599_maxcopywritelen;
-    uint sv599_minkeepsearch;
-    uint sv599_maxkeepsearch;
-    uint sv599_minkeepcomplsearch;
-    uint sv599_maxkeepcomplsearch;
-    uint sv599_threadcountadd;
-    uint sv599_numblockthreads;
-    uint sv599_scavtimeout;
-    uint sv599_minrcvqueue;
-    uint sv599_minfreeworkitems;
-    uint sv599_xactmemsize;
-    uint sv599_threadpriority;
-    uint sv599_maxmpxct;
-    uint sv599_oplockbreakwait;
-    uint sv599_oplockbreakresponsewait;
-    BOOL sv599_enableoplocks;
-    BOOL sv599_enableoplockforceclose;
-    BOOL sv599_enablefcbopens;
-    BOOL sv599_enableraw;
-    BOOL sv599_enablesharednetdrives;
-    uint sv599_minfreeconnections;
-    uint sv599_maxfreeconnections;
-    uint sv599_initsesstable;
-    uint sv599_initconntable;
-    uint sv599_initfiletable;
-    uint sv599_initsearchtable;
-    uint sv599_alertschedule;
-    uint sv599_errorthreshold;
-    uint sv599_networkerrorthreshold;
-    uint sv599_diskspacethreshold;
-    uint sv599_reserved;
-    uint sv599_maxlinkdelay;
-    uint sv599_minlinkthroughput;
-    uint sv599_linkinfovalidtime;
-    uint sv599_scavqosinfoupdatetime;
-    uint sv599_maxworkitemidletime;
+    uint          sv599_maxcopyreadlen;
+    uint          sv599_maxcopywritelen;
+    uint          sv599_minkeepsearch;
+    uint          sv599_maxkeepsearch;
+    uint          sv599_minkeepcomplsearch;
+    uint          sv599_maxkeepcomplsearch;
+    uint          sv599_threadcountadd;
+    uint          sv599_numblockthreads;
+    uint          sv599_scavtimeout;
+    uint          sv599_minrcvqueue;
+    uint          sv599_minfreeworkitems;
+    uint          sv599_xactmemsize;
+    uint          sv599_threadpriority;
+    uint          sv599_maxmpxct;
+    uint          sv599_oplockbreakwait;
+    uint          sv599_oplockbreakresponsewait;
+    BOOL          sv599_enableoplocks;
+    BOOL          sv599_enableoplockforceclose;
+    BOOL          sv599_enablefcbopens;
+    BOOL          sv599_enableraw;
+    BOOL          sv599_enablesharednetdrives;
+    uint          sv599_minfreeconnections;
+    uint          sv599_maxfreeconnections;
+    uint          sv599_initsesstable;
+    uint          sv599_initconntable;
+    uint          sv599_initfiletable;
+    uint          sv599_initsearchtable;
+    uint          sv599_alertschedule;
+    uint          sv599_errorthreshold;
+    uint          sv599_networkerrorthreshold;
+    uint          sv599_diskspacethreshold;
+    uint          sv599_reserved;
+    uint          sv599_maxlinkdelay;
+    uint          sv599_minlinkthroughput;
+    uint          sv599_linkinfovalidtime;
+    uint          sv599_scavqosinfoupdatetime;
+    uint          sv599_maxworkitemidletime;
 }
 
 struct SERVER_INFO_598
@@ -1211,7 +1231,7 @@ struct SERVER_INFO_598
     BOOL sv598_enablesecuritysignature;
     BOOL sv598_requiresecuritysignature;
     uint sv598_minclientbuffersize;
-    Guid sv598_serverguid;
+    GUID sv598_serverguid;
     uint sv598_ConnectionNoSessionsTimeout;
     uint sv598_IdleThreadTimeOut;
     BOOL sv598_enableW9xsecuritysignature;
@@ -1694,45 +1714,45 @@ struct SERVER_INFO_1602
 
 struct SERVER_TRANSPORT_INFO_0
 {
-    uint svti0_numberofvcs;
+    uint          svti0_numberofvcs;
     const(wchar)* svti0_transportname;
-    ubyte* svti0_transportaddress;
-    uint svti0_transportaddresslength;
+    ubyte*        svti0_transportaddress;
+    uint          svti0_transportaddresslength;
     const(wchar)* svti0_networkaddress;
 }
 
 struct SERVER_TRANSPORT_INFO_1
 {
-    uint svti1_numberofvcs;
+    uint          svti1_numberofvcs;
     const(wchar)* svti1_transportname;
-    ubyte* svti1_transportaddress;
-    uint svti1_transportaddresslength;
+    ubyte*        svti1_transportaddress;
+    uint          svti1_transportaddresslength;
     const(wchar)* svti1_networkaddress;
     const(wchar)* svti1_domain;
 }
 
 struct SERVER_TRANSPORT_INFO_2
 {
-    uint svti2_numberofvcs;
+    uint          svti2_numberofvcs;
     const(wchar)* svti2_transportname;
-    ubyte* svti2_transportaddress;
-    uint svti2_transportaddresslength;
+    ubyte*        svti2_transportaddress;
+    uint          svti2_transportaddresslength;
     const(wchar)* svti2_networkaddress;
     const(wchar)* svti2_domain;
-    uint svti2_flags;
+    uint          svti2_flags;
 }
 
 struct SERVER_TRANSPORT_INFO_3
 {
-    uint svti3_numberofvcs;
+    uint          svti3_numberofvcs;
     const(wchar)* svti3_transportname;
-    ubyte* svti3_transportaddress;
-    uint svti3_transportaddresslength;
+    ubyte*        svti3_transportaddress;
+    uint          svti3_transportaddresslength;
     const(wchar)* svti3_networkaddress;
     const(wchar)* svti3_domain;
-    uint svti3_flags;
-    uint svti3_passwordlength;
-    ubyte svti3_password;
+    uint          svti3_flags;
+    uint          svti3_passwordlength;
+    ubyte[256]    svti3_password;
 }
 
 struct SERVICE_INFO_0
@@ -1743,19 +1763,19 @@ struct SERVICE_INFO_0
 struct SERVICE_INFO_1
 {
     const(wchar)* svci1_name;
-    uint svci1_status;
-    uint svci1_code;
-    uint svci1_pid;
+    uint          svci1_status;
+    uint          svci1_code;
+    uint          svci1_pid;
 }
 
 struct SERVICE_INFO_2
 {
     const(wchar)* svci2_name;
-    uint svci2_status;
-    uint svci2_code;
-    uint svci2_pid;
+    uint          svci2_status;
+    uint          svci2_code;
+    uint          svci2_pid;
     const(wchar)* svci2_text;
-    uint svci2_specific_error;
+    uint          svci2_specific_error;
     const(wchar)* svci2_display_name;
 }
 
@@ -1770,10 +1790,10 @@ struct USE_INFO_1
     const(wchar)* ui1_local;
     const(wchar)* ui1_remote;
     const(wchar)* ui1_password;
-    uint ui1_status;
-    uint ui1_asg_type;
-    uint ui1_refcount;
-    uint ui1_usecount;
+    uint          ui1_status;
+    uint          ui1_asg_type;
+    uint          ui1_refcount;
+    uint          ui1_usecount;
 }
 
 struct USE_INFO_2
@@ -1781,10 +1801,10 @@ struct USE_INFO_2
     const(wchar)* ui2_local;
     const(wchar)* ui2_remote;
     const(wchar)* ui2_password;
-    uint ui2_status;
-    uint ui2_asg_type;
-    uint ui2_refcount;
-    uint ui2_usecount;
+    uint          ui2_status;
+    uint          ui2_asg_type;
+    uint          ui2_refcount;
+    uint          ui2_usecount;
     const(wchar)* ui2_username;
     const(wchar)* ui2_domainname;
 }
@@ -1792,46 +1812,39 @@ struct USE_INFO_2
 struct USE_INFO_3
 {
     USE_INFO_2 ui3_ui2;
-    uint ui3_flags;
+    uint       ui3_flags;
 }
 
 struct USE_INFO_4
 {
     USE_INFO_3 ui4_ui3;
-    uint ui4_auth_identity_length;
-    ubyte* ui4_auth_identity;
+    uint       ui4_auth_identity_length;
+    ubyte*     ui4_auth_identity;
 }
 
 struct USE_INFO_5
 {
     USE_INFO_3 ui4_ui3;
-    uint ui4_auth_identity_length;
-    ubyte* ui4_auth_identity;
-    uint ui5_security_descriptor_length;
-    ubyte* ui5_security_descriptor;
-    uint ui5_use_options_length;
-    ubyte* ui5_use_options;
+    uint       ui4_auth_identity_length;
+    ubyte*     ui4_auth_identity;
+    uint       ui5_security_descriptor_length;
+    ubyte*     ui5_security_descriptor;
+    uint       ui5_use_options_length;
+    ubyte*     ui5_use_options;
 }
 
 struct USE_OPTION_GENERIC
 {
-    uint Tag;
+    uint   Tag;
     ushort Length;
     ushort Reserved;
 }
 
 struct USE_OPTION_DEFERRED_CONNECTION_PARAMETERS
 {
-    uint Tag;
+    uint   Tag;
     ushort Length;
     ushort Reserved;
-}
-
-enum TRANSPORT_TYPE
-{
-    UseTransportType_None = 0,
-    UseTransportType_Wsk = 1,
-    UseTransportType_Quic = 2,
 }
 
 struct TRANSPORT_INFO
@@ -1841,88 +1854,88 @@ struct TRANSPORT_INFO
 
 struct USE_OPTION_TRANSPORT_PARAMETERS
 {
-    uint Tag;
+    uint   Tag;
     ushort Length;
     ushort Reserved;
 }
 
 struct WKSTA_INFO_100
 {
-    uint wki100_platform_id;
+    uint          wki100_platform_id;
     const(wchar)* wki100_computername;
     const(wchar)* wki100_langroup;
-    uint wki100_ver_major;
-    uint wki100_ver_minor;
+    uint          wki100_ver_major;
+    uint          wki100_ver_minor;
 }
 
 struct WKSTA_INFO_101
 {
-    uint wki101_platform_id;
+    uint          wki101_platform_id;
     const(wchar)* wki101_computername;
     const(wchar)* wki101_langroup;
-    uint wki101_ver_major;
-    uint wki101_ver_minor;
+    uint          wki101_ver_major;
+    uint          wki101_ver_minor;
     const(wchar)* wki101_lanroot;
 }
 
 struct WKSTA_INFO_102
 {
-    uint wki102_platform_id;
+    uint          wki102_platform_id;
     const(wchar)* wki102_computername;
     const(wchar)* wki102_langroup;
-    uint wki102_ver_major;
-    uint wki102_ver_minor;
+    uint          wki102_ver_major;
+    uint          wki102_ver_minor;
     const(wchar)* wki102_lanroot;
-    uint wki102_logged_on_users;
+    uint          wki102_logged_on_users;
 }
 
 struct WKSTA_INFO_302
 {
-    uint wki302_char_wait;
-    uint wki302_collection_time;
-    uint wki302_maximum_collection_count;
-    uint wki302_keep_conn;
-    uint wki302_keep_search;
-    uint wki302_max_cmds;
-    uint wki302_num_work_buf;
-    uint wki302_siz_work_buf;
-    uint wki302_max_wrk_cache;
-    uint wki302_sess_timeout;
-    uint wki302_siz_error;
-    uint wki302_num_alerts;
-    uint wki302_num_services;
-    uint wki302_errlog_sz;
-    uint wki302_print_buf_time;
-    uint wki302_num_char_buf;
-    uint wki302_siz_char_buf;
+    uint          wki302_char_wait;
+    uint          wki302_collection_time;
+    uint          wki302_maximum_collection_count;
+    uint          wki302_keep_conn;
+    uint          wki302_keep_search;
+    uint          wki302_max_cmds;
+    uint          wki302_num_work_buf;
+    uint          wki302_siz_work_buf;
+    uint          wki302_max_wrk_cache;
+    uint          wki302_sess_timeout;
+    uint          wki302_siz_error;
+    uint          wki302_num_alerts;
+    uint          wki302_num_services;
+    uint          wki302_errlog_sz;
+    uint          wki302_print_buf_time;
+    uint          wki302_num_char_buf;
+    uint          wki302_siz_char_buf;
     const(wchar)* wki302_wrk_heuristics;
-    uint wki302_mailslots;
-    uint wki302_num_dgram_buf;
+    uint          wki302_mailslots;
+    uint          wki302_num_dgram_buf;
 }
 
 struct WKSTA_INFO_402
 {
-    uint wki402_char_wait;
-    uint wki402_collection_time;
-    uint wki402_maximum_collection_count;
-    uint wki402_keep_conn;
-    uint wki402_keep_search;
-    uint wki402_max_cmds;
-    uint wki402_num_work_buf;
-    uint wki402_siz_work_buf;
-    uint wki402_max_wrk_cache;
-    uint wki402_sess_timeout;
-    uint wki402_siz_error;
-    uint wki402_num_alerts;
-    uint wki402_num_services;
-    uint wki402_errlog_sz;
-    uint wki402_print_buf_time;
-    uint wki402_num_char_buf;
-    uint wki402_siz_char_buf;
+    uint          wki402_char_wait;
+    uint          wki402_collection_time;
+    uint          wki402_maximum_collection_count;
+    uint          wki402_keep_conn;
+    uint          wki402_keep_search;
+    uint          wki402_max_cmds;
+    uint          wki402_num_work_buf;
+    uint          wki402_siz_work_buf;
+    uint          wki402_max_wrk_cache;
+    uint          wki402_sess_timeout;
+    uint          wki402_siz_error;
+    uint          wki402_num_alerts;
+    uint          wki402_num_services;
+    uint          wki402_errlog_sz;
+    uint          wki402_print_buf_time;
+    uint          wki402_num_char_buf;
+    uint          wki402_siz_char_buf;
     const(wchar)* wki402_wrk_heuristics;
-    uint wki402_mailslots;
-    uint wki402_num_dgram_buf;
-    uint wki402_max_threads;
+    uint          wki402_mailslots;
+    uint          wki402_num_dgram_buf;
+    uint          wki402_max_threads;
 }
 
 struct WKSTA_INFO_502
@@ -2144,349 +2157,399 @@ struct WKSTA_USER_INFO_1101
 
 struct WKSTA_TRANSPORT_INFO_0
 {
-    uint wkti0_quality_of_service;
-    uint wkti0_number_of_vcs;
+    uint          wkti0_quality_of_service;
+    uint          wkti0_number_of_vcs;
     const(wchar)* wkti0_transport_name;
     const(wchar)* wkti0_transport_address;
-    BOOL wkti0_wan_ish;
+    BOOL          wkti0_wan_ish;
 }
 
-@DllImport("samcli.dll")
+// Functions
+
+@DllImport("samcli")
 uint NetUserAdd(const(wchar)* servername, uint level, char* buf, uint* parm_err);
 
-@DllImport("samcli.dll")
-uint NetUserEnum(const(wchar)* servername, uint level, uint filter, ubyte** bufptr, uint prefmaxlen, uint* entriesread, uint* totalentries, uint* resume_handle);
+@DllImport("samcli")
+uint NetUserEnum(const(wchar)* servername, uint level, uint filter, ubyte** bufptr, uint prefmaxlen, 
+                 uint* entriesread, uint* totalentries, uint* resume_handle);
 
-@DllImport("samcli.dll")
+@DllImport("samcli")
 uint NetUserGetInfo(const(wchar)* servername, const(wchar)* username, uint level, ubyte** bufptr);
 
-@DllImport("samcli.dll")
+@DllImport("samcli")
 uint NetUserSetInfo(const(wchar)* servername, const(wchar)* username, uint level, char* buf, uint* parm_err);
 
-@DllImport("samcli.dll")
+@DllImport("samcli")
 uint NetUserDel(const(wchar)* servername, const(wchar)* username);
 
-@DllImport("samcli.dll")
-uint NetUserGetGroups(const(wchar)* servername, const(wchar)* username, uint level, ubyte** bufptr, uint prefmaxlen, uint* entriesread, uint* totalentries);
+@DllImport("samcli")
+uint NetUserGetGroups(const(wchar)* servername, const(wchar)* username, uint level, ubyte** bufptr, 
+                      uint prefmaxlen, uint* entriesread, uint* totalentries);
 
-@DllImport("samcli.dll")
+@DllImport("samcli")
 uint NetUserSetGroups(const(wchar)* servername, const(wchar)* username, uint level, char* buf, uint num_entries);
 
-@DllImport("samcli.dll")
-uint NetUserGetLocalGroups(const(wchar)* servername, const(wchar)* username, uint level, uint flags, ubyte** bufptr, uint prefmaxlen, uint* entriesread, uint* totalentries);
+@DllImport("samcli")
+uint NetUserGetLocalGroups(const(wchar)* servername, const(wchar)* username, uint level, uint flags, 
+                           ubyte** bufptr, uint prefmaxlen, uint* entriesread, uint* totalentries);
 
-@DllImport("samcli.dll")
+@DllImport("samcli")
 uint NetUserModalsGet(const(wchar)* servername, uint level, ubyte** bufptr);
 
-@DllImport("samcli.dll")
+@DllImport("samcli")
 uint NetUserModalsSet(const(wchar)* servername, uint level, char* buf, uint* parm_err);
 
-@DllImport("samcli.dll")
-uint NetUserChangePassword(const(wchar)* domainname, const(wchar)* username, const(wchar)* oldpassword, const(wchar)* newpassword);
+@DllImport("samcli")
+uint NetUserChangePassword(const(wchar)* domainname, const(wchar)* username, const(wchar)* oldpassword, 
+                           const(wchar)* newpassword);
 
-@DllImport("samcli.dll")
+@DllImport("samcli")
 uint NetGroupAdd(const(wchar)* servername, uint level, char* buf, uint* parm_err);
 
-@DllImport("samcli.dll")
+@DllImport("samcli")
 uint NetGroupAddUser(const(wchar)* servername, const(wchar)* GroupName, const(wchar)* username);
 
-@DllImport("samcli.dll")
-uint NetGroupEnum(const(wchar)* servername, uint level, ubyte** bufptr, uint prefmaxlen, uint* entriesread, uint* totalentries, uint* resume_handle);
+@DllImport("samcli")
+uint NetGroupEnum(const(wchar)* servername, uint level, ubyte** bufptr, uint prefmaxlen, uint* entriesread, 
+                  uint* totalentries, size_t* resume_handle);
 
-@DllImport("samcli.dll")
+@DllImport("samcli")
 uint NetGroupGetInfo(const(wchar)* servername, const(wchar)* groupname, uint level, ubyte** bufptr);
 
-@DllImport("samcli.dll")
+@DllImport("samcli")
 uint NetGroupSetInfo(const(wchar)* servername, const(wchar)* groupname, uint level, char* buf, uint* parm_err);
 
-@DllImport("samcli.dll")
+@DllImport("samcli")
 uint NetGroupDel(const(wchar)* servername, const(wchar)* groupname);
 
-@DllImport("samcli.dll")
+@DllImport("samcli")
 uint NetGroupDelUser(const(wchar)* servername, const(wchar)* GroupName, const(wchar)* Username);
 
-@DllImport("samcli.dll")
-uint NetGroupGetUsers(const(wchar)* servername, const(wchar)* groupname, uint level, ubyte** bufptr, uint prefmaxlen, uint* entriesread, uint* totalentries, uint* ResumeHandle);
+@DllImport("samcli")
+uint NetGroupGetUsers(const(wchar)* servername, const(wchar)* groupname, uint level, ubyte** bufptr, 
+                      uint prefmaxlen, uint* entriesread, uint* totalentries, size_t* ResumeHandle);
 
-@DllImport("samcli.dll")
+@DllImport("samcli")
 uint NetGroupSetUsers(const(wchar)* servername, const(wchar)* groupname, uint level, char* buf, uint totalentries);
 
-@DllImport("samcli.dll")
+@DllImport("samcli")
 uint NetLocalGroupAdd(const(wchar)* servername, uint level, char* buf, uint* parm_err);
 
-@DllImport("samcli.dll")
+@DllImport("samcli")
 uint NetLocalGroupAddMember(const(wchar)* servername, const(wchar)* groupname, void* membersid);
 
-@DllImport("samcli.dll")
-uint NetLocalGroupEnum(const(wchar)* servername, uint level, ubyte** bufptr, uint prefmaxlen, uint* entriesread, uint* totalentries, uint* resumehandle);
+@DllImport("samcli")
+uint NetLocalGroupEnum(const(wchar)* servername, uint level, ubyte** bufptr, uint prefmaxlen, uint* entriesread, 
+                       uint* totalentries, size_t* resumehandle);
 
-@DllImport("samcli.dll")
+@DllImport("samcli")
 uint NetLocalGroupGetInfo(const(wchar)* servername, const(wchar)* groupname, uint level, ubyte** bufptr);
 
-@DllImport("samcli.dll")
+@DllImport("samcli")
 uint NetLocalGroupSetInfo(const(wchar)* servername, const(wchar)* groupname, uint level, char* buf, uint* parm_err);
 
-@DllImport("samcli.dll")
+@DllImport("samcli")
 uint NetLocalGroupDel(const(wchar)* servername, const(wchar)* groupname);
 
-@DllImport("samcli.dll")
+@DllImport("samcli")
 uint NetLocalGroupDelMember(const(wchar)* servername, const(wchar)* groupname, void* membersid);
 
-@DllImport("samcli.dll")
-uint NetLocalGroupGetMembers(const(wchar)* servername, const(wchar)* localgroupname, uint level, ubyte** bufptr, uint prefmaxlen, uint* entriesread, uint* totalentries, uint* resumehandle);
+@DllImport("samcli")
+uint NetLocalGroupGetMembers(const(wchar)* servername, const(wchar)* localgroupname, uint level, ubyte** bufptr, 
+                             uint prefmaxlen, uint* entriesread, uint* totalentries, size_t* resumehandle);
 
-@DllImport("samcli.dll")
-uint NetLocalGroupSetMembers(const(wchar)* servername, const(wchar)* groupname, uint level, char* buf, uint totalentries);
+@DllImport("samcli")
+uint NetLocalGroupSetMembers(const(wchar)* servername, const(wchar)* groupname, uint level, char* buf, 
+                             uint totalentries);
 
-@DllImport("samcli.dll")
-uint NetLocalGroupAddMembers(const(wchar)* servername, const(wchar)* groupname, uint level, char* buf, uint totalentries);
+@DllImport("samcli")
+uint NetLocalGroupAddMembers(const(wchar)* servername, const(wchar)* groupname, uint level, char* buf, 
+                             uint totalentries);
 
-@DllImport("samcli.dll")
-uint NetLocalGroupDelMembers(const(wchar)* servername, const(wchar)* groupname, uint level, char* buf, uint totalentries);
+@DllImport("samcli")
+uint NetLocalGroupDelMembers(const(wchar)* servername, const(wchar)* groupname, uint level, char* buf, 
+                             uint totalentries);
 
-@DllImport("samcli.dll")
-uint NetQueryDisplayInformation(const(wchar)* ServerName, uint Level, uint Index, uint EntriesRequested, uint PreferredMaximumLength, uint* ReturnedEntryCount, void** SortedBuffer);
+@DllImport("samcli")
+uint NetQueryDisplayInformation(const(wchar)* ServerName, uint Level, uint Index, uint EntriesRequested, 
+                                uint PreferredMaximumLength, uint* ReturnedEntryCount, void** SortedBuffer);
 
-@DllImport("samcli.dll")
+@DllImport("samcli")
 uint NetGetDisplayInformationIndex(const(wchar)* ServerName, uint Level, const(wchar)* Prefix, uint* Index);
 
-@DllImport("NETAPI32.dll")
+@DllImport("NETAPI32")
 uint NetAccessAdd(const(wchar)* servername, uint level, char* buf, uint* parm_err);
 
-@DllImport("NETAPI32.dll")
-uint NetAccessEnum(const(wchar)* servername, const(wchar)* BasePath, uint Recursive, uint level, ubyte** bufptr, uint prefmaxlen, uint* entriesread, uint* totalentries, uint* resume_handle);
+@DllImport("NETAPI32")
+uint NetAccessEnum(const(wchar)* servername, const(wchar)* BasePath, uint Recursive, uint level, ubyte** bufptr, 
+                   uint prefmaxlen, uint* entriesread, uint* totalentries, uint* resume_handle);
 
-@DllImport("NETAPI32.dll")
+@DllImport("NETAPI32")
 uint NetAccessGetInfo(const(wchar)* servername, const(wchar)* resource, uint level, ubyte** bufptr);
 
-@DllImport("NETAPI32.dll")
+@DllImport("NETAPI32")
 uint NetAccessSetInfo(const(wchar)* servername, const(wchar)* resource, uint level, char* buf, uint* parm_err);
 
-@DllImport("NETAPI32.dll")
+@DllImport("NETAPI32")
 uint NetAccessDel(const(wchar)* servername, const(wchar)* resource);
 
-@DllImport("NETAPI32.dll")
+@DllImport("NETAPI32")
 uint NetAccessGetUserPerms(const(wchar)* servername, const(wchar)* UGname, const(wchar)* resource, uint* Perms);
 
-@DllImport("samcli.dll")
-uint NetValidatePasswordPolicy(const(wchar)* ServerName, void* Qualifier, NET_VALIDATE_PASSWORD_TYPE ValidationType, void* InputArg, void** OutputArg);
+@DllImport("samcli")
+uint NetValidatePasswordPolicy(const(wchar)* ServerName, void* Qualifier, 
+                               NET_VALIDATE_PASSWORD_TYPE ValidationType, void* InputArg, void** OutputArg);
 
-@DllImport("samcli.dll")
+@DllImport("samcli")
 uint NetValidatePasswordPolicyFree(void** OutputArg);
 
-@DllImport("logoncli.dll")
+@DllImport("logoncli")
 uint NetGetDCName(const(wchar)* ServerName, const(wchar)* DomainName, ubyte** Buffer);
 
-@DllImport("logoncli.dll")
+@DllImport("logoncli")
 uint NetGetAnyDCName(const(wchar)* ServerName, const(wchar)* DomainName, ubyte** Buffer);
 
-@DllImport("wkscli.dll")
-uint NetJoinDomain(const(wchar)* lpServer, const(wchar)* lpDomain, const(wchar)* lpMachineAccountOU, const(wchar)* lpAccount, const(wchar)* lpPassword, uint fJoinOptions);
+@DllImport("wkscli")
+uint NetJoinDomain(const(wchar)* lpServer, const(wchar)* lpDomain, const(wchar)* lpMachineAccountOU, 
+                   const(wchar)* lpAccount, const(wchar)* lpPassword, uint fJoinOptions);
 
-@DllImport("wkscli.dll")
-uint NetUnjoinDomain(const(wchar)* lpServer, const(wchar)* lpAccount, const(wchar)* lpPassword, uint fUnjoinOptions);
+@DllImport("wkscli")
+uint NetUnjoinDomain(const(wchar)* lpServer, const(wchar)* lpAccount, const(wchar)* lpPassword, 
+                     uint fUnjoinOptions);
 
-@DllImport("wkscli.dll")
-uint NetRenameMachineInDomain(const(wchar)* lpServer, const(wchar)* lpNewMachineName, const(wchar)* lpAccount, const(wchar)* lpPassword, uint fRenameOptions);
+@DllImport("wkscli")
+uint NetRenameMachineInDomain(const(wchar)* lpServer, const(wchar)* lpNewMachineName, const(wchar)* lpAccount, 
+                              const(wchar)* lpPassword, uint fRenameOptions);
 
-@DllImport("wkscli.dll")
-uint NetValidateName(const(wchar)* lpServer, const(wchar)* lpName, const(wchar)* lpAccount, const(wchar)* lpPassword, NETSETUP_NAME_TYPE NameType);
+@DllImport("wkscli")
+uint NetValidateName(const(wchar)* lpServer, const(wchar)* lpName, const(wchar)* lpAccount, 
+                     const(wchar)* lpPassword, NETSETUP_NAME_TYPE NameType);
 
-@DllImport("wkscli.dll")
-uint NetGetJoinableOUs(const(wchar)* lpServer, const(wchar)* lpDomain, const(wchar)* lpAccount, const(wchar)* lpPassword, uint* OUCount, ushort*** OUs);
+@DllImport("wkscli")
+uint NetGetJoinableOUs(const(wchar)* lpServer, const(wchar)* lpDomain, const(wchar)* lpAccount, 
+                       const(wchar)* lpPassword, uint* OUCount, ushort*** OUs);
 
-@DllImport("wkscli.dll")
-uint NetAddAlternateComputerName(const(wchar)* Server, const(wchar)* AlternateName, const(wchar)* DomainAccount, const(wchar)* DomainAccountPassword, uint Reserved);
+@DllImport("wkscli")
+uint NetAddAlternateComputerName(const(wchar)* Server, const(wchar)* AlternateName, const(wchar)* DomainAccount, 
+                                 const(wchar)* DomainAccountPassword, uint Reserved);
 
-@DllImport("wkscli.dll")
-uint NetRemoveAlternateComputerName(const(wchar)* Server, const(wchar)* AlternateName, const(wchar)* DomainAccount, const(wchar)* DomainAccountPassword, uint Reserved);
+@DllImport("wkscli")
+uint NetRemoveAlternateComputerName(const(wchar)* Server, const(wchar)* AlternateName, const(wchar)* DomainAccount, 
+                                    const(wchar)* DomainAccountPassword, uint Reserved);
 
-@DllImport("wkscli.dll")
-uint NetSetPrimaryComputerName(const(wchar)* Server, const(wchar)* PrimaryName, const(wchar)* DomainAccount, const(wchar)* DomainAccountPassword, uint Reserved);
+@DllImport("wkscli")
+uint NetSetPrimaryComputerName(const(wchar)* Server, const(wchar)* PrimaryName, const(wchar)* DomainAccount, 
+                               const(wchar)* DomainAccountPassword, uint Reserved);
 
-@DllImport("wkscli.dll")
-uint NetEnumerateComputerNames(const(wchar)* Server, NET_COMPUTER_NAME_TYPE NameType, uint Reserved, uint* EntryCount, ushort*** ComputerNames);
+@DllImport("wkscli")
+uint NetEnumerateComputerNames(const(wchar)* Server, NET_COMPUTER_NAME_TYPE NameType, uint Reserved, 
+                               uint* EntryCount, ushort*** ComputerNames);
 
-@DllImport("NETAPI32.dll")
-uint NetProvisionComputerAccount(const(wchar)* lpDomain, const(wchar)* lpMachineName, const(wchar)* lpMachineAccountOU, const(wchar)* lpDcName, uint dwOptions, ubyte** pProvisionBinData, uint* pdwProvisionBinDataSize, ushort** pProvisionTextData);
+@DllImport("NETAPI32")
+uint NetProvisionComputerAccount(const(wchar)* lpDomain, const(wchar)* lpMachineName, 
+                                 const(wchar)* lpMachineAccountOU, const(wchar)* lpDcName, uint dwOptions, 
+                                 ubyte** pProvisionBinData, uint* pdwProvisionBinDataSize, 
+                                 ushort** pProvisionTextData);
 
-@DllImport("NETAPI32.dll")
-uint NetRequestOfflineDomainJoin(char* pProvisionBinData, uint cbProvisionBinDataSize, uint dwOptions, const(wchar)* lpWindowsPath);
+@DllImport("NETAPI32")
+uint NetRequestOfflineDomainJoin(char* pProvisionBinData, uint cbProvisionBinDataSize, uint dwOptions, 
+                                 const(wchar)* lpWindowsPath);
 
-@DllImport("NETAPI32.dll")
-uint NetCreateProvisioningPackage(NETSETUP_PROVISIONING_PARAMS* pProvisioningParams, ubyte** ppPackageBinData, uint* pdwPackageBinDataSize, ushort** ppPackageTextData);
+@DllImport("NETAPI32")
+uint NetCreateProvisioningPackage(NETSETUP_PROVISIONING_PARAMS* pProvisioningParams, ubyte** ppPackageBinData, 
+                                  uint* pdwPackageBinDataSize, ushort** ppPackageTextData);
 
-@DllImport("NETAPI32.dll")
-uint NetRequestProvisioningPackageInstall(char* pPackageBinData, uint dwPackageBinDataSize, uint dwProvisionOptions, const(wchar)* lpWindowsPath, void* pvReserved);
+@DllImport("NETAPI32")
+uint NetRequestProvisioningPackageInstall(char* pPackageBinData, uint dwPackageBinDataSize, 
+                                          uint dwProvisionOptions, const(wchar)* lpWindowsPath, void* pvReserved);
 
-@DllImport("NETAPI32.dll")
+@DllImport("NETAPI32")
 HRESULT NetGetAadJoinInformation(const(wchar)* pcszTenantId, DSREG_JOIN_INFO** ppJoinInfo);
 
-@DllImport("NETAPI32.dll")
+@DllImport("NETAPI32")
 void NetFreeAadJoinInformation(DSREG_JOIN_INFO* pJoinInfo);
 
-@DllImport("wkscli.dll")
+@DllImport("wkscli")
 uint NetGetJoinInformation(const(wchar)* lpServer, ushort** lpNameBuffer, NETSETUP_JOIN_STATUS* BufferType);
 
-@DllImport("mstask.dll")
+@DllImport("mstask")
 HRESULT GetNetScheduleAccountInformation(const(wchar)* pwszServerName, uint ccAccount, char* wszAccount);
 
-@DllImport("mstask.dll")
-HRESULT SetNetScheduleAccountInformation(const(wchar)* pwszServerName, const(wchar)* pwszAccount, const(wchar)* pwszPassword);
+@DllImport("mstask")
+HRESULT SetNetScheduleAccountInformation(const(wchar)* pwszServerName, const(wchar)* pwszAccount, 
+                                         const(wchar)* pwszPassword);
 
-@DllImport("NETAPI32.dll")
+@DllImport("NETAPI32")
 uint NetAlertRaise(const(wchar)* AlertType, void* Buffer, uint BufferSize);
 
-@DllImport("NETAPI32.dll")
+@DllImport("NETAPI32")
 uint NetAlertRaiseEx(const(wchar)* AlertType, void* VariableInfo, uint VariableInfoSize, const(wchar)* ServiceName);
 
-@DllImport("netutils.dll")
+@DllImport("netutils")
 uint NetApiBufferAllocate(uint ByteCount, void** Buffer);
 
-@DllImport("netutils.dll")
+@DllImport("netutils")
 uint NetApiBufferFree(void* Buffer);
 
-@DllImport("netutils.dll")
+@DllImport("netutils")
 uint NetApiBufferReallocate(void* OldBuffer, uint NewByteCount, void** NewBuffer);
 
-@DllImport("netutils.dll")
+@DllImport("netutils")
 uint NetApiBufferSize(void* Buffer, uint* ByteCount);
 
-@DllImport("NETAPI32.dll")
+@DllImport("NETAPI32")
 uint NetAuditClear(const(wchar)* server, const(wchar)* backupfile, const(wchar)* service);
 
-@DllImport("NETAPI32.dll")
-uint NetAuditRead(const(wchar)* server, const(wchar)* service, HLOG* auditloghandle, uint offset, uint* reserved1, uint reserved2, uint offsetflag, ubyte** bufptr, uint prefmaxlen, uint* bytesread, uint* totalavailable);
+@DllImport("NETAPI32")
+uint NetAuditRead(const(wchar)* server, const(wchar)* service, HLOG* auditloghandle, uint offset, uint* reserved1, 
+                  uint reserved2, uint offsetflag, ubyte** bufptr, uint prefmaxlen, uint* bytesread, 
+                  uint* totalavailable);
 
-@DllImport("NETAPI32.dll")
+@DllImport("NETAPI32")
 uint NetAuditWrite(uint type, ubyte* buf, uint numbytes, const(wchar)* service, ubyte* reserved);
 
-@DllImport("NETAPI32.dll")
+@DllImport("NETAPI32")
 uint NetConfigGet(const(wchar)* server, const(wchar)* component, const(wchar)* parameter, ubyte** bufptr);
 
-@DllImport("NETAPI32.dll")
+@DllImport("NETAPI32")
 uint NetConfigGetAll(const(wchar)* server, const(wchar)* component, ubyte** bufptr);
 
-@DllImport("NETAPI32.dll")
-uint NetConfigSet(const(wchar)* server, const(wchar)* reserved1, const(wchar)* component, uint level, uint reserved2, ubyte* buf, uint reserved3);
+@DllImport("NETAPI32")
+uint NetConfigSet(const(wchar)* server, const(wchar)* reserved1, const(wchar)* component, uint level, 
+                  uint reserved2, ubyte* buf, uint reserved3);
 
-@DllImport("NETAPI32.dll")
+@DllImport("NETAPI32")
 uint NetErrorLogClear(const(wchar)* UncServerName, const(wchar)* BackupFile, ubyte* Reserved);
 
-@DllImport("NETAPI32.dll")
-uint NetErrorLogRead(const(wchar)* UncServerName, const(wchar)* Reserved1, HLOG* ErrorLogHandle, uint Offset, uint* Reserved2, uint Reserved3, uint OffsetFlag, ubyte** BufPtr, uint PrefMaxSize, uint* BytesRead, uint* TotalAvailable);
+@DllImport("NETAPI32")
+uint NetErrorLogRead(const(wchar)* UncServerName, const(wchar)* Reserved1, HLOG* ErrorLogHandle, uint Offset, 
+                     uint* Reserved2, uint Reserved3, uint OffsetFlag, ubyte** BufPtr, uint PrefMaxSize, 
+                     uint* BytesRead, uint* TotalAvailable);
 
-@DllImport("NETAPI32.dll")
-uint NetErrorLogWrite(ubyte* Reserved1, uint Code, const(wchar)* Component, ubyte* Buffer, uint NumBytes, ubyte* MsgBuf, uint StrCount, ubyte* Reserved2);
+@DllImport("NETAPI32")
+uint NetErrorLogWrite(ubyte* Reserved1, uint Code, const(wchar)* Component, ubyte* Buffer, uint NumBytes, 
+                      ubyte* MsgBuf, uint StrCount, ubyte* Reserved2);
 
-@DllImport("NETAPI32.dll")
+@DllImport("NETAPI32")
 uint NetMessageNameAdd(const(wchar)* servername, const(wchar)* msgname);
 
-@DllImport("NETAPI32.dll")
-uint NetMessageNameEnum(const(wchar)* servername, uint level, ubyte** bufptr, uint prefmaxlen, uint* entriesread, uint* totalentries, uint* resume_handle);
+@DllImport("NETAPI32")
+uint NetMessageNameEnum(const(wchar)* servername, uint level, ubyte** bufptr, uint prefmaxlen, uint* entriesread, 
+                        uint* totalentries, uint* resume_handle);
 
-@DllImport("NETAPI32.dll")
+@DllImport("NETAPI32")
 uint NetMessageNameGetInfo(const(wchar)* servername, const(wchar)* msgname, uint level, ubyte** bufptr);
 
-@DllImport("NETAPI32.dll")
+@DllImport("NETAPI32")
 uint NetMessageNameDel(const(wchar)* servername, const(wchar)* msgname);
 
-@DllImport("NETAPI32.dll")
-uint NetMessageBufferSend(const(wchar)* servername, const(wchar)* msgname, const(wchar)* fromname, ubyte* buf, uint buflen);
+@DllImport("NETAPI32")
+uint NetMessageBufferSend(const(wchar)* servername, const(wchar)* msgname, const(wchar)* fromname, ubyte* buf, 
+                          uint buflen);
 
-@DllImport("srvcli.dll")
+@DllImport("srvcli")
 uint NetRemoteTOD(const(wchar)* UncServerName, ubyte** BufferPtr);
 
-@DllImport("netutils.dll")
+@DllImport("netutils")
 uint NetRemoteComputerSupports(const(wchar)* UncServerName, uint OptionsWanted, uint* OptionsSupported);
 
-@DllImport("schedcli.dll")
+@DllImport("schedcli")
 uint NetScheduleJobAdd(const(wchar)* Servername, ubyte* Buffer, uint* JobId);
 
-@DllImport("schedcli.dll")
+@DllImport("schedcli")
 uint NetScheduleJobDel(const(wchar)* Servername, uint MinJobId, uint MaxJobId);
 
-@DllImport("schedcli.dll")
-uint NetScheduleJobEnum(const(wchar)* Servername, ubyte** PointerToBuffer, uint PrefferedMaximumLength, uint* EntriesRead, uint* TotalEntries, uint* ResumeHandle);
+@DllImport("schedcli")
+uint NetScheduleJobEnum(const(wchar)* Servername, ubyte** PointerToBuffer, uint PrefferedMaximumLength, 
+                        uint* EntriesRead, uint* TotalEntries, uint* ResumeHandle);
 
-@DllImport("schedcli.dll")
+@DllImport("schedcli")
 uint NetScheduleJobGetInfo(const(wchar)* Servername, uint JobId, ubyte** PointerToBuffer);
 
-@DllImport("NETAPI32.dll")
-uint NetServerEnum(const(wchar)* servername, uint level, ubyte** bufptr, uint prefmaxlen, uint* entriesread, uint* totalentries, uint servertype, const(wchar)* domain, uint* resume_handle);
+@DllImport("NETAPI32")
+uint NetServerEnum(const(wchar)* servername, uint level, ubyte** bufptr, uint prefmaxlen, uint* entriesread, 
+                   uint* totalentries, uint servertype, const(wchar)* domain, uint* resume_handle);
 
-@DllImport("srvcli.dll")
+@DllImport("srvcli")
 uint NetServerGetInfo(const(wchar)* servername, uint level, ubyte** bufptr);
 
-@DllImport("srvcli.dll")
+@DllImport("srvcli")
 uint NetServerSetInfo(const(wchar)* servername, uint level, char* buf, uint* ParmError);
 
-@DllImport("srvcli.dll")
-uint NetServerDiskEnum(const(wchar)* servername, uint level, ubyte** bufptr, uint prefmaxlen, uint* entriesread, uint* totalentries, uint* resume_handle);
+@DllImport("srvcli")
+uint NetServerDiskEnum(const(wchar)* servername, uint level, ubyte** bufptr, uint prefmaxlen, uint* entriesread, 
+                       uint* totalentries, uint* resume_handle);
 
-@DllImport("srvcli.dll")
-uint NetServerComputerNameAdd(const(wchar)* ServerName, const(wchar)* EmulatedDomainName, const(wchar)* EmulatedServerName);
+@DllImport("srvcli")
+uint NetServerComputerNameAdd(const(wchar)* ServerName, const(wchar)* EmulatedDomainName, 
+                              const(wchar)* EmulatedServerName);
 
-@DllImport("srvcli.dll")
+@DllImport("srvcli")
 uint NetServerComputerNameDel(const(wchar)* ServerName, const(wchar)* EmulatedServerName);
 
-@DllImport("srvcli.dll")
+@DllImport("srvcli")
 uint NetServerTransportAdd(const(wchar)* servername, uint level, char* bufptr);
 
-@DllImport("srvcli.dll")
+@DllImport("srvcli")
 uint NetServerTransportAddEx(const(wchar)* servername, uint level, char* bufptr);
 
-@DllImport("srvcli.dll")
+@DllImport("srvcli")
 uint NetServerTransportDel(const(wchar)* servername, uint level, char* bufptr);
 
-@DllImport("srvcli.dll")
-uint NetServerTransportEnum(const(wchar)* servername, uint level, ubyte** bufptr, uint prefmaxlen, uint* entriesread, uint* totalentries, uint* resume_handle);
+@DllImport("srvcli")
+uint NetServerTransportEnum(const(wchar)* servername, uint level, ubyte** bufptr, uint prefmaxlen, 
+                            uint* entriesread, uint* totalentries, uint* resume_handle);
 
-@DllImport("NETAPI32.dll")
+@DllImport("NETAPI32")
 uint NetServiceControl(const(wchar)* servername, const(wchar)* service, uint opcode, uint arg, ubyte** bufptr);
 
-@DllImport("NETAPI32.dll")
-uint NetServiceEnum(const(wchar)* servername, uint level, ubyte** bufptr, uint prefmaxlen, uint* entriesread, uint* totalentries, uint* resume_handle);
+@DllImport("NETAPI32")
+uint NetServiceEnum(const(wchar)* servername, uint level, ubyte** bufptr, uint prefmaxlen, uint* entriesread, 
+                    uint* totalentries, uint* resume_handle);
 
-@DllImport("NETAPI32.dll")
+@DllImport("NETAPI32")
 uint NetServiceGetInfo(const(wchar)* servername, const(wchar)* service, uint level, ubyte** bufptr);
 
-@DllImport("NETAPI32.dll")
+@DllImport("NETAPI32")
 uint NetServiceInstall(const(wchar)* servername, const(wchar)* service, uint argc, char* argv, ubyte** bufptr);
 
-@DllImport("wkscli.dll")
+@DllImport("wkscli")
 uint NetUseAdd(byte* servername, uint LevelFlags, char* buf, uint* parm_err);
 
-@DllImport("wkscli.dll")
+@DllImport("wkscli")
 uint NetUseDel(const(wchar)* UncServerName, const(wchar)* UseName, uint ForceLevelFlags);
 
-@DllImport("wkscli.dll")
-uint NetUseEnum(const(wchar)* UncServerName, uint LevelFlags, ubyte** BufPtr, uint PreferedMaximumSize, uint* EntriesRead, uint* TotalEntries, uint* ResumeHandle);
+@DllImport("wkscli")
+uint NetUseEnum(const(wchar)* UncServerName, uint LevelFlags, ubyte** BufPtr, uint PreferedMaximumSize, 
+                uint* EntriesRead, uint* TotalEntries, uint* ResumeHandle);
 
-@DllImport("wkscli.dll")
+@DllImport("wkscli")
 uint NetUseGetInfo(const(wchar)* UncServerName, const(wchar)* UseName, uint LevelFlags, ubyte** bufptr);
 
-@DllImport("wkscli.dll")
+@DllImport("wkscli")
 uint NetWkstaGetInfo(const(wchar)* servername, uint level, ubyte** bufptr);
 
-@DllImport("wkscli.dll")
+@DllImport("wkscli")
 uint NetWkstaSetInfo(const(wchar)* servername, uint level, char* buffer, uint* parm_err);
 
-@DllImport("wkscli.dll")
+@DllImport("wkscli")
 uint NetWkstaUserGetInfo(const(wchar)* reserved, uint level, ubyte** bufptr);
 
-@DllImport("wkscli.dll")
+@DllImport("wkscli")
 uint NetWkstaUserSetInfo(const(wchar)* reserved, uint level, char* buf, uint* parm_err);
 
-@DllImport("wkscli.dll")
-uint NetWkstaUserEnum(const(wchar)* servername, uint level, ubyte** bufptr, uint prefmaxlen, uint* entriesread, uint* totalentries, uint* resumehandle);
+@DllImport("wkscli")
+uint NetWkstaUserEnum(const(wchar)* servername, uint level, ubyte** bufptr, uint prefmaxlen, uint* entriesread, 
+                      uint* totalentries, uint* resumehandle);
 
-@DllImport("wkscli.dll")
+@DllImport("wkscli")
 uint NetWkstaTransportAdd(byte* servername, uint level, char* buf, uint* parm_err);
 
-@DllImport("wkscli.dll")
+@DllImport("wkscli")
 uint NetWkstaTransportDel(const(wchar)* servername, const(wchar)* transportname, uint ucond);
 
-@DllImport("wkscli.dll")
-uint NetWkstaTransportEnum(byte* servername, uint level, ubyte** bufptr, uint prefmaxlen, uint* entriesread, uint* totalentries, uint* resume_handle);
+@DllImport("wkscli")
+uint NetWkstaTransportEnum(byte* servername, uint level, ubyte** bufptr, uint prefmaxlen, uint* entriesread, 
+                           uint* totalentries, uint* resume_handle);
+
 

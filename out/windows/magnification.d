@@ -1,88 +1,99 @@
 module windows.magnification;
 
-public import system;
-public import windows.displaydevices;
-public import windows.gdi;
-public import windows.systemservices;
-public import windows.windowsandmessaging;
+public import windows.core;
+public import windows.displaydevices : RECT;
+public import windows.gdi : HRGN;
+public import windows.systemservices : BOOL;
+public import windows.windowsandmessaging : HWND;
 
 extern(Windows):
 
+
+// Callbacks
+
+alias MagImageScalingCallback = BOOL function(HWND hwnd, void* srcdata, MAGIMAGEHEADER srcheader, void* destdata, 
+                                              MAGIMAGEHEADER destheader, RECT unclipped, RECT clipped, HRGN dirty);
+
+// Structs
+
+
 struct MAGTRANSFORM
 {
-    float v;
+    float[9] v;
 }
 
 struct MAGIMAGEHEADER
 {
-    uint width;
-    uint height;
-    Guid format;
-    uint stride;
-    uint offset;
-    uint cbSize;
+    uint   width;
+    uint   height;
+    GUID   format;
+    uint   stride;
+    uint   offset;
+    size_t cbSize;
 }
 
 struct MAGCOLOREFFECT
 {
-    float transform;
+    float[25] transform;
 }
 
-alias MagImageScalingCallback = extern(Windows) BOOL function(HWND hwnd, void* srcdata, MAGIMAGEHEADER srcheader, void* destdata, MAGIMAGEHEADER destheader, RECT unclipped, RECT clipped, HRGN dirty);
-@DllImport("MAGNIFICATION.dll")
+// Functions
+
+@DllImport("MAGNIFICATION")
 BOOL MagInitialize();
 
-@DllImport("MAGNIFICATION.dll")
+@DllImport("MAGNIFICATION")
 BOOL MagUninitialize();
 
-@DllImport("MAGNIFICATION.dll")
+@DllImport("MAGNIFICATION")
 BOOL MagSetWindowSource(HWND hwnd, RECT rect);
 
-@DllImport("MAGNIFICATION.dll")
+@DllImport("MAGNIFICATION")
 BOOL MagGetWindowSource(HWND hwnd, RECT* pRect);
 
-@DllImport("MAGNIFICATION.dll")
+@DllImport("MAGNIFICATION")
 BOOL MagSetWindowTransform(HWND hwnd, MAGTRANSFORM* pTransform);
 
-@DllImport("MAGNIFICATION.dll")
+@DllImport("MAGNIFICATION")
 BOOL MagGetWindowTransform(HWND hwnd, MAGTRANSFORM* pTransform);
 
-@DllImport("MAGNIFICATION.dll")
+@DllImport("MAGNIFICATION")
 BOOL MagSetWindowFilterList(HWND hwnd, uint dwFilterMode, int count, HWND* pHWND);
 
-@DllImport("MAGNIFICATION.dll")
+@DllImport("MAGNIFICATION")
 int MagGetWindowFilterList(HWND hwnd, uint* pdwFilterMode, int count, HWND* pHWND);
 
-@DllImport("MAGNIFICATION.dll")
+@DllImport("MAGNIFICATION")
 BOOL MagSetImageScalingCallback(HWND hwnd, MagImageScalingCallback callback);
 
-@DllImport("MAGNIFICATION.dll")
+@DllImport("MAGNIFICATION")
 MagImageScalingCallback MagGetImageScalingCallback(HWND hwnd);
 
-@DllImport("MAGNIFICATION.dll")
+@DllImport("MAGNIFICATION")
 BOOL MagSetColorEffect(HWND hwnd, MAGCOLOREFFECT* pEffect);
 
-@DllImport("MAGNIFICATION.dll")
+@DllImport("MAGNIFICATION")
 BOOL MagGetColorEffect(HWND hwnd, MAGCOLOREFFECT* pEffect);
 
-@DllImport("MAGNIFICATION.dll")
+@DllImport("MAGNIFICATION")
 BOOL MagSetFullscreenTransform(float magLevel, int xOffset, int yOffset);
 
-@DllImport("MAGNIFICATION.dll")
+@DllImport("MAGNIFICATION")
 BOOL MagGetFullscreenTransform(float* pMagLevel, int* pxOffset, int* pyOffset);
 
-@DllImport("MAGNIFICATION.dll")
+@DllImport("MAGNIFICATION")
 BOOL MagSetFullscreenColorEffect(MAGCOLOREFFECT* pEffect);
 
-@DllImport("MAGNIFICATION.dll")
+@DllImport("MAGNIFICATION")
 BOOL MagGetFullscreenColorEffect(MAGCOLOREFFECT* pEffect);
 
-@DllImport("MAGNIFICATION.dll")
+@DllImport("MAGNIFICATION")
 BOOL MagSetInputTransform(BOOL fEnabled, const(RECT)* pRectSource, const(RECT)* pRectDest);
 
-@DllImport("MAGNIFICATION.dll")
+@DllImport("MAGNIFICATION")
 BOOL MagGetInputTransform(int* pfEnabled, RECT* pRectSource, RECT* pRectDest);
 
-@DllImport("MAGNIFICATION.dll")
+@DllImport("MAGNIFICATION")
 BOOL MagShowSystemCursor(BOOL fShowCursor);
+
 

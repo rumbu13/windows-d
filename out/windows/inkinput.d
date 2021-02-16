@@ -1,24 +1,38 @@
 module windows.inkinput;
 
-public import system;
-public import windows.com;
-public import windows.systemservices;
+public import windows.core;
+public import windows.com : HRESULT, IUnknown;
+public import windows.systemservices : BOOL;
 
 extern(Windows):
 
-const GUID CLSID_InkDesktopHost = {0x062584A6, 0xF830, 0x4BDC, [0xA4, 0xD2, 0x0A, 0x10, 0xAB, 0x06, 0x2B, 0x1D]};
-@GUID(0x062584A6, 0xF830, 0x4BDC, [0xA4, 0xD2, 0x0A, 0x10, 0xAB, 0x06, 0x2B, 0x1D]);
+
+// Enums
+
+
+enum : int
+{
+    USE_SYSTEM_COLORS_WHEN_NECESSARY = 0x00000000,
+    USE_SYSTEM_COLORS                = 0x00000001,
+    USE_ORIGINAL_COLORS              = 0x00000002,
+}
+alias __MIDL___MIDL_itf_inkrenderer_0000_0000_0001 = int;
+
+// Interfaces
+
+@GUID("062584A6-F830-4BDC-A4D2-0A10AB062B1D")
 struct InkDesktopHost;
 
-const GUID IID_IInkCommitRequestHandler = {0xFABEA3FC, 0xB108, 0x45B6, [0xA9, 0xFC, 0x8D, 0x08, 0xFA, 0x9F, 0x85, 0xCF]};
-@GUID(0xFABEA3FC, 0xB108, 0x45B6, [0xA9, 0xFC, 0x8D, 0x08, 0xFA, 0x9F, 0x85, 0xCF]);
+@GUID("4044E60C-7B01-4671-A97C-04E0210A07A5")
+struct InkD2DRenderer;
+
+@GUID("FABEA3FC-B108-45B6-A9FC-8D08FA9F85CF")
 interface IInkCommitRequestHandler : IUnknown
 {
     HRESULT OnCommitRequested();
 }
 
-const GUID IID_IInkPresenterDesktop = {0x73F3C0D9, 0x2E8B, 0x48F3, [0x89, 0x5E, 0x20, 0xCB, 0xD2, 0x7B, 0x72, 0x3B]};
-@GUID(0x73F3C0D9, 0x2E8B, 0x48F3, [0x89, 0x5E, 0x20, 0xCB, 0xD2, 0x7B, 0x72, 0x3B]);
+@GUID("73F3C0D9-2E8B-48F3-895E-20CBD27B723B")
 interface IInkPresenterDesktop : IUnknown
 {
     HRESULT SetRootVisual(IUnknown rootVisual, IUnknown device);
@@ -28,44 +42,43 @@ interface IInkPresenterDesktop : IUnknown
     HRESULT OnHighContrastChanged();
 }
 
-const GUID IID_IInkHostWorkItem = {0xCCDA0A9A, 0x1B78, 0x4632, [0xBB, 0x96, 0x97, 0x80, 0x06, 0x62, 0xE2, 0x6C]};
-@GUID(0xCCDA0A9A, 0x1B78, 0x4632, [0xBB, 0x96, 0x97, 0x80, 0x06, 0x62, 0xE2, 0x6C]);
+@GUID("CCDA0A9A-1B78-4632-BB96-97800662E26C")
 interface IInkHostWorkItem : IUnknown
 {
     HRESULT Invoke();
 }
 
-const GUID IID_IInkDesktopHost = {0x4CE7D875, 0xA981, 0x4140, [0xA1, 0xFF, 0xAD, 0x93, 0x25, 0x8E, 0x8D, 0x59]};
-@GUID(0x4CE7D875, 0xA981, 0x4140, [0xA1, 0xFF, 0xAD, 0x93, 0x25, 0x8E, 0x8D, 0x59]);
+@GUID("4CE7D875-A981-4140-A1FF-AD93258E8D59")
 interface IInkDesktopHost : IUnknown
 {
     HRESULT QueueWorkItem(IInkHostWorkItem workItem);
-    HRESULT CreateInkPresenter(const(Guid)* riid, void** ppv);
-    HRESULT CreateAndInitializeInkPresenter(IUnknown rootVisual, float width, float height, const(Guid)* riid, void** ppv);
+    HRESULT CreateInkPresenter(const(GUID)* riid, void** ppv);
+    HRESULT CreateAndInitializeInkPresenter(IUnknown rootVisual, float width, float height, const(GUID)* riid, 
+                                            void** ppv);
 }
 
-const GUID CLSID_InkD2DRenderer = {0x4044E60C, 0x7B01, 0x4671, [0xA9, 0x7C, 0x04, 0xE0, 0x21, 0x0A, 0x07, 0xA5]};
-@GUID(0x4044E60C, 0x7B01, 0x4671, [0xA9, 0x7C, 0x04, 0xE0, 0x21, 0x0A, 0x07, 0xA5]);
-struct InkD2DRenderer;
-
-enum __MIDL___MIDL_itf_inkrenderer_0000_0000_0001
-{
-    USE_SYSTEM_COLORS_WHEN_NECESSARY = 0,
-    USE_SYSTEM_COLORS = 1,
-    USE_ORIGINAL_COLORS = 2,
-}
-
-const GUID IID_IInkD2DRenderer = {0x407FB1DE, 0xF85A, 0x4150, [0x97, 0xCF, 0xB7, 0xFB, 0x27, 0x4F, 0xB4, 0xF8]};
-@GUID(0x407FB1DE, 0xF85A, 0x4150, [0x97, 0xCF, 0xB7, 0xFB, 0x27, 0x4F, 0xB4, 0xF8]);
+@GUID("407FB1DE-F85A-4150-97CF-B7FB274FB4F8")
 interface IInkD2DRenderer : IUnknown
 {
     HRESULT Draw(IUnknown pD2D1DeviceContext, IUnknown pInkStrokeIterable, BOOL fHighContrast);
 }
 
-const GUID IID_IInkD2DRenderer2 = {0x0A95DCD9, 0x4578, 0x4B71, [0xB2, 0x0B, 0xBF, 0x66, 0x4D, 0x4B, 0xFE, 0xEE]};
-@GUID(0x0A95DCD9, 0x4578, 0x4B71, [0xB2, 0x0B, 0xBF, 0x66, 0x4D, 0x4B, 0xFE, 0xEE]);
+@GUID("0A95DCD9-4578-4B71-B20B-BF664D4BFEEE")
 interface IInkD2DRenderer2 : IUnknown
 {
-    HRESULT Draw(IUnknown pD2D1DeviceContext, IUnknown pInkStrokeIterable, __MIDL___MIDL_itf_inkrenderer_0000_0000_0001 highContrastAdjustment);
+    HRESULT Draw(IUnknown pD2D1DeviceContext, IUnknown pInkStrokeIterable, 
+                 __MIDL___MIDL_itf_inkrenderer_0000_0000_0001 highContrastAdjustment);
 }
 
+
+// GUIDs
+
+const GUID CLSID_InkD2DRenderer = GUIDOF!InkD2DRenderer;
+const GUID CLSID_InkDesktopHost = GUIDOF!InkDesktopHost;
+
+const GUID IID_IInkCommitRequestHandler = GUIDOF!IInkCommitRequestHandler;
+const GUID IID_IInkD2DRenderer          = GUIDOF!IInkD2DRenderer;
+const GUID IID_IInkD2DRenderer2         = GUIDOF!IInkD2DRenderer2;
+const GUID IID_IInkDesktopHost          = GUIDOF!IInkDesktopHost;
+const GUID IID_IInkHostWorkItem         = GUIDOF!IInkHostWorkItem;
+const GUID IID_IInkPresenterDesktop     = GUIDOF!IInkPresenterDesktop;

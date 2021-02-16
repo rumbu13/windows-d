@@ -1,30 +1,37 @@
 module windows.radialinput;
 
-public import system;
-public import windows.com;
-public import windows.winrt;
-public import windows.windowsandmessaging;
+public import windows.core;
+public import windows.com : HRESULT;
+public import windows.winrt : IInspectable;
+public import windows.windowsandmessaging : HWND;
 
 extern(Windows):
 
-const GUID IID_IRadialControllerInterop = {0x1B0535C9, 0x57AD, 0x45C1, [0x9D, 0x79, 0xAD, 0x5C, 0x34, 0x36, 0x05, 0x13]};
-@GUID(0x1B0535C9, 0x57AD, 0x45C1, [0x9D, 0x79, 0xAD, 0x5C, 0x34, 0x36, 0x05, 0x13]);
+
+// Interfaces
+
+@GUID("1B0535C9-57AD-45C1-9D79-AD5C34360513")
 interface IRadialControllerInterop : IInspectable
 {
-    HRESULT CreateForWindow(HWND hwnd, const(Guid)* riid, void** ppv);
+    HRESULT CreateForWindow(HWND hwnd, const(GUID)* riid, void** ppv);
 }
 
-const GUID IID_IRadialControllerConfigurationInterop = {0x787CDAAC, 0x3186, 0x476D, [0x87, 0xE4, 0xB9, 0x37, 0x4A, 0x7B, 0x99, 0x70]};
-@GUID(0x787CDAAC, 0x3186, 0x476D, [0x87, 0xE4, 0xB9, 0x37, 0x4A, 0x7B, 0x99, 0x70]);
+@GUID("787CDAAC-3186-476D-87E4-B9374A7B9970")
 interface IRadialControllerConfigurationInterop : IInspectable
 {
-    HRESULT GetForWindow(HWND hwnd, const(Guid)* riid, void** ppv);
+    HRESULT GetForWindow(HWND hwnd, const(GUID)* riid, void** ppv);
 }
 
-const GUID IID_IRadialControllerIndependentInputSourceInterop = {0x3D577EFF, 0x4CEE, 0x11E6, [0xB5, 0x35, 0x00, 0x1B, 0xDC, 0x06, 0xAB, 0x3B]};
-@GUID(0x3D577EFF, 0x4CEE, 0x11E6, [0xB5, 0x35, 0x00, 0x1B, 0xDC, 0x06, 0xAB, 0x3B]);
+@GUID("3D577EFF-4CEE-11E6-B535-001BDC06AB3B")
 interface IRadialControllerIndependentInputSourceInterop : IInspectable
 {
-    HRESULT CreateForWindow(HWND hwnd, const(Guid)* riid, void** ppv);
+    HRESULT CreateForWindow(HWND hwnd, const(GUID)* riid, void** ppv);
 }
 
+
+// GUIDs
+
+
+const GUID IID_IRadialControllerConfigurationInterop          = GUIDOF!IRadialControllerConfigurationInterop;
+const GUID IID_IRadialControllerIndependentInputSourceInterop = GUIDOF!IRadialControllerIndependentInputSourceInterop;
+const GUID IID_IRadialControllerInterop                       = GUIDOF!IRadialControllerInterop;

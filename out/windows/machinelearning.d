@@ -1,56 +1,136 @@
 module windows.machinelearning;
 
-public import windows.com;
-public import windows.direct3d12;
-public import windows.systemservices;
+public import windows.core;
+public import windows.com : HRESULT, IUnknown;
+public import windows.direct3d12 : ID3D12Device, ID3D12Resource;
+public import windows.systemservices : BOOL;
 
 extern(Windows):
 
-enum WINML_TENSOR_DATA_TYPE
+
+// Enums
+
+
+enum : int
 {
-    WINML_TENSOR_UNDEFINED = 0,
-    WINML_TENSOR_FLOAT = 1,
-    WINML_TENSOR_UINT8 = 2,
-    WINML_TENSOR_INT8 = 3,
-    WINML_TENSOR_UINT16 = 4,
-    WINML_TENSOR_INT16 = 5,
-    WINML_TENSOR_INT32 = 6,
-    WINML_TENSOR_INT64 = 7,
-    WINML_TENSOR_STRING = 8,
-    WINML_TENSOR_BOOLEAN = 9,
-    WINML_TENSOR_FLOAT16 = 10,
-    WINML_TENSOR_DOUBLE = 11,
-    WINML_TENSOR_UINT32 = 12,
-    WINML_TENSOR_UINT64 = 13,
-    WINML_TENSOR_COMPLEX64 = 14,
-    WINML_TENSOR_COMPLEX128 = 15,
+    WINML_TENSOR_UNDEFINED  = 0x00000000,
+    WINML_TENSOR_FLOAT      = 0x00000001,
+    WINML_TENSOR_UINT8      = 0x00000002,
+    WINML_TENSOR_INT8       = 0x00000003,
+    WINML_TENSOR_UINT16     = 0x00000004,
+    WINML_TENSOR_INT16      = 0x00000005,
+    WINML_TENSOR_INT32      = 0x00000006,
+    WINML_TENSOR_INT64      = 0x00000007,
+    WINML_TENSOR_STRING     = 0x00000008,
+    WINML_TENSOR_BOOLEAN    = 0x00000009,
+    WINML_TENSOR_FLOAT16    = 0x0000000a,
+    WINML_TENSOR_DOUBLE     = 0x0000000b,
+    WINML_TENSOR_UINT32     = 0x0000000c,
+    WINML_TENSOR_UINT64     = 0x0000000d,
+    WINML_TENSOR_COMPLEX64  = 0x0000000e,
+    WINML_TENSOR_COMPLEX128 = 0x0000000f,
+}
+alias WINML_TENSOR_DATA_TYPE = int;
+
+enum : int
+{
+    WINML_FEATURE_UNDEFINED = 0x00000000,
+    WINML_FEATURE_TENSOR    = 0x00000001,
+    WINML_FEATURE_SEQUENCE  = 0x00000002,
+    WINML_FEATURE_MAP       = 0x00000003,
+    WINML_FEATURE_IMAGE     = 0x00000004,
+}
+alias WINML_FEATURE_TYPE = int;
+
+enum : int
+{
+    WINML_BINDING_UNDEFINED = 0x00000000,
+    WINML_BINDING_TENSOR    = 0x00000001,
+    WINML_BINDING_SEQUENCE  = 0x00000002,
+    WINML_BINDING_MAP       = 0x00000003,
+    WINML_BINDING_IMAGE     = 0x00000004,
+    WINML_BINDING_RESOURCE  = 0x00000005,
+}
+alias WINML_BINDING_TYPE = int;
+
+enum : int
+{
+    WINML_RUNTIME_CNTK = 0x00000000,
+}
+alias WINML_RUNTIME_TYPE = int;
+
+enum MLOperatorAttributeType : uint
+{
+    Undefined   = 0x00000000,
+    Float       = 0x00000002,
+    Int         = 0x00000003,
+    String      = 0x00000004,
+    FloatArray  = 0x00000007,
+    IntArray    = 0x00000008,
+    StringArray = 0x00000009,
 }
 
-enum WINML_FEATURE_TYPE
+enum MLOperatorTensorDataType : uint
 {
-    WINML_FEATURE_UNDEFINED = 0,
-    WINML_FEATURE_TENSOR = 1,
-    WINML_FEATURE_SEQUENCE = 2,
-    WINML_FEATURE_MAP = 3,
-    WINML_FEATURE_IMAGE = 4,
+    Undefined  = 0x00000000,
+    Float      = 0x00000001,
+    UInt8      = 0x00000002,
+    Int8       = 0x00000003,
+    UInt16     = 0x00000004,
+    Int16      = 0x00000005,
+    Int32      = 0x00000006,
+    Int64      = 0x00000007,
+    String     = 0x00000008,
+    Bool       = 0x00000009,
+    Float16    = 0x0000000a,
+    Double     = 0x0000000b,
+    UInt32     = 0x0000000c,
+    UInt64     = 0x0000000d,
+    Complex64  = 0x0000000e,
+    Complex128 = 0x0000000f,
 }
 
-enum WINML_BINDING_TYPE
+enum MLOperatorEdgeType : uint
 {
-    WINML_BINDING_UNDEFINED = 0,
-    WINML_BINDING_TENSOR = 1,
-    WINML_BINDING_SEQUENCE = 2,
-    WINML_BINDING_MAP = 3,
-    WINML_BINDING_IMAGE = 4,
-    WINML_BINDING_RESOURCE = 5,
+    Undefined = 0x00000000,
+    Tensor    = 0x00000001,
 }
+
+enum MLOperatorParameterOptions : uint
+{
+    Single   = 0x00000000,
+    Optional = 0x00000001,
+    Variadic = 0x00000002,
+}
+
+enum MLOperatorSchemaEdgeTypeFormat : int
+{
+    EdgeDescription = 0x00000000,
+    Label           = 0x00000001,
+}
+
+enum MLOperatorKernelOptions : uint
+{
+    None                    = 0x00000000,
+    AllowDynamicInputShapes = 0x00000001,
+}
+
+enum MLOperatorExecutionType : uint
+{
+    Undefined = 0x00000000,
+    Cpu       = 0x00000001,
+    D3D12     = 0x00000002,
+}
+
+// Structs
+
 
 struct WINML_TENSOR_BINDING_DESC
 {
     WINML_TENSOR_DATA_TYPE DataType;
-    uint NumDimensions;
+    uint  NumDimensions;
     long* pShape;
-    uint DataSize;
+    uint  DataSize;
     void* pData;
 }
 
@@ -58,46 +138,69 @@ struct WINML_SEQUENCE_BINDING_DESC
 {
     uint ElementCount;
     WINML_TENSOR_DATA_TYPE ElementType;
-    _Anonymous_e__Union Anonymous;
+    union
+    {
+        ushort** pStrings;
+        long*    pInts;
+        float*   pFloats;
+        double*  pDoubles;
+    }
 }
 
 struct WINML_MAP_BINDING_DESC
 {
     uint ElementCount;
     WINML_TENSOR_DATA_TYPE KeyType;
-    _Anonymous1_e__Union Anonymous1;
+    union
+    {
+        ushort** pStringKeys;
+        long*    pIntKeys;
+    }
     WINML_TENSOR_DATA_TYPE Fields;
-    _Anonymous2_e__Union Anonymous2;
+    union
+    {
+        ushort** pStringFields;
+        long*    pIntFields;
+        float*   pFloatFields;
+        double*  pDoubleFields;
+    }
 }
 
 struct WINML_IMAGE_BINDING_DESC
 {
     WINML_TENSOR_DATA_TYPE ElementType;
-    uint NumDimensions;
+    uint  NumDimensions;
     long* pShape;
-    uint DataSize;
+    uint  DataSize;
     void* pData;
 }
 
 struct WINML_RESOURCE_BINDING_DESC
 {
     WINML_TENSOR_DATA_TYPE ElementType;
-    uint NumDimensions;
-    long* pShape;
+    uint           NumDimensions;
+    long*          pShape;
     ID3D12Resource pResource;
 }
 
 struct WINML_BINDING_DESC
 {
-    const(wchar)* Name;
+    const(wchar)*      Name;
     WINML_BINDING_TYPE BindType;
-    _Anonymous_e__Union Anonymous;
+    union
+    {
+        WINML_TENSOR_BINDING_DESC Tensor;
+        WINML_SEQUENCE_BINDING_DESC Sequence;
+        WINML_MAP_BINDING_DESC Map;
+        WINML_IMAGE_BINDING_DESC Image;
+        WINML_RESOURCE_BINDING_DESC Resource;
+    }
 }
 
 struct WINML_TENSOR_VARIABLE_DESC
 {
     WINML_TENSOR_DATA_TYPE ElementType;
-    uint NumDimensions;
+    uint  NumDimensions;
     long* pShape;
 }
 
@@ -115,17 +218,23 @@ struct WINML_MAP_VARIABLE_DESC
 struct WINML_IMAGE_VARIABLE_DESC
 {
     WINML_TENSOR_DATA_TYPE ElementType;
-    uint NumDimensions;
+    uint  NumDimensions;
     long* pShape;
 }
 
 struct WINML_VARIABLE_DESC
 {
-    const(wchar)* Name;
-    const(wchar)* Description;
+    const(wchar)*      Name;
+    const(wchar)*      Description;
     WINML_FEATURE_TYPE FeatureType;
-    BOOL Required;
-    _Anonymous_e__Union Anonymous;
+    BOOL               Required;
+    union
+    {
+        WINML_TENSOR_VARIABLE_DESC Tensor;
+        WINML_SEQUENCE_VARIABLE_DESC Sequence;
+        WINML_MAP_VARIABLE_DESC Map;
+        WINML_IMAGE_VARIABLE_DESC Image;
+    }
 }
 
 struct WINML_MODEL_DESC
@@ -134,11 +243,107 @@ struct WINML_MODEL_DESC
     const(wchar)* Name;
     const(wchar)* Domain;
     const(wchar)* Description;
-    uint Version;
+    size_t        Version;
 }
 
-const GUID IID_IWinMLModel = {0xE2EEB6A9, 0xF31F, 0x4055, [0xA5, 0x21, 0xE3, 0x0B, 0x5B, 0x33, 0x66, 0x4A]};
-@GUID(0xE2EEB6A9, 0xF31F, 0x4055, [0xA5, 0x21, 0xE3, 0x0B, 0x5B, 0x33, 0x66, 0x4A]);
+struct MLOperatorEdgeDescription
+{
+    MLOperatorEdgeType edgeType;
+    union
+    {
+        ulong reserved;
+        MLOperatorTensorDataType tensorDataType;
+    }
+}
+
+struct MLOperatorSchemaEdgeDescription
+{
+    MLOperatorParameterOptions options;
+    MLOperatorSchemaEdgeTypeFormat typeFormat;
+    union
+    {
+        const(void)* reserved;
+        const(byte)* typeLabel;
+        MLOperatorEdgeDescription edgeDescription;
+    }
+}
+
+struct MLOperatorEdgeTypeConstraint
+{
+    const(byte)* typeLabel;
+    const(MLOperatorEdgeDescription)* allowedTypes;
+    uint         allowedTypeCount;
+}
+
+struct MLOperatorAttribute
+{
+    const(byte)* name;
+    MLOperatorAttributeType type;
+    bool         required;
+}
+
+struct MLOperatorAttributeNameValue
+{
+    const(byte)* name;
+    MLOperatorAttributeType type;
+    uint         valueCount;
+    union
+    {
+        const(void)*  reserved;
+        const(long)*  ints;
+        const(byte)** strings;
+        const(float)* floats;
+    }
+}
+
+struct MLOperatorSchemaDescription
+{
+    const(byte)* name;
+    int          operatorSetVersionAtLastChange;
+    const(MLOperatorSchemaEdgeDescription)* inputs;
+    uint         inputCount;
+    const(MLOperatorSchemaEdgeDescription)* outputs;
+    uint         outputCount;
+    const(MLOperatorEdgeTypeConstraint)* typeConstraints;
+    uint         typeConstraintCount;
+    const(MLOperatorAttribute)* attributes;
+    uint         attributeCount;
+    const(MLOperatorAttributeNameValue)* defaultAttributes;
+    uint         defaultAttributeCount;
+}
+
+struct MLOperatorSetId
+{
+    const(byte)* domain;
+    int          version_;
+}
+
+struct MLOperatorKernelDescription
+{
+    const(byte)* domain;
+    const(byte)* name;
+    int          minimumOperatorSetVersion;
+    MLOperatorExecutionType executionType;
+    const(MLOperatorEdgeTypeConstraint)* typeConstraints;
+    uint         typeConstraintCount;
+    const(MLOperatorAttributeNameValue)* defaultAttributes;
+    uint         defaultAttributeCount;
+    MLOperatorKernelOptions options;
+    uint         executionOptions;
+}
+
+// Functions
+
+@DllImport("winml")
+HRESULT WinMLCreateRuntime(IWinMLRuntime* runtime);
+
+@DllImport("windows")
+HRESULT MLCreateOperatorRegistry(IMLOperatorRegistry* registry);
+
+
+// Interfaces
+
+@GUID("E2EEB6A9-F31F-4055-A521-E30B5B33664A")
 interface IWinMLModel : IUnknown
 {
     HRESULT GetDescription(WINML_MODEL_DESC** ppDescription);
@@ -147,8 +352,7 @@ interface IWinMLModel : IUnknown
     HRESULT EnumerateModelOutputs(uint Index, WINML_VARIABLE_DESC** ppOutputDescriptor);
 }
 
-const GUID IID_IWinMLEvaluationContext = {0x95848F9E, 0x583D, 0x4054, [0xAF, 0x12, 0x91, 0x63, 0x87, 0xCD, 0x84, 0x26]};
-@GUID(0x95848F9E, 0x583D, 0x4054, [0xAF, 0x12, 0x91, 0x63, 0x87, 0xCD, 0x84, 0x26]);
+@GUID("95848F9E-583D-4054-AF12-916387CD8426")
 interface IWinMLEvaluationContext : IUnknown
 {
     HRESULT BindValue(WINML_BINDING_DESC* pDescriptor);
@@ -156,8 +360,7 @@ interface IWinMLEvaluationContext : IUnknown
     HRESULT Clear();
 }
 
-const GUID IID_IWinMLRuntime = {0xA0425329, 0x40AE, 0x48D9, [0xBC, 0xE3, 0x82, 0x9E, 0xF7, 0xB8, 0xA4, 0x1A]};
-@GUID(0xA0425329, 0x40AE, 0x48D9, [0xBC, 0xE3, 0x82, 0x9E, 0xF7, 0xB8, 0xA4, 0x1A]);
+@GUID("A0425329-40AE-48D9-BCE3-829EF7B8A41A")
 interface IWinMLRuntime : IUnknown
 {
     HRESULT LoadModel(const(wchar)* Path, IWinMLModel* ppModel);
@@ -165,277 +368,145 @@ interface IWinMLRuntime : IUnknown
     HRESULT EvaluateModel(IWinMLEvaluationContext pContext);
 }
 
-enum WINML_RUNTIME_TYPE
-{
-    WINML_RUNTIME_CNTK = 0,
-}
-
-const GUID IID_IWinMLRuntimeFactory = {0xA807B84D, 0x4AE5, 0x4BC0, [0xA7, 0x6A, 0x94, 0x1A, 0xA2, 0x46, 0xBD, 0x41]};
-@GUID(0xA807B84D, 0x4AE5, 0x4BC0, [0xA7, 0x6A, 0x94, 0x1A, 0xA2, 0x46, 0xBD, 0x41]);
+@GUID("A807B84D-4AE5-4BC0-A76A-941AA246BD41")
 interface IWinMLRuntimeFactory : IUnknown
 {
     HRESULT CreateRuntime(WINML_RUNTIME_TYPE RuntimeType, IWinMLRuntime* ppRuntime);
 }
 
-enum MLOperatorAttributeType
-{
-    Undefined = 0,
-    Float = 2,
-    Int = 3,
-    String = 4,
-    FloatArray = 7,
-    IntArray = 8,
-    StringArray = 9,
-}
-
-enum MLOperatorTensorDataType
-{
-    Undefined = 0,
-    Float = 1,
-    UInt8 = 2,
-    Int8 = 3,
-    UInt16 = 4,
-    Int16 = 5,
-    Int32 = 6,
-    Int64 = 7,
-    String = 8,
-    Bool = 9,
-    Float16 = 10,
-    Double = 11,
-    UInt32 = 12,
-    UInt64 = 13,
-    Complex64 = 14,
-    Complex128 = 15,
-}
-
-enum MLOperatorEdgeType
-{
-    Undefined = 0,
-    Tensor = 1,
-}
-
-struct MLOperatorEdgeDescription
-{
-    MLOperatorEdgeType edgeType;
-    _Anonymous_e__Union Anonymous;
-}
-
-const GUID IID_IMLOperatorAttributes = {0x4B1B1759, 0xEC40, 0x466C, [0xAA, 0xB4, 0xBE, 0xB5, 0x34, 0x7F, 0xD2, 0x4C]};
-@GUID(0x4B1B1759, 0xEC40, 0x466C, [0xAA, 0xB4, 0xBE, 0xB5, 0x34, 0x7F, 0xD2, 0x4C]);
+@GUID("4B1B1759-EC40-466C-AAB4-BEB5347FD24C")
 interface IMLOperatorAttributes : IUnknown
 {
     HRESULT GetAttributeElementCount(const(byte)* name, MLOperatorAttributeType type, uint* elementCount);
-    HRESULT GetAttribute(const(byte)* name, MLOperatorAttributeType type, uint elementCount, uint elementByteSize, char* value);
+    HRESULT GetAttribute(const(byte)* name, MLOperatorAttributeType type, uint elementCount, 
+                         size_t elementByteSize, char* value);
     HRESULT GetStringAttributeElementLength(const(byte)* name, uint elementIndex, uint* attributeElementByteSize);
-    HRESULT GetStringAttributeElement(const(byte)* name, uint elementIndex, uint attributeElementByteSize, char* attributeElement);
+    HRESULT GetStringAttributeElement(const(byte)* name, uint elementIndex, uint attributeElementByteSize, 
+                                      char* attributeElement);
 }
 
-const GUID IID_IMLOperatorTensorShapeDescription = {0xF20E8CBE, 0x3B28, 0x4248, [0xBE, 0x95, 0xF9, 0x6F, 0xBC, 0x6E, 0x46, 0x43]};
-@GUID(0xF20E8CBE, 0x3B28, 0x4248, [0xBE, 0x95, 0xF9, 0x6F, 0xBC, 0x6E, 0x46, 0x43]);
+@GUID("F20E8CBE-3B28-4248-BE95-F96FBC6E4643")
 interface IMLOperatorTensorShapeDescription : IUnknown
 {
     HRESULT GetInputTensorDimensionCount(uint inputIndex, uint* dimensionCount);
     HRESULT GetInputTensorShape(uint inputIndex, uint dimensionCount, char* dimensions);
-    bool HasOutputShapeDescription();
+    bool    HasOutputShapeDescription();
     HRESULT GetOutputTensorDimensionCount(uint outputIndex, uint* dimensionCount);
     HRESULT GetOutputTensorShape(uint outputIndex, uint dimensionCount, char* dimensions);
 }
 
-const GUID IID_IMLOperatorKernelCreationContext = {0x5459B53D, 0xA0FC, 0x4665, [0xAD, 0xDD, 0x70, 0x17, 0x1E, 0xF7, 0xE6, 0x31]};
-@GUID(0x5459B53D, 0xA0FC, 0x4665, [0xAD, 0xDD, 0x70, 0x17, 0x1E, 0xF7, 0xE6, 0x31]);
+@GUID("5459B53D-A0FC-4665-ADDD-70171EF7E631")
 interface IMLOperatorKernelCreationContext : IMLOperatorAttributes
 {
-    uint GetInputCount();
-    uint GetOutputCount();
-    bool IsInputValid(uint inputIndex);
-    bool IsOutputValid(uint outputIndex);
+    uint    GetInputCount();
+    uint    GetOutputCount();
+    bool    IsInputValid(uint inputIndex);
+    bool    IsOutputValid(uint outputIndex);
     HRESULT GetInputEdgeDescription(uint inputIndex, MLOperatorEdgeDescription* edgeDescription);
     HRESULT GetOutputEdgeDescription(uint outputIndex, MLOperatorEdgeDescription* edgeDescription);
-    bool HasTensorShapeDescription();
+    bool    HasTensorShapeDescription();
     HRESULT GetTensorShapeDescription(IMLOperatorTensorShapeDescription* shapeDescription);
-    void GetExecutionInterface(IUnknown* executionObject);
+    void    GetExecutionInterface(IUnknown* executionObject);
 }
 
-const GUID IID_IMLOperatorTensor = {0x7FE41F41, 0xF430, 0x440E, [0xAE, 0xCE, 0x54, 0x41, 0x6D, 0xC8, 0xB9, 0xDB]};
-@GUID(0x7FE41F41, 0xF430, 0x440E, [0xAE, 0xCE, 0x54, 0x41, 0x6D, 0xC8, 0xB9, 0xDB]);
+@GUID("7FE41F41-F430-440E-AECE-54416DC8B9DB")
 interface IMLOperatorTensor : IUnknown
 {
-    uint GetDimensionCount();
+    uint    GetDimensionCount();
     HRESULT GetShape(uint dimensionCount, char* dimensions);
     MLOperatorTensorDataType GetTensorDataType();
-    bool IsCpuData();
-    bool IsDataInterface();
-    void* GetData();
-    void GetDataInterface(IUnknown* dataInterface);
+    bool    IsCpuData();
+    bool    IsDataInterface();
+    void*   GetData();
+    void    GetDataInterface(IUnknown* dataInterface);
 }
 
-const GUID IID_IMLOperatorKernelContext = {0x82536A28, 0xF022, 0x4769, [0x9D, 0x3F, 0x8B, 0x27, 0x8F, 0x84, 0xC0, 0xC3]};
-@GUID(0x82536A28, 0xF022, 0x4769, [0x9D, 0x3F, 0x8B, 0x27, 0x8F, 0x84, 0xC0, 0xC3]);
+@GUID("82536A28-F022-4769-9D3F-8B278F84C0C3")
 interface IMLOperatorKernelContext : IUnknown
 {
     HRESULT GetInputTensor(uint inputIndex, IMLOperatorTensor* tensor);
     HRESULT GetOutputTensor(uint outputIndex, IMLOperatorTensor* tensor);
     HRESULT GetOutputTensor(uint outputIndex, uint dimensionCount, char* dimensionSizes, IMLOperatorTensor* tensor);
-    HRESULT AllocateTemporaryData(uint size, IUnknown* data);
-    void GetExecutionInterface(IUnknown* executionObject);
+    HRESULT AllocateTemporaryData(size_t size, IUnknown* data);
+    void    GetExecutionInterface(IUnknown* executionObject);
 }
 
-const GUID IID_IMLOperatorKernel = {0x11C4B4A0, 0xB467, 0x4EAA, [0xA1, 0xA6, 0xB9, 0x61, 0xD8, 0xD0, 0xED, 0x79]};
-@GUID(0x11C4B4A0, 0xB467, 0x4EAA, [0xA1, 0xA6, 0xB9, 0x61, 0xD8, 0xD0, 0xED, 0x79]);
+@GUID("11C4B4A0-B467-4EAA-A1A6-B961D8D0ED79")
 interface IMLOperatorKernel : IUnknown
 {
     HRESULT Compute(IMLOperatorKernelContext context);
 }
 
-enum MLOperatorParameterOptions
-{
-    Single = 0,
-    Optional = 1,
-    Variadic = 2,
-}
-
-enum MLOperatorSchemaEdgeTypeFormat
-{
-    EdgeDescription = 0,
-    Label = 1,
-}
-
-struct MLOperatorSchemaEdgeDescription
-{
-    MLOperatorParameterOptions options;
-    MLOperatorSchemaEdgeTypeFormat typeFormat;
-    _Anonymous_e__Union Anonymous;
-}
-
-struct MLOperatorEdgeTypeConstraint
-{
-    const(byte)* typeLabel;
-    const(MLOperatorEdgeDescription)* allowedTypes;
-    uint allowedTypeCount;
-}
-
-const GUID IID_IMLOperatorShapeInferenceContext = {0x105B6B29, 0x5408, 0x4A68, [0x99, 0x59, 0x09, 0xB5, 0x95, 0x5A, 0x34, 0x92]};
-@GUID(0x105B6B29, 0x5408, 0x4A68, [0x99, 0x59, 0x09, 0xB5, 0x95, 0x5A, 0x34, 0x92]);
+@GUID("105B6B29-5408-4A68-9959-09B5955A3492")
 interface IMLOperatorShapeInferenceContext : IMLOperatorAttributes
 {
-    uint GetInputCount();
-    uint GetOutputCount();
-    bool IsInputValid(uint inputIndex);
-    bool IsOutputValid(uint outputIndex);
+    uint    GetInputCount();
+    uint    GetOutputCount();
+    bool    IsInputValid(uint inputIndex);
+    bool    IsOutputValid(uint outputIndex);
     HRESULT GetInputEdgeDescription(uint inputIndex, MLOperatorEdgeDescription* edgeDescription);
     HRESULT GetInputTensorDimensionCount(uint inputIndex, uint* dimensionCount);
     HRESULT GetInputTensorShape(uint inputIndex, uint dimensionCount, char* dimensions);
     HRESULT SetOutputTensorShape(uint outputIndex, uint dimensionCount, const(uint)* dimensions);
 }
 
-const GUID IID_IMLOperatorTypeInferenceContext = {0xEC893BB1, 0xF938, 0x427B, [0x84, 0x88, 0xC8, 0xDC, 0xF7, 0x75, 0xF1, 0x38]};
-@GUID(0xEC893BB1, 0xF938, 0x427B, [0x84, 0x88, 0xC8, 0xDC, 0xF7, 0x75, 0xF1, 0x38]);
+@GUID("EC893BB1-F938-427B-8488-C8DCF775F138")
 interface IMLOperatorTypeInferenceContext : IMLOperatorAttributes
 {
-    uint GetInputCount();
-    uint GetOutputCount();
-    bool IsInputValid(uint inputIndex);
-    bool IsOutputValid(uint outputIndex);
+    uint    GetInputCount();
+    uint    GetOutputCount();
+    bool    IsInputValid(uint inputIndex);
+    bool    IsOutputValid(uint outputIndex);
     HRESULT GetInputEdgeDescription(uint inputIndex, MLOperatorEdgeDescription* edgeDescription);
     HRESULT SetOutputEdgeDescription(uint outputIndex, const(MLOperatorEdgeDescription)* edgeDescription);
 }
 
-const GUID IID_IMLOperatorTypeInferrer = {0x781AEB48, 0x9BCB, 0x4797, [0xBF, 0x77, 0x8B, 0xF4, 0x55, 0x21, 0x7B, 0xEB]};
-@GUID(0x781AEB48, 0x9BCB, 0x4797, [0xBF, 0x77, 0x8B, 0xF4, 0x55, 0x21, 0x7B, 0xEB]);
+@GUID("781AEB48-9BCB-4797-BF77-8BF455217BEB")
 interface IMLOperatorTypeInferrer : IUnknown
 {
     HRESULT InferOutputTypes(IMLOperatorTypeInferenceContext context);
 }
 
-const GUID IID_IMLOperatorShapeInferrer = {0x540BE5BE, 0xA6C9, 0x40EE, [0x83, 0xF6, 0xD2, 0xB8, 0xB4, 0x0A, 0x77, 0x98]};
-@GUID(0x540BE5BE, 0xA6C9, 0x40EE, [0x83, 0xF6, 0xD2, 0xB8, 0xB4, 0x0A, 0x77, 0x98]);
+@GUID("540BE5BE-A6C9-40EE-83F6-D2B8B40A7798")
 interface IMLOperatorShapeInferrer : IUnknown
 {
     HRESULT InferOutputShapes(IMLOperatorShapeInferenceContext context);
 }
 
-struct MLOperatorAttribute
-{
-    const(byte)* name;
-    MLOperatorAttributeType type;
-    bool required;
-}
-
-struct MLOperatorAttributeNameValue
-{
-    const(byte)* name;
-    MLOperatorAttributeType type;
-    uint valueCount;
-    _Anonymous_e__Union Anonymous;
-}
-
-struct MLOperatorSchemaDescription
-{
-    const(byte)* name;
-    int operatorSetVersionAtLastChange;
-    const(MLOperatorSchemaEdgeDescription)* inputs;
-    uint inputCount;
-    const(MLOperatorSchemaEdgeDescription)* outputs;
-    uint outputCount;
-    const(MLOperatorEdgeTypeConstraint)* typeConstraints;
-    uint typeConstraintCount;
-    const(MLOperatorAttribute)* attributes;
-    uint attributeCount;
-    const(MLOperatorAttributeNameValue)* defaultAttributes;
-    uint defaultAttributeCount;
-}
-
-struct MLOperatorSetId
-{
-    const(byte)* domain;
-    int version;
-}
-
-enum MLOperatorKernelOptions
-{
-    None = 0,
-    AllowDynamicInputShapes = 1,
-}
-
-enum MLOperatorExecutionType
-{
-    Undefined = 0,
-    Cpu = 1,
-    D3D12 = 2,
-}
-
-struct MLOperatorKernelDescription
-{
-    const(byte)* domain;
-    const(byte)* name;
-    int minimumOperatorSetVersion;
-    MLOperatorExecutionType executionType;
-    const(MLOperatorEdgeTypeConstraint)* typeConstraints;
-    uint typeConstraintCount;
-    const(MLOperatorAttributeNameValue)* defaultAttributes;
-    uint defaultAttributeCount;
-    MLOperatorKernelOptions options;
-    uint executionOptions;
-}
-
-const GUID IID_IMLOperatorKernelFactory = {0xEF15AD6F, 0x0DC9, 0x4908, [0xAB, 0x35, 0xA5, 0x75, 0xA3, 0x0D, 0xFB, 0xF8]};
-@GUID(0xEF15AD6F, 0x0DC9, 0x4908, [0xAB, 0x35, 0xA5, 0x75, 0xA3, 0x0D, 0xFB, 0xF8]);
+@GUID("EF15AD6F-0DC9-4908-AB35-A575A30DFBF8")
 interface IMLOperatorKernelFactory : IUnknown
 {
     HRESULT CreateKernel(IMLOperatorKernelCreationContext context, IMLOperatorKernel* kernel);
 }
 
-const GUID IID_IMLOperatorRegistry = {0x2AF9DD2D, 0xB516, 0x4672, [0x9A, 0xB5, 0x53, 0x0C, 0x20, 0x84, 0x93, 0xAD]};
-@GUID(0x2AF9DD2D, 0xB516, 0x4672, [0x9A, 0xB5, 0x53, 0x0C, 0x20, 0x84, 0x93, 0xAD]);
+@GUID("2AF9DD2D-B516-4672-9AB5-530C208493AD")
 interface IMLOperatorRegistry : IUnknown
 {
-    HRESULT RegisterOperatorSetSchema(const(MLOperatorSetId)* operatorSetId, int baselineVersion, char* schema, uint schemaCount, IMLOperatorTypeInferrer typeInferrer, IMLOperatorShapeInferrer shapeInferrer);
-    HRESULT RegisterOperatorKernel(const(MLOperatorKernelDescription)* operatorKernel, IMLOperatorKernelFactory operatorKernelFactory, IMLOperatorShapeInferrer shapeInferrer);
+    HRESULT RegisterOperatorSetSchema(const(MLOperatorSetId)* operatorSetId, int baselineVersion, char* schema, 
+                                      uint schemaCount, IMLOperatorTypeInferrer typeInferrer, 
+                                      IMLOperatorShapeInferrer shapeInferrer);
+    HRESULT RegisterOperatorKernel(const(MLOperatorKernelDescription)* operatorKernel, 
+                                   IMLOperatorKernelFactory operatorKernelFactory, 
+                                   IMLOperatorShapeInferrer shapeInferrer);
 }
 
-@DllImport("winml.dll")
-HRESULT WinMLCreateRuntime(IWinMLRuntime* runtime);
 
-@DllImport("windows.dll")
-HRESULT MLCreateOperatorRegistry(IMLOperatorRegistry* registry);
+// GUIDs
 
+
+const GUID IID_IMLOperatorAttributes             = GUIDOF!IMLOperatorAttributes;
+const GUID IID_IMLOperatorKernel                 = GUIDOF!IMLOperatorKernel;
+const GUID IID_IMLOperatorKernelContext          = GUIDOF!IMLOperatorKernelContext;
+const GUID IID_IMLOperatorKernelCreationContext  = GUIDOF!IMLOperatorKernelCreationContext;
+const GUID IID_IMLOperatorKernelFactory          = GUIDOF!IMLOperatorKernelFactory;
+const GUID IID_IMLOperatorRegistry               = GUIDOF!IMLOperatorRegistry;
+const GUID IID_IMLOperatorShapeInferenceContext  = GUIDOF!IMLOperatorShapeInferenceContext;
+const GUID IID_IMLOperatorShapeInferrer          = GUIDOF!IMLOperatorShapeInferrer;
+const GUID IID_IMLOperatorTensor                 = GUIDOF!IMLOperatorTensor;
+const GUID IID_IMLOperatorTensorShapeDescription = GUIDOF!IMLOperatorTensorShapeDescription;
+const GUID IID_IMLOperatorTypeInferenceContext   = GUIDOF!IMLOperatorTypeInferenceContext;
+const GUID IID_IMLOperatorTypeInferrer           = GUIDOF!IMLOperatorTypeInferrer;
+const GUID IID_IWinMLEvaluationContext           = GUIDOF!IWinMLEvaluationContext;
+const GUID IID_IWinMLModel                       = GUIDOF!IWinMLModel;
+const GUID IID_IWinMLRuntime                     = GUIDOF!IWinMLRuntime;
+const GUID IID_IWinMLRuntimeFactory              = GUIDOF!IWinMLRuntimeFactory;

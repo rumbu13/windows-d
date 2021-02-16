@@ -1,55 +1,366 @@
 module windows.windowseventlog;
 
-public import windows.systemservices;
+public import windows.core;
+public import windows.systemservices : BOOL, HANDLE;
+public import windows.windowsprogramming : FILETIME, SYSTEMTIME;
 
 extern(Windows):
 
-enum EVT_VARIANT_TYPE
+
+// Enums
+
+
+enum : int
 {
-    EvtVarTypeNull = 0,
-    EvtVarTypeString = 1,
-    EvtVarTypeAnsiString = 2,
-    EvtVarTypeSByte = 3,
-    EvtVarTypeByte = 4,
-    EvtVarTypeInt16 = 5,
-    EvtVarTypeUInt16 = 6,
-    EvtVarTypeInt32 = 7,
-    EvtVarTypeUInt32 = 8,
-    EvtVarTypeInt64 = 9,
-    EvtVarTypeUInt64 = 10,
-    EvtVarTypeSingle = 11,
-    EvtVarTypeDouble = 12,
-    EvtVarTypeBoolean = 13,
-    EvtVarTypeBinary = 14,
-    EvtVarTypeGuid = 15,
-    EvtVarTypeSizeT = 16,
-    EvtVarTypeFileTime = 17,
-    EvtVarTypeSysTime = 18,
-    EvtVarTypeSid = 19,
-    EvtVarTypeHexInt32 = 20,
-    EvtVarTypeHexInt64 = 21,
-    EvtVarTypeEvtHandle = 32,
-    EvtVarTypeEvtXml = 35,
+    EvtVarTypeNull       = 0x00000000,
+    EvtVarTypeString     = 0x00000001,
+    EvtVarTypeAnsiString = 0x00000002,
+    EvtVarTypeSByte      = 0x00000003,
+    EvtVarTypeByte       = 0x00000004,
+    EvtVarTypeInt16      = 0x00000005,
+    EvtVarTypeUInt16     = 0x00000006,
+    EvtVarTypeInt32      = 0x00000007,
+    EvtVarTypeUInt32     = 0x00000008,
+    EvtVarTypeInt64      = 0x00000009,
+    EvtVarTypeUInt64     = 0x0000000a,
+    EvtVarTypeSingle     = 0x0000000b,
+    EvtVarTypeDouble     = 0x0000000c,
+    EvtVarTypeBoolean    = 0x0000000d,
+    EvtVarTypeBinary     = 0x0000000e,
+    EvtVarTypeGuid       = 0x0000000f,
+    EvtVarTypeSizeT      = 0x00000010,
+    EvtVarTypeFileTime   = 0x00000011,
+    EvtVarTypeSysTime    = 0x00000012,
+    EvtVarTypeSid        = 0x00000013,
+    EvtVarTypeHexInt32   = 0x00000014,
+    EvtVarTypeHexInt64   = 0x00000015,
+    EvtVarTypeEvtHandle  = 0x00000020,
+    EvtVarTypeEvtXml     = 0x00000023,
 }
+alias EVT_VARIANT_TYPE = int;
+
+enum : int
+{
+    EvtRpcLogin = 0x00000001,
+}
+alias EVT_LOGIN_CLASS = int;
+
+enum : int
+{
+    EvtRpcLoginAuthDefault   = 0x00000000,
+    EvtRpcLoginAuthNegotiate = 0x00000001,
+    EvtRpcLoginAuthKerberos  = 0x00000002,
+    EvtRpcLoginAuthNTLM      = 0x00000003,
+}
+alias EVT_RPC_LOGIN_FLAGS = int;
+
+enum : int
+{
+    EvtQueryChannelPath         = 0x00000001,
+    EvtQueryFilePath            = 0x00000002,
+    EvtQueryForwardDirection    = 0x00000100,
+    EvtQueryReverseDirection    = 0x00000200,
+    EvtQueryTolerateQueryErrors = 0x00001000,
+}
+alias EVT_QUERY_FLAGS = int;
+
+enum : int
+{
+    EvtSeekRelativeToFirst    = 0x00000001,
+    EvtSeekRelativeToLast     = 0x00000002,
+    EvtSeekRelativeToCurrent  = 0x00000003,
+    EvtSeekRelativeToBookmark = 0x00000004,
+    EvtSeekOriginMask         = 0x00000007,
+    EvtSeekStrict             = 0x00010000,
+}
+alias EVT_SEEK_FLAGS = int;
+
+enum : int
+{
+    EvtSubscribeToFutureEvents      = 0x00000001,
+    EvtSubscribeStartAtOldestRecord = 0x00000002,
+    EvtSubscribeStartAfterBookmark  = 0x00000003,
+    EvtSubscribeOriginMask          = 0x00000003,
+    EvtSubscribeTolerateQueryErrors = 0x00001000,
+    EvtSubscribeStrict              = 0x00010000,
+}
+alias EVT_SUBSCRIBE_FLAGS = int;
+
+enum : int
+{
+    EvtSubscribeActionError   = 0x00000000,
+    EvtSubscribeActionDeliver = 0x00000001,
+}
+alias EVT_SUBSCRIBE_NOTIFY_ACTION = int;
+
+enum : int
+{
+    EvtSystemProviderName      = 0x00000000,
+    EvtSystemProviderGuid      = 0x00000001,
+    EvtSystemEventID           = 0x00000002,
+    EvtSystemQualifiers        = 0x00000003,
+    EvtSystemLevel             = 0x00000004,
+    EvtSystemTask              = 0x00000005,
+    EvtSystemOpcode            = 0x00000006,
+    EvtSystemKeywords          = 0x00000007,
+    EvtSystemTimeCreated       = 0x00000008,
+    EvtSystemEventRecordId     = 0x00000009,
+    EvtSystemActivityID        = 0x0000000a,
+    EvtSystemRelatedActivityID = 0x0000000b,
+    EvtSystemProcessID         = 0x0000000c,
+    EvtSystemThreadID          = 0x0000000d,
+    EvtSystemChannel           = 0x0000000e,
+    EvtSystemComputer          = 0x0000000f,
+    EvtSystemUserID            = 0x00000010,
+    EvtSystemVersion           = 0x00000011,
+    EvtSystemPropertyIdEND     = 0x00000012,
+}
+alias EVT_SYSTEM_PROPERTY_ID = int;
+
+enum : int
+{
+    EvtRenderContextValues = 0x00000000,
+    EvtRenderContextSystem = 0x00000001,
+    EvtRenderContextUser   = 0x00000002,
+}
+alias EVT_RENDER_CONTEXT_FLAGS = int;
+
+enum : int
+{
+    EvtRenderEventValues = 0x00000000,
+    EvtRenderEventXml    = 0x00000001,
+    EvtRenderBookmark    = 0x00000002,
+}
+alias EVT_RENDER_FLAGS = int;
+
+enum : int
+{
+    EvtFormatMessageEvent    = 0x00000001,
+    EvtFormatMessageLevel    = 0x00000002,
+    EvtFormatMessageTask     = 0x00000003,
+    EvtFormatMessageOpcode   = 0x00000004,
+    EvtFormatMessageKeyword  = 0x00000005,
+    EvtFormatMessageChannel  = 0x00000006,
+    EvtFormatMessageProvider = 0x00000007,
+    EvtFormatMessageId       = 0x00000008,
+    EvtFormatMessageXml      = 0x00000009,
+}
+alias EVT_FORMAT_MESSAGE_FLAGS = int;
+
+enum : int
+{
+    EvtOpenChannelPath = 0x00000001,
+    EvtOpenFilePath    = 0x00000002,
+}
+alias EVT_OPEN_LOG_FLAGS = int;
+
+enum : int
+{
+    EvtLogCreationTime       = 0x00000000,
+    EvtLogLastAccessTime     = 0x00000001,
+    EvtLogLastWriteTime      = 0x00000002,
+    EvtLogFileSize           = 0x00000003,
+    EvtLogAttributes         = 0x00000004,
+    EvtLogNumberOfLogRecords = 0x00000005,
+    EvtLogOldestRecordNumber = 0x00000006,
+    EvtLogFull               = 0x00000007,
+}
+alias EVT_LOG_PROPERTY_ID = int;
+
+enum : int
+{
+    EvtExportLogChannelPath         = 0x00000001,
+    EvtExportLogFilePath            = 0x00000002,
+    EvtExportLogTolerateQueryErrors = 0x00001000,
+    EvtExportLogOverwrite           = 0x00002000,
+}
+alias EVT_EXPORTLOG_FLAGS = int;
+
+enum : int
+{
+    EvtChannelConfigEnabled               = 0x00000000,
+    EvtChannelConfigIsolation             = 0x00000001,
+    EvtChannelConfigType                  = 0x00000002,
+    EvtChannelConfigOwningPublisher       = 0x00000003,
+    EvtChannelConfigClassicEventlog       = 0x00000004,
+    EvtChannelConfigAccess                = 0x00000005,
+    EvtChannelLoggingConfigRetention      = 0x00000006,
+    EvtChannelLoggingConfigAutoBackup     = 0x00000007,
+    EvtChannelLoggingConfigMaxSize        = 0x00000008,
+    EvtChannelLoggingConfigLogFilePath    = 0x00000009,
+    EvtChannelPublishingConfigLevel       = 0x0000000a,
+    EvtChannelPublishingConfigKeywords    = 0x0000000b,
+    EvtChannelPublishingConfigControlGuid = 0x0000000c,
+    EvtChannelPublishingConfigBufferSize  = 0x0000000d,
+    EvtChannelPublishingConfigMinBuffers  = 0x0000000e,
+    EvtChannelPublishingConfigMaxBuffers  = 0x0000000f,
+    EvtChannelPublishingConfigLatency     = 0x00000010,
+    EvtChannelPublishingConfigClockType   = 0x00000011,
+    EvtChannelPublishingConfigSidType     = 0x00000012,
+    EvtChannelPublisherList               = 0x00000013,
+    EvtChannelPublishingConfigFileMax     = 0x00000014,
+    EvtChannelConfigPropertyIdEND         = 0x00000015,
+}
+alias EVT_CHANNEL_CONFIG_PROPERTY_ID = int;
+
+enum : int
+{
+    EvtChannelTypeAdmin       = 0x00000000,
+    EvtChannelTypeOperational = 0x00000001,
+    EvtChannelTypeAnalytic    = 0x00000002,
+    EvtChannelTypeDebug       = 0x00000003,
+}
+alias EVT_CHANNEL_TYPE = int;
+
+enum : int
+{
+    EvtChannelIsolationTypeApplication = 0x00000000,
+    EvtChannelIsolationTypeSystem      = 0x00000001,
+    EvtChannelIsolationTypeCustom      = 0x00000002,
+}
+alias EVT_CHANNEL_ISOLATION_TYPE = int;
+
+enum : int
+{
+    EvtChannelClockTypeSystemTime = 0x00000000,
+    EvtChannelClockTypeQPC        = 0x00000001,
+}
+alias EVT_CHANNEL_CLOCK_TYPE = int;
+
+enum : int
+{
+    EvtChannelSidTypeNone       = 0x00000000,
+    EvtChannelSidTypePublishing = 0x00000001,
+}
+alias EVT_CHANNEL_SID_TYPE = int;
+
+enum : int
+{
+    EvtChannelReferenceImported = 0x00000001,
+}
+alias EVT_CHANNEL_REFERENCE_FLAGS = int;
+
+enum : int
+{
+    EvtPublisherMetadataPublisherGuid             = 0x00000000,
+    EvtPublisherMetadataResourceFilePath          = 0x00000001,
+    EvtPublisherMetadataParameterFilePath         = 0x00000002,
+    EvtPublisherMetadataMessageFilePath           = 0x00000003,
+    EvtPublisherMetadataHelpLink                  = 0x00000004,
+    EvtPublisherMetadataPublisherMessageID        = 0x00000005,
+    EvtPublisherMetadataChannelReferences         = 0x00000006,
+    EvtPublisherMetadataChannelReferencePath      = 0x00000007,
+    EvtPublisherMetadataChannelReferenceIndex     = 0x00000008,
+    EvtPublisherMetadataChannelReferenceID        = 0x00000009,
+    EvtPublisherMetadataChannelReferenceFlags     = 0x0000000a,
+    EvtPublisherMetadataChannelReferenceMessageID = 0x0000000b,
+    EvtPublisherMetadataLevels                    = 0x0000000c,
+    EvtPublisherMetadataLevelName                 = 0x0000000d,
+    EvtPublisherMetadataLevelValue                = 0x0000000e,
+    EvtPublisherMetadataLevelMessageID            = 0x0000000f,
+    EvtPublisherMetadataTasks                     = 0x00000010,
+    EvtPublisherMetadataTaskName                  = 0x00000011,
+    EvtPublisherMetadataTaskEventGuid             = 0x00000012,
+    EvtPublisherMetadataTaskValue                 = 0x00000013,
+    EvtPublisherMetadataTaskMessageID             = 0x00000014,
+    EvtPublisherMetadataOpcodes                   = 0x00000015,
+    EvtPublisherMetadataOpcodeName                = 0x00000016,
+    EvtPublisherMetadataOpcodeValue               = 0x00000017,
+    EvtPublisherMetadataOpcodeMessageID           = 0x00000018,
+    EvtPublisherMetadataKeywords                  = 0x00000019,
+    EvtPublisherMetadataKeywordName               = 0x0000001a,
+    EvtPublisherMetadataKeywordValue              = 0x0000001b,
+    EvtPublisherMetadataKeywordMessageID          = 0x0000001c,
+    EvtPublisherMetadataPropertyIdEND             = 0x0000001d,
+}
+alias EVT_PUBLISHER_METADATA_PROPERTY_ID = int;
+
+enum : int
+{
+    EventMetadataEventID          = 0x00000000,
+    EventMetadataEventVersion     = 0x00000001,
+    EventMetadataEventChannel     = 0x00000002,
+    EventMetadataEventLevel       = 0x00000003,
+    EventMetadataEventOpcode      = 0x00000004,
+    EventMetadataEventTask        = 0x00000005,
+    EventMetadataEventKeyword     = 0x00000006,
+    EventMetadataEventMessageID   = 0x00000007,
+    EventMetadataEventTemplate    = 0x00000008,
+    EvtEventMetadataPropertyIdEND = 0x00000009,
+}
+alias EVT_EVENT_METADATA_PROPERTY_ID = int;
+
+enum : int
+{
+    EvtQueryNames         = 0x00000000,
+    EvtQueryStatuses      = 0x00000001,
+    EvtQueryPropertyIdEND = 0x00000002,
+}
+alias EVT_QUERY_PROPERTY_ID = int;
+
+enum : int
+{
+    EvtEventQueryIDs      = 0x00000000,
+    EvtEventPath          = 0x00000001,
+    EvtEventPropertyIdEND = 0x00000002,
+}
+alias EVT_EVENT_PROPERTY_ID = int;
+
+// Callbacks
+
+alias EVT_SUBSCRIBE_CALLBACK = uint function(EVT_SUBSCRIBE_NOTIFY_ACTION Action, void* UserContext, 
+                                             ptrdiff_t Event);
+
+// Structs
+
 
 struct EVT_VARIANT
 {
-    _Anonymous_e__Union Anonymous;
+    union
+    {
+        BOOL          BooleanVal;
+        byte          SByteVal;
+        short         Int16Val;
+        int           Int32Val;
+        long          Int64Val;
+        ubyte         ByteVal;
+        ushort        UInt16Val;
+        uint          UInt32Val;
+        ulong         UInt64Val;
+        float         SingleVal;
+        double        DoubleVal;
+        ulong         FileTimeVal;
+        SYSTEMTIME*   SysTimeVal;
+        GUID*         GuidVal;
+        const(wchar)* StringVal;
+        const(char)*  AnsiStringVal;
+        ubyte*        BinaryVal;
+        void*         SidVal;
+        size_t        SizeTVal;
+        int*          BooleanArr;
+        byte*         SByteArr;
+        short*        Int16Arr;
+        int*          Int32Arr;
+        long*         Int64Arr;
+        ubyte*        ByteArr;
+        ushort*       UInt16Arr;
+        uint*         UInt32Arr;
+        ulong*        UInt64Arr;
+        float*        SingleArr;
+        double*       DoubleArr;
+        FILETIME*     FileTimeArr;
+        SYSTEMTIME*   SysTimeArr;
+        GUID*         GuidArr;
+        ushort**      StringArr;
+        byte**        AnsiStringArr;
+        void**        SidArr;
+        size_t*       SizeTArr;
+        ptrdiff_t     EvtHandleVal;
+        const(wchar)* XmlVal;
+        ushort**      XmlValArr;
+    }
     uint Count;
     uint Type;
-}
-
-enum EVT_LOGIN_CLASS
-{
-    EvtRpcLogin = 1,
-}
-
-enum EVT_RPC_LOGIN_FLAGS
-{
-    EvtRpcLoginAuthDefault = 0,
-    EvtRpcLoginAuthNegotiate = 1,
-    EvtRpcLoginAuthKerberos = 2,
-    EvtRpcLoginAuthNTLM = 3,
 }
 
 struct EVT_RPC_LOGIN
@@ -58,343 +369,134 @@ struct EVT_RPC_LOGIN
     const(wchar)* User;
     const(wchar)* Domain;
     const(wchar)* Password;
-    uint Flags;
+    uint          Flags;
 }
 
-enum EVT_QUERY_FLAGS
-{
-    EvtQueryChannelPath = 1,
-    EvtQueryFilePath = 2,
-    EvtQueryForwardDirection = 256,
-    EvtQueryReverseDirection = 512,
-    EvtQueryTolerateQueryErrors = 4096,
-}
+// Functions
 
-enum EVT_SEEK_FLAGS
-{
-    EvtSeekRelativeToFirst = 1,
-    EvtSeekRelativeToLast = 2,
-    EvtSeekRelativeToCurrent = 3,
-    EvtSeekRelativeToBookmark = 4,
-    EvtSeekOriginMask = 7,
-    EvtSeekStrict = 65536,
-}
+@DllImport("wevtapi")
+ptrdiff_t EvtOpenSession(EVT_LOGIN_CLASS LoginClass, char* Login, uint Timeout, uint Flags);
 
-enum EVT_SUBSCRIBE_FLAGS
-{
-    EvtSubscribeToFutureEvents = 1,
-    EvtSubscribeStartAtOldestRecord = 2,
-    EvtSubscribeStartAfterBookmark = 3,
-    EvtSubscribeOriginMask = 3,
-    EvtSubscribeTolerateQueryErrors = 4096,
-    EvtSubscribeStrict = 65536,
-}
+@DllImport("wevtapi")
+BOOL EvtClose(ptrdiff_t Object);
 
-enum EVT_SUBSCRIBE_NOTIFY_ACTION
-{
-    EvtSubscribeActionError = 0,
-    EvtSubscribeActionDeliver = 1,
-}
+@DllImport("wevtapi")
+BOOL EvtCancel(ptrdiff_t Object);
 
-alias EVT_SUBSCRIBE_CALLBACK = extern(Windows) uint function(EVT_SUBSCRIBE_NOTIFY_ACTION Action, void* UserContext, int Event);
-enum EVT_SYSTEM_PROPERTY_ID
-{
-    EvtSystemProviderName = 0,
-    EvtSystemProviderGuid = 1,
-    EvtSystemEventID = 2,
-    EvtSystemQualifiers = 3,
-    EvtSystemLevel = 4,
-    EvtSystemTask = 5,
-    EvtSystemOpcode = 6,
-    EvtSystemKeywords = 7,
-    EvtSystemTimeCreated = 8,
-    EvtSystemEventRecordId = 9,
-    EvtSystemActivityID = 10,
-    EvtSystemRelatedActivityID = 11,
-    EvtSystemProcessID = 12,
-    EvtSystemThreadID = 13,
-    EvtSystemChannel = 14,
-    EvtSystemComputer = 15,
-    EvtSystemUserID = 16,
-    EvtSystemVersion = 17,
-    EvtSystemPropertyIdEND = 18,
-}
-
-enum EVT_RENDER_CONTEXT_FLAGS
-{
-    EvtRenderContextValues = 0,
-    EvtRenderContextSystem = 1,
-    EvtRenderContextUser = 2,
-}
-
-enum EVT_RENDER_FLAGS
-{
-    EvtRenderEventValues = 0,
-    EvtRenderEventXml = 1,
-    EvtRenderBookmark = 2,
-}
-
-enum EVT_FORMAT_MESSAGE_FLAGS
-{
-    EvtFormatMessageEvent = 1,
-    EvtFormatMessageLevel = 2,
-    EvtFormatMessageTask = 3,
-    EvtFormatMessageOpcode = 4,
-    EvtFormatMessageKeyword = 5,
-    EvtFormatMessageChannel = 6,
-    EvtFormatMessageProvider = 7,
-    EvtFormatMessageId = 8,
-    EvtFormatMessageXml = 9,
-}
-
-enum EVT_OPEN_LOG_FLAGS
-{
-    EvtOpenChannelPath = 1,
-    EvtOpenFilePath = 2,
-}
-
-enum EVT_LOG_PROPERTY_ID
-{
-    EvtLogCreationTime = 0,
-    EvtLogLastAccessTime = 1,
-    EvtLogLastWriteTime = 2,
-    EvtLogFileSize = 3,
-    EvtLogAttributes = 4,
-    EvtLogNumberOfLogRecords = 5,
-    EvtLogOldestRecordNumber = 6,
-    EvtLogFull = 7,
-}
-
-enum EVT_EXPORTLOG_FLAGS
-{
-    EvtExportLogChannelPath = 1,
-    EvtExportLogFilePath = 2,
-    EvtExportLogTolerateQueryErrors = 4096,
-    EvtExportLogOverwrite = 8192,
-}
-
-enum EVT_CHANNEL_CONFIG_PROPERTY_ID
-{
-    EvtChannelConfigEnabled = 0,
-    EvtChannelConfigIsolation = 1,
-    EvtChannelConfigType = 2,
-    EvtChannelConfigOwningPublisher = 3,
-    EvtChannelConfigClassicEventlog = 4,
-    EvtChannelConfigAccess = 5,
-    EvtChannelLoggingConfigRetention = 6,
-    EvtChannelLoggingConfigAutoBackup = 7,
-    EvtChannelLoggingConfigMaxSize = 8,
-    EvtChannelLoggingConfigLogFilePath = 9,
-    EvtChannelPublishingConfigLevel = 10,
-    EvtChannelPublishingConfigKeywords = 11,
-    EvtChannelPublishingConfigControlGuid = 12,
-    EvtChannelPublishingConfigBufferSize = 13,
-    EvtChannelPublishingConfigMinBuffers = 14,
-    EvtChannelPublishingConfigMaxBuffers = 15,
-    EvtChannelPublishingConfigLatency = 16,
-    EvtChannelPublishingConfigClockType = 17,
-    EvtChannelPublishingConfigSidType = 18,
-    EvtChannelPublisherList = 19,
-    EvtChannelPublishingConfigFileMax = 20,
-    EvtChannelConfigPropertyIdEND = 21,
-}
-
-enum EVT_CHANNEL_TYPE
-{
-    EvtChannelTypeAdmin = 0,
-    EvtChannelTypeOperational = 1,
-    EvtChannelTypeAnalytic = 2,
-    EvtChannelTypeDebug = 3,
-}
-
-enum EVT_CHANNEL_ISOLATION_TYPE
-{
-    EvtChannelIsolationTypeApplication = 0,
-    EvtChannelIsolationTypeSystem = 1,
-    EvtChannelIsolationTypeCustom = 2,
-}
-
-enum EVT_CHANNEL_CLOCK_TYPE
-{
-    EvtChannelClockTypeSystemTime = 0,
-    EvtChannelClockTypeQPC = 1,
-}
-
-enum EVT_CHANNEL_SID_TYPE
-{
-    EvtChannelSidTypeNone = 0,
-    EvtChannelSidTypePublishing = 1,
-}
-
-enum EVT_CHANNEL_REFERENCE_FLAGS
-{
-    EvtChannelReferenceImported = 1,
-}
-
-enum EVT_PUBLISHER_METADATA_PROPERTY_ID
-{
-    EvtPublisherMetadataPublisherGuid = 0,
-    EvtPublisherMetadataResourceFilePath = 1,
-    EvtPublisherMetadataParameterFilePath = 2,
-    EvtPublisherMetadataMessageFilePath = 3,
-    EvtPublisherMetadataHelpLink = 4,
-    EvtPublisherMetadataPublisherMessageID = 5,
-    EvtPublisherMetadataChannelReferences = 6,
-    EvtPublisherMetadataChannelReferencePath = 7,
-    EvtPublisherMetadataChannelReferenceIndex = 8,
-    EvtPublisherMetadataChannelReferenceID = 9,
-    EvtPublisherMetadataChannelReferenceFlags = 10,
-    EvtPublisherMetadataChannelReferenceMessageID = 11,
-    EvtPublisherMetadataLevels = 12,
-    EvtPublisherMetadataLevelName = 13,
-    EvtPublisherMetadataLevelValue = 14,
-    EvtPublisherMetadataLevelMessageID = 15,
-    EvtPublisherMetadataTasks = 16,
-    EvtPublisherMetadataTaskName = 17,
-    EvtPublisherMetadataTaskEventGuid = 18,
-    EvtPublisherMetadataTaskValue = 19,
-    EvtPublisherMetadataTaskMessageID = 20,
-    EvtPublisherMetadataOpcodes = 21,
-    EvtPublisherMetadataOpcodeName = 22,
-    EvtPublisherMetadataOpcodeValue = 23,
-    EvtPublisherMetadataOpcodeMessageID = 24,
-    EvtPublisherMetadataKeywords = 25,
-    EvtPublisherMetadataKeywordName = 26,
-    EvtPublisherMetadataKeywordValue = 27,
-    EvtPublisherMetadataKeywordMessageID = 28,
-    EvtPublisherMetadataPropertyIdEND = 29,
-}
-
-enum EVT_EVENT_METADATA_PROPERTY_ID
-{
-    EventMetadataEventID = 0,
-    EventMetadataEventVersion = 1,
-    EventMetadataEventChannel = 2,
-    EventMetadataEventLevel = 3,
-    EventMetadataEventOpcode = 4,
-    EventMetadataEventTask = 5,
-    EventMetadataEventKeyword = 6,
-    EventMetadataEventMessageID = 7,
-    EventMetadataEventTemplate = 8,
-    EvtEventMetadataPropertyIdEND = 9,
-}
-
-enum EVT_QUERY_PROPERTY_ID
-{
-    EvtQueryNames = 0,
-    EvtQueryStatuses = 1,
-    EvtQueryPropertyIdEND = 2,
-}
-
-enum EVT_EVENT_PROPERTY_ID
-{
-    EvtEventQueryIDs = 0,
-    EvtEventPath = 1,
-    EvtEventPropertyIdEND = 2,
-}
-
-@DllImport("wevtapi.dll")
-int EvtOpenSession(EVT_LOGIN_CLASS LoginClass, char* Login, uint Timeout, uint Flags);
-
-@DllImport("wevtapi.dll")
-BOOL EvtClose(int Object);
-
-@DllImport("wevtapi.dll")
-BOOL EvtCancel(int Object);
-
-@DllImport("wevtapi.dll")
+@DllImport("wevtapi")
 uint EvtGetExtendedStatus(uint BufferSize, const(wchar)* Buffer, uint* BufferUsed);
 
-@DllImport("wevtapi.dll")
-int EvtQuery(int Session, const(wchar)* Path, const(wchar)* Query, uint Flags);
+@DllImport("wevtapi")
+ptrdiff_t EvtQuery(ptrdiff_t Session, const(wchar)* Path, const(wchar)* Query, uint Flags);
 
-@DllImport("wevtapi.dll")
-BOOL EvtNext(int ResultSet, uint EventsSize, char* Events, uint Timeout, uint Flags, uint* Returned);
+@DllImport("wevtapi")
+BOOL EvtNext(ptrdiff_t ResultSet, uint EventsSize, char* Events, uint Timeout, uint Flags, uint* Returned);
 
-@DllImport("wevtapi.dll")
-BOOL EvtSeek(int ResultSet, long Position, int Bookmark, uint Timeout, uint Flags);
+@DllImport("wevtapi")
+BOOL EvtSeek(ptrdiff_t ResultSet, long Position, ptrdiff_t Bookmark, uint Timeout, uint Flags);
 
-@DllImport("wevtapi.dll")
-int EvtSubscribe(int Session, HANDLE SignalEvent, const(wchar)* ChannelPath, const(wchar)* Query, int Bookmark, void* Context, EVT_SUBSCRIBE_CALLBACK Callback, uint Flags);
+@DllImport("wevtapi")
+ptrdiff_t EvtSubscribe(ptrdiff_t Session, HANDLE SignalEvent, const(wchar)* ChannelPath, const(wchar)* Query, 
+                       ptrdiff_t Bookmark, void* Context, EVT_SUBSCRIBE_CALLBACK Callback, uint Flags);
 
-@DllImport("wevtapi.dll")
-int EvtCreateRenderContext(uint ValuePathsCount, char* ValuePaths, uint Flags);
+@DllImport("wevtapi")
+ptrdiff_t EvtCreateRenderContext(uint ValuePathsCount, char* ValuePaths, uint Flags);
 
-@DllImport("wevtapi.dll")
-BOOL EvtRender(int Context, int Fragment, uint Flags, uint BufferSize, char* Buffer, uint* BufferUsed, uint* PropertyCount);
+@DllImport("wevtapi")
+BOOL EvtRender(ptrdiff_t Context, ptrdiff_t Fragment, uint Flags, uint BufferSize, char* Buffer, uint* BufferUsed, 
+               uint* PropertyCount);
 
-@DllImport("wevtapi.dll")
-BOOL EvtFormatMessage(int PublisherMetadata, int Event, uint MessageId, uint ValueCount, char* Values, uint Flags, uint BufferSize, const(wchar)* Buffer, uint* BufferUsed);
+@DllImport("wevtapi")
+BOOL EvtFormatMessage(ptrdiff_t PublisherMetadata, ptrdiff_t Event, uint MessageId, uint ValueCount, char* Values, 
+                      uint Flags, uint BufferSize, const(wchar)* Buffer, uint* BufferUsed);
 
-@DllImport("wevtapi.dll")
-int EvtOpenLog(int Session, const(wchar)* Path, uint Flags);
+@DllImport("wevtapi")
+ptrdiff_t EvtOpenLog(ptrdiff_t Session, const(wchar)* Path, uint Flags);
 
-@DllImport("wevtapi.dll")
-BOOL EvtGetLogInfo(int Log, EVT_LOG_PROPERTY_ID PropertyId, uint PropertyValueBufferSize, char* PropertyValueBuffer, uint* PropertyValueBufferUsed);
+@DllImport("wevtapi")
+BOOL EvtGetLogInfo(ptrdiff_t Log, EVT_LOG_PROPERTY_ID PropertyId, uint PropertyValueBufferSize, 
+                   char* PropertyValueBuffer, uint* PropertyValueBufferUsed);
 
-@DllImport("wevtapi.dll")
-BOOL EvtClearLog(int Session, const(wchar)* ChannelPath, const(wchar)* TargetFilePath, uint Flags);
+@DllImport("wevtapi")
+BOOL EvtClearLog(ptrdiff_t Session, const(wchar)* ChannelPath, const(wchar)* TargetFilePath, uint Flags);
 
-@DllImport("wevtapi.dll")
-BOOL EvtExportLog(int Session, const(wchar)* Path, const(wchar)* Query, const(wchar)* TargetFilePath, uint Flags);
+@DllImport("wevtapi")
+BOOL EvtExportLog(ptrdiff_t Session, const(wchar)* Path, const(wchar)* Query, const(wchar)* TargetFilePath, 
+                  uint Flags);
 
-@DllImport("wevtapi.dll")
-BOOL EvtArchiveExportedLog(int Session, const(wchar)* LogFilePath, uint Locale, uint Flags);
+@DllImport("wevtapi")
+BOOL EvtArchiveExportedLog(ptrdiff_t Session, const(wchar)* LogFilePath, uint Locale, uint Flags);
 
-@DllImport("wevtapi.dll")
-int EvtOpenChannelEnum(int Session, uint Flags);
+@DllImport("wevtapi")
+ptrdiff_t EvtOpenChannelEnum(ptrdiff_t Session, uint Flags);
 
-@DllImport("wevtapi.dll")
-BOOL EvtNextChannelPath(int ChannelEnum, uint ChannelPathBufferSize, const(wchar)* ChannelPathBuffer, uint* ChannelPathBufferUsed);
+@DllImport("wevtapi")
+BOOL EvtNextChannelPath(ptrdiff_t ChannelEnum, uint ChannelPathBufferSize, const(wchar)* ChannelPathBuffer, 
+                        uint* ChannelPathBufferUsed);
 
-@DllImport("wevtapi.dll")
-int EvtOpenChannelConfig(int Session, const(wchar)* ChannelPath, uint Flags);
+@DllImport("wevtapi")
+ptrdiff_t EvtOpenChannelConfig(ptrdiff_t Session, const(wchar)* ChannelPath, uint Flags);
 
-@DllImport("wevtapi.dll")
-BOOL EvtSaveChannelConfig(int ChannelConfig, uint Flags);
+@DllImport("wevtapi")
+BOOL EvtSaveChannelConfig(ptrdiff_t ChannelConfig, uint Flags);
 
-@DllImport("wevtapi.dll")
-BOOL EvtSetChannelConfigProperty(int ChannelConfig, EVT_CHANNEL_CONFIG_PROPERTY_ID PropertyId, uint Flags, EVT_VARIANT* PropertyValue);
+@DllImport("wevtapi")
+BOOL EvtSetChannelConfigProperty(ptrdiff_t ChannelConfig, EVT_CHANNEL_CONFIG_PROPERTY_ID PropertyId, uint Flags, 
+                                 EVT_VARIANT* PropertyValue);
 
-@DllImport("wevtapi.dll")
-BOOL EvtGetChannelConfigProperty(int ChannelConfig, EVT_CHANNEL_CONFIG_PROPERTY_ID PropertyId, uint Flags, uint PropertyValueBufferSize, char* PropertyValueBuffer, uint* PropertyValueBufferUsed);
+@DllImport("wevtapi")
+BOOL EvtGetChannelConfigProperty(ptrdiff_t ChannelConfig, EVT_CHANNEL_CONFIG_PROPERTY_ID PropertyId, uint Flags, 
+                                 uint PropertyValueBufferSize, char* PropertyValueBuffer, 
+                                 uint* PropertyValueBufferUsed);
 
-@DllImport("wevtapi.dll")
-int EvtOpenPublisherEnum(int Session, uint Flags);
+@DllImport("wevtapi")
+ptrdiff_t EvtOpenPublisherEnum(ptrdiff_t Session, uint Flags);
 
-@DllImport("wevtapi.dll")
-BOOL EvtNextPublisherId(int PublisherEnum, uint PublisherIdBufferSize, const(wchar)* PublisherIdBuffer, uint* PublisherIdBufferUsed);
+@DllImport("wevtapi")
+BOOL EvtNextPublisherId(ptrdiff_t PublisherEnum, uint PublisherIdBufferSize, const(wchar)* PublisherIdBuffer, 
+                        uint* PublisherIdBufferUsed);
 
-@DllImport("wevtapi.dll")
-int EvtOpenPublisherMetadata(int Session, const(wchar)* PublisherId, const(wchar)* LogFilePath, uint Locale, uint Flags);
+@DllImport("wevtapi")
+ptrdiff_t EvtOpenPublisherMetadata(ptrdiff_t Session, const(wchar)* PublisherId, const(wchar)* LogFilePath, 
+                                   uint Locale, uint Flags);
 
-@DllImport("wevtapi.dll")
-BOOL EvtGetPublisherMetadataProperty(int PublisherMetadata, EVT_PUBLISHER_METADATA_PROPERTY_ID PropertyId, uint Flags, uint PublisherMetadataPropertyBufferSize, char* PublisherMetadataPropertyBuffer, uint* PublisherMetadataPropertyBufferUsed);
+@DllImport("wevtapi")
+BOOL EvtGetPublisherMetadataProperty(ptrdiff_t PublisherMetadata, EVT_PUBLISHER_METADATA_PROPERTY_ID PropertyId, 
+                                     uint Flags, uint PublisherMetadataPropertyBufferSize, 
+                                     char* PublisherMetadataPropertyBuffer, 
+                                     uint* PublisherMetadataPropertyBufferUsed);
 
-@DllImport("wevtapi.dll")
-int EvtOpenEventMetadataEnum(int PublisherMetadata, uint Flags);
+@DllImport("wevtapi")
+ptrdiff_t EvtOpenEventMetadataEnum(ptrdiff_t PublisherMetadata, uint Flags);
 
-@DllImport("wevtapi.dll")
-int EvtNextEventMetadata(int EventMetadataEnum, uint Flags);
+@DllImport("wevtapi")
+ptrdiff_t EvtNextEventMetadata(ptrdiff_t EventMetadataEnum, uint Flags);
 
-@DllImport("wevtapi.dll")
-BOOL EvtGetEventMetadataProperty(int EventMetadata, EVT_EVENT_METADATA_PROPERTY_ID PropertyId, uint Flags, uint EventMetadataPropertyBufferSize, char* EventMetadataPropertyBuffer, uint* EventMetadataPropertyBufferUsed);
+@DllImport("wevtapi")
+BOOL EvtGetEventMetadataProperty(ptrdiff_t EventMetadata, EVT_EVENT_METADATA_PROPERTY_ID PropertyId, uint Flags, 
+                                 uint EventMetadataPropertyBufferSize, char* EventMetadataPropertyBuffer, 
+                                 uint* EventMetadataPropertyBufferUsed);
 
-@DllImport("wevtapi.dll")
-BOOL EvtGetObjectArraySize(int ObjectArray, uint* ObjectArraySize);
+@DllImport("wevtapi")
+BOOL EvtGetObjectArraySize(ptrdiff_t ObjectArray, uint* ObjectArraySize);
 
-@DllImport("wevtapi.dll")
-BOOL EvtGetObjectArrayProperty(int ObjectArray, uint PropertyId, uint ArrayIndex, uint Flags, uint PropertyValueBufferSize, char* PropertyValueBuffer, uint* PropertyValueBufferUsed);
+@DllImport("wevtapi")
+BOOL EvtGetObjectArrayProperty(ptrdiff_t ObjectArray, uint PropertyId, uint ArrayIndex, uint Flags, 
+                               uint PropertyValueBufferSize, char* PropertyValueBuffer, 
+                               uint* PropertyValueBufferUsed);
 
-@DllImport("wevtapi.dll")
-BOOL EvtGetQueryInfo(int QueryOrSubscription, EVT_QUERY_PROPERTY_ID PropertyId, uint PropertyValueBufferSize, char* PropertyValueBuffer, uint* PropertyValueBufferUsed);
+@DllImport("wevtapi")
+BOOL EvtGetQueryInfo(ptrdiff_t QueryOrSubscription, EVT_QUERY_PROPERTY_ID PropertyId, uint PropertyValueBufferSize, 
+                     char* PropertyValueBuffer, uint* PropertyValueBufferUsed);
 
-@DllImport("wevtapi.dll")
-int EvtCreateBookmark(const(wchar)* BookmarkXml);
+@DllImport("wevtapi")
+ptrdiff_t EvtCreateBookmark(const(wchar)* BookmarkXml);
 
-@DllImport("wevtapi.dll")
-BOOL EvtUpdateBookmark(int Bookmark, int Event);
+@DllImport("wevtapi")
+BOOL EvtUpdateBookmark(ptrdiff_t Bookmark, ptrdiff_t Event);
 
-@DllImport("wevtapi.dll")
-BOOL EvtGetEventInfo(int Event, EVT_EVENT_PROPERTY_ID PropertyId, uint PropertyValueBufferSize, char* PropertyValueBuffer, uint* PropertyValueBufferUsed);
+@DllImport("wevtapi")
+BOOL EvtGetEventInfo(ptrdiff_t Event, EVT_EVENT_PROPERTY_ID PropertyId, uint PropertyValueBufferSize, 
+                     char* PropertyValueBuffer, uint* PropertyValueBufferUsed);
+
 

@@ -1,77 +1,81 @@
 module windows.settingsmanagementinfrastructure;
 
-public import system;
-public import windows.automation;
-public import windows.com;
-public import windows.structuredstorage;
-public import windows.systemservices;
+public import windows.core;
+public import windows.automation : BSTR, VARIANT;
+public import windows.com : HRESULT, IUnknown;
+public import windows.structuredstorage : IStream;
+public import windows.systemservices : BOOL;
 
 extern(Windows):
 
-const GUID CLSID_SettingsEngine = {0x9F7D7BB5, 0x20B3, 0x11DA, [0x81, 0xA5, 0x00, 0x30, 0xF1, 0x64, 0x2E, 0x3C]};
-@GUID(0x9F7D7BB5, 0x20B3, 0x11DA, [0x81, 0xA5, 0x00, 0x30, 0xF1, 0x64, 0x2E, 0x3C]);
+
+// Enums
+
+
+enum WcmTargetMode : int
+{
+    OfflineMode = 0x00000001,
+    OnlineMode  = 0x00000002,
+}
+
+enum WcmNamespaceEnumerationFlags : int
+{
+    SharedEnumeration = 0x00000001,
+    UserEnumeration   = 0x00000002,
+    AllEnumeration    = 0x00000003,
+}
+
+enum WcmDataType : int
+{
+    dataTypeByte      = 0x00000001,
+    dataTypeSByte     = 0x00000002,
+    dataTypeUInt16    = 0x00000003,
+    dataTypeInt16     = 0x00000004,
+    dataTypeUInt32    = 0x00000005,
+    dataTypeInt32     = 0x00000006,
+    dataTypeUInt64    = 0x00000007,
+    dataTypeInt64     = 0x00000008,
+    dataTypeBoolean   = 0x0000000b,
+    dataTypeString    = 0x0000000c,
+    dataTypeFlagArray = 0x00008000,
+}
+
+enum WcmSettingType : int
+{
+    settingTypeScalar  = 0x00000001,
+    settingTypeComplex = 0x00000002,
+    settingTypeList    = 0x00000003,
+}
+
+enum WcmRestrictionFacets : int
+{
+    restrictionFacetMaxLength    = 0x00000001,
+    restrictionFacetEnumeration  = 0x00000002,
+    restrictionFacetMaxInclusive = 0x00000004,
+    restrictionFacetMinInclusive = 0x00000008,
+}
+
+enum WcmUserStatus : int
+{
+    UnknownStatus    = 0x00000000,
+    UserRegistered   = 0x00000001,
+    UserUnregistered = 0x00000002,
+    UserLoaded       = 0x00000003,
+    UserUnloaded     = 0x00000004,
+}
+
+enum WcmNamespaceAccess : int
+{
+    ReadOnlyAccess  = 0x00000001,
+    ReadWriteAccess = 0x00000002,
+}
+
+// Interfaces
+
+@GUID("9F7D7BB5-20B3-11DA-81A5-0030F1642E3C")
 struct SettingsEngine;
 
-enum WcmTargetMode
-{
-    OfflineMode = 1,
-    OnlineMode = 2,
-}
-
-enum WcmNamespaceEnumerationFlags
-{
-    SharedEnumeration = 1,
-    UserEnumeration = 2,
-    AllEnumeration = 3,
-}
-
-enum WcmDataType
-{
-    dataTypeByte = 1,
-    dataTypeSByte = 2,
-    dataTypeUInt16 = 3,
-    dataTypeInt16 = 4,
-    dataTypeUInt32 = 5,
-    dataTypeInt32 = 6,
-    dataTypeUInt64 = 7,
-    dataTypeInt64 = 8,
-    dataTypeBoolean = 11,
-    dataTypeString = 12,
-    dataTypeFlagArray = 32768,
-}
-
-enum WcmSettingType
-{
-    settingTypeScalar = 1,
-    settingTypeComplex = 2,
-    settingTypeList = 3,
-}
-
-enum WcmRestrictionFacets
-{
-    restrictionFacetMaxLength = 1,
-    restrictionFacetEnumeration = 2,
-    restrictionFacetMaxInclusive = 4,
-    restrictionFacetMinInclusive = 8,
-}
-
-enum WcmUserStatus
-{
-    UnknownStatus = 0,
-    UserRegistered = 1,
-    UserUnregistered = 2,
-    UserLoaded = 3,
-    UserUnloaded = 4,
-}
-
-enum WcmNamespaceAccess
-{
-    ReadOnlyAccess = 1,
-    ReadWriteAccess = 2,
-}
-
-const GUID IID_IItemEnumerator = {0x9F7D7BB7, 0x20B3, 0x11DA, [0x81, 0xA5, 0x00, 0x30, 0xF1, 0x64, 0x2E, 0x3C]};
-@GUID(0x9F7D7BB7, 0x20B3, 0x11DA, [0x81, 0xA5, 0x00, 0x30, 0xF1, 0x64, 0x2E, 0x3C]);
+@GUID("9F7D7BB7-20B3-11DA-81A5-0030F1642E3C")
 interface IItemEnumerator : IUnknown
 {
     HRESULT Current(VARIANT* Item);
@@ -79,8 +83,7 @@ interface IItemEnumerator : IUnknown
     HRESULT Reset();
 }
 
-const GUID IID_ISettingsIdentity = {0x9F7D7BB6, 0x20B3, 0x11DA, [0x81, 0xA5, 0x00, 0x30, 0xF1, 0x64, 0x2E, 0x3C]};
-@GUID(0x9F7D7BB6, 0x20B3, 0x11DA, [0x81, 0xA5, 0x00, 0x30, 0xF1, 0x64, 0x2E, 0x3C]);
+@GUID("9F7D7BB6-20B3-11DA-81A5-0030F1642E3C")
 interface ISettingsIdentity : IUnknown
 {
     HRESULT GetAttribute(void* Reserved, const(wchar)* Name, BSTR* Value);
@@ -89,8 +92,7 @@ interface ISettingsIdentity : IUnknown
     HRESULT SetFlags(uint Flags);
 }
 
-const GUID IID_ITargetInfo = {0x9F7D7BB8, 0x20B3, 0x11DA, [0x81, 0xA5, 0x00, 0x30, 0xF1, 0x64, 0x2E, 0x3C]};
-@GUID(0x9F7D7BB8, 0x20B3, 0x11DA, [0x81, 0xA5, 0x00, 0x30, 0xF1, 0x64, 0x2E, 0x3C]);
+@GUID("9F7D7BB8-20B3-11DA-81A5-0030F1642E3C")
 interface ITargetInfo : IUnknown
 {
     HRESULT GetTargetMode(WcmTargetMode* TargetMode);
@@ -98,7 +100,7 @@ interface ITargetInfo : IUnknown
     HRESULT GetTemporaryStoreLocation(BSTR* TemporaryStoreLocation);
     HRESULT SetTemporaryStoreLocation(const(wchar)* TemporaryStoreLocation);
     HRESULT GetTargetID(BSTR* TargetID);
-    HRESULT SetTargetID(Guid TargetID);
+    HRESULT SetTargetID(GUID TargetID);
     HRESULT GetTargetProcessorArchitecture(BSTR* ProcessorArchitecture);
     HRESULT SetTargetProcessorArchitecture(const(wchar)* ProcessorArchitecture);
     HRESULT GetProperty(BOOL Offline, const(wchar)* Property, BSTR* Value);
@@ -107,7 +109,7 @@ interface ITargetInfo : IUnknown
     HRESULT ExpandTarget(BOOL Offline, const(wchar)* Location, BSTR* ExpandedLocation);
     HRESULT ExpandTargetPath(BOOL Offline, const(wchar)* Location, BSTR* ExpandedLocation);
     HRESULT SetModulePath(const(wchar)* Module, const(wchar)* Path);
-    HRESULT LoadModule(const(wchar)* Module, int* ModuleHandle);
+    HRESULT LoadModule(const(wchar)* Module, ptrdiff_t* ModuleHandle);
     HRESULT SetWow64Context(const(wchar)* InstallerModule, ubyte* Wow64Context);
     HRESULT TranslateWow64(const(wchar)* ClientArchitecture, const(wchar)* Value, BSTR* TranslatedValue);
     HRESULT SetSchemaHiveLocation(const(wchar)* pwzHiveDir);
@@ -116,12 +118,12 @@ interface ITargetInfo : IUnknown
     HRESULT GetSchemaHiveMountName(BSTR* pMountName);
 }
 
-const GUID IID_ISettingsEngine = {0x9F7D7BB9, 0x20B3, 0x11DA, [0x81, 0xA5, 0x00, 0x30, 0xF1, 0x64, 0x2E, 0x3C]};
-@GUID(0x9F7D7BB9, 0x20B3, 0x11DA, [0x81, 0xA5, 0x00, 0x30, 0xF1, 0x64, 0x2E, 0x3C]);
+@GUID("9F7D7BB9-20B3-11DA-81A5-0030F1642E3C")
 interface ISettingsEngine : IUnknown
 {
     HRESULT GetNamespaces(WcmNamespaceEnumerationFlags Flags, void* Reserved, IItemEnumerator* Namespaces);
-    HRESULT GetNamespace(ISettingsIdentity SettingsID, WcmNamespaceAccess Access, void* Reserved, ISettingsNamespace* NamespaceItem);
+    HRESULT GetNamespace(ISettingsIdentity SettingsID, WcmNamespaceAccess Access, void* Reserved, 
+                         ISettingsNamespace* NamespaceItem);
     HRESULT GetErrorDescription(int HResult, BSTR* Message);
     HRESULT CreateSettingsIdentity(ISettingsIdentity* SettingsID);
     HRESULT GetStoreStatus(void* Reserved, WcmUserStatus* Status);
@@ -134,12 +136,11 @@ interface ISettingsEngine : IUnknown
     HRESULT SetTargetInfo(ITargetInfo Target);
     HRESULT CreateSettingsContext(uint Flags, void* Reserved, ISettingsContext* SettingsContext);
     HRESULT SetSettingsContext(ISettingsContext SettingsContext);
-    HRESULT ApplySettingsContext(ISettingsContext SettingsContext, ushort*** pppwzIdentities, uint* pcIdentities);
+    HRESULT ApplySettingsContext(ISettingsContext SettingsContext, ushort*** pppwzIdentities, size_t* pcIdentities);
     HRESULT GetSettingsContext(ISettingsContext* SettingsContext);
 }
 
-const GUID IID_ISettingsItem = {0x9F7D7BBB, 0x20B3, 0x11DA, [0x81, 0xA5, 0x00, 0x30, 0xF1, 0x64, 0x2E, 0x3C]};
-@GUID(0x9F7D7BBB, 0x20B3, 0x11DA, [0x81, 0xA5, 0x00, 0x30, 0xF1, 0x64, 0x2E, 0x3C]);
+@GUID("9F7D7BBB-20B3-11DA-81A5-0030F1642E3C")
 interface ISettingsItem : IUnknown
 {
     HRESULT GetName(BSTR* Name);
@@ -166,8 +167,7 @@ interface ISettingsItem : IUnknown
     HRESULT GetKeyValue(VARIANT* Value);
 }
 
-const GUID IID_ISettingsNamespace = {0x9F7D7BBA, 0x20B3, 0x11DA, [0x81, 0xA5, 0x00, 0x30, 0xF1, 0x64, 0x2E, 0x3C]};
-@GUID(0x9F7D7BBA, 0x20B3, 0x11DA, [0x81, 0xA5, 0x00, 0x30, 0xF1, 0x64, 0x2E, 0x3C]);
+@GUID("9F7D7BBA-20B3-11DA-81A5-0030F1642E3C")
 interface ISettingsNamespace : IUnknown
 {
     HRESULT GetIdentity(ISettingsIdentity* SettingsID);
@@ -179,8 +179,7 @@ interface ISettingsNamespace : IUnknown
     HRESULT GetAttribute(const(wchar)* Name, VARIANT* Value);
 }
 
-const GUID IID_ISettingsResult = {0x9F7D7BBC, 0x20B3, 0x11DA, [0x81, 0xA5, 0x00, 0x30, 0xF1, 0x64, 0x2E, 0x3C]};
-@GUID(0x9F7D7BBC, 0x20B3, 0x11DA, [0x81, 0xA5, 0x00, 0x30, 0xF1, 0x64, 0x2E, 0x3C]);
+@GUID("9F7D7BBC-20B3-11DA-81A5-0030F1642E3C")
 interface ISettingsResult : IUnknown
 {
     HRESULT GetDescription(BSTR* description);
@@ -191,16 +190,29 @@ interface ISettingsResult : IUnknown
     HRESULT GetSource(BSTR* file);
 }
 
-const GUID IID_ISettingsContext = {0x9F7D7BBD, 0x20B3, 0x11DA, [0x81, 0xA5, 0x00, 0x30, 0xF1, 0x64, 0x2E, 0x3C]};
-@GUID(0x9F7D7BBD, 0x20B3, 0x11DA, [0x81, 0xA5, 0x00, 0x30, 0xF1, 0x64, 0x2E, 0x3C]);
+@GUID("9F7D7BBD-20B3-11DA-81A5-0030F1642E3C")
 interface ISettingsContext : IUnknown
 {
     HRESULT Serialize(IStream pStream, ITargetInfo pTarget);
-    HRESULT Deserialize(IStream pStream, ITargetInfo pTarget, ISettingsResult** pppResults, uint* pcResultCount);
+    HRESULT Deserialize(IStream pStream, ITargetInfo pTarget, ISettingsResult** pppResults, size_t* pcResultCount);
     HRESULT SetUserData(void* pUserData);
     HRESULT GetUserData(void** pUserData);
     HRESULT GetNamespaces(IItemEnumerator* ppNamespaceIds);
-    HRESULT GetStoredSettings(ISettingsIdentity pIdentity, IItemEnumerator* ppAddedSettings, IItemEnumerator* ppModifiedSettings, IItemEnumerator* ppDeletedSettings);
+    HRESULT GetStoredSettings(ISettingsIdentity pIdentity, IItemEnumerator* ppAddedSettings, 
+                              IItemEnumerator* ppModifiedSettings, IItemEnumerator* ppDeletedSettings);
     HRESULT RevertSetting(ISettingsIdentity pIdentity, const(wchar)* pwzSetting);
 }
 
+
+// GUIDs
+
+const GUID CLSID_SettingsEngine = GUIDOF!SettingsEngine;
+
+const GUID IID_IItemEnumerator    = GUIDOF!IItemEnumerator;
+const GUID IID_ISettingsContext   = GUIDOF!ISettingsContext;
+const GUID IID_ISettingsEngine    = GUIDOF!ISettingsEngine;
+const GUID IID_ISettingsIdentity  = GUIDOF!ISettingsIdentity;
+const GUID IID_ISettingsItem      = GUIDOF!ISettingsItem;
+const GUID IID_ISettingsNamespace = GUIDOF!ISettingsNamespace;
+const GUID IID_ISettingsResult    = GUIDOF!ISettingsResult;
+const GUID IID_ITargetInfo        = GUIDOF!ITargetInfo;

@@ -1,15 +1,21 @@
 module windows.sync;
 
-public import windows.systemservices;
+public import windows.core;
+public import windows.systemservices : NamespaceHandle, RTL_CRITICAL_SECTION, SECURITY_ATTRIBUTES;
 
 extern(Windows):
 
-@DllImport("KERNEL32.dll")
+
+// Functions
+
+@DllImport("KERNEL32")
 void EnterCriticalSection(RTL_CRITICAL_SECTION* lpCriticalSection);
 
-@DllImport("KERNEL32.dll")
-NamespaceHandle CreatePrivateNamespaceA(SECURITY_ATTRIBUTES* lpPrivateNamespaceAttributes, void* lpBoundaryDescriptor, const(char)* lpAliasPrefix);
+@DllImport("KERNEL32")
+NamespaceHandle CreatePrivateNamespaceA(SECURITY_ATTRIBUTES* lpPrivateNamespaceAttributes, 
+                                        void* lpBoundaryDescriptor, const(char)* lpAliasPrefix);
 
-@DllImport("KERNEL32.dll")
+@DllImport("KERNEL32")
 NamespaceHandle OpenPrivateNamespaceA(void* lpBoundaryDescriptor, const(char)* lpAliasPrefix);
+
 

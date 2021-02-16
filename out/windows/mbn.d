@@ -1,61 +1,44 @@
 module windows.mbn;
 
-public import windows.automation;
-public import windows.com;
-public import windows.mobilebroadband;
+public import windows.core;
+public import windows.automation : BSTR, IDispatch;
+public import windows.com : HRESULT, IUnknown;
+public import windows.mobilebroadband : MBN_BAND_CLASS, MBN_CONTEXT_CONSTANTS, MBN_CTRL_CAPS, MBN_DATA_CLASS,
+                                        MBN_INTERFACE_CAPS_CONSTANTS, MBN_PIN_CONSTANTS, MBN_PROVIDER_CONSTANTS,
+                                        MBN_PROVIDER_STATE, MBN_REGISTRATION_CONSTANTS, MBN_SIGNAL_CONSTANTS,
+                                        MBN_SMS_CAPS, MBN_SMS_STATUS_FLAG, WWAEXT_SMS_CONSTANTS;
 
 extern(Windows):
 
-const GUID CLSID_MbnConnectionProfileManager = {0xBDFEE05A, 0x4418, 0x11DD, [0x90, 0xED, 0x00, 0x1C, 0x25, 0x7C, 0xCF, 0xF1]};
-@GUID(0xBDFEE05A, 0x4418, 0x11DD, [0x90, 0xED, 0x00, 0x1C, 0x25, 0x7C, 0xCF, 0xF1]);
-struct MbnConnectionProfileManager;
 
-const GUID CLSID_MbnInterfaceManager = {0xBDFEE05B, 0x4418, 0x11DD, [0x90, 0xED, 0x00, 0x1C, 0x25, 0x7C, 0xCF, 0xF1]};
-@GUID(0xBDFEE05B, 0x4418, 0x11DD, [0x90, 0xED, 0x00, 0x1C, 0x25, 0x7C, 0xCF, 0xF1]);
-struct MbnInterfaceManager;
+// Enums
 
-const GUID CLSID_MbnConnectionManager = {0xBDFEE05C, 0x4418, 0x11DD, [0x90, 0xED, 0x00, 0x1C, 0x25, 0x7C, 0xCF, 0xF1]};
-@GUID(0xBDFEE05C, 0x4418, 0x11DD, [0x90, 0xED, 0x00, 0x1C, 0x25, 0x7C, 0xCF, 0xF1]);
-struct MbnConnectionManager;
 
-const GUID CLSID_MbnDeviceServicesManager = {0x2269DAA3, 0x2A9F, 0x4165, [0xA5, 0x01, 0xCE, 0x00, 0xA6, 0xF7, 0xA7, 0x5B]};
-@GUID(0x2269DAA3, 0x2A9F, 0x4165, [0xA5, 0x01, 0xCE, 0x00, 0xA6, 0xF7, 0xA7, 0x5B]);
-struct MbnDeviceServicesManager;
-
-const GUID IID_IDummyMBNUCMExt = {0xDCBBBAB6, 0xFFFF, 0x4BBB, [0xAA, 0xEE, 0x33, 0x8E, 0x36, 0x8A, 0xF6, 0xFA]};
-@GUID(0xDCBBBAB6, 0xFFFF, 0x4BBB, [0xAA, 0xEE, 0x33, 0x8E, 0x36, 0x8A, 0xF6, 0xFA]);
-interface IDummyMBNUCMExt : IDispatch
+enum : int
 {
+    MBN_DEVICE_SERVICE_SESSIONS_RESTORED = 0x00000000,
 }
+alias MBN_DEVICE_SERVICE_SESSIONS_STATE = int;
 
-enum MBN_DEVICE_SERVICE_SESSIONS_STATE
-{
-    MBN_DEVICE_SERVICE_SESSIONS_RESTORED = 0,
-}
+// Structs
 
-const GUID IID_IMbnDeviceServiceStateEvents = {0x5D3FF196, 0x89EE, 0x49D8, [0x8B, 0x60, 0x33, 0xFF, 0xDD, 0xFF, 0xC5, 0x8D]};
-@GUID(0x5D3FF196, 0x89EE, 0x49D8, [0x8B, 0x60, 0x33, 0xFF, 0xDD, 0xFF, 0xC5, 0x8D]);
-interface IMbnDeviceServiceStateEvents : IUnknown
-{
-    HRESULT OnSessionsStateChange(BSTR interfaceID, MBN_DEVICE_SERVICE_SESSIONS_STATE stateChange);
-}
 
 struct __mbnapi_ReferenceRemainingTypes__
 {
-    MBN_BAND_CLASS bandClass;
+    MBN_BAND_CLASS       bandClass;
     MBN_CONTEXT_CONSTANTS contextConstants;
-    MBN_CTRL_CAPS ctrlCaps;
-    MBN_DATA_CLASS dataClass;
+    MBN_CTRL_CAPS        ctrlCaps;
+    MBN_DATA_CLASS       dataClass;
     MBN_INTERFACE_CAPS_CONSTANTS interfaceCapsConstants;
-    MBN_PIN_CONSTANTS pinConstants;
+    MBN_PIN_CONSTANTS    pinConstants;
     MBN_PROVIDER_CONSTANTS providerConstants;
-    MBN_PROVIDER_STATE providerState;
+    MBN_PROVIDER_STATE   providerState;
     MBN_REGISTRATION_CONSTANTS registrationConstants;
     MBN_SIGNAL_CONSTANTS signalConstants;
-    MBN_SMS_CAPS smsCaps;
+    MBN_SMS_CAPS         smsCaps;
     WWAEXT_SMS_CONSTANTS smsConstants;
     WWAEXT_SMS_CONSTANTS wwaextSmsConstants;
-    MBN_SMS_STATUS_FLAG smsStatusFlag;
+    MBN_SMS_STATUS_FLAG  smsStatusFlag;
 }
 
 struct __DummyPinType__
@@ -63,3 +46,38 @@ struct __DummyPinType__
     uint pinType;
 }
 
+// Interfaces
+
+@GUID("BDFEE05A-4418-11DD-90ED-001C257CCFF1")
+struct MbnConnectionProfileManager;
+
+@GUID("BDFEE05B-4418-11DD-90ED-001C257CCFF1")
+struct MbnInterfaceManager;
+
+@GUID("BDFEE05C-4418-11DD-90ED-001C257CCFF1")
+struct MbnConnectionManager;
+
+@GUID("2269DAA3-2A9F-4165-A501-CE00A6F7A75B")
+struct MbnDeviceServicesManager;
+
+@GUID("DCBBBAB6-FFFF-4BBB-AAEE-338E368AF6FA")
+interface IDummyMBNUCMExt : IDispatch
+{
+}
+
+@GUID("5D3FF196-89EE-49D8-8B60-33FFDDFFC58D")
+interface IMbnDeviceServiceStateEvents : IUnknown
+{
+    HRESULT OnSessionsStateChange(BSTR interfaceID, MBN_DEVICE_SERVICE_SESSIONS_STATE stateChange);
+}
+
+
+// GUIDs
+
+const GUID CLSID_MbnConnectionManager        = GUIDOF!MbnConnectionManager;
+const GUID CLSID_MbnConnectionProfileManager = GUIDOF!MbnConnectionProfileManager;
+const GUID CLSID_MbnDeviceServicesManager    = GUIDOF!MbnDeviceServicesManager;
+const GUID CLSID_MbnInterfaceManager         = GUIDOF!MbnInterfaceManager;
+
+const GUID IID_IDummyMBNUCMExt              = GUIDOF!IDummyMBNUCMExt;
+const GUID IID_IMbnDeviceServiceStateEvents = GUIDOF!IMbnDeviceServiceStateEvents;

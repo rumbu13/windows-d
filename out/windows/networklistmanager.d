@@ -1,109 +1,185 @@
 module windows.networklistmanager;
 
-public import system;
-public import windows.automation;
-public import windows.com;
-public import windows.systemservices;
-public import windows.windowsprogramming;
+public import windows.core;
+public import windows.automation : BSTR, IDispatch, IEnumVARIANT;
+public import windows.com : HRESULT, IUnknown;
+public import windows.systemservices : HANDLE;
+public import windows.windowsprogramming : FILETIME;
 
 extern(Windows):
 
-const GUID CLSID_NetworkListManager = {0xDCB00C01, 0x570F, 0x4A9B, [0x8D, 0x69, 0x19, 0x9F, 0xDB, 0xA5, 0x72, 0x3B]};
-@GUID(0xDCB00C01, 0x570F, 0x4A9B, [0x8D, 0x69, 0x19, 0x9F, 0xDB, 0xA5, 0x72, 0x3B]);
-struct NetworkListManager;
 
-enum NLM_CONNECTION_COST
+// Enums
+
+
+enum : int
 {
-    NLM_CONNECTION_COST_UNKNOWN = 0,
-    NLM_CONNECTION_COST_UNRESTRICTED = 1,
-    NLM_CONNECTION_COST_FIXED = 2,
-    NLM_CONNECTION_COST_VARIABLE = 4,
-    NLM_CONNECTION_COST_OVERDATALIMIT = 65536,
-    NLM_CONNECTION_COST_CONGESTED = 131072,
-    NLM_CONNECTION_COST_ROAMING = 262144,
-    NLM_CONNECTION_COST_APPROACHINGDATALIMIT = 524288,
+    NLM_CONNECTION_COST_UNKNOWN              = 0x00000000,
+    NLM_CONNECTION_COST_UNRESTRICTED         = 0x00000001,
+    NLM_CONNECTION_COST_FIXED                = 0x00000002,
+    NLM_CONNECTION_COST_VARIABLE             = 0x00000004,
+    NLM_CONNECTION_COST_OVERDATALIMIT        = 0x00010000,
+    NLM_CONNECTION_COST_CONGESTED            = 0x00020000,
+    NLM_CONNECTION_COST_ROAMING              = 0x00040000,
+    NLM_CONNECTION_COST_APPROACHINGDATALIMIT = 0x00080000,
 }
+alias NLM_CONNECTION_COST = int;
+
+enum : int
+{
+    NLM_NETWORK_IDENTIFYING  = 0x00000001,
+    NLM_NETWORK_IDENTIFIED   = 0x00000002,
+    NLM_NETWORK_UNIDENTIFIED = 0x00000003,
+}
+alias NLM_NETWORK_CLASS = int;
+
+enum : int
+{
+    NLM_INTERNET_CONNECTIVITY_WEBHIJACK = 0x00000001,
+    NLM_INTERNET_CONNECTIVITY_PROXIED   = 0x00000002,
+    NLM_INTERNET_CONNECTIVITY_CORPORATE = 0x00000004,
+}
+alias NLM_INTERNET_CONNECTIVITY = int;
+
+enum : int
+{
+    NLM_CONNECTIVITY_DISCONNECTED      = 0x00000000,
+    NLM_CONNECTIVITY_IPV4_NOTRAFFIC    = 0x00000001,
+    NLM_CONNECTIVITY_IPV6_NOTRAFFIC    = 0x00000002,
+    NLM_CONNECTIVITY_IPV4_SUBNET       = 0x00000010,
+    NLM_CONNECTIVITY_IPV4_LOCALNETWORK = 0x00000020,
+    NLM_CONNECTIVITY_IPV4_INTERNET     = 0x00000040,
+    NLM_CONNECTIVITY_IPV6_SUBNET       = 0x00000100,
+    NLM_CONNECTIVITY_IPV6_LOCALNETWORK = 0x00000200,
+    NLM_CONNECTIVITY_IPV6_INTERNET     = 0x00000400,
+}
+alias NLM_CONNECTIVITY = int;
+
+enum : int
+{
+    NLM_DOMAIN_TYPE_NON_DOMAIN_NETWORK   = 0x00000000,
+    NLM_DOMAIN_TYPE_DOMAIN_NETWORK       = 0x00000001,
+    NLM_DOMAIN_TYPE_DOMAIN_AUTHENTICATED = 0x00000002,
+}
+alias NLM_DOMAIN_TYPE = int;
+
+enum : int
+{
+    NLM_ENUM_NETWORK_CONNECTED    = 0x00000001,
+    NLM_ENUM_NETWORK_DISCONNECTED = 0x00000002,
+    NLM_ENUM_NETWORK_ALL          = 0x00000003,
+}
+alias NLM_ENUM_NETWORK = int;
+
+enum : int
+{
+    NLM_NETWORK_CATEGORY_PUBLIC               = 0x00000000,
+    NLM_NETWORK_CATEGORY_PRIVATE              = 0x00000001,
+    NLM_NETWORK_CATEGORY_DOMAIN_AUTHENTICATED = 0x00000002,
+}
+alias NLM_NETWORK_CATEGORY = int;
+
+enum : int
+{
+    NLM_NETWORK_PROPERTY_CHANGE_CONNECTION     = 0x00000001,
+    NLM_NETWORK_PROPERTY_CHANGE_DESCRIPTION    = 0x00000002,
+    NLM_NETWORK_PROPERTY_CHANGE_NAME           = 0x00000004,
+    NLM_NETWORK_PROPERTY_CHANGE_ICON           = 0x00000008,
+    NLM_NETWORK_PROPERTY_CHANGE_CATEGORY_VALUE = 0x00000010,
+}
+alias NLM_NETWORK_PROPERTY_CHANGE = int;
+
+enum : int
+{
+    NLM_CONNECTION_PROPERTY_CHANGE_AUTHENTICATION = 0x00000001,
+}
+alias NLM_CONNECTION_PROPERTY_CHANGE = int;
+
+// Callbacks
+
+alias ONDEMAND_NOTIFICATION_CALLBACK = void function(void* param0);
+
+// Structs
+
 
 struct NLM_USAGE_DATA
 {
-    uint UsageInMegabytes;
+    uint     UsageInMegabytes;
     FILETIME LastSyncTime;
 }
 
 struct NLM_DATAPLAN_STATUS
 {
-    Guid InterfaceGuid;
+    GUID           InterfaceGuid;
     NLM_USAGE_DATA UsageData;
-    uint DataLimitInMegabytes;
-    uint InboundBandwidthInKbps;
-    uint OutboundBandwidthInKbps;
-    FILETIME NextBillingCycle;
-    uint MaxTransferSizeInMegabytes;
-    uint Reserved;
+    uint           DataLimitInMegabytes;
+    uint           InboundBandwidthInKbps;
+    uint           OutboundBandwidthInKbps;
+    FILETIME       NextBillingCycle;
+    uint           MaxTransferSizeInMegabytes;
+    uint           Reserved;
 }
 
 struct NLM_SOCKADDR
 {
-    ubyte data;
-}
-
-enum NLM_NETWORK_CLASS
-{
-    NLM_NETWORK_IDENTIFYING = 1,
-    NLM_NETWORK_IDENTIFIED = 2,
-    NLM_NETWORK_UNIDENTIFIED = 3,
+    ubyte[128] data;
 }
 
 struct NLM_SIMULATED_PROFILE_INFO
 {
-    ushort ProfileName;
+    ushort[256]         ProfileName;
     NLM_CONNECTION_COST cost;
-    uint UsageInMegabytes;
-    uint DataLimitInMegabytes;
+    uint                UsageInMegabytes;
+    uint                DataLimitInMegabytes;
 }
 
-enum NLM_INTERNET_CONNECTIVITY
+struct NET_INTERFACE_CONTEXT
 {
-    NLM_INTERNET_CONNECTIVITY_WEBHIJACK = 1,
-    NLM_INTERNET_CONNECTIVITY_PROXIED = 2,
-    NLM_INTERNET_CONNECTIVITY_CORPORATE = 4,
+    uint          InterfaceIndex;
+    const(wchar)* ConfigurationName;
 }
 
-enum NLM_CONNECTIVITY
+struct NET_INTERFACE_CONTEXT_TABLE
 {
-    NLM_CONNECTIVITY_DISCONNECTED = 0,
-    NLM_CONNECTIVITY_IPV4_NOTRAFFIC = 1,
-    NLM_CONNECTIVITY_IPV6_NOTRAFFIC = 2,
-    NLM_CONNECTIVITY_IPV4_SUBNET = 16,
-    NLM_CONNECTIVITY_IPV4_LOCALNETWORK = 32,
-    NLM_CONNECTIVITY_IPV4_INTERNET = 64,
-    NLM_CONNECTIVITY_IPV6_SUBNET = 256,
-    NLM_CONNECTIVITY_IPV6_LOCALNETWORK = 512,
-    NLM_CONNECTIVITY_IPV6_INTERNET = 1024,
+    HANDLE InterfaceContextHandle;
+    uint   NumberOfEntries;
+    NET_INTERFACE_CONTEXT* InterfaceContextArray;
 }
 
-enum NLM_DOMAIN_TYPE
-{
-    NLM_DOMAIN_TYPE_NON_DOMAIN_NETWORK = 0,
-    NLM_DOMAIN_TYPE_DOMAIN_NETWORK = 1,
-    NLM_DOMAIN_TYPE_DOMAIN_AUTHENTICATED = 2,
-}
+// Functions
 
-enum NLM_ENUM_NETWORK
-{
-    NLM_ENUM_NETWORK_CONNECTED = 1,
-    NLM_ENUM_NETWORK_DISCONNECTED = 2,
-    NLM_ENUM_NETWORK_ALL = 3,
-}
+@DllImport("OnDemandConnRouteHelper")
+HRESULT OnDemandGetRoutingHint(const(wchar)* destinationHostName, uint* interfaceIndex);
 
-const GUID IID_INetworkListManager = {0xDCB00000, 0x570F, 0x4A9B, [0x8D, 0x69, 0x19, 0x9F, 0xDB, 0xA5, 0x72, 0x3B]};
-@GUID(0xDCB00000, 0x570F, 0x4A9B, [0x8D, 0x69, 0x19, 0x9F, 0xDB, 0xA5, 0x72, 0x3B]);
+@DllImport("OnDemandConnRouteHelper")
+HRESULT OnDemandRegisterNotification(ONDEMAND_NOTIFICATION_CALLBACK callback, void* callbackContext, 
+                                     HANDLE* registrationHandle);
+
+@DllImport("OnDemandConnRouteHelper")
+HRESULT OnDemandUnRegisterNotification(HANDLE registrationHandle);
+
+@DllImport("OnDemandConnRouteHelper")
+HRESULT GetInterfaceContextTableForHostName(const(wchar)* HostName, const(wchar)* ProxyName, uint Flags, 
+                                            char* ConnectionProfileFilterRawData, 
+                                            uint ConnectionProfileFilterRawDataSize, 
+                                            NET_INTERFACE_CONTEXT_TABLE** InterfaceContextTable);
+
+@DllImport("OnDemandConnRouteHelper")
+void FreeInterfaceContextTable(NET_INTERFACE_CONTEXT_TABLE* InterfaceContextTable);
+
+
+// Interfaces
+
+@GUID("DCB00C01-570F-4A9B-8D69-199FDBA5723B")
+struct NetworkListManager;
+
+@GUID("DCB00000-570F-4A9B-8D69-199FDBA5723B")
 interface INetworkListManager : IDispatch
 {
     HRESULT GetNetworks(NLM_ENUM_NETWORK Flags, IEnumNetworks* ppEnumNetwork);
-    HRESULT GetNetwork(Guid gdNetworkId, INetwork* ppNetwork);
+    HRESULT GetNetwork(GUID gdNetworkId, INetwork* ppNetwork);
     HRESULT GetNetworkConnections(IEnumNetworkConnections* ppEnum);
-    HRESULT GetNetworkConnection(Guid gdNetworkConnectionId, INetworkConnection* ppNetworkConnection);
+    HRESULT GetNetworkConnection(GUID gdNetworkConnectionId, INetworkConnection* ppNetworkConnection);
     HRESULT get_IsConnectedToInternet(short* pbIsConnected);
     HRESULT get_IsConnected(short* pbIsConnected);
     HRESULT GetConnectivity(NLM_CONNECTIVITY* pConnectivity);
@@ -111,32 +187,24 @@ interface INetworkListManager : IDispatch
     HRESULT ClearSimulatedProfileInfo();
 }
 
-const GUID IID_INetworkListManagerEvents = {0xDCB00001, 0x570F, 0x4A9B, [0x8D, 0x69, 0x19, 0x9F, 0xDB, 0xA5, 0x72, 0x3B]};
-@GUID(0xDCB00001, 0x570F, 0x4A9B, [0x8D, 0x69, 0x19, 0x9F, 0xDB, 0xA5, 0x72, 0x3B]);
+@GUID("DCB00001-570F-4A9B-8D69-199FDBA5723B")
 interface INetworkListManagerEvents : IUnknown
 {
     HRESULT ConnectivityChanged(NLM_CONNECTIVITY newConnectivity);
 }
 
-enum NLM_NETWORK_CATEGORY
-{
-    NLM_NETWORK_CATEGORY_PUBLIC = 0,
-    NLM_NETWORK_CATEGORY_PRIVATE = 1,
-    NLM_NETWORK_CATEGORY_DOMAIN_AUTHENTICATED = 2,
-}
-
-const GUID IID_INetwork = {0xDCB00002, 0x570F, 0x4A9B, [0x8D, 0x69, 0x19, 0x9F, 0xDB, 0xA5, 0x72, 0x3B]};
-@GUID(0xDCB00002, 0x570F, 0x4A9B, [0x8D, 0x69, 0x19, 0x9F, 0xDB, 0xA5, 0x72, 0x3B]);
+@GUID("DCB00002-570F-4A9B-8D69-199FDBA5723B")
 interface INetwork : IDispatch
 {
     HRESULT GetName(BSTR* pszNetworkName);
     HRESULT SetName(BSTR szNetworkNewName);
     HRESULT GetDescription(BSTR* pszDescription);
     HRESULT SetDescription(BSTR szDescription);
-    HRESULT GetNetworkId(Guid* pgdGuidNetworkId);
+    HRESULT GetNetworkId(GUID* pgdGuidNetworkId);
     HRESULT GetDomainType(NLM_DOMAIN_TYPE* pNetworkType);
     HRESULT GetNetworkConnections(IEnumNetworkConnections* ppEnumNetworkConnection);
-    HRESULT GetTimeCreatedAndConnected(uint* pdwLowDateTimeCreated, uint* pdwHighDateTimeCreated, uint* pdwLowDateTimeConnected, uint* pdwHighDateTimeConnected);
+    HRESULT GetTimeCreatedAndConnected(uint* pdwLowDateTimeCreated, uint* pdwHighDateTimeCreated, 
+                                       uint* pdwLowDateTimeConnected, uint* pdwHighDateTimeConnected);
     HRESULT get_IsConnectedToInternet(short* pbIsConnected);
     HRESULT get_IsConnected(short* pbIsConnected);
     HRESULT GetConnectivity(NLM_CONNECTIVITY* pConnectivity);
@@ -144,8 +212,7 @@ interface INetwork : IDispatch
     HRESULT SetCategory(NLM_NETWORK_CATEGORY NewCategory);
 }
 
-const GUID IID_IEnumNetworks = {0xDCB00003, 0x570F, 0x4A9B, [0x8D, 0x69, 0x19, 0x9F, 0xDB, 0xA5, 0x72, 0x3B]};
-@GUID(0xDCB00003, 0x570F, 0x4A9B, [0x8D, 0x69, 0x19, 0x9F, 0xDB, 0xA5, 0x72, 0x3B]);
+@GUID("DCB00003-570F-4A9B-8D69-199FDBA5723B")
 interface IEnumNetworks : IDispatch
 {
     HRESULT get__NewEnum(IEnumVARIANT* ppEnumVar);
@@ -155,40 +222,28 @@ interface IEnumNetworks : IDispatch
     HRESULT Clone(IEnumNetworks* ppEnumNetwork);
 }
 
-enum NLM_NETWORK_PROPERTY_CHANGE
-{
-    NLM_NETWORK_PROPERTY_CHANGE_CONNECTION = 1,
-    NLM_NETWORK_PROPERTY_CHANGE_DESCRIPTION = 2,
-    NLM_NETWORK_PROPERTY_CHANGE_NAME = 4,
-    NLM_NETWORK_PROPERTY_CHANGE_ICON = 8,
-    NLM_NETWORK_PROPERTY_CHANGE_CATEGORY_VALUE = 16,
-}
-
-const GUID IID_INetworkEvents = {0xDCB00004, 0x570F, 0x4A9B, [0x8D, 0x69, 0x19, 0x9F, 0xDB, 0xA5, 0x72, 0x3B]};
-@GUID(0xDCB00004, 0x570F, 0x4A9B, [0x8D, 0x69, 0x19, 0x9F, 0xDB, 0xA5, 0x72, 0x3B]);
+@GUID("DCB00004-570F-4A9B-8D69-199FDBA5723B")
 interface INetworkEvents : IUnknown
 {
-    HRESULT NetworkAdded(Guid networkId);
-    HRESULT NetworkDeleted(Guid networkId);
-    HRESULT NetworkConnectivityChanged(Guid networkId, NLM_CONNECTIVITY newConnectivity);
-    HRESULT NetworkPropertyChanged(Guid networkId, NLM_NETWORK_PROPERTY_CHANGE flags);
+    HRESULT NetworkAdded(GUID networkId);
+    HRESULT NetworkDeleted(GUID networkId);
+    HRESULT NetworkConnectivityChanged(GUID networkId, NLM_CONNECTIVITY newConnectivity);
+    HRESULT NetworkPropertyChanged(GUID networkId, NLM_NETWORK_PROPERTY_CHANGE flags);
 }
 
-const GUID IID_INetworkConnection = {0xDCB00005, 0x570F, 0x4A9B, [0x8D, 0x69, 0x19, 0x9F, 0xDB, 0xA5, 0x72, 0x3B]};
-@GUID(0xDCB00005, 0x570F, 0x4A9B, [0x8D, 0x69, 0x19, 0x9F, 0xDB, 0xA5, 0x72, 0x3B]);
+@GUID("DCB00005-570F-4A9B-8D69-199FDBA5723B")
 interface INetworkConnection : IDispatch
 {
     HRESULT GetNetwork(INetwork* ppNetwork);
     HRESULT get_IsConnectedToInternet(short* pbIsConnected);
     HRESULT get_IsConnected(short* pbIsConnected);
     HRESULT GetConnectivity(NLM_CONNECTIVITY* pConnectivity);
-    HRESULT GetConnectionId(Guid* pgdConnectionId);
-    HRESULT GetAdapterId(Guid* pgdAdapterId);
+    HRESULT GetConnectionId(GUID* pgdConnectionId);
+    HRESULT GetAdapterId(GUID* pgdAdapterId);
     HRESULT GetDomainType(NLM_DOMAIN_TYPE* pDomainType);
 }
 
-const GUID IID_IEnumNetworkConnections = {0xDCB00006, 0x570F, 0x4A9B, [0x8D, 0x69, 0x19, 0x9F, 0xDB, 0xA5, 0x72, 0x3B]};
-@GUID(0xDCB00006, 0x570F, 0x4A9B, [0x8D, 0x69, 0x19, 0x9F, 0xDB, 0xA5, 0x72, 0x3B]);
+@GUID("DCB00006-570F-4A9B-8D69-199FDBA5723B")
 interface IEnumNetworkConnections : IDispatch
 {
     HRESULT get__NewEnum(IEnumVARIANT* ppEnumVar);
@@ -198,21 +253,14 @@ interface IEnumNetworkConnections : IDispatch
     HRESULT Clone(IEnumNetworkConnections* ppEnumNetwork);
 }
 
-enum NLM_CONNECTION_PROPERTY_CHANGE
-{
-    NLM_CONNECTION_PROPERTY_CHANGE_AUTHENTICATION = 1,
-}
-
-const GUID IID_INetworkConnectionEvents = {0xDCB00007, 0x570F, 0x4A9B, [0x8D, 0x69, 0x19, 0x9F, 0xDB, 0xA5, 0x72, 0x3B]};
-@GUID(0xDCB00007, 0x570F, 0x4A9B, [0x8D, 0x69, 0x19, 0x9F, 0xDB, 0xA5, 0x72, 0x3B]);
+@GUID("DCB00007-570F-4A9B-8D69-199FDBA5723B")
 interface INetworkConnectionEvents : IUnknown
 {
-    HRESULT NetworkConnectionConnectivityChanged(Guid connectionId, NLM_CONNECTIVITY newConnectivity);
-    HRESULT NetworkConnectionPropertyChanged(Guid connectionId, NLM_CONNECTION_PROPERTY_CHANGE flags);
+    HRESULT NetworkConnectionConnectivityChanged(GUID connectionId, NLM_CONNECTIVITY newConnectivity);
+    HRESULT NetworkConnectionPropertyChanged(GUID connectionId, NLM_CONNECTION_PROPERTY_CHANGE flags);
 }
 
-const GUID IID_INetworkCostManager = {0xDCB00008, 0x570F, 0x4A9B, [0x8D, 0x69, 0x19, 0x9F, 0xDB, 0xA5, 0x72, 0x3B]};
-@GUID(0xDCB00008, 0x570F, 0x4A9B, [0x8D, 0x69, 0x19, 0x9F, 0xDB, 0xA5, 0x72, 0x3B]);
+@GUID("DCB00008-570F-4A9B-8D69-199FDBA5723B")
 interface INetworkCostManager : IUnknown
 {
     HRESULT GetCost(uint* pCost, NLM_SOCKADDR* pDestIPAddr);
@@ -220,56 +268,41 @@ interface INetworkCostManager : IUnknown
     HRESULT SetDestinationAddresses(uint length, char* pDestIPAddrList, short bAppend);
 }
 
-const GUID IID_INetworkCostManagerEvents = {0xDCB00009, 0x570F, 0x4A9B, [0x8D, 0x69, 0x19, 0x9F, 0xDB, 0xA5, 0x72, 0x3B]};
-@GUID(0xDCB00009, 0x570F, 0x4A9B, [0x8D, 0x69, 0x19, 0x9F, 0xDB, 0xA5, 0x72, 0x3B]);
+@GUID("DCB00009-570F-4A9B-8D69-199FDBA5723B")
 interface INetworkCostManagerEvents : IUnknown
 {
     HRESULT CostChanged(uint newCost, NLM_SOCKADDR* pDestAddr);
     HRESULT DataPlanStatusChanged(NLM_SOCKADDR* pDestAddr);
 }
 
-const GUID IID_INetworkConnectionCost = {0xDCB0000A, 0x570F, 0x4A9B, [0x8D, 0x69, 0x19, 0x9F, 0xDB, 0xA5, 0x72, 0x3B]};
-@GUID(0xDCB0000A, 0x570F, 0x4A9B, [0x8D, 0x69, 0x19, 0x9F, 0xDB, 0xA5, 0x72, 0x3B]);
+@GUID("DCB0000A-570F-4A9B-8D69-199FDBA5723B")
 interface INetworkConnectionCost : IUnknown
 {
     HRESULT GetCost(uint* pCost);
     HRESULT GetDataPlanStatus(NLM_DATAPLAN_STATUS* pDataPlanStatus);
 }
 
-const GUID IID_INetworkConnectionCostEvents = {0xDCB0000B, 0x570F, 0x4A9B, [0x8D, 0x69, 0x19, 0x9F, 0xDB, 0xA5, 0x72, 0x3B]};
-@GUID(0xDCB0000B, 0x570F, 0x4A9B, [0x8D, 0x69, 0x19, 0x9F, 0xDB, 0xA5, 0x72, 0x3B]);
+@GUID("DCB0000B-570F-4A9B-8D69-199FDBA5723B")
 interface INetworkConnectionCostEvents : IUnknown
 {
-    HRESULT ConnectionCostChanged(Guid connectionId, uint newCost);
-    HRESULT ConnectionDataPlanStatusChanged(Guid connectionId);
+    HRESULT ConnectionCostChanged(GUID connectionId, uint newCost);
+    HRESULT ConnectionDataPlanStatusChanged(GUID connectionId);
 }
 
-alias ONDEMAND_NOTIFICATION_CALLBACK = extern(Windows) void function(void* param0);
-struct NET_INTERFACE_CONTEXT
-{
-    uint InterfaceIndex;
-    const(wchar)* ConfigurationName;
-}
 
-struct NET_INTERFACE_CONTEXT_TABLE
-{
-    HANDLE InterfaceContextHandle;
-    uint NumberOfEntries;
-    NET_INTERFACE_CONTEXT* InterfaceContextArray;
-}
+// GUIDs
 
-@DllImport("OnDemandConnRouteHelper.dll")
-HRESULT OnDemandGetRoutingHint(const(wchar)* destinationHostName, uint* interfaceIndex);
+const GUID CLSID_NetworkListManager = GUIDOF!NetworkListManager;
 
-@DllImport("OnDemandConnRouteHelper.dll")
-HRESULT OnDemandRegisterNotification(ONDEMAND_NOTIFICATION_CALLBACK callback, void* callbackContext, HANDLE* registrationHandle);
-
-@DllImport("OnDemandConnRouteHelper.dll")
-HRESULT OnDemandUnRegisterNotification(HANDLE registrationHandle);
-
-@DllImport("OnDemandConnRouteHelper.dll")
-HRESULT GetInterfaceContextTableForHostName(const(wchar)* HostName, const(wchar)* ProxyName, uint Flags, char* ConnectionProfileFilterRawData, uint ConnectionProfileFilterRawDataSize, NET_INTERFACE_CONTEXT_TABLE** InterfaceContextTable);
-
-@DllImport("OnDemandConnRouteHelper.dll")
-void FreeInterfaceContextTable(NET_INTERFACE_CONTEXT_TABLE* InterfaceContextTable);
-
+const GUID IID_IEnumNetworkConnections      = GUIDOF!IEnumNetworkConnections;
+const GUID IID_IEnumNetworks                = GUIDOF!IEnumNetworks;
+const GUID IID_INetwork                     = GUIDOF!INetwork;
+const GUID IID_INetworkConnection           = GUIDOF!INetworkConnection;
+const GUID IID_INetworkConnectionCost       = GUIDOF!INetworkConnectionCost;
+const GUID IID_INetworkConnectionCostEvents = GUIDOF!INetworkConnectionCostEvents;
+const GUID IID_INetworkConnectionEvents     = GUIDOF!INetworkConnectionEvents;
+const GUID IID_INetworkCostManager          = GUIDOF!INetworkCostManager;
+const GUID IID_INetworkCostManagerEvents    = GUIDOF!INetworkCostManagerEvents;
+const GUID IID_INetworkEvents               = GUIDOF!INetworkEvents;
+const GUID IID_INetworkListManager          = GUIDOF!INetworkListManager;
+const GUID IID_INetworkListManagerEvents    = GUIDOF!INetworkListManagerEvents;

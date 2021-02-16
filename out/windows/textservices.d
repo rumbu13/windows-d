@@ -1,23 +1,239 @@
 module windows.textservices;
 
-public import system;
-public import windows.automation;
-public import windows.com;
-public import windows.displaydevices;
-public import windows.gdi;
-public import windows.structuredstorage;
-public import windows.systemservices;
-public import windows.windowsandmessaging;
+public import windows.core;
+public import windows.automation : BSTR, VARIANT;
+public import windows.com : FORMATETC, HRESULT, IDataObject, IEnumGUID, IEnumString, IUnknown;
+public import windows.displaydevices : POINT, RECT, SIZE;
+public import windows.gdi : HBITMAP, HICON;
+public import windows.structuredstorage : IStream;
+public import windows.systemservices : BOOL;
+public import windows.windowsandmessaging : HWND, LPARAM, MSG, WPARAM;
 
 extern(Windows):
 
-const GUID IID_ITfMSAAControl = {0xB5F8FB3B, 0x393F, 0x4F7C, [0x84, 0xCB, 0x50, 0x49, 0x24, 0xC2, 0x70, 0x5A]};
-@GUID(0xB5F8FB3B, 0x393F, 0x4F7C, [0x84, 0xCB, 0x50, 0x49, 0x24, 0xC2, 0x70, 0x5A]);
-interface ITfMSAAControl : IUnknown
+
+// Enums
+
+
+enum TsActiveSelEnd : int
 {
-    HRESULT SystemEnableMSAA();
-    HRESULT SystemDisableMSAA();
+    TS_AE_NONE  = 0x00000000,
+    TS_AE_START = 0x00000001,
+    TS_AE_END   = 0x00000002,
 }
+
+enum TsLayoutCode : int
+{
+    TS_LC_CREATE  = 0x00000000,
+    TS_LC_CHANGE  = 0x00000001,
+    TS_LC_DESTROY = 0x00000002,
+}
+
+enum TsRunType : int
+{
+    TS_RT_PLAIN  = 0x00000000,
+    TS_RT_HIDDEN = 0x00000001,
+    TS_RT_OPAQUE = 0x00000002,
+}
+
+enum TsGravity : int
+{
+    TS_GR_BACKWARD = 0x00000000,
+    TS_GR_FORWARD  = 0x00000001,
+}
+
+enum TsShiftDir : int
+{
+    TS_SD_BACKWARD = 0x00000000,
+    TS_SD_FORWARD  = 0x00000001,
+}
+
+enum : int
+{
+    TF_LBI_CLK_RIGHT = 0x00000001,
+    TF_LBI_CLK_LEFT  = 0x00000002,
+}
+alias TfLBIClick = int;
+
+enum TfLBBalloonStyle : int
+{
+    TF_LB_BALLOON_RECO = 0x00000000,
+    TF_LB_BALLOON_SHOW = 0x00000001,
+    TF_LB_BALLOON_MISS = 0x00000002,
+}
+
+enum TfAnchor : int
+{
+    TF_ANCHOR_START = 0x00000000,
+    TF_ANCHOR_END   = 0x00000001,
+}
+
+enum TfActiveSelEnd : int
+{
+    TF_AE_NONE  = 0x00000000,
+    TF_AE_START = 0x00000001,
+    TF_AE_END   = 0x00000002,
+}
+
+enum TfLayoutCode : int
+{
+    TF_LC_CREATE  = 0x00000000,
+    TF_LC_CHANGE  = 0x00000001,
+    TF_LC_DESTROY = 0x00000002,
+}
+
+enum TfGravity : int
+{
+    TF_GRAVITY_BACKWARD = 0x00000000,
+    TF_GRAVITY_FORWARD  = 0x00000001,
+}
+
+enum TfShiftDir : int
+{
+    TF_SD_BACKWARD = 0x00000000,
+    TF_SD_FORWARD  = 0x00000001,
+}
+
+enum : int
+{
+    TF_LS_NONE     = 0x00000000,
+    TF_LS_SOLID    = 0x00000001,
+    TF_LS_DOT      = 0x00000002,
+    TF_LS_DASH     = 0x00000003,
+    TF_LS_SQUIGGLE = 0x00000004,
+}
+alias TF_DA_LINESTYLE = int;
+
+enum : int
+{
+    TF_CT_NONE     = 0x00000000,
+    TF_CT_SYSCOLOR = 0x00000001,
+    TF_CT_COLORREF = 0x00000002,
+}
+alias TF_DA_COLORTYPE = int;
+
+enum : int
+{
+    TF_ATTR_INPUT               = 0x00000000,
+    TF_ATTR_TARGET_CONVERTED    = 0x00000001,
+    TF_ATTR_CONVERTED           = 0x00000002,
+    TF_ATTR_TARGET_NOTCONVERTED = 0x00000003,
+    TF_ATTR_INPUT_ERROR         = 0x00000004,
+    TF_ATTR_FIXEDCONVERTED      = 0x00000005,
+    TF_ATTR_OTHER               = 0xffffffff,
+}
+alias TF_DA_ATTR_INFO = int;
+
+enum TfCandidateResult : int
+{
+    CAND_FINALIZED = 0x00000000,
+    CAND_SELECTED  = 0x00000001,
+    CAND_CANCELED  = 0x00000002,
+}
+
+enum TfSapiObject : int
+{
+    GETIF_RESMGR           = 0x00000000,
+    GETIF_RECOCONTEXT      = 0x00000001,
+    GETIF_RECOGNIZER       = 0x00000002,
+    GETIF_VOICE            = 0x00000003,
+    GETIF_DICTGRAM         = 0x00000004,
+    GETIF_RECOGNIZERNOINIT = 0x00000005,
+}
+
+enum TfIntegratableCandidateListSelectionStyle : int
+{
+    STYLE_ACTIVE_SELECTION  = 0x00000000,
+    STYLE_IMPLIED_SELECTION = 0x00000001,
+}
+
+enum TKBLayoutType : int
+{
+    TKBLT_UNDEFINED = 0x00000000,
+    TKBLT_CLASSIC   = 0x00000001,
+    TKBLT_OPTIMIZED = 0x00000002,
+}
+
+enum InputScope : int
+{
+    IS_DEFAULT                       = 0x00000000,
+    IS_URL                           = 0x00000001,
+    IS_FILE_FULLFILEPATH             = 0x00000002,
+    IS_FILE_FILENAME                 = 0x00000003,
+    IS_EMAIL_USERNAME                = 0x00000004,
+    IS_EMAIL_SMTPEMAILADDRESS        = 0x00000005,
+    IS_LOGINNAME                     = 0x00000006,
+    IS_PERSONALNAME_FULLNAME         = 0x00000007,
+    IS_PERSONALNAME_PREFIX           = 0x00000008,
+    IS_PERSONALNAME_GIVENNAME        = 0x00000009,
+    IS_PERSONALNAME_MIDDLENAME       = 0x0000000a,
+    IS_PERSONALNAME_SURNAME          = 0x0000000b,
+    IS_PERSONALNAME_SUFFIX           = 0x0000000c,
+    IS_ADDRESS_FULLPOSTALADDRESS     = 0x0000000d,
+    IS_ADDRESS_POSTALCODE            = 0x0000000e,
+    IS_ADDRESS_STREET                = 0x0000000f,
+    IS_ADDRESS_STATEORPROVINCE       = 0x00000010,
+    IS_ADDRESS_CITY                  = 0x00000011,
+    IS_ADDRESS_COUNTRYNAME           = 0x00000012,
+    IS_ADDRESS_COUNTRYSHORTNAME      = 0x00000013,
+    IS_CURRENCY_AMOUNTANDSYMBOL      = 0x00000014,
+    IS_CURRENCY_AMOUNT               = 0x00000015,
+    IS_DATE_FULLDATE                 = 0x00000016,
+    IS_DATE_MONTH                    = 0x00000017,
+    IS_DATE_DAY                      = 0x00000018,
+    IS_DATE_YEAR                     = 0x00000019,
+    IS_DATE_MONTHNAME                = 0x0000001a,
+    IS_DATE_DAYNAME                  = 0x0000001b,
+    IS_DIGITS                        = 0x0000001c,
+    IS_NUMBER                        = 0x0000001d,
+    IS_ONECHAR                       = 0x0000001e,
+    IS_PASSWORD                      = 0x0000001f,
+    IS_TELEPHONE_FULLTELEPHONENUMBER = 0x00000020,
+    IS_TELEPHONE_COUNTRYCODE         = 0x00000021,
+    IS_TELEPHONE_AREACODE            = 0x00000022,
+    IS_TELEPHONE_LOCALNUMBER         = 0x00000023,
+    IS_TIME_FULLTIME                 = 0x00000024,
+    IS_TIME_HOUR                     = 0x00000025,
+    IS_TIME_MINORSEC                 = 0x00000026,
+    IS_NUMBER_FULLWIDTH              = 0x00000027,
+    IS_ALPHANUMERIC_HALFWIDTH        = 0x00000028,
+    IS_ALPHANUMERIC_FULLWIDTH        = 0x00000029,
+    IS_CURRENCY_CHINESE              = 0x0000002a,
+    IS_BOPOMOFO                      = 0x0000002b,
+    IS_HIRAGANA                      = 0x0000002c,
+    IS_KATAKANA_HALFWIDTH            = 0x0000002d,
+    IS_KATAKANA_FULLWIDTH            = 0x0000002e,
+    IS_HANJA                         = 0x0000002f,
+    IS_HANGUL_HALFWIDTH              = 0x00000030,
+    IS_HANGUL_FULLWIDTH              = 0x00000031,
+    IS_SEARCH                        = 0x00000032,
+    IS_FORMULA                       = 0x00000033,
+    IS_SEARCH_INCREMENTAL            = 0x00000034,
+    IS_CHINESE_HALFWIDTH             = 0x00000035,
+    IS_CHINESE_FULLWIDTH             = 0x00000036,
+    IS_NATIVE_SCRIPT                 = 0x00000037,
+    IS_YOMI                          = 0x00000038,
+    IS_TEXT                          = 0x00000039,
+    IS_CHAT                          = 0x0000003a,
+    IS_NAME_OR_PHONENUMBER           = 0x0000003b,
+    IS_EMAILNAME_OR_ADDRESS          = 0x0000003c,
+    IS_PRIVATE                       = 0x0000003d,
+    IS_MAPS                          = 0x0000003e,
+    IS_NUMERIC_PASSWORD              = 0x0000003f,
+    IS_NUMERIC_PIN                   = 0x00000040,
+    IS_ALPHANUMERIC_PIN              = 0x00000041,
+    IS_ALPHANUMERIC_PIN_SET          = 0x00000042,
+    IS_FORMULA_NUMBER                = 0x00000043,
+    IS_CHAT_WITHOUT_EMOJI            = 0x00000044,
+    IS_PHRASELIST                    = 0xffffffff,
+    IS_REGULAREXPRESSION             = 0xfffffffe,
+    IS_SRGS                          = 0xfffffffd,
+    IS_XML                           = 0xfffffffc,
+    IS_ENUMSTRING                    = 0xfffffffb,
+}
+
+// Structs
+
 
 struct TS_STATUS
 {
@@ -32,83 +248,194 @@ struct TS_TEXTCHANGE
     int acpNewEnd;
 }
 
-enum TsActiveSelEnd
-{
-    TS_AE_NONE = 0,
-    TS_AE_START = 1,
-    TS_AE_END = 2,
-}
-
 struct TS_SELECTIONSTYLE
 {
     TsActiveSelEnd ase;
-    BOOL fInterimChar;
+    BOOL           fInterimChar;
 }
 
 struct TS_SELECTION_ACP
 {
-    int acpStart;
-    int acpEnd;
+    int               acpStart;
+    int               acpEnd;
     TS_SELECTIONSTYLE style;
 }
 
 struct TS_SELECTION_ANCHOR
 {
-    IAnchor paStart;
-    IAnchor paEnd;
+    IAnchor           paStart;
+    IAnchor           paEnd;
     TS_SELECTIONSTYLE style;
 }
 
 struct TS_ATTRVAL
 {
-    Guid idAttr;
-    uint dwOverlapId;
+    GUID    idAttr;
+    uint    dwOverlapId;
     VARIANT varValue;
-}
-
-enum TsLayoutCode
-{
-    TS_LC_CREATE = 0,
-    TS_LC_CHANGE = 1,
-    TS_LC_DESTROY = 2,
-}
-
-enum TsRunType
-{
-    TS_RT_PLAIN = 0,
-    TS_RT_HIDDEN = 1,
-    TS_RT_OPAQUE = 2,
 }
 
 struct TS_RUNINFO
 {
-    uint uCount;
+    uint      uCount;
     TsRunType type;
 }
 
-const GUID IID_ITextStoreACP = {0x28888FE3, 0xC2A0, 0x483A, [0xA3, 0xEA, 0x8C, 0xB1, 0xCE, 0x51, 0xFF, 0x3D]};
-@GUID(0x28888FE3, 0xC2A0, 0x483A, [0xA3, 0xEA, 0x8C, 0xB1, 0xCE, 0x51, 0xFF, 0x3D]);
+struct TF_LANGBARITEMINFO
+{
+    GUID       clsidService;
+    GUID       guidItem;
+    uint       dwStyle;
+    uint       ulSort;
+    ushort[32] szDescription;
+}
+
+struct TF_LBBALLOONINFO
+{
+    TfLBBalloonStyle style;
+    BSTR             bstrText;
+}
+
+struct TF_PERSISTENT_PROPERTY_HEADER_ACP
+{
+    GUID guidType;
+    int  ichStart;
+    int  cch;
+    uint cb;
+    uint dwPrivate;
+    GUID clsidTIP;
+}
+
+struct TF_LANGUAGEPROFILE
+{
+    GUID   clsid;
+    ushort langid;
+    GUID   catid;
+    BOOL   fActive;
+    GUID   guidProfile;
+}
+
+struct TF_SELECTIONSTYLE
+{
+    TfActiveSelEnd ase;
+    BOOL           fInterimChar;
+}
+
+struct TF_SELECTION
+{
+    ITfRange          range;
+    TF_SELECTIONSTYLE style;
+}
+
+struct TF_PROPERTYVAL
+{
+    GUID    guidId;
+    VARIANT varValue;
+}
+
+struct TF_HALTCOND
+{
+    ITfRange pHaltRange;
+    TfAnchor aHaltPos;
+    uint     dwFlags;
+}
+
+struct TF_INPUTPROCESSORPROFILE
+{
+    uint      dwProfileType;
+    ushort    langid;
+    GUID      clsid;
+    GUID      guidProfile;
+    GUID      catid;
+    ptrdiff_t hklSubstitute;
+    uint      dwCaps;
+    ptrdiff_t hkl;
+    uint      dwFlags;
+}
+
+struct TF_PRESERVEDKEY
+{
+    uint uVKey;
+    uint uModifiers;
+}
+
+struct TF_DA_COLOR
+{
+    TF_DA_COLORTYPE type;
+    union
+    {
+        int  nIndex;
+        uint cr;
+    }
+}
+
+struct TF_DISPLAYATTRIBUTE
+{
+    TF_DA_COLOR     crText;
+    TF_DA_COLOR     crBk;
+    TF_DA_LINESTYLE lsStyle;
+    BOOL            fBoldLine;
+    TF_DA_COLOR     crLine;
+    TF_DA_ATTR_INFO bAttr;
+}
+
+struct TF_LMLATTELEMENT
+{
+    uint dwFrameStart;
+    uint dwFrameLen;
+    uint dwFlags;
+    union
+    {
+        int iCost;
+    }
+    BSTR bstrText;
+}
+
+// Functions
+
+@DllImport("MsCtfMonitor")
+HRESULT InitLocalMsCtfMonitor(uint dwFlags);
+
+@DllImport("MsCtfMonitor")
+HRESULT UninitLocalMsCtfMonitor();
+
+
+// Interfaces
+
+@GUID("B5F8FB3B-393F-4F7C-84CB-504924C2705A")
+interface ITfMSAAControl : IUnknown
+{
+    HRESULT SystemEnableMSAA();
+    HRESULT SystemDisableMSAA();
+}
+
+@GUID("28888FE3-C2A0-483A-A3EA-8CB1CE51FF3D")
 interface ITextStoreACP : IUnknown
 {
-    HRESULT AdviseSink(const(Guid)* riid, IUnknown punk, uint dwMask);
+    HRESULT AdviseSink(const(GUID)* riid, IUnknown punk, uint dwMask);
     HRESULT UnadviseSink(IUnknown punk);
     HRESULT RequestLock(uint dwLockFlags, int* phrSession);
     HRESULT GetStatus(TS_STATUS* pdcs);
     HRESULT QueryInsert(int acpTestStart, int acpTestEnd, uint cch, int* pacpResultStart, int* pacpResultEnd);
     HRESULT GetSelection(uint ulIndex, uint ulCount, char* pSelection, uint* pcFetched);
     HRESULT SetSelection(uint ulCount, char* pSelection);
-    HRESULT GetText(int acpStart, int acpEnd, char* pchPlain, uint cchPlainReq, uint* pcchPlainRet, char* prgRunInfo, uint cRunInfoReq, uint* pcRunInfoRet, int* pacpNext);
-    HRESULT SetText(uint dwFlags, int acpStart, int acpEnd, const(wchar)* pchText, uint cch, TS_TEXTCHANGE* pChange);
+    HRESULT GetText(int acpStart, int acpEnd, char* pchPlain, uint cchPlainReq, uint* pcchPlainRet, 
+                    char* prgRunInfo, uint cRunInfoReq, uint* pcRunInfoRet, int* pacpNext);
+    HRESULT SetText(uint dwFlags, int acpStart, int acpEnd, const(wchar)* pchText, uint cch, 
+                    TS_TEXTCHANGE* pChange);
     HRESULT GetFormattedText(int acpStart, int acpEnd, IDataObject* ppDataObject);
-    HRESULT GetEmbedded(int acpPos, const(Guid)* rguidService, const(Guid)* riid, IUnknown* ppunk);
-    HRESULT QueryInsertEmbedded(const(Guid)* pguidService, const(FORMATETC)* pFormatEtc, int* pfInsertable);
+    HRESULT GetEmbedded(int acpPos, const(GUID)* rguidService, const(GUID)* riid, IUnknown* ppunk);
+    HRESULT QueryInsertEmbedded(const(GUID)* pguidService, const(FORMATETC)* pFormatEtc, int* pfInsertable);
     HRESULT InsertEmbedded(uint dwFlags, int acpStart, int acpEnd, IDataObject pDataObject, TS_TEXTCHANGE* pChange);
-    HRESULT InsertTextAtSelection(uint dwFlags, const(wchar)* pchText, uint cch, int* pacpStart, int* pacpEnd, TS_TEXTCHANGE* pChange);
-    HRESULT InsertEmbeddedAtSelection(uint dwFlags, IDataObject pDataObject, int* pacpStart, int* pacpEnd, TS_TEXTCHANGE* pChange);
+    HRESULT InsertTextAtSelection(uint dwFlags, const(wchar)* pchText, uint cch, int* pacpStart, int* pacpEnd, 
+                                  TS_TEXTCHANGE* pChange);
+    HRESULT InsertEmbeddedAtSelection(uint dwFlags, IDataObject pDataObject, int* pacpStart, int* pacpEnd, 
+                                      TS_TEXTCHANGE* pChange);
     HRESULT RequestSupportedAttrs(uint dwFlags, uint cFilterAttrs, char* paFilterAttrs);
     HRESULT RequestAttrsAtPosition(int acpPos, uint cFilterAttrs, char* paFilterAttrs, uint dwFlags);
     HRESULT RequestAttrsTransitioningAtPosition(int acpPos, uint cFilterAttrs, char* paFilterAttrs, uint dwFlags);
-    HRESULT FindNextAttrTransition(int acpStart, int acpHalt, uint cFilterAttrs, char* paFilterAttrs, uint dwFlags, int* pacpNext, int* pfFound, int* plFoundOffset);
+    HRESULT FindNextAttrTransition(int acpStart, int acpHalt, uint cFilterAttrs, char* paFilterAttrs, uint dwFlags, 
+                                   int* pacpNext, int* pfFound, int* plFoundOffset);
     HRESULT RetrieveRequestedAttrs(uint ulCount, char* paAttrVals, uint* pcFetched);
     HRESULT GetEndACP(int* pacp);
     HRESULT GetActiveView(uint* pvcView);
@@ -118,29 +445,33 @@ interface ITextStoreACP : IUnknown
     HRESULT GetWnd(uint vcView, HWND* phwnd);
 }
 
-const GUID IID_ITextStoreACP2 = {0xF86AD89F, 0x5FE4, 0x4B8D, [0xBB, 0x9F, 0xEF, 0x37, 0x97, 0xA8, 0x4F, 0x1F]};
-@GUID(0xF86AD89F, 0x5FE4, 0x4B8D, [0xBB, 0x9F, 0xEF, 0x37, 0x97, 0xA8, 0x4F, 0x1F]);
+@GUID("F86AD89F-5FE4-4B8D-BB9F-EF3797A84F1F")
 interface ITextStoreACP2 : IUnknown
 {
-    HRESULT AdviseSink(const(Guid)* riid, IUnknown punk, uint dwMask);
+    HRESULT AdviseSink(const(GUID)* riid, IUnknown punk, uint dwMask);
     HRESULT UnadviseSink(IUnknown punk);
     HRESULT RequestLock(uint dwLockFlags, int* phrSession);
     HRESULT GetStatus(TS_STATUS* pdcs);
     HRESULT QueryInsert(int acpTestStart, int acpTestEnd, uint cch, int* pacpResultStart, int* pacpResultEnd);
     HRESULT GetSelection(uint ulIndex, uint ulCount, char* pSelection, uint* pcFetched);
     HRESULT SetSelection(uint ulCount, char* pSelection);
-    HRESULT GetText(int acpStart, int acpEnd, char* pchPlain, uint cchPlainReq, uint* pcchPlainRet, char* prgRunInfo, uint cRunInfoReq, uint* pcRunInfoRet, int* pacpNext);
-    HRESULT SetText(uint dwFlags, int acpStart, int acpEnd, const(wchar)* pchText, uint cch, TS_TEXTCHANGE* pChange);
+    HRESULT GetText(int acpStart, int acpEnd, char* pchPlain, uint cchPlainReq, uint* pcchPlainRet, 
+                    char* prgRunInfo, uint cRunInfoReq, uint* pcRunInfoRet, int* pacpNext);
+    HRESULT SetText(uint dwFlags, int acpStart, int acpEnd, const(wchar)* pchText, uint cch, 
+                    TS_TEXTCHANGE* pChange);
     HRESULT GetFormattedText(int acpStart, int acpEnd, IDataObject* ppDataObject);
-    HRESULT GetEmbedded(int acpPos, const(Guid)* rguidService, const(Guid)* riid, IUnknown* ppunk);
-    HRESULT QueryInsertEmbedded(const(Guid)* pguidService, const(FORMATETC)* pFormatEtc, int* pfInsertable);
+    HRESULT GetEmbedded(int acpPos, const(GUID)* rguidService, const(GUID)* riid, IUnknown* ppunk);
+    HRESULT QueryInsertEmbedded(const(GUID)* pguidService, const(FORMATETC)* pFormatEtc, int* pfInsertable);
     HRESULT InsertEmbedded(uint dwFlags, int acpStart, int acpEnd, IDataObject pDataObject, TS_TEXTCHANGE* pChange);
-    HRESULT InsertTextAtSelection(uint dwFlags, const(wchar)* pchText, uint cch, int* pacpStart, int* pacpEnd, TS_TEXTCHANGE* pChange);
-    HRESULT InsertEmbeddedAtSelection(uint dwFlags, IDataObject pDataObject, int* pacpStart, int* pacpEnd, TS_TEXTCHANGE* pChange);
+    HRESULT InsertTextAtSelection(uint dwFlags, const(wchar)* pchText, uint cch, int* pacpStart, int* pacpEnd, 
+                                  TS_TEXTCHANGE* pChange);
+    HRESULT InsertEmbeddedAtSelection(uint dwFlags, IDataObject pDataObject, int* pacpStart, int* pacpEnd, 
+                                      TS_TEXTCHANGE* pChange);
     HRESULT RequestSupportedAttrs(uint dwFlags, uint cFilterAttrs, char* paFilterAttrs);
     HRESULT RequestAttrsAtPosition(int acpPos, uint cFilterAttrs, char* paFilterAttrs, uint dwFlags);
     HRESULT RequestAttrsTransitioningAtPosition(int acpPos, uint cFilterAttrs, char* paFilterAttrs, uint dwFlags);
-    HRESULT FindNextAttrTransition(int acpStart, int acpHalt, uint cFilterAttrs, char* paFilterAttrs, uint dwFlags, int* pacpNext, int* pfFound, int* plFoundOffset);
+    HRESULT FindNextAttrTransition(int acpStart, int acpHalt, uint cFilterAttrs, char* paFilterAttrs, uint dwFlags, 
+                                   int* pacpNext, int* pfFound, int* plFoundOffset);
     HRESULT RetrieveRequestedAttrs(uint ulCount, char* paAttrVals, uint* pcFetched);
     HRESULT GetEndACP(int* pacp);
     HRESULT GetActiveView(uint* pvcView);
@@ -149,8 +480,7 @@ interface ITextStoreACP2 : IUnknown
     HRESULT GetScreenExt(uint vcView, RECT* prc);
 }
 
-const GUID IID_ITextStoreACPSink = {0x22D44C94, 0xA419, 0x4542, [0xA2, 0x72, 0xAE, 0x26, 0x09, 0x3E, 0xCE, 0xCF]};
-@GUID(0x22D44C94, 0xA419, 0x4542, [0xA2, 0x72, 0xAE, 0x26, 0x09, 0x3E, 0xCE, 0xCF]);
+@GUID("22D44C94-A419-4542-A272-AE26093ECECF")
 interface ITextStoreACPSink : IUnknown
 {
     HRESULT OnTextChange(uint dwFlags, const(TS_TEXTCHANGE)* pChange);
@@ -163,20 +493,7 @@ interface ITextStoreACPSink : IUnknown
     HRESULT OnEndEditTransaction();
 }
 
-enum TsGravity
-{
-    TS_GR_BACKWARD = 0,
-    TS_GR_FORWARD = 1,
-}
-
-enum TsShiftDir
-{
-    TS_SD_BACKWARD = 0,
-    TS_SD_FORWARD = 1,
-}
-
-const GUID IID_IAnchor = {0x0FEB7E34, 0x5A60, 0x4356, [0x8E, 0xF7, 0xAB, 0xDE, 0xC2, 0xFF, 0x7C, 0xF8]};
-@GUID(0x0FEB7E34, 0x5A60, 0x4356, [0x8E, 0xF7, 0xAB, 0xDE, 0xC2, 0xFF, 0x7C, 0xF8]);
+@GUID("0FEB7E34-5A60-4356-8EF7-ABDEC2FF7CF8")
 interface IAnchor : IUnknown
 {
     HRESULT SetGravity(TsGravity gravity);
@@ -192,26 +509,29 @@ interface IAnchor : IUnknown
     HRESULT Clone(IAnchor* ppaClone);
 }
 
-const GUID IID_ITextStoreAnchor = {0x9B2077B0, 0x5F18, 0x4DEC, [0xBE, 0xE9, 0x3C, 0xC7, 0x22, 0xF5, 0xDF, 0xE0]};
-@GUID(0x9B2077B0, 0x5F18, 0x4DEC, [0xBE, 0xE9, 0x3C, 0xC7, 0x22, 0xF5, 0xDF, 0xE0]);
+@GUID("9B2077B0-5F18-4DEC-BEE9-3CC722F5DFE0")
 interface ITextStoreAnchor : IUnknown
 {
-    HRESULT AdviseSink(const(Guid)* riid, IUnknown punk, uint dwMask);
+    HRESULT AdviseSink(const(GUID)* riid, IUnknown punk, uint dwMask);
     HRESULT UnadviseSink(IUnknown punk);
     HRESULT RequestLock(uint dwLockFlags, int* phrSession);
     HRESULT GetStatus(TS_STATUS* pdcs);
-    HRESULT QueryInsert(IAnchor paTestStart, IAnchor paTestEnd, uint cch, IAnchor* ppaResultStart, IAnchor* ppaResultEnd);
+    HRESULT QueryInsert(IAnchor paTestStart, IAnchor paTestEnd, uint cch, IAnchor* ppaResultStart, 
+                        IAnchor* ppaResultEnd);
     HRESULT GetSelection(uint ulIndex, uint ulCount, char* pSelection, uint* pcFetched);
     HRESULT SetSelection(uint ulCount, char* pSelection);
-    HRESULT GetText(uint dwFlags, IAnchor paStart, IAnchor paEnd, char* pchText, uint cchReq, uint* pcch, BOOL fUpdateAnchor);
+    HRESULT GetText(uint dwFlags, IAnchor paStart, IAnchor paEnd, char* pchText, uint cchReq, uint* pcch, 
+                    BOOL fUpdateAnchor);
     HRESULT SetText(uint dwFlags, IAnchor paStart, IAnchor paEnd, const(wchar)* pchText, uint cch);
     HRESULT GetFormattedText(IAnchor paStart, IAnchor paEnd, IDataObject* ppDataObject);
-    HRESULT GetEmbedded(uint dwFlags, IAnchor paPos, const(Guid)* rguidService, const(Guid)* riid, IUnknown* ppunk);
+    HRESULT GetEmbedded(uint dwFlags, IAnchor paPos, const(GUID)* rguidService, const(GUID)* riid, IUnknown* ppunk);
     HRESULT InsertEmbedded(uint dwFlags, IAnchor paStart, IAnchor paEnd, IDataObject pDataObject);
     HRESULT RequestSupportedAttrs(uint dwFlags, uint cFilterAttrs, char* paFilterAttrs);
     HRESULT RequestAttrsAtPosition(IAnchor paPos, uint cFilterAttrs, char* paFilterAttrs, uint dwFlags);
-    HRESULT RequestAttrsTransitioningAtPosition(IAnchor paPos, uint cFilterAttrs, char* paFilterAttrs, uint dwFlags);
-    HRESULT FindNextAttrTransition(IAnchor paStart, IAnchor paHalt, uint cFilterAttrs, char* paFilterAttrs, uint dwFlags, int* pfFound, int* plFoundOffset);
+    HRESULT RequestAttrsTransitioningAtPosition(IAnchor paPos, uint cFilterAttrs, char* paFilterAttrs, 
+                                                uint dwFlags);
+    HRESULT FindNextAttrTransition(IAnchor paStart, IAnchor paHalt, uint cFilterAttrs, char* paFilterAttrs, 
+                                   uint dwFlags, int* pfFound, int* plFoundOffset);
     HRESULT RetrieveRequestedAttrs(uint ulCount, char* paAttrVals, uint* pcFetched);
     HRESULT GetStart(IAnchor* ppaStart);
     HRESULT GetEnd(IAnchor* ppaEnd);
@@ -220,13 +540,13 @@ interface ITextStoreAnchor : IUnknown
     HRESULT GetTextExt(uint vcView, IAnchor paStart, IAnchor paEnd, RECT* prc, int* pfClipped);
     HRESULT GetScreenExt(uint vcView, RECT* prc);
     HRESULT GetWnd(uint vcView, HWND* phwnd);
-    HRESULT QueryInsertEmbedded(const(Guid)* pguidService, const(FORMATETC)* pFormatEtc, int* pfInsertable);
-    HRESULT InsertTextAtSelection(uint dwFlags, const(wchar)* pchText, uint cch, IAnchor* ppaStart, IAnchor* ppaEnd);
+    HRESULT QueryInsertEmbedded(const(GUID)* pguidService, const(FORMATETC)* pFormatEtc, int* pfInsertable);
+    HRESULT InsertTextAtSelection(uint dwFlags, const(wchar)* pchText, uint cch, IAnchor* ppaStart, 
+                                  IAnchor* ppaEnd);
     HRESULT InsertEmbeddedAtSelection(uint dwFlags, IDataObject pDataObject, IAnchor* ppaStart, IAnchor* ppaEnd);
 }
 
-const GUID IID_ITextStoreAnchorSink = {0xAA80E905, 0x2021, 0x11D2, [0x93, 0xE0, 0x00, 0x60, 0xB0, 0x67, 0xB8, 0x6E]};
-@GUID(0xAA80E905, 0x2021, 0x11D2, [0x93, 0xE0, 0x00, 0x60, 0xB0, 0x67, 0xB8, 0x6E]);
+@GUID("AA80E905-2021-11D2-93E0-0060B067B86E")
 interface ITextStoreAnchorSink : IUnknown
 {
     HRESULT OnTextChange(uint dwFlags, IAnchor paStart, IAnchor paEnd);
@@ -239,13 +559,12 @@ interface ITextStoreAnchorSink : IUnknown
     HRESULT OnEndEditTransaction();
 }
 
-const GUID IID_ITfLangBarMgr = {0x87955690, 0xE627, 0x11D2, [0x8D, 0xDB, 0x00, 0x10, 0x5A, 0x27, 0x99, 0xB5]};
-@GUID(0x87955690, 0xE627, 0x11D2, [0x8D, 0xDB, 0x00, 0x10, 0x5A, 0x27, 0x99, 0xB5]);
+@GUID("87955690-E627-11D2-8DDB-00105A2799B5")
 interface ITfLangBarMgr : IUnknown
 {
     HRESULT AdviseEventSink(ITfLangBarEventSink pSink, HWND hwnd, uint dwFlags, uint* pdwCookie);
     HRESULT UnadviseEventSink(uint dwCookie);
-    HRESULT GetThreadMarshalInterface(uint dwThreadId, uint dwType, const(Guid)* riid, IUnknown* ppunk);
+    HRESULT GetThreadMarshalInterface(uint dwThreadId, uint dwType, const(GUID)* riid, IUnknown* ppunk);
     HRESULT GetThreadLangBarItemMgr(uint dwThreadId, ITfLangBarItemMgr* pplbi, uint* pdwThreadid);
     HRESULT GetInputProcessorProfiles(uint dwThreadId, ITfInputProcessorProfiles* ppaip, uint* pdwThreadid);
     HRESULT RestoreLastFocus(uint* pdwThreadId, BOOL fPrev);
@@ -254,8 +573,7 @@ interface ITfLangBarMgr : IUnknown
     HRESULT GetShowFloatingStatus(uint* pdwFlags);
 }
 
-const GUID IID_ITfLangBarEventSink = {0x18A4E900, 0xE0AE, 0x11D2, [0xAF, 0xDD, 0x00, 0x10, 0x5A, 0x27, 0x99, 0xB5]};
-@GUID(0x18A4E900, 0xE0AE, 0x11D2, [0xAF, 0xDD, 0x00, 0x10, 0x5A, 0x27, 0x99, 0xB5]);
+@GUID("18A4E900-E0AE-11D2-AFDD-00105A2799B5")
 interface ITfLangBarEventSink : IUnknown
 {
     HRESULT OnSetFocus(uint dwThreadId);
@@ -263,18 +581,16 @@ interface ITfLangBarEventSink : IUnknown
     HRESULT OnThreadItemChange(uint dwThreadId);
     HRESULT OnModalInput(uint dwThreadId, uint uMsg, WPARAM wParam, LPARAM lParam);
     HRESULT ShowFloating(uint dwFlags);
-    HRESULT GetItemFloatingRect(uint dwThreadId, const(Guid)* rguid, RECT* prc);
+    HRESULT GetItemFloatingRect(uint dwThreadId, const(GUID)* rguid, RECT* prc);
 }
 
-const GUID IID_ITfLangBarItemSink = {0x57DBE1A0, 0xDE25, 0x11D2, [0xAF, 0xDD, 0x00, 0x10, 0x5A, 0x27, 0x99, 0xB5]};
-@GUID(0x57DBE1A0, 0xDE25, 0x11D2, [0xAF, 0xDD, 0x00, 0x10, 0x5A, 0x27, 0x99, 0xB5]);
+@GUID("57DBE1A0-DE25-11D2-AFDD-00105A2799B5")
 interface ITfLangBarItemSink : IUnknown
 {
     HRESULT OnUpdate(uint dwFlags);
 }
 
-const GUID IID_IEnumTfLangBarItems = {0x583F34D0, 0xDE25, 0x11D2, [0xAF, 0xDD, 0x00, 0x10, 0x5A, 0x27, 0x99, 0xB5]};
-@GUID(0x583F34D0, 0xDE25, 0x11D2, [0xAF, 0xDD, 0x00, 0x10, 0x5A, 0x27, 0x99, 0xB5]);
+@GUID("583F34D0-DE25-11D2-AFDD-00105A2799B5")
 interface IEnumTfLangBarItems : IUnknown
 {
     HRESULT Clone(IEnumTfLangBarItems* ppEnum);
@@ -283,26 +599,16 @@ interface IEnumTfLangBarItems : IUnknown
     HRESULT Skip(uint ulCount);
 }
 
-struct TF_LANGBARITEMINFO
-{
-    Guid clsidService;
-    Guid guidItem;
-    uint dwStyle;
-    uint ulSort;
-    ushort szDescription;
-}
-
-const GUID IID_ITfLangBarItemMgr = {0xBA468C55, 0x9956, 0x4FB1, [0xA5, 0x9D, 0x52, 0xA7, 0xDD, 0x7C, 0xC6, 0xAA]};
-@GUID(0xBA468C55, 0x9956, 0x4FB1, [0xA5, 0x9D, 0x52, 0xA7, 0xDD, 0x7C, 0xC6, 0xAA]);
+@GUID("BA468C55-9956-4FB1-A59D-52A7DD7CC6AA")
 interface ITfLangBarItemMgr : IUnknown
 {
     HRESULT EnumItems(IEnumTfLangBarItems* ppEnum);
-    HRESULT GetItem(const(Guid)* rguid, ITfLangBarItem* ppItem);
+    HRESULT GetItem(const(GUID)* rguid, ITfLangBarItem* ppItem);
     HRESULT AddItem(ITfLangBarItem punk);
     HRESULT RemoveItem(ITfLangBarItem punk);
-    HRESULT AdviseItemSink(ITfLangBarItemSink punk, uint* pdwCookie, const(Guid)* rguidItem);
+    HRESULT AdviseItemSink(ITfLangBarItemSink punk, uint* pdwCookie, const(GUID)* rguidItem);
     HRESULT UnadviseItemSink(uint dwCookie);
-    HRESULT GetItemFloatingRect(uint dwThreadId, const(Guid)* rguid, RECT* prc);
+    HRESULT GetItemFloatingRect(uint dwThreadId, const(GUID)* rguid, RECT* prc);
     HRESULT GetItemsStatus(uint ulCount, char* prgguid, char* pdwStatus);
     HRESULT GetItemNum(uint* pulCount);
     HRESULT GetItems(uint ulCount, char* ppItem, char* pInfo, char* pdwStatus, uint* pcFetched);
@@ -310,8 +616,7 @@ interface ITfLangBarItemMgr : IUnknown
     HRESULT UnadviseItemsSink(uint ulCount, char* pdwCookie);
 }
 
-const GUID IID_ITfLangBarItem = {0x73540D69, 0xEDEB, 0x4EE9, [0x96, 0xC9, 0x23, 0xAA, 0x30, 0xB2, 0x59, 0x16]};
-@GUID(0x73540D69, 0xEDEB, 0x4EE9, [0x96, 0xC9, 0x23, 0xAA, 0x30, 0xB2, 0x59, 0x16]);
+@GUID("73540D69-EDEB-4EE9-96C9-23AA30B25916")
 interface ITfLangBarItem : IUnknown
 {
     HRESULT GetInfo(TF_LANGBARITEMINFO* pInfo);
@@ -320,46 +625,35 @@ interface ITfLangBarItem : IUnknown
     HRESULT GetTooltipString(BSTR* pbstrToolTip);
 }
 
-const GUID IID_ITfSystemLangBarItemSink = {0x1449D9AB, 0x13CF, 0x4687, [0xAA, 0x3E, 0x8D, 0x8B, 0x18, 0x57, 0x43, 0x96]};
-@GUID(0x1449D9AB, 0x13CF, 0x4687, [0xAA, 0x3E, 0x8D, 0x8B, 0x18, 0x57, 0x43, 0x96]);
+@GUID("1449D9AB-13CF-4687-AA3E-8D8B18574396")
 interface ITfSystemLangBarItemSink : IUnknown
 {
     HRESULT InitMenu(ITfMenu pMenu);
     HRESULT OnMenuSelect(uint wID);
 }
 
-const GUID IID_ITfSystemLangBarItem = {0x1E13E9EC, 0x6B33, 0x4D4A, [0xB5, 0xEB, 0x8A, 0x92, 0xF0, 0x29, 0xF3, 0x56]};
-@GUID(0x1E13E9EC, 0x6B33, 0x4D4A, [0xB5, 0xEB, 0x8A, 0x92, 0xF0, 0x29, 0xF3, 0x56]);
+@GUID("1E13E9EC-6B33-4D4A-B5EB-8A92F029F356")
 interface ITfSystemLangBarItem : IUnknown
 {
     HRESULT SetIcon(HICON hIcon);
     HRESULT SetTooltipString(char* pchToolTip, uint cch);
 }
 
-const GUID IID_ITfSystemLangBarItemText = {0x5C4CE0E5, 0xBA49, 0x4B52, [0xAC, 0x6B, 0x3B, 0x39, 0x7B, 0x4F, 0x70, 0x1F]};
-@GUID(0x5C4CE0E5, 0xBA49, 0x4B52, [0xAC, 0x6B, 0x3B, 0x39, 0x7B, 0x4F, 0x70, 0x1F]);
+@GUID("5C4CE0E5-BA49-4B52-AC6B-3B397B4F701F")
 interface ITfSystemLangBarItemText : IUnknown
 {
     HRESULT SetItemText(const(wchar)* pch, uint cch);
     HRESULT GetItemText(BSTR* pbstrText);
 }
 
-const GUID IID_ITfSystemDeviceTypeLangBarItem = {0x45672EB9, 0x9059, 0x46A2, [0x83, 0x8D, 0x45, 0x30, 0x35, 0x5F, 0x6A, 0x77]};
-@GUID(0x45672EB9, 0x9059, 0x46A2, [0x83, 0x8D, 0x45, 0x30, 0x35, 0x5F, 0x6A, 0x77]);
+@GUID("45672EB9-9059-46A2-838D-4530355F6A77")
 interface ITfSystemDeviceTypeLangBarItem : IUnknown
 {
     HRESULT SetIconMode(uint dwFlags);
     HRESULT GetIconMode(uint* pdwFlags);
 }
 
-enum TfLBIClick
-{
-    TF_LBI_CLK_RIGHT = 1,
-    TF_LBI_CLK_LEFT = 2,
-}
-
-const GUID IID_ITfLangBarItemButton = {0x28C7F1D0, 0xDE25, 0x11D2, [0xAF, 0xDD, 0x00, 0x10, 0x5A, 0x27, 0x99, 0xB5]};
-@GUID(0x28C7F1D0, 0xDE25, 0x11D2, [0xAF, 0xDD, 0x00, 0x10, 0x5A, 0x27, 0x99, 0xB5]);
+@GUID("28C7F1D0-DE25-11D2-AFDD-00105A2799B5")
 interface ITfLangBarItemButton : ITfLangBarItem
 {
     HRESULT OnClick(TfLBIClick click, POINT pt, const(RECT)* prcArea);
@@ -369,8 +663,7 @@ interface ITfLangBarItemButton : ITfLangBarItem
     HRESULT GetText(BSTR* pbstrText);
 }
 
-const GUID IID_ITfLangBarItemBitmapButton = {0xA26A0525, 0x3FAE, 0x4FA0, [0x89, 0xEE, 0x88, 0xA9, 0x64, 0xF9, 0xF1, 0xB5]};
-@GUID(0xA26A0525, 0x3FAE, 0x4FA0, [0x89, 0xEE, 0x88, 0xA9, 0x64, 0xF9, 0xF1, 0xB5]);
+@GUID("A26A0525-3FAE-4FA0-89EE-88A964F9F1B5")
 interface ITfLangBarItemBitmapButton : ITfLangBarItem
 {
     HRESULT OnClick(TfLBIClick click, POINT pt, const(RECT)* prcArea);
@@ -381,8 +674,7 @@ interface ITfLangBarItemBitmapButton : ITfLangBarItem
     HRESULT GetText(BSTR* pbstrText);
 }
 
-const GUID IID_ITfLangBarItemBitmap = {0x73830352, 0xD722, 0x4179, [0xAD, 0xA5, 0xF0, 0x45, 0xC9, 0x8D, 0xF3, 0x55]};
-@GUID(0x73830352, 0xD722, 0x4179, [0xAD, 0xA5, 0xF0, 0x45, 0xC9, 0x8D, 0xF3, 0x55]);
+@GUID("73830352-D722-4179-ADA5-F045C98DF355")
 interface ITfLangBarItemBitmap : ITfLangBarItem
 {
     HRESULT OnClick(TfLBIClick click, POINT pt, const(RECT)* prcArea);
@@ -390,21 +682,7 @@ interface ITfLangBarItemBitmap : ITfLangBarItem
     HRESULT DrawBitmap(int bmWidth, int bmHeight, uint dwFlags, HBITMAP* phbmp, HBITMAP* phbmpMask);
 }
 
-enum TfLBBalloonStyle
-{
-    TF_LB_BALLOON_RECO = 0,
-    TF_LB_BALLOON_SHOW = 1,
-    TF_LB_BALLOON_MISS = 2,
-}
-
-struct TF_LBBALLOONINFO
-{
-    TfLBBalloonStyle style;
-    BSTR bstrText;
-}
-
-const GUID IID_ITfLangBarItemBalloon = {0x01C2D285, 0xD3C7, 0x4B7B, [0xB5, 0xB5, 0xD9, 0x74, 0x11, 0xD0, 0xC2, 0x83]};
-@GUID(0x01C2D285, 0xD3C7, 0x4B7B, [0xB5, 0xB5, 0xD9, 0x74, 0x11, 0xD0, 0xC2, 0x83]);
+@GUID("01C2D285-D3C7-4B7B-B5B5-D97411D0C283")
 interface ITfLangBarItemBalloon : ITfLangBarItem
 {
     HRESULT OnClick(TfLBIClick click, POINT pt, const(RECT)* prcArea);
@@ -412,40 +690,14 @@ interface ITfLangBarItemBalloon : ITfLangBarItem
     HRESULT GetBalloonInfo(TF_LBBALLOONINFO* pInfo);
 }
 
-const GUID IID_ITfMenu = {0x6F8A98E4, 0xAAA0, 0x4F15, [0x8C, 0x5B, 0x07, 0xE0, 0xDF, 0x0A, 0x3D, 0xD8]};
-@GUID(0x6F8A98E4, 0xAAA0, 0x4F15, [0x8C, 0x5B, 0x07, 0xE0, 0xDF, 0x0A, 0x3D, 0xD8]);
+@GUID("6F8A98E4-AAA0-4F15-8C5B-07E0DF0A3DD8")
 interface ITfMenu : IUnknown
 {
-    HRESULT AddMenuItem(uint uId, uint dwFlags, HBITMAP hbmp, HBITMAP hbmpMask, const(wchar)* pch, uint cch, ITfMenu* ppMenu);
+    HRESULT AddMenuItem(uint uId, uint dwFlags, HBITMAP hbmp, HBITMAP hbmpMask, const(wchar)* pch, uint cch, 
+                        ITfMenu* ppMenu);
 }
 
-struct TF_PERSISTENT_PROPERTY_HEADER_ACP
-{
-    Guid guidType;
-    int ichStart;
-    int cch;
-    uint cb;
-    uint dwPrivate;
-    Guid clsidTIP;
-}
-
-struct TF_LANGUAGEPROFILE
-{
-    Guid clsid;
-    ushort langid;
-    Guid catid;
-    BOOL fActive;
-    Guid guidProfile;
-}
-
-enum TfAnchor
-{
-    TF_ANCHOR_START = 0,
-    TF_ANCHOR_END = 1,
-}
-
-const GUID IID_ITfThreadMgr = {0xAA80E801, 0x2021, 0x11D2, [0x93, 0xE0, 0x00, 0x60, 0xB0, 0x67, 0xB8, 0x6E]};
-@GUID(0xAA80E801, 0x2021, 0x11D2, [0x93, 0xE0, 0x00, 0x60, 0xB0, 0x67, 0xB8, 0x6E]);
+@GUID("AA80E801-2021-11D2-93E0-0060B067B86E")
 interface ITfThreadMgr : IUnknown
 {
     HRESULT Activate(uint* ptid);
@@ -456,21 +708,19 @@ interface ITfThreadMgr : IUnknown
     HRESULT SetFocus(ITfDocumentMgr pdimFocus);
     HRESULT AssociateFocus(HWND hwnd, ITfDocumentMgr pdimNew, ITfDocumentMgr* ppdimPrev);
     HRESULT IsThreadFocus(int* pfThreadFocus);
-    HRESULT GetFunctionProvider(const(Guid)* clsid, ITfFunctionProvider* ppFuncProv);
+    HRESULT GetFunctionProvider(const(GUID)* clsid, ITfFunctionProvider* ppFuncProv);
     HRESULT EnumFunctionProviders(IEnumTfFunctionProviders* ppEnum);
     HRESULT GetGlobalCompartment(ITfCompartmentMgr* ppCompMgr);
 }
 
-const GUID IID_ITfThreadMgrEx = {0x3E90ADE3, 0x7594, 0x4CB0, [0xBB, 0x58, 0x69, 0x62, 0x8F, 0x5F, 0x45, 0x8C]};
-@GUID(0x3E90ADE3, 0x7594, 0x4CB0, [0xBB, 0x58, 0x69, 0x62, 0x8F, 0x5F, 0x45, 0x8C]);
+@GUID("3E90ADE3-7594-4CB0-BB58-69628F5F458C")
 interface ITfThreadMgrEx : ITfThreadMgr
 {
     HRESULT ActivateEx(uint* ptid, uint dwFlags);
     HRESULT GetActiveFlags(uint* lpdwFlags);
 }
 
-const GUID IID_ITfThreadMgr2 = {0x0AB198EF, 0x6477, 0x4EE8, [0x88, 0x12, 0x67, 0x80, 0xED, 0xB8, 0x2D, 0x5E]};
-@GUID(0x0AB198EF, 0x6477, 0x4EE8, [0x88, 0x12, 0x67, 0x80, 0xED, 0xB8, 0x2D, 0x5E]);
+@GUID("0AB198EF-6477-4EE8-8812-6780EDB82D5E")
 interface ITfThreadMgr2 : IUnknown
 {
     HRESULT Activate(uint* ptid);
@@ -480,7 +730,7 @@ interface ITfThreadMgr2 : IUnknown
     HRESULT GetFocus(ITfDocumentMgr* ppdimFocus);
     HRESULT SetFocus(ITfDocumentMgr pdimFocus);
     HRESULT IsThreadFocus(int* pfThreadFocus);
-    HRESULT GetFunctionProvider(const(Guid)* clsid, ITfFunctionProvider* ppFuncProv);
+    HRESULT GetFunctionProvider(const(GUID)* clsid, ITfFunctionProvider* ppFuncProv);
     HRESULT EnumFunctionProviders(IEnumTfFunctionProviders* ppEnum);
     HRESULT GetGlobalCompartment(ITfCompartmentMgr* ppCompMgr);
     HRESULT ActivateEx(uint* ptid, uint dwFlags);
@@ -489,8 +739,7 @@ interface ITfThreadMgr2 : IUnknown
     HRESULT ResumeKeystrokeHandling();
 }
 
-const GUID IID_ITfThreadMgrEventSink = {0xAA80E80E, 0x2021, 0x11D2, [0x93, 0xE0, 0x00, 0x60, 0xB0, 0x67, 0xB8, 0x6E]};
-@GUID(0xAA80E80E, 0x2021, 0x11D2, [0x93, 0xE0, 0x00, 0x60, 0xB0, 0x67, 0xB8, 0x6E]);
+@GUID("AA80E80E-2021-11D2-93E0-0060B067B86E")
 interface ITfThreadMgrEventSink : IUnknown
 {
     HRESULT OnInitDocumentMgr(ITfDocumentMgr pdim);
@@ -500,16 +749,14 @@ interface ITfThreadMgrEventSink : IUnknown
     HRESULT OnPopContext(ITfContext pic);
 }
 
-const GUID IID_ITfConfigureSystemKeystrokeFeed = {0x0D2C969A, 0xBC9C, 0x437C, [0x84, 0xEE, 0x95, 0x1C, 0x49, 0xB1, 0xA7, 0x64]};
-@GUID(0x0D2C969A, 0xBC9C, 0x437C, [0x84, 0xEE, 0x95, 0x1C, 0x49, 0xB1, 0xA7, 0x64]);
+@GUID("0D2C969A-BC9C-437C-84EE-951C49B1A764")
 interface ITfConfigureSystemKeystrokeFeed : IUnknown
 {
     HRESULT DisableSystemKeystrokeFeed();
     HRESULT EnableSystemKeystrokeFeed();
 }
 
-const GUID IID_IEnumTfDocumentMgrs = {0xAA80E808, 0x2021, 0x11D2, [0x93, 0xE0, 0x00, 0x60, 0xB0, 0x67, 0xB8, 0x6E]};
-@GUID(0xAA80E808, 0x2021, 0x11D2, [0x93, 0xE0, 0x00, 0x60, 0xB0, 0x67, 0xB8, 0x6E]);
+@GUID("AA80E808-2021-11D2-93E0-0060B067B86E")
 interface IEnumTfDocumentMgrs : IUnknown
 {
     HRESULT Clone(IEnumTfDocumentMgrs* ppEnum);
@@ -518,8 +765,7 @@ interface IEnumTfDocumentMgrs : IUnknown
     HRESULT Skip(uint ulCount);
 }
 
-const GUID IID_ITfDocumentMgr = {0xAA80E7F4, 0x2021, 0x11D2, [0x93, 0xE0, 0x00, 0x60, 0xB0, 0x67, 0xB8, 0x6E]};
-@GUID(0xAA80E7F4, 0x2021, 0x11D2, [0x93, 0xE0, 0x00, 0x60, 0xB0, 0x67, 0xB8, 0x6E]);
+@GUID("AA80E7F4-2021-11D2-93E0-0060B067B86E")
 interface ITfDocumentMgr : IUnknown
 {
     HRESULT CreateContext(uint tidOwner, uint dwFlags, IUnknown punk, ITfContext* ppic, uint* pecTextStore);
@@ -530,8 +776,7 @@ interface ITfDocumentMgr : IUnknown
     HRESULT EnumContexts(IEnumTfContexts* ppEnum);
 }
 
-const GUID IID_IEnumTfContexts = {0x8F1A7EA6, 0x1654, 0x4502, [0xA8, 0x6E, 0xB2, 0x90, 0x23, 0x44, 0xD5, 0x07]};
-@GUID(0x8F1A7EA6, 0x1654, 0x4502, [0xA8, 0x6E, 0xB2, 0x90, 0x23, 0x44, 0xD5, 0x07]);
+@GUID("8F1A7EA6-1654-4502-A86E-B2902344D507")
 interface IEnumTfContexts : IUnknown
 {
     HRESULT Clone(IEnumTfContexts* ppEnum);
@@ -540,16 +785,14 @@ interface IEnumTfContexts : IUnknown
     HRESULT Skip(uint ulCount);
 }
 
-const GUID IID_ITfCompositionView = {0xD7540241, 0xF9A1, 0x4364, [0xBE, 0xFC, 0xDB, 0xCD, 0x2C, 0x43, 0x95, 0xB7]};
-@GUID(0xD7540241, 0xF9A1, 0x4364, [0xBE, 0xFC, 0xDB, 0xCD, 0x2C, 0x43, 0x95, 0xB7]);
+@GUID("D7540241-F9A1-4364-BEFC-DBCD2C4395B7")
 interface ITfCompositionView : IUnknown
 {
-    HRESULT GetOwnerClsid(Guid* pclsid);
+    HRESULT GetOwnerClsid(GUID* pclsid);
     HRESULT GetRange(ITfRange* ppRange);
 }
 
-const GUID IID_IEnumITfCompositionView = {0x5EFD22BA, 0x7838, 0x46CB, [0x88, 0xE2, 0xCA, 0xDB, 0x14, 0x12, 0x4F, 0x8F]};
-@GUID(0x5EFD22BA, 0x7838, 0x46CB, [0x88, 0xE2, 0xCA, 0xDB, 0x14, 0x12, 0x4F, 0x8F]);
+@GUID("5EFD22BA-7838-46CB-88E2-CADB14124F8F")
 interface IEnumITfCompositionView : IUnknown
 {
     HRESULT Clone(IEnumITfCompositionView* ppEnum);
@@ -558,8 +801,7 @@ interface IEnumITfCompositionView : IUnknown
     HRESULT Skip(uint ulCount);
 }
 
-const GUID IID_ITfComposition = {0x20168D64, 0x5A8F, 0x4A5A, [0xB7, 0xBD, 0xCF, 0xA2, 0x9F, 0x4D, 0x0F, 0xD9]};
-@GUID(0x20168D64, 0x5A8F, 0x4A5A, [0xB7, 0xBD, 0xCF, 0xA2, 0x9F, 0x4D, 0x0F, 0xD9]);
+@GUID("20168D64-5A8F-4A5A-B7BD-CFA29F4D0FD9")
 interface ITfComposition : IUnknown
 {
     HRESULT GetRange(ITfRange* ppRange);
@@ -568,32 +810,30 @@ interface ITfComposition : IUnknown
     HRESULT EndComposition(uint ecWrite);
 }
 
-const GUID IID_ITfCompositionSink = {0xA781718C, 0x579A, 0x4B15, [0xA2, 0x80, 0x32, 0xB8, 0x57, 0x7A, 0xCC, 0x5E]};
-@GUID(0xA781718C, 0x579A, 0x4B15, [0xA2, 0x80, 0x32, 0xB8, 0x57, 0x7A, 0xCC, 0x5E]);
+@GUID("A781718C-579A-4B15-A280-32B8577ACC5E")
 interface ITfCompositionSink : IUnknown
 {
     HRESULT OnCompositionTerminated(uint ecWrite, ITfComposition pComposition);
 }
 
-const GUID IID_ITfContextComposition = {0xD40C8AAE, 0xAC92, 0x4FC7, [0x9A, 0x11, 0x0E, 0xE0, 0xE2, 0x3A, 0xA3, 0x9B]};
-@GUID(0xD40C8AAE, 0xAC92, 0x4FC7, [0x9A, 0x11, 0x0E, 0xE0, 0xE2, 0x3A, 0xA3, 0x9B]);
+@GUID("D40C8AAE-AC92-4FC7-9A11-0EE0E23AA39B")
 interface ITfContextComposition : IUnknown
 {
-    HRESULT StartComposition(uint ecWrite, ITfRange pCompositionRange, ITfCompositionSink pSink, ITfComposition* ppComposition);
+    HRESULT StartComposition(uint ecWrite, ITfRange pCompositionRange, ITfCompositionSink pSink, 
+                             ITfComposition* ppComposition);
     HRESULT EnumCompositions(IEnumITfCompositionView* ppEnum);
     HRESULT FindComposition(uint ecRead, ITfRange pTestRange, IEnumITfCompositionView* ppEnum);
-    HRESULT TakeOwnership(uint ecWrite, ITfCompositionView pComposition, ITfCompositionSink pSink, ITfComposition* ppComposition);
+    HRESULT TakeOwnership(uint ecWrite, ITfCompositionView pComposition, ITfCompositionSink pSink, 
+                          ITfComposition* ppComposition);
 }
 
-const GUID IID_ITfContextOwnerCompositionServices = {0x86462810, 0x593B, 0x4916, [0x97, 0x64, 0x19, 0xC0, 0x8E, 0x9C, 0xE1, 0x10]};
-@GUID(0x86462810, 0x593B, 0x4916, [0x97, 0x64, 0x19, 0xC0, 0x8E, 0x9C, 0xE1, 0x10]);
+@GUID("86462810-593B-4916-9764-19C08E9CE110")
 interface ITfContextOwnerCompositionServices : ITfContextComposition
 {
     HRESULT TerminateComposition(ITfCompositionView pComposition);
 }
 
-const GUID IID_ITfContextOwnerCompositionSink = {0x5F20AA40, 0xB57A, 0x4F34, [0x96, 0xAB, 0x35, 0x76, 0xF3, 0x77, 0xCC, 0x79]};
-@GUID(0x5F20AA40, 0xB57A, 0x4F34, [0x96, 0xAB, 0x35, 0x76, 0xF3, 0x77, 0xCC, 0x79]);
+@GUID("5F20AA40-B57A-4F34-96AB-3576F377CC79")
 interface ITfContextOwnerCompositionSink : IUnknown
 {
     HRESULT OnStartComposition(ITfCompositionView pComposition, int* pfOk);
@@ -601,8 +841,7 @@ interface ITfContextOwnerCompositionSink : IUnknown
     HRESULT OnEndComposition(ITfCompositionView pComposition);
 }
 
-const GUID IID_ITfContextView = {0x2433BF8E, 0x0F9B, 0x435C, [0xBA, 0x2C, 0x18, 0x06, 0x11, 0x97, 0x8C, 0x30]};
-@GUID(0x2433BF8E, 0x0F9B, 0x435C, [0xBA, 0x2C, 0x18, 0x06, 0x11, 0x97, 0x8C, 0x30]);
+@GUID("2433BF8E-0F9B-435C-BA2C-180611978C30")
 interface ITfContextView : IUnknown
 {
     HRESULT GetRangeFromPoint(uint ec, const(POINT)* ppt, uint dwFlags, ITfRange* ppRange);
@@ -611,8 +850,7 @@ interface ITfContextView : IUnknown
     HRESULT GetWnd(HWND* phwnd);
 }
 
-const GUID IID_IEnumTfContextViews = {0xF0C0F8DD, 0xCF38, 0x44E1, [0xBB, 0x0F, 0x68, 0xCF, 0x0D, 0x55, 0x1C, 0x78]};
-@GUID(0xF0C0F8DD, 0xCF38, 0x44E1, [0xBB, 0x0F, 0x68, 0xCF, 0x0D, 0x55, 0x1C, 0x78]);
+@GUID("F0C0F8DD-CF38-44E1-BB0F-68CF0D551C78")
 interface IEnumTfContextViews : IUnknown
 {
     HRESULT Clone(IEnumTfContextViews* ppEnum);
@@ -621,27 +859,7 @@ interface IEnumTfContextViews : IUnknown
     HRESULT Skip(uint ulCount);
 }
 
-enum TfActiveSelEnd
-{
-    TF_AE_NONE = 0,
-    TF_AE_START = 1,
-    TF_AE_END = 2,
-}
-
-struct TF_SELECTIONSTYLE
-{
-    TfActiveSelEnd ase;
-    BOOL fInterimChar;
-}
-
-struct TF_SELECTION
-{
-    ITfRange range;
-    TF_SELECTIONSTYLE style;
-}
-
-const GUID IID_ITfContext = {0xAA80E7FD, 0x2021, 0x11D2, [0x93, 0xE0, 0x00, 0x60, 0xB0, 0x67, 0xB8, 0x6E]};
-@GUID(0xAA80E7FD, 0x2021, 0x11D2, [0x93, 0xE0, 0x00, 0x60, 0xB0, 0x67, 0xB8, 0x6E]);
+@GUID("AA80E7FD-2021-11D2-93E0-0060B067B86E")
 interface ITfContext : IUnknown
 {
     HRESULT RequestEditSession(uint tid, ITfEditSession pes, uint dwFlags, int* phrSession);
@@ -653,62 +871,51 @@ interface ITfContext : IUnknown
     HRESULT GetActiveView(ITfContextView* ppView);
     HRESULT EnumViews(IEnumTfContextViews* ppEnum);
     HRESULT GetStatus(TS_STATUS* pdcs);
-    HRESULT GetProperty(const(Guid)* guidProp, ITfProperty* ppProp);
-    HRESULT GetAppProperty(const(Guid)* guidProp, ITfReadOnlyProperty* ppProp);
-    HRESULT TrackProperties(char* prgProp, uint cProp, char* prgAppProp, uint cAppProp, ITfReadOnlyProperty* ppProperty);
+    HRESULT GetProperty(const(GUID)* guidProp, ITfProperty* ppProp);
+    HRESULT GetAppProperty(const(GUID)* guidProp, ITfReadOnlyProperty* ppProp);
+    HRESULT TrackProperties(char* prgProp, uint cProp, char* prgAppProp, uint cAppProp, 
+                            ITfReadOnlyProperty* ppProperty);
     HRESULT EnumProperties(IEnumTfProperties* ppEnum);
     HRESULT GetDocumentMgr(ITfDocumentMgr* ppDm);
     HRESULT CreateRangeBackup(uint ec, ITfRange pRange, ITfRangeBackup* ppBackup);
 }
 
-const GUID IID_ITfQueryEmbedded = {0x0FAB9BDB, 0xD250, 0x4169, [0x84, 0xE5, 0x6B, 0xE1, 0x18, 0xFD, 0xD7, 0xA8]};
-@GUID(0x0FAB9BDB, 0xD250, 0x4169, [0x84, 0xE5, 0x6B, 0xE1, 0x18, 0xFD, 0xD7, 0xA8]);
+@GUID("0FAB9BDB-D250-4169-84E5-6BE118FDD7A8")
 interface ITfQueryEmbedded : IUnknown
 {
-    HRESULT QueryInsertEmbedded(const(Guid)* pguidService, const(FORMATETC)* pFormatEtc, int* pfInsertable);
+    HRESULT QueryInsertEmbedded(const(GUID)* pguidService, const(FORMATETC)* pFormatEtc, int* pfInsertable);
 }
 
-const GUID IID_ITfInsertAtSelection = {0x55CE16BA, 0x3014, 0x41C1, [0x9C, 0xEB, 0xFA, 0xDE, 0x14, 0x46, 0xAC, 0x6C]};
-@GUID(0x55CE16BA, 0x3014, 0x41C1, [0x9C, 0xEB, 0xFA, 0xDE, 0x14, 0x46, 0xAC, 0x6C]);
+@GUID("55CE16BA-3014-41C1-9CEB-FADE1446AC6C")
 interface ITfInsertAtSelection : IUnknown
 {
     HRESULT InsertTextAtSelection(uint ec, uint dwFlags, const(wchar)* pchText, int cch, ITfRange* ppRange);
     HRESULT InsertEmbeddedAtSelection(uint ec, uint dwFlags, IDataObject pDataObject, ITfRange* ppRange);
 }
 
-const GUID IID_ITfCleanupContextSink = {0x01689689, 0x7ACB, 0x4E9B, [0xAB, 0x7C, 0x7E, 0xA4, 0x6B, 0x12, 0xB5, 0x22]};
-@GUID(0x01689689, 0x7ACB, 0x4E9B, [0xAB, 0x7C, 0x7E, 0xA4, 0x6B, 0x12, 0xB5, 0x22]);
+@GUID("01689689-7ACB-4E9B-AB7C-7EA46B12B522")
 interface ITfCleanupContextSink : IUnknown
 {
     HRESULT OnCleanupContext(uint ecWrite, ITfContext pic);
 }
 
-const GUID IID_ITfCleanupContextDurationSink = {0x45C35144, 0x154E, 0x4797, [0xBE, 0xD8, 0xD3, 0x3A, 0xE7, 0xBF, 0x87, 0x94]};
-@GUID(0x45C35144, 0x154E, 0x4797, [0xBE, 0xD8, 0xD3, 0x3A, 0xE7, 0xBF, 0x87, 0x94]);
+@GUID("45C35144-154E-4797-BED8-D33AE7BF8794")
 interface ITfCleanupContextDurationSink : IUnknown
 {
     HRESULT OnStartCleanupContext();
     HRESULT OnEndCleanupContext();
 }
 
-const GUID IID_ITfReadOnlyProperty = {0x17D49A3D, 0xF8B8, 0x4B2F, [0xB2, 0x54, 0x52, 0x31, 0x9D, 0xD6, 0x4C, 0x53]};
-@GUID(0x17D49A3D, 0xF8B8, 0x4B2F, [0xB2, 0x54, 0x52, 0x31, 0x9D, 0xD6, 0x4C, 0x53]);
+@GUID("17D49A3D-F8B8-4B2F-B254-52319DD64C53")
 interface ITfReadOnlyProperty : IUnknown
 {
-    HRESULT GetType(Guid* pguid);
+    HRESULT GetType(GUID* pguid);
     HRESULT EnumRanges(uint ec, IEnumTfRanges* ppEnum, ITfRange pTargetRange);
     HRESULT GetValue(uint ec, ITfRange pRange, VARIANT* pvarValue);
     HRESULT GetContext(ITfContext* ppContext);
 }
 
-struct TF_PROPERTYVAL
-{
-    Guid guidId;
-    VARIANT varValue;
-}
-
-const GUID IID_IEnumTfPropertyValue = {0x8ED8981B, 0x7C10, 0x4D7D, [0x9F, 0xB3, 0xAB, 0x72, 0xE9, 0xC7, 0x5F, 0x72]};
-@GUID(0x8ED8981B, 0x7C10, 0x4D7D, [0x9F, 0xB3, 0xAB, 0x72, 0xE9, 0xC7, 0x5F, 0x72]);
+@GUID("8ED8981B-7C10-4D7D-9FB3-AB72E9C75F72")
 interface IEnumTfPropertyValue : IUnknown
 {
     HRESULT Clone(IEnumTfPropertyValue* ppEnum);
@@ -717,75 +924,59 @@ interface IEnumTfPropertyValue : IUnknown
     HRESULT Skip(uint ulCount);
 }
 
-const GUID IID_ITfMouseTracker = {0x09D146CD, 0xA544, 0x4132, [0x92, 0x5B, 0x7A, 0xFA, 0x8E, 0xF3, 0x22, 0xD0]};
-@GUID(0x09D146CD, 0xA544, 0x4132, [0x92, 0x5B, 0x7A, 0xFA, 0x8E, 0xF3, 0x22, 0xD0]);
+@GUID("09D146CD-A544-4132-925B-7AFA8EF322D0")
 interface ITfMouseTracker : IUnknown
 {
     HRESULT AdviseMouseSink(ITfRange range, ITfMouseSink pSink, uint* pdwCookie);
     HRESULT UnadviseMouseSink(uint dwCookie);
 }
 
-const GUID IID_ITfMouseTrackerACP = {0x3BDD78E2, 0xC16E, 0x47FD, [0xB8, 0x83, 0xCE, 0x6F, 0xAC, 0xC1, 0xA2, 0x08]};
-@GUID(0x3BDD78E2, 0xC16E, 0x47FD, [0xB8, 0x83, 0xCE, 0x6F, 0xAC, 0xC1, 0xA2, 0x08]);
+@GUID("3BDD78E2-C16E-47FD-B883-CE6FACC1A208")
 interface ITfMouseTrackerACP : IUnknown
 {
     HRESULT AdviseMouseSink(ITfRangeACP range, ITfMouseSink pSink, uint* pdwCookie);
     HRESULT UnadviseMouseSink(uint dwCookie);
 }
 
-const GUID IID_ITfMouseSink = {0xA1ADAAA2, 0x3A24, 0x449D, [0xAC, 0x96, 0x51, 0x83, 0xE7, 0xF5, 0xC2, 0x17]};
-@GUID(0xA1ADAAA2, 0x3A24, 0x449D, [0xAC, 0x96, 0x51, 0x83, 0xE7, 0xF5, 0xC2, 0x17]);
+@GUID("A1ADAAA2-3A24-449D-AC96-5183E7F5C217")
 interface ITfMouseSink : IUnknown
 {
     HRESULT OnMouseEvent(uint uEdge, uint uQuadrant, uint dwBtnStatus, int* pfEaten);
 }
 
-const GUID IID_ITfEditRecord = {0x42D4D099, 0x7C1A, 0x4A89, [0xB8, 0x36, 0x6C, 0x6F, 0x22, 0x16, 0x0D, 0xF0]};
-@GUID(0x42D4D099, 0x7C1A, 0x4A89, [0xB8, 0x36, 0x6C, 0x6F, 0x22, 0x16, 0x0D, 0xF0]);
+@GUID("42D4D099-7C1A-4A89-B836-6C6F22160DF0")
 interface ITfEditRecord : IUnknown
 {
     HRESULT GetSelectionStatus(int* pfChanged);
     HRESULT GetTextAndPropertyUpdates(uint dwFlags, char* prgProperties, uint cProperties, IEnumTfRanges* ppEnum);
 }
 
-const GUID IID_ITfTextEditSink = {0x8127D409, 0xCCD3, 0x4683, [0x96, 0x7A, 0xB4, 0x3D, 0x5B, 0x48, 0x2B, 0xF7]};
-@GUID(0x8127D409, 0xCCD3, 0x4683, [0x96, 0x7A, 0xB4, 0x3D, 0x5B, 0x48, 0x2B, 0xF7]);
+@GUID("8127D409-CCD3-4683-967A-B43D5B482BF7")
 interface ITfTextEditSink : IUnknown
 {
     HRESULT OnEndEdit(ITfContext pic, uint ecReadOnly, ITfEditRecord pEditRecord);
 }
 
-enum TfLayoutCode
-{
-    TF_LC_CREATE = 0,
-    TF_LC_CHANGE = 1,
-    TF_LC_DESTROY = 2,
-}
-
-const GUID IID_ITfTextLayoutSink = {0x2AF2D06A, 0xDD5B, 0x4927, [0xA0, 0xB4, 0x54, 0xF1, 0x9C, 0x91, 0xFA, 0xDE]};
-@GUID(0x2AF2D06A, 0xDD5B, 0x4927, [0xA0, 0xB4, 0x54, 0xF1, 0x9C, 0x91, 0xFA, 0xDE]);
+@GUID("2AF2D06A-DD5B-4927-A0B4-54F19C91FADE")
 interface ITfTextLayoutSink : IUnknown
 {
     HRESULT OnLayoutChange(ITfContext pic, TfLayoutCode lcode, ITfContextView pView);
 }
 
-const GUID IID_ITfStatusSink = {0x6B7D8D73, 0xB267, 0x4F69, [0xB3, 0x2E, 0x1C, 0xA3, 0x21, 0xCE, 0x4F, 0x45]};
-@GUID(0x6B7D8D73, 0xB267, 0x4F69, [0xB3, 0x2E, 0x1C, 0xA3, 0x21, 0xCE, 0x4F, 0x45]);
+@GUID("6B7D8D73-B267-4F69-B32E-1CA321CE4F45")
 interface ITfStatusSink : IUnknown
 {
     HRESULT OnStatusChange(ITfContext pic, uint dwFlags);
 }
 
-const GUID IID_ITfEditTransactionSink = {0x708FBF70, 0xB520, 0x416B, [0xB0, 0x6C, 0x2C, 0x41, 0xAB, 0x44, 0xF8, 0xBA]};
-@GUID(0x708FBF70, 0xB520, 0x416B, [0xB0, 0x6C, 0x2C, 0x41, 0xAB, 0x44, 0xF8, 0xBA]);
+@GUID("708FBF70-B520-416B-B06C-2C41AB44F8BA")
 interface ITfEditTransactionSink : IUnknown
 {
     HRESULT OnStartEditTransaction(ITfContext pic);
     HRESULT OnEndEditTransaction(ITfContext pic);
 }
 
-const GUID IID_ITfContextOwner = {0xAA80E80C, 0x2021, 0x11D2, [0x93, 0xE0, 0x00, 0x60, 0xB0, 0x67, 0xB8, 0x6E]};
-@GUID(0xAA80E80C, 0x2021, 0x11D2, [0x93, 0xE0, 0x00, 0x60, 0xB0, 0x67, 0xB8, 0x6E]);
+@GUID("AA80E80C-2021-11D2-93E0-0060B067B86E")
 interface ITfContextOwner : IUnknown
 {
     HRESULT GetACPFromPoint(const(POINT)* ptScreen, uint dwFlags, int* pacp);
@@ -793,24 +984,23 @@ interface ITfContextOwner : IUnknown
     HRESULT GetScreenExt(RECT* prc);
     HRESULT GetStatus(TS_STATUS* pdcs);
     HRESULT GetWnd(HWND* phwnd);
-    HRESULT GetAttribute(const(Guid)* rguidAttribute, VARIANT* pvarValue);
+    HRESULT GetAttribute(const(GUID)* rguidAttribute, VARIANT* pvarValue);
 }
 
-const GUID IID_ITfContextOwnerServices = {0xB23EB630, 0x3E1C, 0x11D3, [0xA7, 0x45, 0x00, 0x50, 0x04, 0x0A, 0xB4, 0x07]};
-@GUID(0xB23EB630, 0x3E1C, 0x11D3, [0xA7, 0x45, 0x00, 0x50, 0x04, 0x0A, 0xB4, 0x07]);
+@GUID("B23EB630-3E1C-11D3-A745-0050040AB407")
 interface ITfContextOwnerServices : IUnknown
 {
     HRESULT OnLayoutChange();
     HRESULT OnStatusChange(uint dwFlags);
-    HRESULT OnAttributeChange(const(Guid)* rguidAttribute);
+    HRESULT OnAttributeChange(const(GUID)* rguidAttribute);
     HRESULT Serialize(ITfProperty pProp, ITfRange pRange, TF_PERSISTENT_PROPERTY_HEADER_ACP* pHdr, IStream pStream);
-    HRESULT Unserialize(ITfProperty pProp, const(TF_PERSISTENT_PROPERTY_HEADER_ACP)* pHdr, IStream pStream, ITfPersistentPropertyLoaderACP pLoader);
+    HRESULT Unserialize(ITfProperty pProp, const(TF_PERSISTENT_PROPERTY_HEADER_ACP)* pHdr, IStream pStream, 
+                        ITfPersistentPropertyLoaderACP pLoader);
     HRESULT ForceLoadProperty(ITfProperty pProp);
     HRESULT CreateRange(int acpStart, int acpEnd, ITfRangeACP* ppRange);
 }
 
-const GUID IID_ITfContextKeyEventSink = {0x0552BA5D, 0xC835, 0x4934, [0xBF, 0x50, 0x84, 0x6A, 0xAA, 0x67, 0x43, 0x2F]};
-@GUID(0x0552BA5D, 0xC835, 0x4934, [0xBF, 0x50, 0x84, 0x6A, 0xAA, 0x67, 0x43, 0x2F]);
+@GUID("0552BA5D-C835-4934-BF50-846AAA67432F")
 interface ITfContextKeyEventSink : IUnknown
 {
     HRESULT OnKeyDown(WPARAM wParam, LPARAM lParam, int* pfEaten);
@@ -819,40 +1009,19 @@ interface ITfContextKeyEventSink : IUnknown
     HRESULT OnTestKeyUp(WPARAM wParam, LPARAM lParam, int* pfEaten);
 }
 
-const GUID IID_ITfEditSession = {0xAA80E803, 0x2021, 0x11D2, [0x93, 0xE0, 0x00, 0x60, 0xB0, 0x67, 0xB8, 0x6E]};
-@GUID(0xAA80E803, 0x2021, 0x11D2, [0x93, 0xE0, 0x00, 0x60, 0xB0, 0x67, 0xB8, 0x6E]);
+@GUID("AA80E803-2021-11D2-93E0-0060B067B86E")
 interface ITfEditSession : IUnknown
 {
     HRESULT DoEditSession(uint ec);
 }
 
-enum TfGravity
-{
-    TF_GRAVITY_BACKWARD = 0,
-    TF_GRAVITY_FORWARD = 1,
-}
-
-enum TfShiftDir
-{
-    TF_SD_BACKWARD = 0,
-    TF_SD_FORWARD = 1,
-}
-
-struct TF_HALTCOND
-{
-    ITfRange pHaltRange;
-    TfAnchor aHaltPos;
-    uint dwFlags;
-}
-
-const GUID IID_ITfRange = {0xAA80E7FF, 0x2021, 0x11D2, [0x93, 0xE0, 0x00, 0x60, 0xB0, 0x67, 0xB8, 0x6E]};
-@GUID(0xAA80E7FF, 0x2021, 0x11D2, [0x93, 0xE0, 0x00, 0x60, 0xB0, 0x67, 0xB8, 0x6E]);
+@GUID("AA80E7FF-2021-11D2-93E0-0060B067B86E")
 interface ITfRange : IUnknown
 {
     HRESULT GetText(uint ec, uint dwFlags, char* pchText, uint cchMax, uint* pcch);
     HRESULT SetText(uint ec, uint dwFlags, const(wchar)* pchText, int cch);
     HRESULT GetFormattedText(uint ec, IDataObject* ppDataObject);
-    HRESULT GetEmbedded(uint ec, const(Guid)* rguidService, const(Guid)* riid, IUnknown* ppunk);
+    HRESULT GetEmbedded(uint ec, const(GUID)* rguidService, const(GUID)* riid, IUnknown* ppunk);
     HRESULT InsertEmbedded(uint ec, uint dwFlags, IDataObject pDataObject);
     HRESULT ShiftStart(uint ec, int cchReq, int* pcch, const(TF_HALTCOND)* pHalt);
     HRESULT ShiftEnd(uint ec, int cchReq, int* pcch, const(TF_HALTCOND)* pHalt);
@@ -873,48 +1042,44 @@ interface ITfRange : IUnknown
     HRESULT GetContext(ITfContext* ppContext);
 }
 
-const GUID IID_ITfRangeACP = {0x057A6296, 0x029B, 0x4154, [0xB7, 0x9A, 0x0D, 0x46, 0x1D, 0x4E, 0xA9, 0x4C]};
-@GUID(0x057A6296, 0x029B, 0x4154, [0xB7, 0x9A, 0x0D, 0x46, 0x1D, 0x4E, 0xA9, 0x4C]);
+@GUID("057A6296-029B-4154-B79A-0D461D4EA94C")
 interface ITfRangeACP : ITfRange
 {
     HRESULT GetExtent(int* pacpAnchor, int* pcch);
     HRESULT SetExtent(int acpAnchor, int cch);
 }
 
-const GUID IID_ITextStoreACPServices = {0xAA80E901, 0x2021, 0x11D2, [0x93, 0xE0, 0x00, 0x60, 0xB0, 0x67, 0xB8, 0x6E]};
-@GUID(0xAA80E901, 0x2021, 0x11D2, [0x93, 0xE0, 0x00, 0x60, 0xB0, 0x67, 0xB8, 0x6E]);
+@GUID("AA80E901-2021-11D2-93E0-0060B067B86E")
 interface ITextStoreACPServices : IUnknown
 {
     HRESULT Serialize(ITfProperty pProp, ITfRange pRange, TF_PERSISTENT_PROPERTY_HEADER_ACP* pHdr, IStream pStream);
-    HRESULT Unserialize(ITfProperty pProp, const(TF_PERSISTENT_PROPERTY_HEADER_ACP)* pHdr, IStream pStream, ITfPersistentPropertyLoaderACP pLoader);
+    HRESULT Unserialize(ITfProperty pProp, const(TF_PERSISTENT_PROPERTY_HEADER_ACP)* pHdr, IStream pStream, 
+                        ITfPersistentPropertyLoaderACP pLoader);
     HRESULT ForceLoadProperty(ITfProperty pProp);
     HRESULT CreateRange(int acpStart, int acpEnd, ITfRangeACP* ppRange);
 }
 
-const GUID IID_ITfRangeBackup = {0x463A506D, 0x6992, 0x49D2, [0x9B, 0x88, 0x93, 0xD5, 0x5E, 0x70, 0xBB, 0x16]};
-@GUID(0x463A506D, 0x6992, 0x49D2, [0x9B, 0x88, 0x93, 0xD5, 0x5E, 0x70, 0xBB, 0x16]);
+@GUID("463A506D-6992-49D2-9B88-93D55E70BB16")
 interface ITfRangeBackup : IUnknown
 {
     HRESULT Restore(uint ec, ITfRange pRange);
 }
 
-const GUID IID_ITfPropertyStore = {0x6834B120, 0x88CB, 0x11D2, [0xBF, 0x45, 0x00, 0x10, 0x5A, 0x27, 0x99, 0xB5]};
-@GUID(0x6834B120, 0x88CB, 0x11D2, [0xBF, 0x45, 0x00, 0x10, 0x5A, 0x27, 0x99, 0xB5]);
+@GUID("6834B120-88CB-11D2-BF45-00105A2799B5")
 interface ITfPropertyStore : IUnknown
 {
-    HRESULT GetType(Guid* pguid);
+    HRESULT GetType(GUID* pguid);
     HRESULT GetDataType(uint* pdwReserved);
     HRESULT GetData(VARIANT* pvarValue);
     HRESULT OnTextUpdated(uint dwFlags, ITfRange pRangeNew, int* pfAccept);
     HRESULT Shrink(ITfRange pRangeNew, int* pfFree);
     HRESULT Divide(ITfRange pRangeThis, ITfRange pRangeNew, ITfPropertyStore* ppPropStore);
     HRESULT Clone(ITfPropertyStore* pPropStore);
-    HRESULT GetPropertyRangeCreator(Guid* pclsid);
+    HRESULT GetPropertyRangeCreator(GUID* pclsid);
     HRESULT Serialize(IStream pStream, uint* pcb);
 }
 
-const GUID IID_IEnumTfRanges = {0xF99D3F40, 0x8E32, 0x11D2, [0xBF, 0x46, 0x00, 0x10, 0x5A, 0x27, 0x99, 0xB5]};
-@GUID(0xF99D3F40, 0x8E32, 0x11D2, [0xBF, 0x46, 0x00, 0x10, 0x5A, 0x27, 0x99, 0xB5]);
+@GUID("F99D3F40-8E32-11D2-BF46-00105A2799B5")
 interface IEnumTfRanges : IUnknown
 {
     HRESULT Clone(IEnumTfRanges* ppEnum);
@@ -923,23 +1088,22 @@ interface IEnumTfRanges : IUnknown
     HRESULT Skip(uint ulCount);
 }
 
-const GUID IID_ITfCreatePropertyStore = {0x2463FBF0, 0xB0AF, 0x11D2, [0xAF, 0xC5, 0x00, 0x10, 0x5A, 0x27, 0x99, 0xB5]};
-@GUID(0x2463FBF0, 0xB0AF, 0x11D2, [0xAF, 0xC5, 0x00, 0x10, 0x5A, 0x27, 0x99, 0xB5]);
+@GUID("2463FBF0-B0AF-11D2-AFC5-00105A2799B5")
 interface ITfCreatePropertyStore : IUnknown
 {
-    HRESULT IsStoreSerializable(const(Guid)* guidProp, ITfRange pRange, ITfPropertyStore pPropStore, int* pfSerializable);
-    HRESULT CreatePropertyStore(const(Guid)* guidProp, ITfRange pRange, uint cb, IStream pStream, ITfPropertyStore* ppStore);
+    HRESULT IsStoreSerializable(const(GUID)* guidProp, ITfRange pRange, ITfPropertyStore pPropStore, 
+                                int* pfSerializable);
+    HRESULT CreatePropertyStore(const(GUID)* guidProp, ITfRange pRange, uint cb, IStream pStream, 
+                                ITfPropertyStore* ppStore);
 }
 
-const GUID IID_ITfPersistentPropertyLoaderACP = {0x4EF89150, 0x0807, 0x11D3, [0x8D, 0xF0, 0x00, 0x10, 0x5A, 0x27, 0x99, 0xB5]};
-@GUID(0x4EF89150, 0x0807, 0x11D3, [0x8D, 0xF0, 0x00, 0x10, 0x5A, 0x27, 0x99, 0xB5]);
+@GUID("4EF89150-0807-11D3-8DF0-00105A2799B5")
 interface ITfPersistentPropertyLoaderACP : IUnknown
 {
     HRESULT LoadProperty(const(TF_PERSISTENT_PROPERTY_HEADER_ACP)* pHdr, IStream* ppStream);
 }
 
-const GUID IID_ITfProperty = {0xE2449660, 0x9542, 0x11D2, [0xBF, 0x46, 0x00, 0x10, 0x5A, 0x27, 0x99, 0xB5]};
-@GUID(0xE2449660, 0x9542, 0x11D2, [0xBF, 0x46, 0x00, 0x10, 0x5A, 0x27, 0x99, 0xB5]);
+@GUID("E2449660-9542-11D2-BF46-00105A2799B5")
 interface ITfProperty : ITfReadOnlyProperty
 {
     HRESULT FindRange(uint ec, ITfRange pRange, ITfRange* ppRange, TfAnchor aPos);
@@ -948,8 +1112,7 @@ interface ITfProperty : ITfReadOnlyProperty
     HRESULT Clear(uint ec, ITfRange pRange);
 }
 
-const GUID IID_IEnumTfProperties = {0x19188CB0, 0xACA9, 0x11D2, [0xAF, 0xC5, 0x00, 0x10, 0x5A, 0x27, 0x99, 0xB5]};
-@GUID(0x19188CB0, 0xACA9, 0x11D2, [0xAF, 0xC5, 0x00, 0x10, 0x5A, 0x27, 0x99, 0xB5]);
+@GUID("19188CB0-ACA9-11D2-AFC5-00105A2799B5")
 interface IEnumTfProperties : IUnknown
 {
     HRESULT Clone(IEnumTfProperties* ppEnum);
@@ -958,48 +1121,42 @@ interface IEnumTfProperties : IUnknown
     HRESULT Skip(uint ulCount);
 }
 
-const GUID IID_ITfCompartment = {0xBB08F7A9, 0x607A, 0x4384, [0x86, 0x23, 0x05, 0x68, 0x92, 0xB6, 0x43, 0x71]};
-@GUID(0xBB08F7A9, 0x607A, 0x4384, [0x86, 0x23, 0x05, 0x68, 0x92, 0xB6, 0x43, 0x71]);
+@GUID("BB08F7A9-607A-4384-8623-056892B64371")
 interface ITfCompartment : IUnknown
 {
     HRESULT SetValue(uint tid, const(VARIANT)* pvarValue);
     HRESULT GetValue(VARIANT* pvarValue);
 }
 
-const GUID IID_ITfCompartmentEventSink = {0x743ABD5F, 0xF26D, 0x48DF, [0x8C, 0xC5, 0x23, 0x84, 0x92, 0x41, 0x9B, 0x64]};
-@GUID(0x743ABD5F, 0xF26D, 0x48DF, [0x8C, 0xC5, 0x23, 0x84, 0x92, 0x41, 0x9B, 0x64]);
+@GUID("743ABD5F-F26D-48DF-8CC5-238492419B64")
 interface ITfCompartmentEventSink : IUnknown
 {
-    HRESULT OnChange(const(Guid)* rguid);
+    HRESULT OnChange(const(GUID)* rguid);
 }
 
-const GUID IID_ITfCompartmentMgr = {0x7DCF57AC, 0x18AD, 0x438B, [0x82, 0x4D, 0x97, 0x9B, 0xFF, 0xB7, 0x4B, 0x7C]};
-@GUID(0x7DCF57AC, 0x18AD, 0x438B, [0x82, 0x4D, 0x97, 0x9B, 0xFF, 0xB7, 0x4B, 0x7C]);
+@GUID("7DCF57AC-18AD-438B-824D-979BFFB74B7C")
 interface ITfCompartmentMgr : IUnknown
 {
-    HRESULT GetCompartment(const(Guid)* rguid, ITfCompartment* ppcomp);
-    HRESULT ClearCompartment(uint tid, const(Guid)* rguid);
+    HRESULT GetCompartment(const(GUID)* rguid, ITfCompartment* ppcomp);
+    HRESULT ClearCompartment(uint tid, const(GUID)* rguid);
     HRESULT EnumCompartments(IEnumGUID* ppEnum);
 }
 
-const GUID IID_ITfFunction = {0xDB593490, 0x098F, 0x11D3, [0x8D, 0xF0, 0x00, 0x10, 0x5A, 0x27, 0x99, 0xB5]};
-@GUID(0xDB593490, 0x098F, 0x11D3, [0x8D, 0xF0, 0x00, 0x10, 0x5A, 0x27, 0x99, 0xB5]);
+@GUID("DB593490-098F-11D3-8DF0-00105A2799B5")
 interface ITfFunction : IUnknown
 {
     HRESULT GetDisplayName(BSTR* pbstrName);
 }
 
-const GUID IID_ITfFunctionProvider = {0x101D6610, 0x0990, 0x11D3, [0x8D, 0xF0, 0x00, 0x10, 0x5A, 0x27, 0x99, 0xB5]};
-@GUID(0x101D6610, 0x0990, 0x11D3, [0x8D, 0xF0, 0x00, 0x10, 0x5A, 0x27, 0x99, 0xB5]);
+@GUID("101D6610-0990-11D3-8DF0-00105A2799B5")
 interface ITfFunctionProvider : IUnknown
 {
-    HRESULT GetType(Guid* pguid);
+    HRESULT GetType(GUID* pguid);
     HRESULT GetDescription(BSTR* pbstrDesc);
-    HRESULT GetFunction(const(Guid)* rguid, const(Guid)* riid, IUnknown* ppunk);
+    HRESULT GetFunction(const(GUID)* rguid, const(GUID)* riid, IUnknown* ppunk);
 }
 
-const GUID IID_IEnumTfFunctionProviders = {0xE4B24DB0, 0x0990, 0x11D3, [0x8D, 0xF0, 0x00, 0x10, 0x5A, 0x27, 0x99, 0xB5]};
-@GUID(0xE4B24DB0, 0x0990, 0x11D3, [0x8D, 0xF0, 0x00, 0x10, 0x5A, 0x27, 0x99, 0xB5]);
+@GUID("E4B24DB0-0990-11D3-8DF0-00105A2799B5")
 interface IEnumTfFunctionProviders : IUnknown
 {
     HRESULT Clone(IEnumTfFunctionProviders* ppEnum);
@@ -1008,53 +1165,53 @@ interface IEnumTfFunctionProviders : IUnknown
     HRESULT Skip(uint ulCount);
 }
 
-const GUID IID_ITfInputProcessorProfiles = {0x1F02B6C5, 0x7842, 0x4EE6, [0x8A, 0x0B, 0x9A, 0x24, 0x18, 0x3A, 0x95, 0xCA]};
-@GUID(0x1F02B6C5, 0x7842, 0x4EE6, [0x8A, 0x0B, 0x9A, 0x24, 0x18, 0x3A, 0x95, 0xCA]);
+@GUID("1F02B6C5-7842-4EE6-8A0B-9A24183A95CA")
 interface ITfInputProcessorProfiles : IUnknown
 {
-    HRESULT Register(const(Guid)* rclsid);
-    HRESULT Unregister(const(Guid)* rclsid);
-    HRESULT AddLanguageProfile(const(Guid)* rclsid, ushort langid, const(Guid)* guidProfile, const(wchar)* pchDesc, uint cchDesc, const(wchar)* pchIconFile, uint cchFile, uint uIconIndex);
-    HRESULT RemoveLanguageProfile(const(Guid)* rclsid, ushort langid, const(Guid)* guidProfile);
+    HRESULT Register(const(GUID)* rclsid);
+    HRESULT Unregister(const(GUID)* rclsid);
+    HRESULT AddLanguageProfile(const(GUID)* rclsid, ushort langid, const(GUID)* guidProfile, const(wchar)* pchDesc, 
+                               uint cchDesc, const(wchar)* pchIconFile, uint cchFile, uint uIconIndex);
+    HRESULT RemoveLanguageProfile(const(GUID)* rclsid, ushort langid, const(GUID)* guidProfile);
     HRESULT EnumInputProcessorInfo(IEnumGUID* ppEnum);
-    HRESULT GetDefaultLanguageProfile(ushort langid, const(Guid)* catid, Guid* pclsid, Guid* pguidProfile);
-    HRESULT SetDefaultLanguageProfile(ushort langid, const(Guid)* rclsid, const(Guid)* guidProfiles);
-    HRESULT ActivateLanguageProfile(const(Guid)* rclsid, ushort langid, const(Guid)* guidProfiles);
-    HRESULT GetActiveLanguageProfile(const(Guid)* rclsid, ushort* plangid, Guid* pguidProfile);
-    HRESULT GetLanguageProfileDescription(const(Guid)* rclsid, ushort langid, const(Guid)* guidProfile, BSTR* pbstrProfile);
+    HRESULT GetDefaultLanguageProfile(ushort langid, const(GUID)* catid, GUID* pclsid, GUID* pguidProfile);
+    HRESULT SetDefaultLanguageProfile(ushort langid, const(GUID)* rclsid, const(GUID)* guidProfiles);
+    HRESULT ActivateLanguageProfile(const(GUID)* rclsid, ushort langid, const(GUID)* guidProfiles);
+    HRESULT GetActiveLanguageProfile(const(GUID)* rclsid, ushort* plangid, GUID* pguidProfile);
+    HRESULT GetLanguageProfileDescription(const(GUID)* rclsid, ushort langid, const(GUID)* guidProfile, 
+                                          BSTR* pbstrProfile);
     HRESULT GetCurrentLanguage(ushort* plangid);
     HRESULT ChangeCurrentLanguage(ushort langid);
     HRESULT GetLanguageList(char* ppLangId, uint* pulCount);
     HRESULT EnumLanguageProfiles(ushort langid, IEnumTfLanguageProfiles* ppEnum);
-    HRESULT EnableLanguageProfile(const(Guid)* rclsid, ushort langid, const(Guid)* guidProfile, BOOL fEnable);
-    HRESULT IsEnabledLanguageProfile(const(Guid)* rclsid, ushort langid, const(Guid)* guidProfile, int* pfEnable);
-    HRESULT EnableLanguageProfileByDefault(const(Guid)* rclsid, ushort langid, const(Guid)* guidProfile, BOOL fEnable);
-    HRESULT SubstituteKeyboardLayout(const(Guid)* rclsid, ushort langid, const(Guid)* guidProfile, int hKL);
+    HRESULT EnableLanguageProfile(const(GUID)* rclsid, ushort langid, const(GUID)* guidProfile, BOOL fEnable);
+    HRESULT IsEnabledLanguageProfile(const(GUID)* rclsid, ushort langid, const(GUID)* guidProfile, int* pfEnable);
+    HRESULT EnableLanguageProfileByDefault(const(GUID)* rclsid, ushort langid, const(GUID)* guidProfile, 
+                                           BOOL fEnable);
+    HRESULT SubstituteKeyboardLayout(const(GUID)* rclsid, ushort langid, const(GUID)* guidProfile, ptrdiff_t hKL);
 }
 
-const GUID IID_ITfInputProcessorProfilesEx = {0x892F230F, 0xFE00, 0x4A41, [0xA9, 0x8E, 0xFC, 0xD6, 0xDE, 0x0D, 0x35, 0xEF]};
-@GUID(0x892F230F, 0xFE00, 0x4A41, [0xA9, 0x8E, 0xFC, 0xD6, 0xDE, 0x0D, 0x35, 0xEF]);
+@GUID("892F230F-FE00-4A41-A98E-FCD6DE0D35EF")
 interface ITfInputProcessorProfilesEx : ITfInputProcessorProfiles
 {
-    HRESULT SetLanguageProfileDisplayName(const(Guid)* rclsid, ushort langid, const(Guid)* guidProfile, const(wchar)* pchFile, uint cchFile, uint uResId);
+    HRESULT SetLanguageProfileDisplayName(const(GUID)* rclsid, ushort langid, const(GUID)* guidProfile, 
+                                          const(wchar)* pchFile, uint cchFile, uint uResId);
 }
 
-const GUID IID_ITfInputProcessorProfileSubstituteLayout = {0x4FD67194, 0x1002, 0x4513, [0xBF, 0xF2, 0xC0, 0xDD, 0xF6, 0x25, 0x85, 0x52]};
-@GUID(0x4FD67194, 0x1002, 0x4513, [0xBF, 0xF2, 0xC0, 0xDD, 0xF6, 0x25, 0x85, 0x52]);
+@GUID("4FD67194-1002-4513-BFF2-C0DDF6258552")
 interface ITfInputProcessorProfileSubstituteLayout : IUnknown
 {
-    HRESULT GetSubstituteKeyboardLayout(const(Guid)* rclsid, ushort langid, const(Guid)* guidProfile, int* phKL);
+    HRESULT GetSubstituteKeyboardLayout(const(GUID)* rclsid, ushort langid, const(GUID)* guidProfile, 
+                                        ptrdiff_t* phKL);
 }
 
-const GUID IID_ITfActiveLanguageProfileNotifySink = {0xB246CB75, 0xA93E, 0x4652, [0xBF, 0x8C, 0xB3, 0xFE, 0x0C, 0xFD, 0x7E, 0x57]};
-@GUID(0xB246CB75, 0xA93E, 0x4652, [0xBF, 0x8C, 0xB3, 0xFE, 0x0C, 0xFD, 0x7E, 0x57]);
+@GUID("B246CB75-A93E-4652-BF8C-B3FE0CFD7E57")
 interface ITfActiveLanguageProfileNotifySink : IUnknown
 {
-    HRESULT OnActivated(const(Guid)* clsid, const(Guid)* guidProfile, BOOL fActivated);
+    HRESULT OnActivated(const(GUID)* clsid, const(GUID)* guidProfile, BOOL fActivated);
 }
 
-const GUID IID_IEnumTfLanguageProfiles = {0x3D61BF11, 0xAC5F, 0x42C8, [0xA4, 0xCB, 0x93, 0x1B, 0xCC, 0x28, 0xC7, 0x44]};
-@GUID(0x3D61BF11, 0xAC5F, 0x42C8, [0xA4, 0xCB, 0x93, 0x1B, 0xCC, 0x28, 0xC7, 0x44]);
+@GUID("3D61BF11-AC5F-42C8-A4CB-931BCC28C744")
 interface IEnumTfLanguageProfiles : IUnknown
 {
     HRESULT Clone(IEnumTfLanguageProfiles* ppEnum);
@@ -1063,43 +1220,32 @@ interface IEnumTfLanguageProfiles : IUnknown
     HRESULT Skip(uint ulCount);
 }
 
-const GUID IID_ITfLanguageProfileNotifySink = {0x43C9FE15, 0xF494, 0x4C17, [0x9D, 0xE2, 0xB8, 0xA4, 0xAC, 0x35, 0x0A, 0xA8]};
-@GUID(0x43C9FE15, 0xF494, 0x4C17, [0x9D, 0xE2, 0xB8, 0xA4, 0xAC, 0x35, 0x0A, 0xA8]);
+@GUID("43C9FE15-F494-4C17-9DE2-B8A4AC350AA8")
 interface ITfLanguageProfileNotifySink : IUnknown
 {
     HRESULT OnLanguageChange(ushort langid, int* pfAccept);
     HRESULT OnLanguageChanged();
 }
 
-struct TF_INPUTPROCESSORPROFILE
-{
-    uint dwProfileType;
-    ushort langid;
-    Guid clsid;
-    Guid guidProfile;
-    Guid catid;
-    int hklSubstitute;
-    uint dwCaps;
-    int hkl;
-    uint dwFlags;
-}
-
-const GUID IID_ITfInputProcessorProfileMgr = {0x71C6E74C, 0x0F28, 0x11D8, [0xA8, 0x2A, 0x00, 0x06, 0x5B, 0x84, 0x43, 0x5C]};
-@GUID(0x71C6E74C, 0x0F28, 0x11D8, [0xA8, 0x2A, 0x00, 0x06, 0x5B, 0x84, 0x43, 0x5C]);
+@GUID("71C6E74C-0F28-11D8-A82A-00065B84435C")
 interface ITfInputProcessorProfileMgr : IUnknown
 {
-    HRESULT ActivateProfile(uint dwProfileType, ushort langid, const(Guid)* clsid, const(Guid)* guidProfile, int hkl, uint dwFlags);
-    HRESULT DeactivateProfile(uint dwProfileType, ushort langid, const(Guid)* clsid, const(Guid)* guidProfile, int hkl, uint dwFlags);
-    HRESULT GetProfile(uint dwProfileType, ushort langid, const(Guid)* clsid, const(Guid)* guidProfile, int hkl, TF_INPUTPROCESSORPROFILE* pProfile);
+    HRESULT ActivateProfile(uint dwProfileType, ushort langid, const(GUID)* clsid, const(GUID)* guidProfile, 
+                            ptrdiff_t hkl, uint dwFlags);
+    HRESULT DeactivateProfile(uint dwProfileType, ushort langid, const(GUID)* clsid, const(GUID)* guidProfile, 
+                              ptrdiff_t hkl, uint dwFlags);
+    HRESULT GetProfile(uint dwProfileType, ushort langid, const(GUID)* clsid, const(GUID)* guidProfile, 
+                       ptrdiff_t hkl, TF_INPUTPROCESSORPROFILE* pProfile);
     HRESULT EnumProfiles(ushort langid, IEnumTfInputProcessorProfiles* ppEnum);
-    HRESULT ReleaseInputProcessor(const(Guid)* rclsid, uint dwFlags);
-    HRESULT RegisterProfile(const(Guid)* rclsid, ushort langid, const(Guid)* guidProfile, const(wchar)* pchDesc, uint cchDesc, const(wchar)* pchIconFile, uint cchFile, uint uIconIndex, int hklsubstitute, uint dwPreferredLayout, BOOL bEnabledByDefault, uint dwFlags);
-    HRESULT UnregisterProfile(const(Guid)* rclsid, ushort langid, const(Guid)* guidProfile, uint dwFlags);
-    HRESULT GetActiveProfile(const(Guid)* catid, TF_INPUTPROCESSORPROFILE* pProfile);
+    HRESULT ReleaseInputProcessor(const(GUID)* rclsid, uint dwFlags);
+    HRESULT RegisterProfile(const(GUID)* rclsid, ushort langid, const(GUID)* guidProfile, const(wchar)* pchDesc, 
+                            uint cchDesc, const(wchar)* pchIconFile, uint cchFile, uint uIconIndex, 
+                            ptrdiff_t hklsubstitute, uint dwPreferredLayout, BOOL bEnabledByDefault, uint dwFlags);
+    HRESULT UnregisterProfile(const(GUID)* rclsid, ushort langid, const(GUID)* guidProfile, uint dwFlags);
+    HRESULT GetActiveProfile(const(GUID)* catid, TF_INPUTPROCESSORPROFILE* pProfile);
 }
 
-const GUID IID_IEnumTfInputProcessorProfiles = {0x71C6E74D, 0x0F28, 0x11D8, [0xA8, 0x2A, 0x00, 0x06, 0x5B, 0x84, 0x43, 0x5C]};
-@GUID(0x71C6E74D, 0x0F28, 0x11D8, [0xA8, 0x2A, 0x00, 0x06, 0x5B, 0x84, 0x43, 0x5C]);
+@GUID("71C6E74D-0F28-11D8-A82A-00065B84435C")
 interface IEnumTfInputProcessorProfiles : IUnknown
 {
     HRESULT Clone(IEnumTfInputProcessorProfiles* ppEnum);
@@ -1108,41 +1254,34 @@ interface IEnumTfInputProcessorProfiles : IUnknown
     HRESULT Skip(uint ulCount);
 }
 
-const GUID IID_ITfInputProcessorProfileActivationSink = {0x71C6E74E, 0x0F28, 0x11D8, [0xA8, 0x2A, 0x00, 0x06, 0x5B, 0x84, 0x43, 0x5C]};
-@GUID(0x71C6E74E, 0x0F28, 0x11D8, [0xA8, 0x2A, 0x00, 0x06, 0x5B, 0x84, 0x43, 0x5C]);
+@GUID("71C6E74E-0F28-11D8-A82A-00065B84435C")
 interface ITfInputProcessorProfileActivationSink : IUnknown
 {
-    HRESULT OnActivated(uint dwProfileType, ushort langid, const(Guid)* clsid, const(Guid)* catid, const(Guid)* guidProfile, int hkl, uint dwFlags);
+    HRESULT OnActivated(uint dwProfileType, ushort langid, const(GUID)* clsid, const(GUID)* catid, 
+                        const(GUID)* guidProfile, ptrdiff_t hkl, uint dwFlags);
 }
 
-struct TF_PRESERVEDKEY
-{
-    uint uVKey;
-    uint uModifiers;
-}
-
-const GUID IID_ITfKeystrokeMgr = {0xAA80E7F0, 0x2021, 0x11D2, [0x93, 0xE0, 0x00, 0x60, 0xB0, 0x67, 0xB8, 0x6E]};
-@GUID(0xAA80E7F0, 0x2021, 0x11D2, [0x93, 0xE0, 0x00, 0x60, 0xB0, 0x67, 0xB8, 0x6E]);
+@GUID("AA80E7F0-2021-11D2-93E0-0060B067B86E")
 interface ITfKeystrokeMgr : IUnknown
 {
     HRESULT AdviseKeyEventSink(uint tid, ITfKeyEventSink pSink, BOOL fForeground);
     HRESULT UnadviseKeyEventSink(uint tid);
-    HRESULT GetForeground(Guid* pclsid);
+    HRESULT GetForeground(GUID* pclsid);
     HRESULT TestKeyDown(WPARAM wParam, LPARAM lParam, int* pfEaten);
     HRESULT TestKeyUp(WPARAM wParam, LPARAM lParam, int* pfEaten);
     HRESULT KeyDown(WPARAM wParam, LPARAM lParam, int* pfEaten);
     HRESULT KeyUp(WPARAM wParam, LPARAM lParam, int* pfEaten);
-    HRESULT GetPreservedKey(ITfContext pic, const(TF_PRESERVEDKEY)* pprekey, Guid* pguid);
-    HRESULT IsPreservedKey(const(Guid)* rguid, const(TF_PRESERVEDKEY)* pprekey, int* pfRegistered);
-    HRESULT PreserveKey(uint tid, const(Guid)* rguid, const(TF_PRESERVEDKEY)* prekey, const(wchar)* pchDesc, uint cchDesc);
-    HRESULT UnpreserveKey(const(Guid)* rguid, const(TF_PRESERVEDKEY)* pprekey);
-    HRESULT SetPreservedKeyDescription(const(Guid)* rguid, const(wchar)* pchDesc, uint cchDesc);
-    HRESULT GetPreservedKeyDescription(const(Guid)* rguid, BSTR* pbstrDesc);
-    HRESULT SimulatePreservedKey(ITfContext pic, const(Guid)* rguid, int* pfEaten);
+    HRESULT GetPreservedKey(ITfContext pic, const(TF_PRESERVEDKEY)* pprekey, GUID* pguid);
+    HRESULT IsPreservedKey(const(GUID)* rguid, const(TF_PRESERVEDKEY)* pprekey, int* pfRegistered);
+    HRESULT PreserveKey(uint tid, const(GUID)* rguid, const(TF_PRESERVEDKEY)* prekey, const(wchar)* pchDesc, 
+                        uint cchDesc);
+    HRESULT UnpreserveKey(const(GUID)* rguid, const(TF_PRESERVEDKEY)* pprekey);
+    HRESULT SetPreservedKeyDescription(const(GUID)* rguid, const(wchar)* pchDesc, uint cchDesc);
+    HRESULT GetPreservedKeyDescription(const(GUID)* rguid, BSTR* pbstrDesc);
+    HRESULT SimulatePreservedKey(ITfContext pic, const(GUID)* rguid, int* pfEaten);
 }
 
-const GUID IID_ITfKeyEventSink = {0xAA80E7F5, 0x2021, 0x11D2, [0x93, 0xE0, 0x00, 0x60, 0xB0, 0x67, 0xB8, 0x6E]};
-@GUID(0xAA80E7F5, 0x2021, 0x11D2, [0x93, 0xE0, 0x00, 0x60, 0xB0, 0x67, 0xB8, 0x6E]);
+@GUID("AA80E7F5-2021-11D2-93E0-0060B067B86E")
 interface ITfKeyEventSink : IUnknown
 {
     HRESULT OnSetFocus(BOOL fForeground);
@@ -1150,120 +1289,70 @@ interface ITfKeyEventSink : IUnknown
     HRESULT OnTestKeyUp(ITfContext pic, WPARAM wParam, LPARAM lParam, int* pfEaten);
     HRESULT OnKeyDown(ITfContext pic, WPARAM wParam, LPARAM lParam, int* pfEaten);
     HRESULT OnKeyUp(ITfContext pic, WPARAM wParam, LPARAM lParam, int* pfEaten);
-    HRESULT OnPreservedKey(ITfContext pic, const(Guid)* rguid, int* pfEaten);
+    HRESULT OnPreservedKey(ITfContext pic, const(GUID)* rguid, int* pfEaten);
 }
 
-const GUID IID_ITfKeyTraceEventSink = {0x1CD4C13B, 0x1C36, 0x4191, [0xA7, 0x0A, 0x7F, 0x3E, 0x61, 0x1F, 0x36, 0x7D]};
-@GUID(0x1CD4C13B, 0x1C36, 0x4191, [0xA7, 0x0A, 0x7F, 0x3E, 0x61, 0x1F, 0x36, 0x7D]);
+@GUID("1CD4C13B-1C36-4191-A70A-7F3E611F367D")
 interface ITfKeyTraceEventSink : IUnknown
 {
     HRESULT OnKeyTraceDown(WPARAM wParam, LPARAM lParam);
     HRESULT OnKeyTraceUp(WPARAM wParam, LPARAM lParam);
 }
 
-const GUID IID_ITfPreservedKeyNotifySink = {0x6F77C993, 0xD2B1, 0x446E, [0x85, 0x3E, 0x59, 0x12, 0xEF, 0xC8, 0xA2, 0x86]};
-@GUID(0x6F77C993, 0xD2B1, 0x446E, [0x85, 0x3E, 0x59, 0x12, 0xEF, 0xC8, 0xA2, 0x86]);
+@GUID("6F77C993-D2B1-446E-853E-5912EFC8A286")
 interface ITfPreservedKeyNotifySink : IUnknown
 {
     HRESULT OnUpdated(const(TF_PRESERVEDKEY)* pprekey);
 }
 
-const GUID IID_ITfMessagePump = {0x8F1B8AD8, 0x0B6B, 0x4874, [0x90, 0xC5, 0xBD, 0x76, 0x01, 0x1E, 0x8F, 0x7C]};
-@GUID(0x8F1B8AD8, 0x0B6B, 0x4874, [0x90, 0xC5, 0xBD, 0x76, 0x01, 0x1E, 0x8F, 0x7C]);
+@GUID("8F1B8AD8-0B6B-4874-90C5-BD76011E8F7C")
 interface ITfMessagePump : IUnknown
 {
-    HRESULT PeekMessageA(MSG* pMsg, HWND hwnd, uint wMsgFilterMin, uint wMsgFilterMax, uint wRemoveMsg, int* pfResult);
+    HRESULT PeekMessageA(MSG* pMsg, HWND hwnd, uint wMsgFilterMin, uint wMsgFilterMax, uint wRemoveMsg, 
+                         int* pfResult);
     HRESULT GetMessageA(MSG* pMsg, HWND hwnd, uint wMsgFilterMin, uint wMsgFilterMax, int* pfResult);
-    HRESULT PeekMessageW(MSG* pMsg, HWND hwnd, uint wMsgFilterMin, uint wMsgFilterMax, uint wRemoveMsg, int* pfResult);
+    HRESULT PeekMessageW(MSG* pMsg, HWND hwnd, uint wMsgFilterMin, uint wMsgFilterMax, uint wRemoveMsg, 
+                         int* pfResult);
     HRESULT GetMessageW(MSG* pMsg, HWND hwnd, uint wMsgFilterMin, uint wMsgFilterMax, int* pfResult);
 }
 
-const GUID IID_ITfThreadFocusSink = {0xC0F1DB0C, 0x3A20, 0x405C, [0xA3, 0x03, 0x96, 0xB6, 0x01, 0x0A, 0x88, 0x5F]};
-@GUID(0xC0F1DB0C, 0x3A20, 0x405C, [0xA3, 0x03, 0x96, 0xB6, 0x01, 0x0A, 0x88, 0x5F]);
+@GUID("C0F1DB0C-3A20-405C-A303-96B6010A885F")
 interface ITfThreadFocusSink : IUnknown
 {
     HRESULT OnSetThreadFocus();
     HRESULT OnKillThreadFocus();
 }
 
-const GUID IID_ITfTextInputProcessor = {0xAA80E7F7, 0x2021, 0x11D2, [0x93, 0xE0, 0x00, 0x60, 0xB0, 0x67, 0xB8, 0x6E]};
-@GUID(0xAA80E7F7, 0x2021, 0x11D2, [0x93, 0xE0, 0x00, 0x60, 0xB0, 0x67, 0xB8, 0x6E]);
+@GUID("AA80E7F7-2021-11D2-93E0-0060B067B86E")
 interface ITfTextInputProcessor : IUnknown
 {
     HRESULT Activate(ITfThreadMgr ptim, uint tid);
     HRESULT Deactivate();
 }
 
-const GUID IID_ITfTextInputProcessorEx = {0x6E4E2102, 0xF9CD, 0x433D, [0xB4, 0x96, 0x30, 0x3C, 0xE0, 0x3A, 0x65, 0x07]};
-@GUID(0x6E4E2102, 0xF9CD, 0x433D, [0xB4, 0x96, 0x30, 0x3C, 0xE0, 0x3A, 0x65, 0x07]);
+@GUID("6E4E2102-F9CD-433D-B496-303CE03A6507")
 interface ITfTextInputProcessorEx : ITfTextInputProcessor
 {
     HRESULT ActivateEx(ITfThreadMgr ptim, uint tid, uint dwFlags);
 }
 
-const GUID IID_ITfClientId = {0xD60A7B49, 0x1B9F, 0x4BE2, [0xB7, 0x02, 0x47, 0xE9, 0xDC, 0x05, 0xDE, 0xC3]};
-@GUID(0xD60A7B49, 0x1B9F, 0x4BE2, [0xB7, 0x02, 0x47, 0xE9, 0xDC, 0x05, 0xDE, 0xC3]);
+@GUID("D60A7B49-1B9F-4BE2-B702-47E9DC05DEC3")
 interface ITfClientId : IUnknown
 {
-    HRESULT GetClientId(const(Guid)* rclsid, uint* ptid);
+    HRESULT GetClientId(const(GUID)* rclsid, uint* ptid);
 }
 
-enum TF_DA_LINESTYLE
-{
-    TF_LS_NONE = 0,
-    TF_LS_SOLID = 1,
-    TF_LS_DOT = 2,
-    TF_LS_DASH = 3,
-    TF_LS_SQUIGGLE = 4,
-}
-
-enum TF_DA_COLORTYPE
-{
-    TF_CT_NONE = 0,
-    TF_CT_SYSCOLOR = 1,
-    TF_CT_COLORREF = 2,
-}
-
-struct TF_DA_COLOR
-{
-    TF_DA_COLORTYPE type;
-    _Anonymous_e__Union Anonymous;
-}
-
-enum TF_DA_ATTR_INFO
-{
-    TF_ATTR_INPUT = 0,
-    TF_ATTR_TARGET_CONVERTED = 1,
-    TF_ATTR_CONVERTED = 2,
-    TF_ATTR_TARGET_NOTCONVERTED = 3,
-    TF_ATTR_INPUT_ERROR = 4,
-    TF_ATTR_FIXEDCONVERTED = 5,
-    TF_ATTR_OTHER = -1,
-}
-
-struct TF_DISPLAYATTRIBUTE
-{
-    TF_DA_COLOR crText;
-    TF_DA_COLOR crBk;
-    TF_DA_LINESTYLE lsStyle;
-    BOOL fBoldLine;
-    TF_DA_COLOR crLine;
-    TF_DA_ATTR_INFO bAttr;
-}
-
-const GUID IID_ITfDisplayAttributeInfo = {0x70528852, 0x2F26, 0x4AEA, [0x8C, 0x96, 0x21, 0x51, 0x50, 0x57, 0x89, 0x32]};
-@GUID(0x70528852, 0x2F26, 0x4AEA, [0x8C, 0x96, 0x21, 0x51, 0x50, 0x57, 0x89, 0x32]);
+@GUID("70528852-2F26-4AEA-8C96-215150578932")
 interface ITfDisplayAttributeInfo : IUnknown
 {
-    HRESULT GetGUID(Guid* pguid);
+    HRESULT GetGUID(GUID* pguid);
     HRESULT GetDescription(BSTR* pbstrDesc);
     HRESULT GetAttributeInfo(TF_DISPLAYATTRIBUTE* pda);
     HRESULT SetAttributeInfo(const(TF_DISPLAYATTRIBUTE)* pda);
     HRESULT Reset();
 }
 
-const GUID IID_IEnumTfDisplayAttributeInfo = {0x7CEF04D7, 0xCB75, 0x4E80, [0xA7, 0xAB, 0x5F, 0x5B, 0xC7, 0xD3, 0x32, 0xDE]};
-@GUID(0x7CEF04D7, 0xCB75, 0x4E80, [0xA7, 0xAB, 0x5F, 0x5B, 0xC7, 0xD3, 0x32, 0xDE]);
+@GUID("7CEF04D7-CB75-4E80-A7AB-5F5BC7D332DE")
 interface IEnumTfDisplayAttributeInfo : IUnknown
 {
     HRESULT Clone(IEnumTfDisplayAttributeInfo* ppEnum);
@@ -1272,68 +1361,61 @@ interface IEnumTfDisplayAttributeInfo : IUnknown
     HRESULT Skip(uint ulCount);
 }
 
-const GUID IID_ITfDisplayAttributeProvider = {0xFEE47777, 0x163C, 0x4769, [0x99, 0x6A, 0x6E, 0x9C, 0x50, 0xAD, 0x8F, 0x54]};
-@GUID(0xFEE47777, 0x163C, 0x4769, [0x99, 0x6A, 0x6E, 0x9C, 0x50, 0xAD, 0x8F, 0x54]);
+@GUID("FEE47777-163C-4769-996A-6E9C50AD8F54")
 interface ITfDisplayAttributeProvider : IUnknown
 {
     HRESULT EnumDisplayAttributeInfo(IEnumTfDisplayAttributeInfo* ppEnum);
-    HRESULT GetDisplayAttributeInfo(const(Guid)* guid, ITfDisplayAttributeInfo* ppInfo);
+    HRESULT GetDisplayAttributeInfo(const(GUID)* guid, ITfDisplayAttributeInfo* ppInfo);
 }
 
-const GUID IID_ITfDisplayAttributeMgr = {0x8DED7393, 0x5DB1, 0x475C, [0x9E, 0x71, 0xA3, 0x91, 0x11, 0xB0, 0xFF, 0x67]};
-@GUID(0x8DED7393, 0x5DB1, 0x475C, [0x9E, 0x71, 0xA3, 0x91, 0x11, 0xB0, 0xFF, 0x67]);
+@GUID("8DED7393-5DB1-475C-9E71-A39111B0FF67")
 interface ITfDisplayAttributeMgr : IUnknown
 {
     HRESULT OnUpdateInfo();
     HRESULT EnumDisplayAttributeInfo(IEnumTfDisplayAttributeInfo* ppEnum);
-    HRESULT GetDisplayAttributeInfo(const(Guid)* guid, ITfDisplayAttributeInfo* ppInfo, Guid* pclsidOwner);
+    HRESULT GetDisplayAttributeInfo(const(GUID)* guid, ITfDisplayAttributeInfo* ppInfo, GUID* pclsidOwner);
 }
 
-const GUID IID_ITfDisplayAttributeNotifySink = {0xAD56F402, 0xE162, 0x4F25, [0x90, 0x8F, 0x7D, 0x57, 0x7C, 0xF9, 0xBD, 0xA9]};
-@GUID(0xAD56F402, 0xE162, 0x4F25, [0x90, 0x8F, 0x7D, 0x57, 0x7C, 0xF9, 0xBD, 0xA9]);
+@GUID("AD56F402-E162-4F25-908F-7D577CF9BDA9")
 interface ITfDisplayAttributeNotifySink : IUnknown
 {
     HRESULT OnUpdateInfo();
 }
 
-const GUID IID_ITfCategoryMgr = {0xC3ACEFB5, 0xF69D, 0x4905, [0x93, 0x8F, 0xFC, 0xAD, 0xCF, 0x4B, 0xE8, 0x30]};
-@GUID(0xC3ACEFB5, 0xF69D, 0x4905, [0x93, 0x8F, 0xFC, 0xAD, 0xCF, 0x4B, 0xE8, 0x30]);
+@GUID("C3ACEFB5-F69D-4905-938F-FCADCF4BE830")
 interface ITfCategoryMgr : IUnknown
 {
-    HRESULT RegisterCategory(const(Guid)* rclsid, const(Guid)* rcatid, const(Guid)* rguid);
-    HRESULT UnregisterCategory(const(Guid)* rclsid, const(Guid)* rcatid, const(Guid)* rguid);
-    HRESULT EnumCategoriesInItem(const(Guid)* rguid, IEnumGUID* ppEnum);
-    HRESULT EnumItemsInCategory(const(Guid)* rcatid, IEnumGUID* ppEnum);
-    HRESULT FindClosestCategory(const(Guid)* rguid, Guid* pcatid, const(Guid)** ppcatidList, uint ulCount);
-    HRESULT RegisterGUIDDescription(const(Guid)* rclsid, const(Guid)* rguid, const(wchar)* pchDesc, uint cch);
-    HRESULT UnregisterGUIDDescription(const(Guid)* rclsid, const(Guid)* rguid);
-    HRESULT GetGUIDDescription(const(Guid)* rguid, BSTR* pbstrDesc);
-    HRESULT RegisterGUIDDWORD(const(Guid)* rclsid, const(Guid)* rguid, uint dw);
-    HRESULT UnregisterGUIDDWORD(const(Guid)* rclsid, const(Guid)* rguid);
-    HRESULT GetGUIDDWORD(const(Guid)* rguid, uint* pdw);
-    HRESULT RegisterGUID(const(Guid)* rguid, uint* pguidatom);
-    HRESULT GetGUID(uint guidatom, Guid* pguid);
-    HRESULT IsEqualTfGuidAtom(uint guidatom, const(Guid)* rguid, int* pfEqual);
+    HRESULT RegisterCategory(const(GUID)* rclsid, const(GUID)* rcatid, const(GUID)* rguid);
+    HRESULT UnregisterCategory(const(GUID)* rclsid, const(GUID)* rcatid, const(GUID)* rguid);
+    HRESULT EnumCategoriesInItem(const(GUID)* rguid, IEnumGUID* ppEnum);
+    HRESULT EnumItemsInCategory(const(GUID)* rcatid, IEnumGUID* ppEnum);
+    HRESULT FindClosestCategory(const(GUID)* rguid, GUID* pcatid, const(GUID)** ppcatidList, uint ulCount);
+    HRESULT RegisterGUIDDescription(const(GUID)* rclsid, const(GUID)* rguid, const(wchar)* pchDesc, uint cch);
+    HRESULT UnregisterGUIDDescription(const(GUID)* rclsid, const(GUID)* rguid);
+    HRESULT GetGUIDDescription(const(GUID)* rguid, BSTR* pbstrDesc);
+    HRESULT RegisterGUIDDWORD(const(GUID)* rclsid, const(GUID)* rguid, uint dw);
+    HRESULT UnregisterGUIDDWORD(const(GUID)* rclsid, const(GUID)* rguid);
+    HRESULT GetGUIDDWORD(const(GUID)* rguid, uint* pdw);
+    HRESULT RegisterGUID(const(GUID)* rguid, uint* pguidatom);
+    HRESULT GetGUID(uint guidatom, GUID* pguid);
+    HRESULT IsEqualTfGuidAtom(uint guidatom, const(GUID)* rguid, int* pfEqual);
 }
 
-const GUID IID_ITfSource = {0x4EA48A35, 0x60AE, 0x446F, [0x8F, 0xD6, 0xE6, 0xA8, 0xD8, 0x24, 0x59, 0xF7]};
-@GUID(0x4EA48A35, 0x60AE, 0x446F, [0x8F, 0xD6, 0xE6, 0xA8, 0xD8, 0x24, 0x59, 0xF7]);
+@GUID("4EA48A35-60AE-446F-8FD6-E6A8D82459F7")
 interface ITfSource : IUnknown
 {
-    HRESULT AdviseSink(const(Guid)* riid, IUnknown punk, uint* pdwCookie);
+    HRESULT AdviseSink(const(GUID)* riid, IUnknown punk, uint* pdwCookie);
     HRESULT UnadviseSink(uint dwCookie);
 }
 
-const GUID IID_ITfSourceSingle = {0x73131F9C, 0x56A9, 0x49DD, [0xB0, 0xEE, 0xD0, 0x46, 0x63, 0x3F, 0x75, 0x28]};
-@GUID(0x73131F9C, 0x56A9, 0x49DD, [0xB0, 0xEE, 0xD0, 0x46, 0x63, 0x3F, 0x75, 0x28]);
+@GUID("73131F9C-56A9-49DD-B0EE-D046633F7528")
 interface ITfSourceSingle : IUnknown
 {
-    HRESULT AdviseSingleSink(uint tid, const(Guid)* riid, IUnknown punk);
-    HRESULT UnadviseSingleSink(uint tid, const(Guid)* riid);
+    HRESULT AdviseSingleSink(uint tid, const(GUID)* riid, IUnknown punk);
+    HRESULT UnadviseSingleSink(uint tid, const(GUID)* riid);
 }
 
-const GUID IID_ITfUIElementMgr = {0xEA1EA135, 0x19DF, 0x11D7, [0xA6, 0xD2, 0x00, 0x06, 0x5B, 0x84, 0x43, 0x5C]};
-@GUID(0xEA1EA135, 0x19DF, 0x11D7, [0xA6, 0xD2, 0x00, 0x06, 0x5B, 0x84, 0x43, 0x5C]);
+@GUID("EA1EA135-19DF-11D7-A6D2-00065B84435C")
 interface ITfUIElementMgr : IUnknown
 {
     HRESULT BeginUIElement(ITfUIElement pElement, int* pbShow, uint* pdwUIElementId);
@@ -1343,8 +1425,7 @@ interface ITfUIElementMgr : IUnknown
     HRESULT EnumUIElements(IEnumTfUIElements* ppEnum);
 }
 
-const GUID IID_IEnumTfUIElements = {0x887AA91E, 0xACBA, 0x4931, [0x84, 0xDA, 0x3C, 0x52, 0x08, 0xCF, 0x54, 0x3F]};
-@GUID(0x887AA91E, 0xACBA, 0x4931, [0x84, 0xDA, 0x3C, 0x52, 0x08, 0xCF, 0x54, 0x3F]);
+@GUID("887AA91E-ACBA-4931-84DA-3C5208CF543F")
 interface IEnumTfUIElements : IUnknown
 {
     HRESULT Clone(IEnumTfUIElements* ppEnum);
@@ -1353,8 +1434,7 @@ interface IEnumTfUIElements : IUnknown
     HRESULT Skip(uint ulCount);
 }
 
-const GUID IID_ITfUIElementSink = {0xEA1EA136, 0x19DF, 0x11D7, [0xA6, 0xD2, 0x00, 0x06, 0x5B, 0x84, 0x43, 0x5C]};
-@GUID(0xEA1EA136, 0x19DF, 0x11D7, [0xA6, 0xD2, 0x00, 0x06, 0x5B, 0x84, 0x43, 0x5C]);
+@GUID("EA1EA136-19DF-11D7-A6D2-00065B84435C")
 interface ITfUIElementSink : IUnknown
 {
     HRESULT BeginUIElement(uint dwUIElementId, int* pbShow);
@@ -1362,18 +1442,16 @@ interface ITfUIElementSink : IUnknown
     HRESULT EndUIElement(uint dwUIElementId);
 }
 
-const GUID IID_ITfUIElement = {0xEA1EA137, 0x19DF, 0x11D7, [0xA6, 0xD2, 0x00, 0x06, 0x5B, 0x84, 0x43, 0x5C]};
-@GUID(0xEA1EA137, 0x19DF, 0x11D7, [0xA6, 0xD2, 0x00, 0x06, 0x5B, 0x84, 0x43, 0x5C]);
+@GUID("EA1EA137-19DF-11D7-A6D2-00065B84435C")
 interface ITfUIElement : IUnknown
 {
     HRESULT GetDescription(BSTR* pbstrDescription);
-    HRESULT GetGUID(Guid* pguid);
+    HRESULT GetGUID(GUID* pguid);
     HRESULT Show(BOOL bShow);
     HRESULT IsShown(int* pbShow);
 }
 
-const GUID IID_ITfCandidateListUIElement = {0xEA1EA138, 0x19DF, 0x11D7, [0xA6, 0xD2, 0x00, 0x06, 0x5B, 0x84, 0x43, 0x5C]};
-@GUID(0xEA1EA138, 0x19DF, 0x11D7, [0xA6, 0xD2, 0x00, 0x06, 0x5B, 0x84, 0x43, 0x5C]);
+@GUID("EA1EA138-19DF-11D7-A6D2-00065B84435C")
 interface ITfCandidateListUIElement : ITfUIElement
 {
     HRESULT GetUpdatedFlags(uint* pdwFlags);
@@ -1386,8 +1464,7 @@ interface ITfCandidateListUIElement : ITfUIElement
     HRESULT GetCurrentPage(uint* puPage);
 }
 
-const GUID IID_ITfCandidateListUIElementBehavior = {0x85FAD185, 0x58CE, 0x497A, [0x94, 0x60, 0x35, 0x53, 0x66, 0xB6, 0x4B, 0x9A]};
-@GUID(0x85FAD185, 0x58CE, 0x497A, [0x94, 0x60, 0x35, 0x53, 0x66, 0xB6, 0x4B, 0x9A]);
+@GUID("85FAD185-58CE-497A-9460-355366B64B9A")
 interface ITfCandidateListUIElementBehavior : ITfCandidateListUIElement
 {
     HRESULT SetSelection(uint nIndex);
@@ -1395,8 +1472,7 @@ interface ITfCandidateListUIElementBehavior : ITfCandidateListUIElement
     HRESULT Abort();
 }
 
-const GUID IID_ITfReadingInformationUIElement = {0xEA1EA139, 0x19DF, 0x11D7, [0xA6, 0xD2, 0x00, 0x06, 0x5B, 0x84, 0x43, 0x5C]};
-@GUID(0xEA1EA139, 0x19DF, 0x11D7, [0xA6, 0xD2, 0x00, 0x06, 0x5B, 0x84, 0x43, 0x5C]);
+@GUID("EA1EA139-19DF-11D7-A6D2-00065B84435C")
 interface ITfReadingInformationUIElement : ITfUIElement
 {
     HRESULT GetUpdatedFlags(uint* pdwFlags);
@@ -1407,59 +1483,53 @@ interface ITfReadingInformationUIElement : ITfUIElement
     HRESULT IsVerticalOrderPreferred(int* pfVertical);
 }
 
-const GUID IID_ITfTransitoryExtensionUIElement = {0x858F956A, 0x972F, 0x42A2, [0xA2, 0xF2, 0x03, 0x21, 0xE1, 0xAB, 0xE2, 0x09]};
-@GUID(0x858F956A, 0x972F, 0x42A2, [0xA2, 0xF2, 0x03, 0x21, 0xE1, 0xAB, 0xE2, 0x09]);
+@GUID("858F956A-972F-42A2-A2F2-0321E1ABE209")
 interface ITfTransitoryExtensionUIElement : ITfUIElement
 {
     HRESULT GetDocumentMgr(ITfDocumentMgr* ppdim);
 }
 
-const GUID IID_ITfTransitoryExtensionSink = {0xA615096F, 0x1C57, 0x4813, [0x8A, 0x15, 0x55, 0xEE, 0x6E, 0x5A, 0x83, 0x9C]};
-@GUID(0xA615096F, 0x1C57, 0x4813, [0x8A, 0x15, 0x55, 0xEE, 0x6E, 0x5A, 0x83, 0x9C]);
+@GUID("A615096F-1C57-4813-8A15-55EE6E5A839C")
 interface ITfTransitoryExtensionSink : IUnknown
 {
-    HRESULT OnTransitoryExtensionUpdated(ITfContext pic, uint ecReadOnly, ITfRange pResultRange, ITfRange pCompositionRange, int* pfDeleteResultRange);
+    HRESULT OnTransitoryExtensionUpdated(ITfContext pic, uint ecReadOnly, ITfRange pResultRange, 
+                                         ITfRange pCompositionRange, int* pfDeleteResultRange);
 }
 
-const GUID IID_ITfToolTipUIElement = {0x52B18B5C, 0x555D, 0x46B2, [0xB0, 0x0A, 0xFA, 0x68, 0x01, 0x44, 0xFB, 0xDB]};
-@GUID(0x52B18B5C, 0x555D, 0x46B2, [0xB0, 0x0A, 0xFA, 0x68, 0x01, 0x44, 0xFB, 0xDB]);
+@GUID("52B18B5C-555D-46B2-B00A-FA680144FBDB")
 interface ITfToolTipUIElement : ITfUIElement
 {
     HRESULT GetString(BSTR* pstr);
 }
 
-const GUID IID_ITfReverseConversionList = {0x151D69F0, 0x86F4, 0x4674, [0xB7, 0x21, 0x56, 0x91, 0x1E, 0x79, 0x7F, 0x47]};
-@GUID(0x151D69F0, 0x86F4, 0x4674, [0xB7, 0x21, 0x56, 0x91, 0x1E, 0x79, 0x7F, 0x47]);
+@GUID("151D69F0-86F4-4674-B721-56911E797F47")
 interface ITfReverseConversionList : IUnknown
 {
     HRESULT GetLength(uint* puIndex);
     HRESULT GetString(uint uIndex, BSTR* pbstr);
 }
 
-const GUID IID_ITfReverseConversion = {0xA415E162, 0x157D, 0x417D, [0x8A, 0x8C, 0x0A, 0xB2, 0x6C, 0x7D, 0x27, 0x81]};
-@GUID(0xA415E162, 0x157D, 0x417D, [0x8A, 0x8C, 0x0A, 0xB2, 0x6C, 0x7D, 0x27, 0x81]);
+@GUID("A415E162-157D-417D-8A8C-0AB26C7D2781")
 interface ITfReverseConversion : IUnknown
 {
     HRESULT DoReverseConversion(const(wchar)* lpstr, ITfReverseConversionList* ppList);
 }
 
-const GUID IID_ITfReverseConversionMgr = {0xB643C236, 0xC493, 0x41B6, [0xAB, 0xB3, 0x69, 0x24, 0x12, 0x77, 0x5C, 0xC4]};
-@GUID(0xB643C236, 0xC493, 0x41B6, [0xAB, 0xB3, 0x69, 0x24, 0x12, 0x77, 0x5C, 0xC4]);
+@GUID("B643C236-C493-41B6-ABB3-692412775CC4")
 interface ITfReverseConversionMgr : IUnknown
 {
-    HRESULT GetReverseConversion(ushort langid, const(Guid)* guidProfile, uint dwflag, ITfReverseConversion* ppReverseConversion);
+    HRESULT GetReverseConversion(ushort langid, const(GUID)* guidProfile, uint dwflag, 
+                                 ITfReverseConversion* ppReverseConversion);
 }
 
-const GUID IID_ITfCandidateString = {0x581F317E, 0xFD9D, 0x443F, [0xB9, 0x72, 0xED, 0x00, 0x46, 0x7C, 0x5D, 0x40]};
-@GUID(0x581F317E, 0xFD9D, 0x443F, [0xB9, 0x72, 0xED, 0x00, 0x46, 0x7C, 0x5D, 0x40]);
+@GUID("581F317E-FD9D-443F-B972-ED00467C5D40")
 interface ITfCandidateString : IUnknown
 {
     HRESULT GetString(BSTR* pbstr);
     HRESULT GetIndex(uint* pnIndex);
 }
 
-const GUID IID_IEnumTfCandidates = {0xDEFB1926, 0x6C80, 0x4CE8, [0x87, 0xD4, 0xD6, 0xB7, 0x2B, 0x81, 0x2B, 0xDE]};
-@GUID(0xDEFB1926, 0x6C80, 0x4CE8, [0x87, 0xD4, 0xD6, 0xB7, 0x2B, 0x81, 0x2B, 0xDE]);
+@GUID("DEFB1926-6C80-4CE8-87D4-D6B72B812BDE")
 interface IEnumTfCandidates : IUnknown
 {
     HRESULT Clone(IEnumTfCandidates* ppEnum);
@@ -1468,15 +1538,7 @@ interface IEnumTfCandidates : IUnknown
     HRESULT Skip(uint ulCount);
 }
 
-enum TfCandidateResult
-{
-    CAND_FINALIZED = 0,
-    CAND_SELECTED = 1,
-    CAND_CANCELED = 2,
-}
-
-const GUID IID_ITfCandidateList = {0xA3AD50FB, 0x9BDB, 0x49E3, [0xA8, 0x43, 0x6C, 0x76, 0x52, 0x0F, 0xBF, 0x5D]};
-@GUID(0xA3AD50FB, 0x9BDB, 0x49E3, [0xA8, 0x43, 0x6C, 0x76, 0x52, 0x0F, 0xBF, 0x5D]);
+@GUID("A3AD50FB-9BDB-49E3-A843-6C76520FBF5D")
 interface ITfCandidateList : IUnknown
 {
     HRESULT EnumCandidates(IEnumTfCandidates* ppEnum);
@@ -1485,8 +1547,7 @@ interface ITfCandidateList : IUnknown
     HRESULT SetResult(uint nIndex, TfCandidateResult imcr);
 }
 
-const GUID IID_ITfFnReconversion = {0x4CEA93C0, 0x0A58, 0x11D3, [0x8D, 0xF0, 0x00, 0x10, 0x5A, 0x27, 0x99, 0xB5]};
-@GUID(0x4CEA93C0, 0x0A58, 0x11D3, [0x8D, 0xF0, 0x00, 0x10, 0x5A, 0x27, 0x99, 0xB5]);
+@GUID("4CEA93C0-0A58-11D3-8DF0-00105A2799B5")
 interface ITfFnReconversion : ITfFunction
 {
     HRESULT QueryRange(ITfRange pRange, ITfRange* ppNewRange, int* pfConvertable);
@@ -1494,84 +1555,64 @@ interface ITfFnReconversion : ITfFunction
     HRESULT Reconvert(ITfRange pRange);
 }
 
-const GUID IID_ITfFnPlayBack = {0xA3A416A4, 0x0F64, 0x11D3, [0xB5, 0xB7, 0x00, 0xC0, 0x4F, 0xC3, 0x24, 0xA1]};
-@GUID(0xA3A416A4, 0x0F64, 0x11D3, [0xB5, 0xB7, 0x00, 0xC0, 0x4F, 0xC3, 0x24, 0xA1]);
+@GUID("A3A416A4-0F64-11D3-B5B7-00C04FC324A1")
 interface ITfFnPlayBack : ITfFunction
 {
     HRESULT QueryRange(ITfRange pRange, ITfRange* ppNewRange, int* pfPlayable);
     HRESULT Play(ITfRange pRange);
 }
 
-const GUID IID_ITfFnLangProfileUtil = {0xA87A8574, 0xA6C1, 0x4E15, [0x99, 0xF0, 0x3D, 0x39, 0x65, 0xF5, 0x48, 0xEB]};
-@GUID(0xA87A8574, 0xA6C1, 0x4E15, [0x99, 0xF0, 0x3D, 0x39, 0x65, 0xF5, 0x48, 0xEB]);
+@GUID("A87A8574-A6C1-4E15-99F0-3D3965F548EB")
 interface ITfFnLangProfileUtil : ITfFunction
 {
     HRESULT RegisterActiveProfiles();
     HRESULT IsProfileAvailableForLang(ushort langid, int* pfAvailable);
 }
 
-const GUID IID_ITfFnConfigure = {0x88F567C6, 0x1757, 0x49F8, [0xA1, 0xB2, 0x89, 0x23, 0x4C, 0x1E, 0xEF, 0xF9]};
-@GUID(0x88F567C6, 0x1757, 0x49F8, [0xA1, 0xB2, 0x89, 0x23, 0x4C, 0x1E, 0xEF, 0xF9]);
+@GUID("88F567C6-1757-49F8-A1B2-89234C1EEFF9")
 interface ITfFnConfigure : ITfFunction
 {
-    HRESULT Show(HWND hwndParent, ushort langid, const(Guid)* rguidProfile);
+    HRESULT Show(HWND hwndParent, ushort langid, const(GUID)* rguidProfile);
 }
 
-const GUID IID_ITfFnConfigureRegisterWord = {0xBB95808A, 0x6D8F, 0x4BCA, [0x84, 0x00, 0x53, 0x90, 0xB5, 0x86, 0xAE, 0xDF]};
-@GUID(0xBB95808A, 0x6D8F, 0x4BCA, [0x84, 0x00, 0x53, 0x90, 0xB5, 0x86, 0xAE, 0xDF]);
+@GUID("BB95808A-6D8F-4BCA-8400-5390B586AEDF")
 interface ITfFnConfigureRegisterWord : ITfFunction
 {
-    HRESULT Show(HWND hwndParent, ushort langid, const(Guid)* rguidProfile, BSTR bstrRegistered);
+    HRESULT Show(HWND hwndParent, ushort langid, const(GUID)* rguidProfile, BSTR bstrRegistered);
 }
 
-const GUID IID_ITfFnConfigureRegisterEudc = {0xB5E26FF5, 0xD7AD, 0x4304, [0x91, 0x3F, 0x21, 0xA2, 0xED, 0x95, 0xA1, 0xB0]};
-@GUID(0xB5E26FF5, 0xD7AD, 0x4304, [0x91, 0x3F, 0x21, 0xA2, 0xED, 0x95, 0xA1, 0xB0]);
+@GUID("B5E26FF5-D7AD-4304-913F-21A2ED95A1B0")
 interface ITfFnConfigureRegisterEudc : ITfFunction
 {
-    HRESULT Show(HWND hwndParent, ushort langid, const(Guid)* rguidProfile, BSTR bstrRegistered);
+    HRESULT Show(HWND hwndParent, ushort langid, const(GUID)* rguidProfile, BSTR bstrRegistered);
 }
 
-const GUID IID_ITfFnShowHelp = {0x5AB1D30C, 0x094D, 0x4C29, [0x8E, 0xA5, 0x0B, 0xF5, 0x9B, 0xE8, 0x7B, 0xF3]};
-@GUID(0x5AB1D30C, 0x094D, 0x4C29, [0x8E, 0xA5, 0x0B, 0xF5, 0x9B, 0xE8, 0x7B, 0xF3]);
+@GUID("5AB1D30C-094D-4C29-8EA5-0BF59BE87BF3")
 interface ITfFnShowHelp : ITfFunction
 {
     HRESULT Show(HWND hwndParent);
 }
 
-const GUID IID_ITfFnBalloon = {0x3BAB89E4, 0x5FBE, 0x45F4, [0xA5, 0xBC, 0xDC, 0xA3, 0x6A, 0xD2, 0x25, 0xA8]};
-@GUID(0x3BAB89E4, 0x5FBE, 0x45F4, [0xA5, 0xBC, 0xDC, 0xA3, 0x6A, 0xD2, 0x25, 0xA8]);
+@GUID("3BAB89E4-5FBE-45F4-A5BC-DCA36AD225A8")
 interface ITfFnBalloon : IUnknown
 {
     HRESULT UpdateBalloon(TfLBBalloonStyle style, const(wchar)* pch, uint cch);
 }
 
-enum TfSapiObject
-{
-    GETIF_RESMGR = 0,
-    GETIF_RECOCONTEXT = 1,
-    GETIF_RECOGNIZER = 2,
-    GETIF_VOICE = 3,
-    GETIF_DICTGRAM = 4,
-    GETIF_RECOGNIZERNOINIT = 5,
-}
-
-const GUID IID_ITfFnGetSAPIObject = {0x5C0AB7EA, 0x167D, 0x4F59, [0xBF, 0xB5, 0x46, 0x93, 0x75, 0x5E, 0x90, 0xCA]};
-@GUID(0x5C0AB7EA, 0x167D, 0x4F59, [0xBF, 0xB5, 0x46, 0x93, 0x75, 0x5E, 0x90, 0xCA]);
+@GUID("5C0AB7EA-167D-4F59-BFB5-4693755E90CA")
 interface ITfFnGetSAPIObject : ITfFunction
 {
     HRESULT Get(TfSapiObject sObj, IUnknown* ppunk);
 }
 
-const GUID IID_ITfFnPropertyUIStatus = {0x2338AC6E, 0x2B9D, 0x44C0, [0xA7, 0x5E, 0xEE, 0x64, 0xF2, 0x56, 0xB3, 0xBD]};
-@GUID(0x2338AC6E, 0x2B9D, 0x44C0, [0xA7, 0x5E, 0xEE, 0x64, 0xF2, 0x56, 0xB3, 0xBD]);
+@GUID("2338AC6E-2B9D-44C0-A75E-EE64F256B3BD")
 interface ITfFnPropertyUIStatus : ITfFunction
 {
-    HRESULT GetStatus(const(Guid)* refguidProp, uint* pdw);
-    HRESULT SetStatus(const(Guid)* refguidProp, uint dw);
+    HRESULT GetStatus(const(GUID)* refguidProp, uint* pdw);
+    HRESULT SetStatus(const(GUID)* refguidProp, uint dw);
 }
 
-const GUID IID_ITfFnLMProcessor = {0x7AFBF8E7, 0xAC4B, 0x4082, [0xB0, 0x58, 0x89, 0x08, 0x99, 0xD3, 0xA0, 0x10]};
-@GUID(0x7AFBF8E7, 0xAC4B, 0x4082, [0xB0, 0x58, 0x89, 0x08, 0x99, 0xD3, 0xA0, 0x10]);
+@GUID("7AFBF8E7-AC4B-4082-B058-890899D3A010")
 interface ITfFnLMProcessor : ITfFunction
 {
     HRESULT QueryRange(ITfRange pRange, ITfRange* ppNewRange, int* pfAccepted);
@@ -1580,27 +1621,16 @@ interface ITfFnLMProcessor : ITfFunction
     HRESULT Reconvert(ITfRange pRange);
     HRESULT QueryKey(BOOL fUp, WPARAM vKey, LPARAM lparamKeydata, int* pfInterested);
     HRESULT InvokeKey(BOOL fUp, WPARAM vKey, LPARAM lparamKeyData);
-    HRESULT InvokeFunc(ITfContext pic, const(Guid)* refguidFunc);
+    HRESULT InvokeFunc(ITfContext pic, const(GUID)* refguidFunc);
 }
 
-const GUID IID_ITfFnLMInternal = {0x04B825B1, 0xAC9A, 0x4F7B, [0xB5, 0xAD, 0xC7, 0x16, 0x8F, 0x1E, 0xE4, 0x45]};
-@GUID(0x04B825B1, 0xAC9A, 0x4F7B, [0xB5, 0xAD, 0xC7, 0x16, 0x8F, 0x1E, 0xE4, 0x45]);
+@GUID("04B825B1-AC9A-4F7B-B5AD-C7168F1EE445")
 interface ITfFnLMInternal : ITfFnLMProcessor
 {
     HRESULT ProcessLattice(ITfRange pRange);
 }
 
-struct TF_LMLATTELEMENT
-{
-    uint dwFrameStart;
-    uint dwFrameLen;
-    uint dwFlags;
-    _Anonymous_e__Union Anonymous;
-    BSTR bstrText;
-}
-
-const GUID IID_IEnumTfLatticeElements = {0x56988052, 0x47DA, 0x4A05, [0x91, 0x1A, 0xE3, 0xD9, 0x41, 0xF1, 0x71, 0x45]};
-@GUID(0x56988052, 0x47DA, 0x4A05, [0x91, 0x1A, 0xE3, 0xD9, 0x41, 0xF1, 0x71, 0x45]);
+@GUID("56988052-47DA-4A05-911A-E3D941F17145")
 interface IEnumTfLatticeElements : IUnknown
 {
     HRESULT Clone(IEnumTfLatticeElements* ppEnum);
@@ -1609,70 +1639,50 @@ interface IEnumTfLatticeElements : IUnknown
     HRESULT Skip(uint ulCount);
 }
 
-const GUID IID_ITfLMLattice = {0xD4236675, 0xA5BF, 0x4570, [0x9D, 0x42, 0x5D, 0x6D, 0x7B, 0x02, 0xD5, 0x9B]};
-@GUID(0xD4236675, 0xA5BF, 0x4570, [0x9D, 0x42, 0x5D, 0x6D, 0x7B, 0x02, 0xD5, 0x9B]);
+@GUID("D4236675-A5BF-4570-9D42-5D6D7B02D59B")
 interface ITfLMLattice : IUnknown
 {
-    HRESULT QueryType(const(Guid)* rguidType, int* pfSupported);
-    HRESULT EnumLatticeElements(uint dwFrameStart, const(Guid)* rguidType, IEnumTfLatticeElements* ppEnum);
+    HRESULT QueryType(const(GUID)* rguidType, int* pfSupported);
+    HRESULT EnumLatticeElements(uint dwFrameStart, const(GUID)* rguidType, IEnumTfLatticeElements* ppEnum);
 }
 
-const GUID IID_ITfFnAdviseText = {0x3527268B, 0x7D53, 0x4DD9, [0x92, 0xB7, 0x72, 0x96, 0xAE, 0x46, 0x12, 0x49]};
-@GUID(0x3527268B, 0x7D53, 0x4DD9, [0x92, 0xB7, 0x72, 0x96, 0xAE, 0x46, 0x12, 0x49]);
+@GUID("3527268B-7D53-4DD9-92B7-7296AE461249")
 interface ITfFnAdviseText : ITfFunction
 {
     HRESULT OnTextUpdate(ITfRange pRange, const(wchar)* pchText, int cch);
     HRESULT OnLatticeUpdate(ITfRange pRange, ITfLMLattice pLattice);
 }
 
-const GUID IID_ITfFnSearchCandidateProvider = {0x87A2AD8F, 0xF27B, 0x4920, [0x85, 0x01, 0x67, 0x60, 0x22, 0x80, 0x17, 0x5D]};
-@GUID(0x87A2AD8F, 0xF27B, 0x4920, [0x85, 0x01, 0x67, 0x60, 0x22, 0x80, 0x17, 0x5D]);
+@GUID("87A2AD8F-F27B-4920-8501-67602280175D")
 interface ITfFnSearchCandidateProvider : ITfFunction
 {
     HRESULT GetSearchCandidates(BSTR bstrQuery, BSTR bstrApplicationId, ITfCandidateList* pplist);
     HRESULT SetResult(BSTR bstrQuery, BSTR bstrApplicationID, BSTR bstrResult);
 }
 
-enum TfIntegratableCandidateListSelectionStyle
-{
-    STYLE_ACTIVE_SELECTION = 0,
-    STYLE_IMPLIED_SELECTION = 1,
-}
-
-const GUID IID_ITfIntegratableCandidateListUIElement = {0xC7A6F54F, 0xB180, 0x416F, [0xB2, 0xBF, 0x7B, 0xF2, 0xE4, 0x68, 0x3D, 0x7B]};
-@GUID(0xC7A6F54F, 0xB180, 0x416F, [0xB2, 0xBF, 0x7B, 0xF2, 0xE4, 0x68, 0x3D, 0x7B]);
+@GUID("C7A6F54F-B180-416F-B2BF-7BF2E4683D7B")
 interface ITfIntegratableCandidateListUIElement : IUnknown
 {
-    HRESULT SetIntegrationStyle(Guid guidIntegrationStyle);
+    HRESULT SetIntegrationStyle(GUID guidIntegrationStyle);
     HRESULT GetSelectionStyle(TfIntegratableCandidateListSelectionStyle* ptfSelectionStyle);
     HRESULT OnKeyDown(WPARAM wParam, LPARAM lParam, int* pfEaten);
     HRESULT ShowCandidateNumbers(int* pfShow);
     HRESULT FinalizeExactCompositionString();
 }
 
-enum TKBLayoutType
-{
-    TKBLT_UNDEFINED = 0,
-    TKBLT_CLASSIC = 1,
-    TKBLT_OPTIMIZED = 2,
-}
-
-const GUID IID_ITfFnGetPreferredTouchKeyboardLayout = {0x5F309A41, 0x590A, 0x4ACC, [0xA9, 0x7F, 0xD8, 0xEF, 0xFF, 0x13, 0xFD, 0xFC]};
-@GUID(0x5F309A41, 0x590A, 0x4ACC, [0xA9, 0x7F, 0xD8, 0xEF, 0xFF, 0x13, 0xFD, 0xFC]);
+@GUID("5F309A41-590A-4ACC-A97F-D8EFFF13FDFC")
 interface ITfFnGetPreferredTouchKeyboardLayout : ITfFunction
 {
     HRESULT GetLayout(TKBLayoutType* pTKBLayoutType, ushort* pwPreferredLayoutId);
 }
 
-const GUID IID_ITfFnGetLinguisticAlternates = {0xEA163CE2, 0x7A65, 0x4506, [0x82, 0xA3, 0xC5, 0x28, 0x21, 0x5D, 0xA6, 0x4E]};
-@GUID(0xEA163CE2, 0x7A65, 0x4506, [0x82, 0xA3, 0xC5, 0x28, 0x21, 0x5D, 0xA6, 0x4E]);
+@GUID("EA163CE2-7A65-4506-82A3-C528215DA64E")
 interface ITfFnGetLinguisticAlternates : ITfFunction
 {
     HRESULT GetAlternates(ITfRange pRange, ITfCandidateList* ppCandidateList);
 }
 
-const GUID IID_IUIManagerEventSink = {0xCD91D690, 0xA7E8, 0x4265, [0x9B, 0x38, 0x8B, 0xB3, 0xBB, 0xAB, 0xA7, 0xDE]};
-@GUID(0xCD91D690, 0xA7E8, 0x4265, [0x9B, 0x38, 0x8B, 0xB3, 0xBB, 0xAB, 0xA7, 0xDE]);
+@GUID("CD91D690-A7E8-4265-9B38-8BB3BBABA7DE")
 interface IUIManagerEventSink : IUnknown
 {
     HRESULT OnWindowOpening(RECT* prcBounds);
@@ -1683,86 +1693,7 @@ interface IUIManagerEventSink : IUnknown
     HRESULT OnWindowClosed();
 }
 
-enum InputScope
-{
-    IS_DEFAULT = 0,
-    IS_URL = 1,
-    IS_FILE_FULLFILEPATH = 2,
-    IS_FILE_FILENAME = 3,
-    IS_EMAIL_USERNAME = 4,
-    IS_EMAIL_SMTPEMAILADDRESS = 5,
-    IS_LOGINNAME = 6,
-    IS_PERSONALNAME_FULLNAME = 7,
-    IS_PERSONALNAME_PREFIX = 8,
-    IS_PERSONALNAME_GIVENNAME = 9,
-    IS_PERSONALNAME_MIDDLENAME = 10,
-    IS_PERSONALNAME_SURNAME = 11,
-    IS_PERSONALNAME_SUFFIX = 12,
-    IS_ADDRESS_FULLPOSTALADDRESS = 13,
-    IS_ADDRESS_POSTALCODE = 14,
-    IS_ADDRESS_STREET = 15,
-    IS_ADDRESS_STATEORPROVINCE = 16,
-    IS_ADDRESS_CITY = 17,
-    IS_ADDRESS_COUNTRYNAME = 18,
-    IS_ADDRESS_COUNTRYSHORTNAME = 19,
-    IS_CURRENCY_AMOUNTANDSYMBOL = 20,
-    IS_CURRENCY_AMOUNT = 21,
-    IS_DATE_FULLDATE = 22,
-    IS_DATE_MONTH = 23,
-    IS_DATE_DAY = 24,
-    IS_DATE_YEAR = 25,
-    IS_DATE_MONTHNAME = 26,
-    IS_DATE_DAYNAME = 27,
-    IS_DIGITS = 28,
-    IS_NUMBER = 29,
-    IS_ONECHAR = 30,
-    IS_PASSWORD = 31,
-    IS_TELEPHONE_FULLTELEPHONENUMBER = 32,
-    IS_TELEPHONE_COUNTRYCODE = 33,
-    IS_TELEPHONE_AREACODE = 34,
-    IS_TELEPHONE_LOCALNUMBER = 35,
-    IS_TIME_FULLTIME = 36,
-    IS_TIME_HOUR = 37,
-    IS_TIME_MINORSEC = 38,
-    IS_NUMBER_FULLWIDTH = 39,
-    IS_ALPHANUMERIC_HALFWIDTH = 40,
-    IS_ALPHANUMERIC_FULLWIDTH = 41,
-    IS_CURRENCY_CHINESE = 42,
-    IS_BOPOMOFO = 43,
-    IS_HIRAGANA = 44,
-    IS_KATAKANA_HALFWIDTH = 45,
-    IS_KATAKANA_FULLWIDTH = 46,
-    IS_HANJA = 47,
-    IS_HANGUL_HALFWIDTH = 48,
-    IS_HANGUL_FULLWIDTH = 49,
-    IS_SEARCH = 50,
-    IS_FORMULA = 51,
-    IS_SEARCH_INCREMENTAL = 52,
-    IS_CHINESE_HALFWIDTH = 53,
-    IS_CHINESE_FULLWIDTH = 54,
-    IS_NATIVE_SCRIPT = 55,
-    IS_YOMI = 56,
-    IS_TEXT = 57,
-    IS_CHAT = 58,
-    IS_NAME_OR_PHONENUMBER = 59,
-    IS_EMAILNAME_OR_ADDRESS = 60,
-    IS_PRIVATE = 61,
-    IS_MAPS = 62,
-    IS_NUMERIC_PASSWORD = 63,
-    IS_NUMERIC_PIN = 64,
-    IS_ALPHANUMERIC_PIN = 65,
-    IS_ALPHANUMERIC_PIN_SET = 66,
-    IS_FORMULA_NUMBER = 67,
-    IS_CHAT_WITHOUT_EMOJI = 68,
-    IS_PHRASELIST = -1,
-    IS_REGULAREXPRESSION = -2,
-    IS_SRGS = -3,
-    IS_XML = -4,
-    IS_ENUMSTRING = -5,
-}
-
-const GUID IID_ITfInputScope = {0xFDE1EAEE, 0x6924, 0x4CDF, [0x91, 0xE7, 0xDA, 0x38, 0xCF, 0xF5, 0x55, 0x9D]};
-@GUID(0xFDE1EAEE, 0x6924, 0x4CDF, [0x91, 0xE7, 0xDA, 0x38, 0xCF, 0xF5, 0x55, 0x9D]);
+@GUID("FDE1EAEE-6924-4CDF-91E7-DA38CFF5559D")
 interface ITfInputScope : IUnknown
 {
     HRESULT GetInputScopes(char* pprgInputScopes, uint* pcCount);
@@ -1772,15 +1703,13 @@ interface ITfInputScope : IUnknown
     HRESULT GetXML(BSTR* pbstrXML);
 }
 
-const GUID IID_ITfInputScope2 = {0x5731EAA0, 0x6BC2, 0x4681, [0xA5, 0x32, 0x92, 0xFB, 0xB7, 0x4D, 0x7C, 0x41]};
-@GUID(0x5731EAA0, 0x6BC2, 0x4681, [0xA5, 0x32, 0x92, 0xFB, 0xB7, 0x4D, 0x7C, 0x41]);
+@GUID("5731EAA0-6BC2-4681-A532-92FBB74D7C41")
 interface ITfInputScope2 : ITfInputScope
 {
     HRESULT EnumWordList(IEnumString* ppEnumString);
 }
 
-const GUID IID_ITfSpeechUIServer = {0x90E9A944, 0x9244, 0x489F, [0xA7, 0x8F, 0xDE, 0x67, 0xAF, 0xC0, 0x13, 0xA7]};
-@GUID(0x90E9A944, 0x9244, 0x489F, [0xA7, 0x8F, 0xDE, 0x67, 0xAF, 0xC0, 0x13, 0xA7]);
+@GUID("90E9A944-9244-489F-A78F-DE67AFC013A7")
 interface ITfSpeechUIServer : IUnknown
 {
     HRESULT Initialize();
@@ -1788,9 +1717,146 @@ interface ITfSpeechUIServer : IUnknown
     HRESULT UpdateBalloon(TfLBBalloonStyle style, const(wchar)* pch, uint cch);
 }
 
-@DllImport("MsCtfMonitor.dll")
-HRESULT InitLocalMsCtfMonitor(uint dwFlags);
 
-@DllImport("MsCtfMonitor.dll")
-HRESULT UninitLocalMsCtfMonitor();
+// GUIDs
 
+
+const GUID IID_IAnchor                                  = GUIDOF!IAnchor;
+const GUID IID_IEnumITfCompositionView                  = GUIDOF!IEnumITfCompositionView;
+const GUID IID_IEnumTfCandidates                        = GUIDOF!IEnumTfCandidates;
+const GUID IID_IEnumTfContextViews                      = GUIDOF!IEnumTfContextViews;
+const GUID IID_IEnumTfContexts                          = GUIDOF!IEnumTfContexts;
+const GUID IID_IEnumTfDisplayAttributeInfo              = GUIDOF!IEnumTfDisplayAttributeInfo;
+const GUID IID_IEnumTfDocumentMgrs                      = GUIDOF!IEnumTfDocumentMgrs;
+const GUID IID_IEnumTfFunctionProviders                 = GUIDOF!IEnumTfFunctionProviders;
+const GUID IID_IEnumTfInputProcessorProfiles            = GUIDOF!IEnumTfInputProcessorProfiles;
+const GUID IID_IEnumTfLangBarItems                      = GUIDOF!IEnumTfLangBarItems;
+const GUID IID_IEnumTfLanguageProfiles                  = GUIDOF!IEnumTfLanguageProfiles;
+const GUID IID_IEnumTfLatticeElements                   = GUIDOF!IEnumTfLatticeElements;
+const GUID IID_IEnumTfProperties                        = GUIDOF!IEnumTfProperties;
+const GUID IID_IEnumTfPropertyValue                     = GUIDOF!IEnumTfPropertyValue;
+const GUID IID_IEnumTfRanges                            = GUIDOF!IEnumTfRanges;
+const GUID IID_IEnumTfUIElements                        = GUIDOF!IEnumTfUIElements;
+const GUID IID_ITextStoreACP                            = GUIDOF!ITextStoreACP;
+const GUID IID_ITextStoreACP2                           = GUIDOF!ITextStoreACP2;
+const GUID IID_ITextStoreACPServices                    = GUIDOF!ITextStoreACPServices;
+const GUID IID_ITextStoreACPSink                        = GUIDOF!ITextStoreACPSink;
+const GUID IID_ITextStoreAnchor                         = GUIDOF!ITextStoreAnchor;
+const GUID IID_ITextStoreAnchorSink                     = GUIDOF!ITextStoreAnchorSink;
+const GUID IID_ITfActiveLanguageProfileNotifySink       = GUIDOF!ITfActiveLanguageProfileNotifySink;
+const GUID IID_ITfCandidateList                         = GUIDOF!ITfCandidateList;
+const GUID IID_ITfCandidateListUIElement                = GUIDOF!ITfCandidateListUIElement;
+const GUID IID_ITfCandidateListUIElementBehavior        = GUIDOF!ITfCandidateListUIElementBehavior;
+const GUID IID_ITfCandidateString                       = GUIDOF!ITfCandidateString;
+const GUID IID_ITfCategoryMgr                           = GUIDOF!ITfCategoryMgr;
+const GUID IID_ITfCleanupContextDurationSink            = GUIDOF!ITfCleanupContextDurationSink;
+const GUID IID_ITfCleanupContextSink                    = GUIDOF!ITfCleanupContextSink;
+const GUID IID_ITfClientId                              = GUIDOF!ITfClientId;
+const GUID IID_ITfCompartment                           = GUIDOF!ITfCompartment;
+const GUID IID_ITfCompartmentEventSink                  = GUIDOF!ITfCompartmentEventSink;
+const GUID IID_ITfCompartmentMgr                        = GUIDOF!ITfCompartmentMgr;
+const GUID IID_ITfComposition                           = GUIDOF!ITfComposition;
+const GUID IID_ITfCompositionSink                       = GUIDOF!ITfCompositionSink;
+const GUID IID_ITfCompositionView                       = GUIDOF!ITfCompositionView;
+const GUID IID_ITfConfigureSystemKeystrokeFeed          = GUIDOF!ITfConfigureSystemKeystrokeFeed;
+const GUID IID_ITfContext                               = GUIDOF!ITfContext;
+const GUID IID_ITfContextComposition                    = GUIDOF!ITfContextComposition;
+const GUID IID_ITfContextKeyEventSink                   = GUIDOF!ITfContextKeyEventSink;
+const GUID IID_ITfContextOwner                          = GUIDOF!ITfContextOwner;
+const GUID IID_ITfContextOwnerCompositionServices       = GUIDOF!ITfContextOwnerCompositionServices;
+const GUID IID_ITfContextOwnerCompositionSink           = GUIDOF!ITfContextOwnerCompositionSink;
+const GUID IID_ITfContextOwnerServices                  = GUIDOF!ITfContextOwnerServices;
+const GUID IID_ITfContextView                           = GUIDOF!ITfContextView;
+const GUID IID_ITfCreatePropertyStore                   = GUIDOF!ITfCreatePropertyStore;
+const GUID IID_ITfDisplayAttributeInfo                  = GUIDOF!ITfDisplayAttributeInfo;
+const GUID IID_ITfDisplayAttributeMgr                   = GUIDOF!ITfDisplayAttributeMgr;
+const GUID IID_ITfDisplayAttributeNotifySink            = GUIDOF!ITfDisplayAttributeNotifySink;
+const GUID IID_ITfDisplayAttributeProvider              = GUIDOF!ITfDisplayAttributeProvider;
+const GUID IID_ITfDocumentMgr                           = GUIDOF!ITfDocumentMgr;
+const GUID IID_ITfEditRecord                            = GUIDOF!ITfEditRecord;
+const GUID IID_ITfEditSession                           = GUIDOF!ITfEditSession;
+const GUID IID_ITfEditTransactionSink                   = GUIDOF!ITfEditTransactionSink;
+const GUID IID_ITfFnAdviseText                          = GUIDOF!ITfFnAdviseText;
+const GUID IID_ITfFnBalloon                             = GUIDOF!ITfFnBalloon;
+const GUID IID_ITfFnConfigure                           = GUIDOF!ITfFnConfigure;
+const GUID IID_ITfFnConfigureRegisterEudc               = GUIDOF!ITfFnConfigureRegisterEudc;
+const GUID IID_ITfFnConfigureRegisterWord               = GUIDOF!ITfFnConfigureRegisterWord;
+const GUID IID_ITfFnGetLinguisticAlternates             = GUIDOF!ITfFnGetLinguisticAlternates;
+const GUID IID_ITfFnGetPreferredTouchKeyboardLayout     = GUIDOF!ITfFnGetPreferredTouchKeyboardLayout;
+const GUID IID_ITfFnGetSAPIObject                       = GUIDOF!ITfFnGetSAPIObject;
+const GUID IID_ITfFnLMInternal                          = GUIDOF!ITfFnLMInternal;
+const GUID IID_ITfFnLMProcessor                         = GUIDOF!ITfFnLMProcessor;
+const GUID IID_ITfFnLangProfileUtil                     = GUIDOF!ITfFnLangProfileUtil;
+const GUID IID_ITfFnPlayBack                            = GUIDOF!ITfFnPlayBack;
+const GUID IID_ITfFnPropertyUIStatus                    = GUIDOF!ITfFnPropertyUIStatus;
+const GUID IID_ITfFnReconversion                        = GUIDOF!ITfFnReconversion;
+const GUID IID_ITfFnSearchCandidateProvider             = GUIDOF!ITfFnSearchCandidateProvider;
+const GUID IID_ITfFnShowHelp                            = GUIDOF!ITfFnShowHelp;
+const GUID IID_ITfFunction                              = GUIDOF!ITfFunction;
+const GUID IID_ITfFunctionProvider                      = GUIDOF!ITfFunctionProvider;
+const GUID IID_ITfInputProcessorProfileActivationSink   = GUIDOF!ITfInputProcessorProfileActivationSink;
+const GUID IID_ITfInputProcessorProfileMgr              = GUIDOF!ITfInputProcessorProfileMgr;
+const GUID IID_ITfInputProcessorProfileSubstituteLayout = GUIDOF!ITfInputProcessorProfileSubstituteLayout;
+const GUID IID_ITfInputProcessorProfiles                = GUIDOF!ITfInputProcessorProfiles;
+const GUID IID_ITfInputProcessorProfilesEx              = GUIDOF!ITfInputProcessorProfilesEx;
+const GUID IID_ITfInputScope                            = GUIDOF!ITfInputScope;
+const GUID IID_ITfInputScope2                           = GUIDOF!ITfInputScope2;
+const GUID IID_ITfInsertAtSelection                     = GUIDOF!ITfInsertAtSelection;
+const GUID IID_ITfIntegratableCandidateListUIElement    = GUIDOF!ITfIntegratableCandidateListUIElement;
+const GUID IID_ITfKeyEventSink                          = GUIDOF!ITfKeyEventSink;
+const GUID IID_ITfKeyTraceEventSink                     = GUIDOF!ITfKeyTraceEventSink;
+const GUID IID_ITfKeystrokeMgr                          = GUIDOF!ITfKeystrokeMgr;
+const GUID IID_ITfLMLattice                             = GUIDOF!ITfLMLattice;
+const GUID IID_ITfLangBarEventSink                      = GUIDOF!ITfLangBarEventSink;
+const GUID IID_ITfLangBarItem                           = GUIDOF!ITfLangBarItem;
+const GUID IID_ITfLangBarItemBalloon                    = GUIDOF!ITfLangBarItemBalloon;
+const GUID IID_ITfLangBarItemBitmap                     = GUIDOF!ITfLangBarItemBitmap;
+const GUID IID_ITfLangBarItemBitmapButton               = GUIDOF!ITfLangBarItemBitmapButton;
+const GUID IID_ITfLangBarItemButton                     = GUIDOF!ITfLangBarItemButton;
+const GUID IID_ITfLangBarItemMgr                        = GUIDOF!ITfLangBarItemMgr;
+const GUID IID_ITfLangBarItemSink                       = GUIDOF!ITfLangBarItemSink;
+const GUID IID_ITfLangBarMgr                            = GUIDOF!ITfLangBarMgr;
+const GUID IID_ITfLanguageProfileNotifySink             = GUIDOF!ITfLanguageProfileNotifySink;
+const GUID IID_ITfMSAAControl                           = GUIDOF!ITfMSAAControl;
+const GUID IID_ITfMenu                                  = GUIDOF!ITfMenu;
+const GUID IID_ITfMessagePump                           = GUIDOF!ITfMessagePump;
+const GUID IID_ITfMouseSink                             = GUIDOF!ITfMouseSink;
+const GUID IID_ITfMouseTracker                          = GUIDOF!ITfMouseTracker;
+const GUID IID_ITfMouseTrackerACP                       = GUIDOF!ITfMouseTrackerACP;
+const GUID IID_ITfPersistentPropertyLoaderACP           = GUIDOF!ITfPersistentPropertyLoaderACP;
+const GUID IID_ITfPreservedKeyNotifySink                = GUIDOF!ITfPreservedKeyNotifySink;
+const GUID IID_ITfProperty                              = GUIDOF!ITfProperty;
+const GUID IID_ITfPropertyStore                         = GUIDOF!ITfPropertyStore;
+const GUID IID_ITfQueryEmbedded                         = GUIDOF!ITfQueryEmbedded;
+const GUID IID_ITfRange                                 = GUIDOF!ITfRange;
+const GUID IID_ITfRangeACP                              = GUIDOF!ITfRangeACP;
+const GUID IID_ITfRangeBackup                           = GUIDOF!ITfRangeBackup;
+const GUID IID_ITfReadOnlyProperty                      = GUIDOF!ITfReadOnlyProperty;
+const GUID IID_ITfReadingInformationUIElement           = GUIDOF!ITfReadingInformationUIElement;
+const GUID IID_ITfReverseConversion                     = GUIDOF!ITfReverseConversion;
+const GUID IID_ITfReverseConversionList                 = GUIDOF!ITfReverseConversionList;
+const GUID IID_ITfReverseConversionMgr                  = GUIDOF!ITfReverseConversionMgr;
+const GUID IID_ITfSource                                = GUIDOF!ITfSource;
+const GUID IID_ITfSourceSingle                          = GUIDOF!ITfSourceSingle;
+const GUID IID_ITfSpeechUIServer                        = GUIDOF!ITfSpeechUIServer;
+const GUID IID_ITfStatusSink                            = GUIDOF!ITfStatusSink;
+const GUID IID_ITfSystemDeviceTypeLangBarItem           = GUIDOF!ITfSystemDeviceTypeLangBarItem;
+const GUID IID_ITfSystemLangBarItem                     = GUIDOF!ITfSystemLangBarItem;
+const GUID IID_ITfSystemLangBarItemSink                 = GUIDOF!ITfSystemLangBarItemSink;
+const GUID IID_ITfSystemLangBarItemText                 = GUIDOF!ITfSystemLangBarItemText;
+const GUID IID_ITfTextEditSink                          = GUIDOF!ITfTextEditSink;
+const GUID IID_ITfTextInputProcessor                    = GUIDOF!ITfTextInputProcessor;
+const GUID IID_ITfTextInputProcessorEx                  = GUIDOF!ITfTextInputProcessorEx;
+const GUID IID_ITfTextLayoutSink                        = GUIDOF!ITfTextLayoutSink;
+const GUID IID_ITfThreadFocusSink                       = GUIDOF!ITfThreadFocusSink;
+const GUID IID_ITfThreadMgr                             = GUIDOF!ITfThreadMgr;
+const GUID IID_ITfThreadMgr2                            = GUIDOF!ITfThreadMgr2;
+const GUID IID_ITfThreadMgrEventSink                    = GUIDOF!ITfThreadMgrEventSink;
+const GUID IID_ITfThreadMgrEx                           = GUIDOF!ITfThreadMgrEx;
+const GUID IID_ITfToolTipUIElement                      = GUIDOF!ITfToolTipUIElement;
+const GUID IID_ITfTransitoryExtensionSink               = GUIDOF!ITfTransitoryExtensionSink;
+const GUID IID_ITfTransitoryExtensionUIElement          = GUIDOF!ITfTransitoryExtensionUIElement;
+const GUID IID_ITfUIElement                             = GUIDOF!ITfUIElement;
+const GUID IID_ITfUIElementMgr                          = GUIDOF!ITfUIElementMgr;
+const GUID IID_ITfUIElementSink                         = GUIDOF!ITfUIElementSink;
+const GUID IID_IUIManagerEventSink                      = GUIDOF!IUIManagerEventSink;

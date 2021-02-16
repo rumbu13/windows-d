@@ -1,59 +1,112 @@
 module windows.kernel;
 
-public import system;
-public import windows.debug;
+public import windows.core;
+public import windows.dbg : CONTEXT, EXCEPTION_RECORD;
 
 extern(Windows):
 
-enum EXCEPTION_DISPOSITION
-{
-    ExceptionContinueExecution = 0,
-    ExceptionContinueSearch = 1,
-    ExceptionNestedException = 2,
-    ExceptionCollidedUnwind = 3,
-}
 
-enum COMPARTMENT_ID
+// Enums
+
+
+enum : int
 {
-    UNSPECIFIED_COMPARTMENT_ID = 0,
-    DEFAULT_COMPARTMENT_ID = 1,
+    ExceptionContinueExecution = 0x00000000,
+    ExceptionContinueSearch    = 0x00000001,
+    ExceptionNestedException   = 0x00000002,
+    ExceptionCollidedUnwind    = 0x00000003,
 }
+alias EXCEPTION_DISPOSITION = int;
+
+enum : int
+{
+    UNSPECIFIED_COMPARTMENT_ID = 0x00000000,
+    DEFAULT_COMPARTMENT_ID     = 0x00000001,
+}
+alias COMPARTMENT_ID = int;
+
+enum : int
+{
+    NotificationEvent    = 0x00000000,
+    SynchronizationEvent = 0x00000001,
+}
+alias EVENT_TYPE = int;
+
+enum : int
+{
+    NotificationTimer    = 0x00000000,
+    SynchronizationTimer = 0x00000001,
+}
+alias TIMER_TYPE = int;
+
+enum : int
+{
+    WaitAll          = 0x00000000,
+    WaitAny          = 0x00000001,
+    WaitNotification = 0x00000002,
+    WaitDequeue      = 0x00000003,
+}
+alias WAIT_TYPE = int;
+
+enum : int
+{
+    NtProductWinNt    = 0x00000001,
+    NtProductLanManNt = 0x00000002,
+    NtProductServer   = 0x00000003,
+}
+alias NT_PRODUCT_TYPE = int;
+
+enum : int
+{
+    SmallBusiness           = 0x00000000,
+    Enterprise              = 0x00000001,
+    BackOffice              = 0x00000002,
+    CommunicationServer     = 0x00000003,
+    TerminalServer          = 0x00000004,
+    SmallBusinessRestricted = 0x00000005,
+    EmbeddedNT              = 0x00000006,
+    DataCenter              = 0x00000007,
+    SingleUserTS            = 0x00000008,
+    Personal                = 0x00000009,
+    Blade                   = 0x0000000a,
+    EmbeddedRestricted      = 0x0000000b,
+    SecurityAppliance       = 0x0000000c,
+    StorageServer           = 0x0000000d,
+    ComputeServer           = 0x0000000e,
+    WHServer                = 0x0000000f,
+    PhoneNT                 = 0x00000010,
+    MultiUserTS             = 0x00000011,
+    MaxSuiteType            = 0x00000012,
+}
+alias SUITE_TYPE = int;
+
+// Callbacks
+
+alias EXCEPTION_ROUTINE = EXCEPTION_DISPOSITION function(EXCEPTION_RECORD* ExceptionRecord, void* EstablisherFrame, 
+                                                         CONTEXT* ContextRecord, void* DispatcherContext);
+
+// Structs
+
 
 struct LUID
 {
     uint LowPart;
-    int HighPart;
+    int  HighPart;
 }
 
 struct QUAD
 {
-    _Anonymous_e__Union Anonymous;
-}
-
-enum EVENT_TYPE
-{
-    NotificationEvent = 0,
-    SynchronizationEvent = 1,
-}
-
-enum TIMER_TYPE
-{
-    NotificationTimer = 0,
-    SynchronizationTimer = 1,
-}
-
-enum WAIT_TYPE
-{
-    WaitAll = 0,
-    WaitAny = 1,
-    WaitNotification = 2,
-    WaitDequeue = 3,
+    union
+    {
+        long   UseThisFieldToCopy;
+        double DoNotUseThisField;
+    }
 }
 
 struct CSTRING
 {
-    ushort Length;
-    ushort MaximumLength;
+    ushort       Length;
+    ushort       MaximumLength;
     const(byte)* Buffer;
 }
 
@@ -70,8 +123,20 @@ struct SINGLE_LIST_ENTRY
 
 struct RTL_BALANCED_NODE
 {
-    _Anonymous1_e__Union Anonymous1;
-    _Anonymous2_e__Union Anonymous2;
+    union
+    {
+        RTL_BALANCED_NODE[2]* Children;
+        struct
+        {
+            RTL_BALANCED_NODE* Left;
+            RTL_BALANCED_NODE* Right;
+        }
+    }
+    union
+    {
+        ubyte  _bitfield63;
+        size_t ParentValue;
+    }
 }
 
 struct LIST_ENTRY32
@@ -93,29 +158,29 @@ struct SINGLE_LIST_ENTRY32
 
 struct WNF_STATE_NAME
 {
-    uint Data;
+    uint[2] Data;
 }
 
 struct STRING32
 {
     ushort Length;
     ushort MaximumLength;
-    uint Buffer;
+    uint   Buffer;
 }
 
 struct STRING64
 {
     ushort Length;
     ushort MaximumLength;
-    ulong Buffer;
+    ulong  Buffer;
 }
 
 struct OBJECT_ATTRIBUTES64
 {
-    uint Length;
+    uint  Length;
     ulong RootDirectory;
     ulong ObjectName;
-    uint Attributes;
+    uint  Attributes;
     ulong SecurityDescriptor;
     ulong SecurityQualityOfService;
 }
@@ -132,38 +197,7 @@ struct OBJECT_ATTRIBUTES32
 
 struct OBJECTID
 {
-    Guid Lineage;
+    GUID Lineage;
     uint Uniquifier;
-}
-
-alias EXCEPTION_ROUTINE = extern(Windows) EXCEPTION_DISPOSITION function(EXCEPTION_RECORD* ExceptionRecord, void* EstablisherFrame, CONTEXT* ContextRecord, void* DispatcherContext);
-enum NT_PRODUCT_TYPE
-{
-    NtProductWinNt = 1,
-    NtProductLanManNt = 2,
-    NtProductServer = 3,
-}
-
-enum SUITE_TYPE
-{
-    SmallBusiness = 0,
-    Enterprise = 1,
-    BackOffice = 2,
-    CommunicationServer = 3,
-    TerminalServer = 4,
-    SmallBusinessRestricted = 5,
-    EmbeddedNT = 6,
-    DataCenter = 7,
-    SingleUserTS = 8,
-    Personal = 9,
-    Blade = 10,
-    EmbeddedRestricted = 11,
-    SecurityAppliance = 12,
-    StorageServer = 13,
-    ComputeServer = 14,
-    WHServer = 15,
-    PhoneNT = 16,
-    MultiUserTS = 17,
-    MaxSuiteType = 18,
 }
 

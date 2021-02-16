@@ -1,31 +1,247 @@
 module windows.xps;
 
-public import system;
-public import windows.automation;
-public import windows.com;
-public import windows.displaydevices;
-public import windows.gdi;
-public import windows.packaging;
-public import windows.printdocs;
-public import windows.security;
-public import windows.structuredstorage;
-public import windows.systemservices;
-public import windows.windowsandmessaging;
-public import windows.windowsprogramming;
+public import windows.core;
+public import windows.automation : BSTR, IDispatch;
+public import windows.com : HRESULT, IUnknown, IUri;
+public import windows.displaydevices : DEVMODEW, POINT, POINTL;
+public import windows.gdi : HDC;
+public import windows.packaging : IOpcCertificateEnumerator, IOpcCertificateSet, IOpcPartUri,
+                                  IOpcSignatureCustomObjectEnumerator, IOpcSignatureCustomObjectSet,
+                                  IOpcSignatureReferenceEnumerator, IOpcSignatureReferenceSet,
+                                  OPC_SIGNATURE_TIME_FORMAT;
+public import windows.printdocs : XPS_GLYPH_INDEX;
+public import windows.security : CERT_CONTEXT;
+public import windows.structuredstorage : ISequentialStream, IStream;
+public import windows.systemservices : BOOL, SECURITY_ATTRIBUTES;
+public import windows.windowsandmessaging : HWND;
+public import windows.windowsprogramming : SYSTEMTIME;
 
 extern(Windows):
 
+
+// Enums
+
+
+enum : int
+{
+    XPS_TILE_MODE_NONE   = 0x00000001,
+    XPS_TILE_MODE_TILE   = 0x00000002,
+    XPS_TILE_MODE_FLIPX  = 0x00000003,
+    XPS_TILE_MODE_FLIPY  = 0x00000004,
+    XPS_TILE_MODE_FLIPXY = 0x00000005,
+}
+alias XPS_TILE_MODE = int;
+
+enum : int
+{
+    XPS_COLOR_INTERPOLATION_SCRGBLINEAR = 0x00000001,
+    XPS_COLOR_INTERPOLATION_SRGBLINEAR  = 0x00000002,
+}
+alias XPS_COLOR_INTERPOLATION = int;
+
+enum : int
+{
+    XPS_SPREAD_METHOD_PAD     = 0x00000001,
+    XPS_SPREAD_METHOD_REFLECT = 0x00000002,
+    XPS_SPREAD_METHOD_REPEAT  = 0x00000003,
+}
+alias XPS_SPREAD_METHOD = int;
+
+enum : int
+{
+    XPS_STYLE_SIMULATION_NONE       = 0x00000001,
+    XPS_STYLE_SIMULATION_ITALIC     = 0x00000002,
+    XPS_STYLE_SIMULATION_BOLD       = 0x00000003,
+    XPS_STYLE_SIMULATION_BOLDITALIC = 0x00000004,
+}
+alias XPS_STYLE_SIMULATION = int;
+
+enum : int
+{
+    XPS_LINE_CAP_FLAT     = 0x00000001,
+    XPS_LINE_CAP_ROUND    = 0x00000002,
+    XPS_LINE_CAP_SQUARE   = 0x00000003,
+    XPS_LINE_CAP_TRIANGLE = 0x00000004,
+}
+alias XPS_LINE_CAP = int;
+
+enum : int
+{
+    XPS_DASH_CAP_FLAT     = 0x00000001,
+    XPS_DASH_CAP_ROUND    = 0x00000002,
+    XPS_DASH_CAP_SQUARE   = 0x00000003,
+    XPS_DASH_CAP_TRIANGLE = 0x00000004,
+}
+alias XPS_DASH_CAP = int;
+
+enum : int
+{
+    XPS_LINE_JOIN_MITER = 0x00000001,
+    XPS_LINE_JOIN_BEVEL = 0x00000002,
+    XPS_LINE_JOIN_ROUND = 0x00000003,
+}
+alias XPS_LINE_JOIN = int;
+
+enum : int
+{
+    XPS_IMAGE_TYPE_JPEG = 0x00000001,
+    XPS_IMAGE_TYPE_PNG  = 0x00000002,
+    XPS_IMAGE_TYPE_TIFF = 0x00000003,
+    XPS_IMAGE_TYPE_WDP  = 0x00000004,
+    XPS_IMAGE_TYPE_JXR  = 0x00000005,
+}
+alias XPS_IMAGE_TYPE = int;
+
+enum : int
+{
+    XPS_COLOR_TYPE_SRGB    = 0x00000001,
+    XPS_COLOR_TYPE_SCRGB   = 0x00000002,
+    XPS_COLOR_TYPE_CONTEXT = 0x00000003,
+}
+alias XPS_COLOR_TYPE = int;
+
+enum : int
+{
+    XPS_FILL_RULE_EVENODD = 0x00000001,
+    XPS_FILL_RULE_NONZERO = 0x00000002,
+}
+alias XPS_FILL_RULE = int;
+
+enum : int
+{
+    XPS_SEGMENT_TYPE_ARC_LARGE_CLOCKWISE        = 0x00000001,
+    XPS_SEGMENT_TYPE_ARC_LARGE_COUNTERCLOCKWISE = 0x00000002,
+    XPS_SEGMENT_TYPE_ARC_SMALL_CLOCKWISE        = 0x00000003,
+    XPS_SEGMENT_TYPE_ARC_SMALL_COUNTERCLOCKWISE = 0x00000004,
+    XPS_SEGMENT_TYPE_BEZIER                     = 0x00000005,
+    XPS_SEGMENT_TYPE_LINE                       = 0x00000006,
+    XPS_SEGMENT_TYPE_QUADRATIC_BEZIER           = 0x00000007,
+}
+alias XPS_SEGMENT_TYPE = int;
+
+enum : int
+{
+    XPS_SEGMENT_STROKE_PATTERN_ALL   = 0x00000001,
+    XPS_SEGMENT_STROKE_PATTERN_NONE  = 0x00000002,
+    XPS_SEGMENT_STROKE_PATTERN_MIXED = 0x00000003,
+}
+alias XPS_SEGMENT_STROKE_PATTERN = int;
+
+enum : int
+{
+    XPS_FONT_EMBEDDING_NORMAL                  = 0x00000001,
+    XPS_FONT_EMBEDDING_OBFUSCATED              = 0x00000002,
+    XPS_FONT_EMBEDDING_RESTRICTED              = 0x00000003,
+    XPS_FONT_EMBEDDING_RESTRICTED_UNOBFUSCATED = 0x00000004,
+}
+alias XPS_FONT_EMBEDDING = int;
+
+enum : int
+{
+    XPS_OBJECT_TYPE_CANVAS                = 0x00000001,
+    XPS_OBJECT_TYPE_GLYPHS                = 0x00000002,
+    XPS_OBJECT_TYPE_PATH                  = 0x00000003,
+    XPS_OBJECT_TYPE_MATRIX_TRANSFORM      = 0x00000004,
+    XPS_OBJECT_TYPE_GEOMETRY              = 0x00000005,
+    XPS_OBJECT_TYPE_SOLID_COLOR_BRUSH     = 0x00000006,
+    XPS_OBJECT_TYPE_IMAGE_BRUSH           = 0x00000007,
+    XPS_OBJECT_TYPE_LINEAR_GRADIENT_BRUSH = 0x00000008,
+    XPS_OBJECT_TYPE_RADIAL_GRADIENT_BRUSH = 0x00000009,
+    XPS_OBJECT_TYPE_VISUAL_BRUSH          = 0x0000000a,
+}
+alias XPS_OBJECT_TYPE = int;
+
+enum : int
+{
+    XPS_THUMBNAIL_SIZE_VERYSMALL = 0x00000001,
+    XPS_THUMBNAIL_SIZE_SMALL     = 0x00000002,
+    XPS_THUMBNAIL_SIZE_MEDIUM    = 0x00000003,
+    XPS_THUMBNAIL_SIZE_LARGE     = 0x00000004,
+}
+alias XPS_THUMBNAIL_SIZE = int;
+
+enum : int
+{
+    XPS_INTERLEAVING_OFF = 0x00000001,
+    XPS_INTERLEAVING_ON  = 0x00000002,
+}
+alias XPS_INTERLEAVING = int;
+
+enum : int
+{
+    XPS_DOCUMENT_TYPE_UNSPECIFIED = 0x00000001,
+    XPS_DOCUMENT_TYPE_XPS         = 0x00000002,
+    XPS_DOCUMENT_TYPE_OPENXPS     = 0x00000003,
+}
+alias XPS_DOCUMENT_TYPE = int;
+
+enum : int
+{
+    XPS_SIGNATURE_STATUS_INCOMPLIANT  = 0x00000001,
+    XPS_SIGNATURE_STATUS_INCOMPLETE   = 0x00000002,
+    XPS_SIGNATURE_STATUS_BROKEN       = 0x00000003,
+    XPS_SIGNATURE_STATUS_QUESTIONABLE = 0x00000004,
+    XPS_SIGNATURE_STATUS_VALID        = 0x00000005,
+}
+alias XPS_SIGNATURE_STATUS = int;
+
+enum : int
+{
+    XPS_SIGN_POLICY_NONE                    = 0x00000000,
+    XPS_SIGN_POLICY_CORE_PROPERTIES         = 0x00000001,
+    XPS_SIGN_POLICY_SIGNATURE_RELATIONSHIPS = 0x00000002,
+    XPS_SIGN_POLICY_PRINT_TICKET            = 0x00000004,
+    XPS_SIGN_POLICY_DISCARD_CONTROL         = 0x00000008,
+    XPS_SIGN_POLICY_ALL                     = 0x0000000f,
+}
+alias XPS_SIGN_POLICY = int;
+
+enum : int
+{
+    XPS_SIGN_FLAGS_NONE                        = 0x00000000,
+    XPS_SIGN_FLAGS_IGNORE_MARKUP_COMPATIBILITY = 0x00000001,
+}
+alias XPS_SIGN_FLAGS = int;
+
+enum PrintDocumentPackageCompletion : int
+{
+    PrintDocumentPackageCompletion_InProgress = 0x00000000,
+    PrintDocumentPackageCompletion_Completed  = 0x00000001,
+    PrintDocumentPackageCompletion_Canceled   = 0x00000002,
+    PrintDocumentPackageCompletion_Failed     = 0x00000003,
+}
+
+enum EDefaultDevmodeType : int
+{
+    kUserDefaultDevmode    = 0x00000000,
+    kPrinterDefaultDevmode = 0x00000001,
+}
+
+enum EPrintTicketScope : int
+{
+    kPTPageScope     = 0x00000000,
+    kPTDocumentScope = 0x00000001,
+    kPTJobScope      = 0x00000002,
+}
+
+// Callbacks
+
+alias ABORTPROC = BOOL function(HDC param0, int param1);
+
+// Structs
+
+
 struct DRAWPATRECT
 {
-    POINT ptPosition;
-    POINT ptSize;
+    POINT  ptPosition;
+    POINT  ptSize;
     ushort wStyle;
     ushort wPattern;
 }
 
 struct PSINJECTDATA
 {
-    uint DataBytes;
+    uint   DataBytes;
     ushort InjectionPoint;
     ushort PageNumber;
 }
@@ -47,258 +263,74 @@ struct PSFEATURE_CUSTPAPER
 
 struct DEVMODEA
 {
-    ubyte dmDeviceName;
-    ushort dmSpecVersion;
-    ushort dmDriverVersion;
-    ushort dmSize;
-    ushort dmDriverExtra;
-    uint dmFields;
-    _Anonymous1_e__Union Anonymous1;
-    short dmColor;
-    short dmDuplex;
-    short dmYResolution;
-    short dmTTOption;
-    short dmCollate;
-    ubyte dmFormName;
-    ushort dmLogPixels;
-    uint dmBitsPerPel;
-    uint dmPelsWidth;
-    uint dmPelsHeight;
-    _Anonymous2_e__Union Anonymous2;
-    uint dmDisplayFrequency;
-    uint dmICMMethod;
-    uint dmICMIntent;
-    uint dmMediaType;
-    uint dmDitherType;
-    uint dmReserved1;
-    uint dmReserved2;
-    uint dmPanningWidth;
-    uint dmPanningHeight;
+    ubyte[32] dmDeviceName;
+    ushort    dmSpecVersion;
+    ushort    dmDriverVersion;
+    ushort    dmSize;
+    ushort    dmDriverExtra;
+    uint      dmFields;
+    union
+    {
+        struct
+        {
+            short dmOrientation;
+            short dmPaperSize;
+            short dmPaperLength;
+            short dmPaperWidth;
+            short dmScale;
+            short dmCopies;
+            short dmDefaultSource;
+            short dmPrintQuality;
+        }
+        struct
+        {
+            POINTL dmPosition;
+            uint   dmDisplayOrientation;
+            uint   dmDisplayFixedOutput;
+        }
+    }
+    short     dmColor;
+    short     dmDuplex;
+    short     dmYResolution;
+    short     dmTTOption;
+    short     dmCollate;
+    ubyte[32] dmFormName;
+    ushort    dmLogPixels;
+    uint      dmBitsPerPel;
+    uint      dmPelsWidth;
+    uint      dmPelsHeight;
+    union
+    {
+        uint dmDisplayFlags;
+        uint dmNup;
+    }
+    uint      dmDisplayFrequency;
+    uint      dmICMMethod;
+    uint      dmICMIntent;
+    uint      dmMediaType;
+    uint      dmDitherType;
+    uint      dmReserved1;
+    uint      dmReserved2;
+    uint      dmPanningWidth;
+    uint      dmPanningHeight;
 }
 
-alias ABORTPROC = extern(Windows) BOOL function(HDC param0, int param1);
 struct DOCINFOA
 {
-    int cbSize;
+    int          cbSize;
     const(char)* lpszDocName;
     const(char)* lpszOutput;
     const(char)* lpszDatatype;
-    uint fwType;
+    uint         fwType;
 }
 
 struct DOCINFOW
 {
-    int cbSize;
+    int           cbSize;
     const(wchar)* lpszDocName;
     const(wchar)* lpszOutput;
     const(wchar)* lpszDatatype;
-    uint fwType;
-}
-
-@DllImport("WINSPOOL.dll")
-int DeviceCapabilitiesA(const(char)* pDevice, const(char)* pPort, ushort fwCapability, const(char)* pOutput, const(DEVMODEA)* pDevMode);
-
-@DllImport("WINSPOOL.dll")
-int DeviceCapabilitiesW(const(wchar)* pDevice, const(wchar)* pPort, ushort fwCapability, const(wchar)* pOutput, const(DEVMODEW)* pDevMode);
-
-@DllImport("GDI32.dll")
-int Escape(HDC hdc, int iEscape, int cjIn, const(char)* pvIn, void* pvOut);
-
-@DllImport("GDI32.dll")
-int ExtEscape(HDC hdc, int iEscape, int cjInput, const(char)* lpInData, int cjOutput, const(char)* lpOutData);
-
-@DllImport("GDI32.dll")
-int StartDocA(HDC hdc, const(DOCINFOA)* lpdi);
-
-@DllImport("GDI32.dll")
-int StartDocW(HDC hdc, const(DOCINFOW)* lpdi);
-
-@DllImport("GDI32.dll")
-int EndDoc(HDC hdc);
-
-@DllImport("GDI32.dll")
-int StartPage(HDC hdc);
-
-@DllImport("GDI32.dll")
-int EndPage(HDC hdc);
-
-@DllImport("GDI32.dll")
-int AbortDoc(HDC hdc);
-
-@DllImport("GDI32.dll")
-int SetAbortProc(HDC hdc, ABORTPROC proc);
-
-@DllImport("USER32.dll")
-BOOL PrintWindow(HWND hwnd, HDC hdcBlt, uint nFlags);
-
-@DllImport("prntvpt.dll")
-HRESULT PTQuerySchemaVersionSupport(const(wchar)* pszPrinterName, uint* pMaxVersion);
-
-@DllImport("prntvpt.dll")
-HRESULT PTOpenProvider(const(wchar)* pszPrinterName, uint dwVersion, HPTPROVIDER__** phProvider);
-
-@DllImport("prntvpt.dll")
-HRESULT PTOpenProviderEx(const(wchar)* pszPrinterName, uint dwMaxVersion, uint dwPrefVersion, HPTPROVIDER__** phProvider, uint* pUsedVersion);
-
-@DllImport("prntvpt.dll")
-HRESULT PTCloseProvider(HPTPROVIDER__* hProvider);
-
-@DllImport("prntvpt.dll")
-HRESULT PTReleaseMemory(void* pBuffer);
-
-@DllImport("prntvpt.dll")
-HRESULT PTGetPrintCapabilities(HPTPROVIDER__* hProvider, IStream pPrintTicket, IStream pCapabilities, BSTR* pbstrErrorMessage);
-
-@DllImport("prntvpt.dll")
-HRESULT PTGetPrintDeviceCapabilities(HPTPROVIDER__* hProvider, IStream pPrintTicket, IStream pDeviceCapabilities, BSTR* pbstrErrorMessage);
-
-@DllImport("prntvpt.dll")
-HRESULT PTGetPrintDeviceResources(HPTPROVIDER__* hProvider, const(wchar)* pszLocaleName, IStream pPrintTicket, IStream pDeviceResources, BSTR* pbstrErrorMessage);
-
-@DllImport("prntvpt.dll")
-HRESULT PTMergeAndValidatePrintTicket(HPTPROVIDER__* hProvider, IStream pBaseTicket, IStream pDeltaTicket, EPrintTicketScope scope, IStream pResultTicket, BSTR* pbstrErrorMessage);
-
-@DllImport("prntvpt.dll")
-HRESULT PTConvertPrintTicketToDevMode(HPTPROVIDER__* hProvider, IStream pPrintTicket, EDefaultDevmodeType baseDevmodeType, EPrintTicketScope scope, uint* pcbDevmode, DEVMODEA** ppDevmode, BSTR* pbstrErrorMessage);
-
-@DllImport("prntvpt.dll")
-HRESULT PTConvertDevModeToPrintTicket(HPTPROVIDER__* hProvider, uint cbDevmode, DEVMODEA* pDevmode, EPrintTicketScope scope, IStream pPrintTicket);
-
-const GUID CLSID_XpsOMObjectFactory = {0xE974D26D, 0x3D9B, 0x4D47, [0x88, 0xCC, 0x38, 0x72, 0xF2, 0xDC, 0x35, 0x85]};
-@GUID(0xE974D26D, 0x3D9B, 0x4D47, [0x88, 0xCC, 0x38, 0x72, 0xF2, 0xDC, 0x35, 0x85]);
-struct XpsOMObjectFactory;
-
-const GUID CLSID_XpsOMThumbnailGenerator = {0x7E4A23E2, 0xB969, 0x4761, [0xBE, 0x35, 0x1A, 0x8C, 0xED, 0x58, 0xE3, 0x23]};
-@GUID(0x7E4A23E2, 0xB969, 0x4761, [0xBE, 0x35, 0x1A, 0x8C, 0xED, 0x58, 0xE3, 0x23]);
-struct XpsOMThumbnailGenerator;
-
-enum XPS_TILE_MODE
-{
-    XPS_TILE_MODE_NONE = 1,
-    XPS_TILE_MODE_TILE = 2,
-    XPS_TILE_MODE_FLIPX = 3,
-    XPS_TILE_MODE_FLIPY = 4,
-    XPS_TILE_MODE_FLIPXY = 5,
-}
-
-enum XPS_COLOR_INTERPOLATION
-{
-    XPS_COLOR_INTERPOLATION_SCRGBLINEAR = 1,
-    XPS_COLOR_INTERPOLATION_SRGBLINEAR = 2,
-}
-
-enum XPS_SPREAD_METHOD
-{
-    XPS_SPREAD_METHOD_PAD = 1,
-    XPS_SPREAD_METHOD_REFLECT = 2,
-    XPS_SPREAD_METHOD_REPEAT = 3,
-}
-
-enum XPS_STYLE_SIMULATION
-{
-    XPS_STYLE_SIMULATION_NONE = 1,
-    XPS_STYLE_SIMULATION_ITALIC = 2,
-    XPS_STYLE_SIMULATION_BOLD = 3,
-    XPS_STYLE_SIMULATION_BOLDITALIC = 4,
-}
-
-enum XPS_LINE_CAP
-{
-    XPS_LINE_CAP_FLAT = 1,
-    XPS_LINE_CAP_ROUND = 2,
-    XPS_LINE_CAP_SQUARE = 3,
-    XPS_LINE_CAP_TRIANGLE = 4,
-}
-
-enum XPS_DASH_CAP
-{
-    XPS_DASH_CAP_FLAT = 1,
-    XPS_DASH_CAP_ROUND = 2,
-    XPS_DASH_CAP_SQUARE = 3,
-    XPS_DASH_CAP_TRIANGLE = 4,
-}
-
-enum XPS_LINE_JOIN
-{
-    XPS_LINE_JOIN_MITER = 1,
-    XPS_LINE_JOIN_BEVEL = 2,
-    XPS_LINE_JOIN_ROUND = 3,
-}
-
-enum XPS_IMAGE_TYPE
-{
-    XPS_IMAGE_TYPE_JPEG = 1,
-    XPS_IMAGE_TYPE_PNG = 2,
-    XPS_IMAGE_TYPE_TIFF = 3,
-    XPS_IMAGE_TYPE_WDP = 4,
-    XPS_IMAGE_TYPE_JXR = 5,
-}
-
-enum XPS_COLOR_TYPE
-{
-    XPS_COLOR_TYPE_SRGB = 1,
-    XPS_COLOR_TYPE_SCRGB = 2,
-    XPS_COLOR_TYPE_CONTEXT = 3,
-}
-
-enum XPS_FILL_RULE
-{
-    XPS_FILL_RULE_EVENODD = 1,
-    XPS_FILL_RULE_NONZERO = 2,
-}
-
-enum XPS_SEGMENT_TYPE
-{
-    XPS_SEGMENT_TYPE_ARC_LARGE_CLOCKWISE = 1,
-    XPS_SEGMENT_TYPE_ARC_LARGE_COUNTERCLOCKWISE = 2,
-    XPS_SEGMENT_TYPE_ARC_SMALL_CLOCKWISE = 3,
-    XPS_SEGMENT_TYPE_ARC_SMALL_COUNTERCLOCKWISE = 4,
-    XPS_SEGMENT_TYPE_BEZIER = 5,
-    XPS_SEGMENT_TYPE_LINE = 6,
-    XPS_SEGMENT_TYPE_QUADRATIC_BEZIER = 7,
-}
-
-enum XPS_SEGMENT_STROKE_PATTERN
-{
-    XPS_SEGMENT_STROKE_PATTERN_ALL = 1,
-    XPS_SEGMENT_STROKE_PATTERN_NONE = 2,
-    XPS_SEGMENT_STROKE_PATTERN_MIXED = 3,
-}
-
-enum XPS_FONT_EMBEDDING
-{
-    XPS_FONT_EMBEDDING_NORMAL = 1,
-    XPS_FONT_EMBEDDING_OBFUSCATED = 2,
-    XPS_FONT_EMBEDDING_RESTRICTED = 3,
-    XPS_FONT_EMBEDDING_RESTRICTED_UNOBFUSCATED = 4,
-}
-
-enum XPS_OBJECT_TYPE
-{
-    XPS_OBJECT_TYPE_CANVAS = 1,
-    XPS_OBJECT_TYPE_GLYPHS = 2,
-    XPS_OBJECT_TYPE_PATH = 3,
-    XPS_OBJECT_TYPE_MATRIX_TRANSFORM = 4,
-    XPS_OBJECT_TYPE_GEOMETRY = 5,
-    XPS_OBJECT_TYPE_SOLID_COLOR_BRUSH = 6,
-    XPS_OBJECT_TYPE_IMAGE_BRUSH = 7,
-    XPS_OBJECT_TYPE_LINEAR_GRADIENT_BRUSH = 8,
-    XPS_OBJECT_TYPE_RADIAL_GRADIENT_BRUSH = 9,
-    XPS_OBJECT_TYPE_VISUAL_BRUSH = 10,
-}
-
-enum XPS_THUMBNAIL_SIZE
-{
-    XPS_THUMBNAIL_SIZE_VERYSMALL = 1,
-    XPS_THUMBNAIL_SIZE_SMALL = 2,
-    XPS_THUMBNAIL_SIZE_MEDIUM = 3,
-    XPS_THUMBNAIL_SIZE_LARGE = 4,
-}
-
-enum XPS_INTERLEAVING
-{
-    XPS_INTERLEAVING_OFF = 1,
-    XPS_INTERLEAVING_ON = 2,
+    uint          fwType;
 }
 
 struct XPS_POINT
@@ -329,9 +361,9 @@ struct XPS_DASH
 
 struct XPS_GLYPH_MAPPING
 {
-    uint unicodeStringStart;
+    uint   unicodeStringStart;
     ushort unicodeStringLength;
-    uint glyphIndicesStart;
+    uint   glyphIndicesStart;
     ushort glyphIndicesLength;
 }
 
@@ -348,19 +380,152 @@ struct XPS_MATRIX
 struct XPS_COLOR
 {
     XPS_COLOR_TYPE colorType;
-    __MIDL___MIDL_itf_xpsobjectmodel_0000_0000_0028 value;
+    union value
+    {
+        struct sRGB
+        {
+            ubyte alpha;
+            ubyte red;
+            ubyte green;
+            ubyte blue;
+        }
+        struct scRGB
+        {
+            float alpha;
+            float red;
+            float green;
+            float blue;
+        }
+        struct context
+        {
+            ubyte    channelCount;
+            float[9] channels;
+        }
+    }
 }
 
-const GUID IID_IXpsOMShareable = {0x7137398F, 0x2FC1, 0x454D, [0x8C, 0x6A, 0x2C, 0x31, 0x15, 0xA1, 0x6E, 0xCE]};
-@GUID(0x7137398F, 0x2FC1, 0x454D, [0x8C, 0x6A, 0x2C, 0x31, 0x15, 0xA1, 0x6E, 0xCE]);
+struct PrintDocumentPackageStatus
+{
+    uint    JobId;
+    int     CurrentDocument;
+    int     CurrentPage;
+    int     CurrentPageTotal;
+    PrintDocumentPackageCompletion Completion;
+    HRESULT PackageStatus;
+}
+
+struct HPTPROVIDER__
+{
+    int unused;
+}
+
+// Functions
+
+@DllImport("WINSPOOL")
+int DeviceCapabilitiesA(const(char)* pDevice, const(char)* pPort, ushort fwCapability, const(char)* pOutput, 
+                        const(DEVMODEA)* pDevMode);
+
+@DllImport("WINSPOOL")
+int DeviceCapabilitiesW(const(wchar)* pDevice, const(wchar)* pPort, ushort fwCapability, const(wchar)* pOutput, 
+                        const(DEVMODEW)* pDevMode);
+
+@DllImport("GDI32")
+int Escape(HDC hdc, int iEscape, int cjIn, const(char)* pvIn, void* pvOut);
+
+@DllImport("GDI32")
+int ExtEscape(HDC hdc, int iEscape, int cjInput, const(char)* lpInData, int cjOutput, const(char)* lpOutData);
+
+@DllImport("GDI32")
+int StartDocA(HDC hdc, const(DOCINFOA)* lpdi);
+
+@DllImport("GDI32")
+int StartDocW(HDC hdc, const(DOCINFOW)* lpdi);
+
+@DllImport("GDI32")
+int EndDoc(HDC hdc);
+
+@DllImport("GDI32")
+int StartPage(HDC hdc);
+
+@DllImport("GDI32")
+int EndPage(HDC hdc);
+
+@DllImport("GDI32")
+int AbortDoc(HDC hdc);
+
+@DllImport("GDI32")
+int SetAbortProc(HDC hdc, ABORTPROC proc);
+
+@DllImport("USER32")
+BOOL PrintWindow(HWND hwnd, HDC hdcBlt, uint nFlags);
+
+@DllImport("prntvpt")
+HRESULT PTQuerySchemaVersionSupport(const(wchar)* pszPrinterName, uint* pMaxVersion);
+
+@DllImport("prntvpt")
+HRESULT PTOpenProvider(const(wchar)* pszPrinterName, uint dwVersion, HPTPROVIDER__** phProvider);
+
+@DllImport("prntvpt")
+HRESULT PTOpenProviderEx(const(wchar)* pszPrinterName, uint dwMaxVersion, uint dwPrefVersion, 
+                         HPTPROVIDER__** phProvider, uint* pUsedVersion);
+
+@DllImport("prntvpt")
+HRESULT PTCloseProvider(HPTPROVIDER__* hProvider);
+
+@DllImport("prntvpt")
+HRESULT PTReleaseMemory(void* pBuffer);
+
+@DllImport("prntvpt")
+HRESULT PTGetPrintCapabilities(HPTPROVIDER__* hProvider, IStream pPrintTicket, IStream pCapabilities, 
+                               BSTR* pbstrErrorMessage);
+
+@DllImport("prntvpt")
+HRESULT PTGetPrintDeviceCapabilities(HPTPROVIDER__* hProvider, IStream pPrintTicket, IStream pDeviceCapabilities, 
+                                     BSTR* pbstrErrorMessage);
+
+@DllImport("prntvpt")
+HRESULT PTGetPrintDeviceResources(HPTPROVIDER__* hProvider, const(wchar)* pszLocaleName, IStream pPrintTicket, 
+                                  IStream pDeviceResources, BSTR* pbstrErrorMessage);
+
+@DllImport("prntvpt")
+HRESULT PTMergeAndValidatePrintTicket(HPTPROVIDER__* hProvider, IStream pBaseTicket, IStream pDeltaTicket, 
+                                      EPrintTicketScope scope_, IStream pResultTicket, BSTR* pbstrErrorMessage);
+
+@DllImport("prntvpt")
+HRESULT PTConvertPrintTicketToDevMode(HPTPROVIDER__* hProvider, IStream pPrintTicket, 
+                                      EDefaultDevmodeType baseDevmodeType, EPrintTicketScope scope_, 
+                                      uint* pcbDevmode, DEVMODEA** ppDevmode, BSTR* pbstrErrorMessage);
+
+@DllImport("prntvpt")
+HRESULT PTConvertDevModeToPrintTicket(HPTPROVIDER__* hProvider, uint cbDevmode, DEVMODEA* pDevmode, 
+                                      EPrintTicketScope scope_, IStream pPrintTicket);
+
+
+// Interfaces
+
+@GUID("E974D26D-3D9B-4D47-88CC-3872F2DC3585")
+struct XpsOMObjectFactory;
+
+@GUID("7E4A23E2-B969-4761-BE35-1A8CED58E323")
+struct XpsOMThumbnailGenerator;
+
+@GUID("B0C43320-2315-44A2-B70A-0943A140A8EE")
+struct XpsSignatureManager;
+
+@GUID("4842669E-9947-46EA-8BA2-D8CCE432C2CA")
+struct PrintDocumentPackageTarget;
+
+@GUID("348EF17D-6C81-4982-92B4-EE188A43867A")
+struct PrintDocumentPackageTargetFactory;
+
+@GUID("7137398F-2FC1-454D-8C6A-2C3115A16ECE")
 interface IXpsOMShareable : IUnknown
 {
     HRESULT GetOwner(IUnknown* owner);
     HRESULT GetType(XPS_OBJECT_TYPE* type);
 }
 
-const GUID IID_IXpsOMVisual = {0xBC3E7333, 0xFB0B, 0x4AF3, [0xA8, 0x19, 0x0B, 0x4E, 0xAA, 0xD0, 0xD2, 0xFD]};
-@GUID(0xBC3E7333, 0xFB0B, 0x4AF3, [0xA8, 0x19, 0x0B, 0x4E, 0xAA, 0xD0, 0xD2, 0xFD]);
+@GUID("BC3E7333-FB0B-4AF3-A819-0B4EAAD0D2FD")
 interface IXpsOMVisual : IXpsOMShareable
 {
     HRESULT GetTransform(IXpsOMMatrixTransform* matrixTransform);
@@ -390,16 +555,14 @@ interface IXpsOMVisual : IXpsOMShareable
     HRESULT SetLanguage(const(wchar)* language);
 }
 
-const GUID IID_IXpsOMPart = {0x74EB2F0B, 0xA91E, 0x4486, [0xAF, 0xAC, 0x0F, 0xAB, 0xEC, 0xA3, 0xDF, 0xC6]};
-@GUID(0x74EB2F0B, 0xA91E, 0x4486, [0xAF, 0xAC, 0x0F, 0xAB, 0xEC, 0xA3, 0xDF, 0xC6]);
+@GUID("74EB2F0B-A91E-4486-AFAC-0FABECA3DFC6")
 interface IXpsOMPart : IUnknown
 {
     HRESULT GetPartName(IOpcPartUri* partUri);
     HRESULT SetPartName(IOpcPartUri partUri);
 }
 
-const GUID IID_IXpsOMGlyphsEditor = {0xA5AB8616, 0x5B16, 0x4B9F, [0x96, 0x29, 0x89, 0xB3, 0x23, 0xED, 0x79, 0x09]};
-@GUID(0xA5AB8616, 0x5B16, 0x4B9F, [0x96, 0x29, 0x89, 0xB3, 0x23, 0xED, 0x79, 0x09]);
+@GUID("A5AB8616-5B16-4B9F-9629-89B323ED7909")
 interface IXpsOMGlyphsEditor : IUnknown
 {
     HRESULT ApplyEdits();
@@ -422,8 +585,7 @@ interface IXpsOMGlyphsEditor : IUnknown
     HRESULT SetDeviceFontName(const(wchar)* deviceFontName);
 }
 
-const GUID IID_IXpsOMGlyphs = {0x819B3199, 0x0A5A, 0x4B64, [0xBE, 0xC7, 0xA9, 0xE1, 0x7E, 0x78, 0x0D, 0xE2]};
-@GUID(0x819B3199, 0x0A5A, 0x4B64, [0xBE, 0xC7, 0xA9, 0xE1, 0x7E, 0x78, 0x0D, 0xE2]);
+@GUID("819B3199-0A5A-4B64-BEC7-A9E17E780DE2")
 interface IXpsOMGlyphs : IXpsOMVisual
 {
     HRESULT GetUnicodeString(ushort** unicodeString);
@@ -455,8 +617,7 @@ interface IXpsOMGlyphs : IXpsOMVisual
     HRESULT Clone(IXpsOMGlyphs* glyphs);
 }
 
-const GUID IID_IXpsOMDashCollection = {0x081613F4, 0x74EB, 0x48F2, [0x83, 0xB3, 0x37, 0xA9, 0xCE, 0x2D, 0x7D, 0xC6]};
-@GUID(0x081613F4, 0x74EB, 0x48F2, [0x83, 0xB3, 0x37, 0xA9, 0xCE, 0x2D, 0x7D, 0xC6]);
+@GUID("081613F4-74EB-48F2-83B3-37A9CE2D7DC6")
 interface IXpsOMDashCollection : IUnknown
 {
     HRESULT GetCount(uint* count);
@@ -467,8 +628,7 @@ interface IXpsOMDashCollection : IUnknown
     HRESULT Append(const(XPS_DASH)* dash);
 }
 
-const GUID IID_IXpsOMMatrixTransform = {0xB77330FF, 0xBB37, 0x4501, [0xA9, 0x3E, 0xF1, 0xB1, 0xE5, 0x0B, 0xFC, 0x46]};
-@GUID(0xB77330FF, 0xBB37, 0x4501, [0xA9, 0x3E, 0xF1, 0xB1, 0xE5, 0x0B, 0xFC, 0x46]);
+@GUID("B77330FF-BB37-4501-A93E-F1B1E50BFC46")
 interface IXpsOMMatrixTransform : IXpsOMShareable
 {
     HRESULT GetMatrix(XPS_MATRIX* matrix);
@@ -476,8 +636,7 @@ interface IXpsOMMatrixTransform : IXpsOMShareable
     HRESULT Clone(IXpsOMMatrixTransform* matrixTransform);
 }
 
-const GUID IID_IXpsOMGeometry = {0x64FCF3D7, 0x4D58, 0x44BA, [0xAD, 0x73, 0xA1, 0x3A, 0xF6, 0x49, 0x20, 0x72]};
-@GUID(0x64FCF3D7, 0x4D58, 0x44BA, [0xAD, 0x73, 0xA1, 0x3A, 0xF6, 0x49, 0x20, 0x72]);
+@GUID("64FCF3D7-4D58-44BA-AD73-A13AF6492072")
 interface IXpsOMGeometry : IXpsOMShareable
 {
     HRESULT GetFigures(IXpsOMGeometryFigureCollection* figures);
@@ -491,15 +650,15 @@ interface IXpsOMGeometry : IXpsOMShareable
     HRESULT Clone(IXpsOMGeometry* geometry);
 }
 
-const GUID IID_IXpsOMGeometryFigure = {0xD410DC83, 0x908C, 0x443E, [0x89, 0x47, 0xB1, 0x79, 0x5D, 0x3C, 0x16, 0x5A]};
-@GUID(0xD410DC83, 0x908C, 0x443E, [0x89, 0x47, 0xB1, 0x79, 0x5D, 0x3C, 0x16, 0x5A]);
+@GUID("D410DC83-908C-443E-8947-B1795D3C165A")
 interface IXpsOMGeometryFigure : IUnknown
 {
     HRESULT GetOwner(IXpsOMGeometry* owner);
     HRESULT GetSegmentData(uint* dataCount, float* segmentData);
     HRESULT GetSegmentTypes(uint* segmentCount, XPS_SEGMENT_TYPE* segmentTypes);
     HRESULT GetSegmentStrokes(uint* segmentCount, int* segmentStrokes);
-    HRESULT SetSegments(uint segmentCount, uint segmentDataCount, const(XPS_SEGMENT_TYPE)* segmentTypes, const(float)* segmentData, const(int)* segmentStrokes);
+    HRESULT SetSegments(uint segmentCount, uint segmentDataCount, const(XPS_SEGMENT_TYPE)* segmentTypes, 
+                        const(float)* segmentData, const(int)* segmentStrokes);
     HRESULT GetStartPoint(XPS_POINT* startPoint);
     HRESULT SetStartPoint(const(XPS_POINT)* startPoint);
     HRESULT GetIsClosed(int* isClosed);
@@ -512,8 +671,7 @@ interface IXpsOMGeometryFigure : IUnknown
     HRESULT Clone(IXpsOMGeometryFigure* geometryFigure);
 }
 
-const GUID IID_IXpsOMGeometryFigureCollection = {0xFD48C3F3, 0xA58E, 0x4B5A, [0x88, 0x26, 0x1D, 0xE5, 0x4A, 0xBE, 0x72, 0xB2]};
-@GUID(0xFD48C3F3, 0xA58E, 0x4B5A, [0x88, 0x26, 0x1D, 0xE5, 0x4A, 0xBE, 0x72, 0xB2]);
+@GUID("FD48C3F3-A58E-4B5A-8826-1DE54ABE72B2")
 interface IXpsOMGeometryFigureCollection : IUnknown
 {
     HRESULT GetCount(uint* count);
@@ -524,8 +682,7 @@ interface IXpsOMGeometryFigureCollection : IUnknown
     HRESULT Append(IXpsOMGeometryFigure geometryFigure);
 }
 
-const GUID IID_IXpsOMPath = {0x37D38BB6, 0x3EE9, 0x4110, [0x93, 0x12, 0x14, 0xB1, 0x94, 0x16, 0x33, 0x37]};
-@GUID(0x37D38BB6, 0x3EE9, 0x4110, [0x93, 0x12, 0x14, 0xB1, 0x94, 0x16, 0x33, 0x37]);
+@GUID("37D38BB6-3EE9-4110-9312-14B194163337")
 interface IXpsOMPath : IXpsOMVisual
 {
     HRESULT GetGeometry(IXpsOMGeometry* geometry);
@@ -567,16 +724,14 @@ interface IXpsOMPath : IXpsOMVisual
     HRESULT Clone(IXpsOMPath* path);
 }
 
-const GUID IID_IXpsOMBrush = {0x56A3F80C, 0xEA4C, 0x4187, [0xA5, 0x7B, 0xA2, 0xA4, 0x73, 0xB2, 0xB4, 0x2B]};
-@GUID(0x56A3F80C, 0xEA4C, 0x4187, [0xA5, 0x7B, 0xA2, 0xA4, 0x73, 0xB2, 0xB4, 0x2B]);
+@GUID("56A3F80C-EA4C-4187-A57B-A2A473B2B42B")
 interface IXpsOMBrush : IXpsOMShareable
 {
     HRESULT GetOpacity(float* opacity);
     HRESULT SetOpacity(float opacity);
 }
 
-const GUID IID_IXpsOMGradientStopCollection = {0xC9174C3A, 0x3CD3, 0x4319, [0xBD, 0xA4, 0x11, 0xA3, 0x93, 0x92, 0xCE, 0xEF]};
-@GUID(0xC9174C3A, 0x3CD3, 0x4319, [0xBD, 0xA4, 0x11, 0xA3, 0x93, 0x92, 0xCE, 0xEF]);
+@GUID("C9174C3A-3CD3-4319-BDA4-11A39392CEEF")
 interface IXpsOMGradientStopCollection : IUnknown
 {
     HRESULT GetCount(uint* count);
@@ -587,8 +742,7 @@ interface IXpsOMGradientStopCollection : IUnknown
     HRESULT Append(IXpsOMGradientStop stop);
 }
 
-const GUID IID_IXpsOMSolidColorBrush = {0xA06F9F05, 0x3BE9, 0x4763, [0x98, 0xA8, 0x09, 0x4F, 0xC6, 0x72, 0xE4, 0x88]};
-@GUID(0xA06F9F05, 0x3BE9, 0x4763, [0x98, 0xA8, 0x09, 0x4F, 0xC6, 0x72, 0xE4, 0x88]);
+@GUID("A06F9F05-3BE9-4763-98A8-094FC672E488")
 interface IXpsOMSolidColorBrush : IXpsOMBrush
 {
     HRESULT GetColor(XPS_COLOR* color, IXpsOMColorProfileResource* colorProfile);
@@ -596,8 +750,7 @@ interface IXpsOMSolidColorBrush : IXpsOMBrush
     HRESULT Clone(IXpsOMSolidColorBrush* solidColorBrush);
 }
 
-const GUID IID_IXpsOMTileBrush = {0x0FC2328D, 0xD722, 0x4A54, [0xB2, 0xEC, 0xBE, 0x90, 0x21, 0x8A, 0x78, 0x9E]};
-@GUID(0x0FC2328D, 0xD722, 0x4A54, [0xB2, 0xEC, 0xBE, 0x90, 0x21, 0x8A, 0x78, 0x9E]);
+@GUID("0FC2328D-D722-4A54-B2EC-BE90218A789E")
 interface IXpsOMTileBrush : IXpsOMBrush
 {
     HRESULT GetTransform(IXpsOMMatrixTransform* transform);
@@ -613,8 +766,7 @@ interface IXpsOMTileBrush : IXpsOMBrush
     HRESULT SetTileMode(XPS_TILE_MODE tileMode);
 }
 
-const GUID IID_IXpsOMVisualBrush = {0x97E294AF, 0x5B37, 0x46B4, [0x80, 0x57, 0x87, 0x4D, 0x2F, 0x64, 0x11, 0x9B]};
-@GUID(0x97E294AF, 0x5B37, 0x46B4, [0x80, 0x57, 0x87, 0x4D, 0x2F, 0x64, 0x11, 0x9B]);
+@GUID("97E294AF-5B37-46B4-8057-874D2F64119B")
 interface IXpsOMVisualBrush : IXpsOMTileBrush
 {
     HRESULT GetVisual(IXpsOMVisual* visual);
@@ -625,8 +777,7 @@ interface IXpsOMVisualBrush : IXpsOMTileBrush
     HRESULT Clone(IXpsOMVisualBrush* visualBrush);
 }
 
-const GUID IID_IXpsOMImageBrush = {0x3DF0B466, 0xD382, 0x49EF, [0x85, 0x50, 0xDD, 0x94, 0xC8, 0x02, 0x42, 0xE4]};
-@GUID(0x3DF0B466, 0xD382, 0x49EF, [0x85, 0x50, 0xDD, 0x94, 0xC8, 0x02, 0x42, 0xE4]);
+@GUID("3DF0B466-D382-49EF-8550-DD94C80242E4")
 interface IXpsOMImageBrush : IXpsOMTileBrush
 {
     HRESULT GetImageResource(IXpsOMImageResource* imageResource);
@@ -636,8 +787,7 @@ interface IXpsOMImageBrush : IXpsOMTileBrush
     HRESULT Clone(IXpsOMImageBrush* imageBrush);
 }
 
-const GUID IID_IXpsOMGradientStop = {0x5CF4F5CC, 0x3969, 0x49B5, [0xA7, 0x0A, 0x55, 0x50, 0xB6, 0x18, 0xFE, 0x49]};
-@GUID(0x5CF4F5CC, 0x3969, 0x49B5, [0xA7, 0x0A, 0x55, 0x50, 0xB6, 0x18, 0xFE, 0x49]);
+@GUID("5CF4F5CC-3969-49B5-A70A-5550B618FE49")
 interface IXpsOMGradientStop : IUnknown
 {
     HRESULT GetOwner(IXpsOMGradientBrush* owner);
@@ -648,8 +798,7 @@ interface IXpsOMGradientStop : IUnknown
     HRESULT Clone(IXpsOMGradientStop* gradientStop);
 }
 
-const GUID IID_IXpsOMGradientBrush = {0xEDB59622, 0x61A2, 0x42C3, [0xBA, 0xCE, 0xAC, 0xF2, 0x28, 0x6C, 0x06, 0xBF]};
-@GUID(0xEDB59622, 0x61A2, 0x42C3, [0xBA, 0xCE, 0xAC, 0xF2, 0x28, 0x6C, 0x06, 0xBF]);
+@GUID("EDB59622-61A2-42C3-BACE-ACF2286C06BF")
 interface IXpsOMGradientBrush : IXpsOMBrush
 {
     HRESULT GetGradientStops(IXpsOMGradientStopCollection* gradientStops);
@@ -664,8 +813,7 @@ interface IXpsOMGradientBrush : IXpsOMBrush
     HRESULT SetColorInterpolationMode(XPS_COLOR_INTERPOLATION colorInterpolationMode);
 }
 
-const GUID IID_IXpsOMLinearGradientBrush = {0x005E279F, 0xC30D, 0x40FF, [0x93, 0xEC, 0x19, 0x50, 0xD3, 0xC5, 0x28, 0xDB]};
-@GUID(0x005E279F, 0xC30D, 0x40FF, [0x93, 0xEC, 0x19, 0x50, 0xD3, 0xC5, 0x28, 0xDB]);
+@GUID("005E279F-C30D-40FF-93EC-1950D3C528DB")
 interface IXpsOMLinearGradientBrush : IXpsOMGradientBrush
 {
     HRESULT GetStartPoint(XPS_POINT* startPoint);
@@ -675,8 +823,7 @@ interface IXpsOMLinearGradientBrush : IXpsOMGradientBrush
     HRESULT Clone(IXpsOMLinearGradientBrush* linearGradientBrush);
 }
 
-const GUID IID_IXpsOMRadialGradientBrush = {0x75F207E5, 0x08BF, 0x413C, [0x96, 0xB1, 0xB8, 0x2B, 0x40, 0x64, 0x17, 0x6B]};
-@GUID(0x75F207E5, 0x08BF, 0x413C, [0x96, 0xB1, 0xB8, 0x2B, 0x40, 0x64, 0x17, 0x6B]);
+@GUID("75F207E5-08BF-413C-96B1-B82B4064176B")
 interface IXpsOMRadialGradientBrush : IXpsOMGradientBrush
 {
     HRESULT GetCenter(XPS_POINT* center);
@@ -688,14 +835,12 @@ interface IXpsOMRadialGradientBrush : IXpsOMGradientBrush
     HRESULT Clone(IXpsOMRadialGradientBrush* radialGradientBrush);
 }
 
-const GUID IID_IXpsOMResource = {0xDA2AC0A2, 0x73A2, 0x4975, [0xAD, 0x14, 0x74, 0x09, 0x7C, 0x3F, 0xF3, 0xA5]};
-@GUID(0xDA2AC0A2, 0x73A2, 0x4975, [0xAD, 0x14, 0x74, 0x09, 0x7C, 0x3F, 0xF3, 0xA5]);
+@GUID("DA2AC0A2-73A2-4975-AD14-74097C3FF3A5")
 interface IXpsOMResource : IXpsOMPart
 {
 }
 
-const GUID IID_IXpsOMPartResources = {0xF4CF7729, 0x4864, 0x4275, [0x99, 0xB3, 0xA8, 0x71, 0x71, 0x63, 0xEC, 0xAF]};
-@GUID(0xF4CF7729, 0x4864, 0x4275, [0x99, 0xB3, 0xA8, 0x71, 0x71, 0x63, 0xEC, 0xAF]);
+@GUID("F4CF7729-4864-4275-99B3-A8717163ECAF")
 interface IXpsOMPartResources : IUnknown
 {
     HRESULT GetFontResources(IXpsOMFontResourceCollection* fontResources);
@@ -704,8 +849,7 @@ interface IXpsOMPartResources : IUnknown
     HRESULT GetRemoteDictionaryResources(IXpsOMRemoteDictionaryResourceCollection* dictionaryResources);
 }
 
-const GUID IID_IXpsOMDictionary = {0x897C86B8, 0x8EAF, 0x4AE3, [0xBD, 0xDE, 0x56, 0x41, 0x9F, 0xCF, 0x42, 0x36]};
-@GUID(0x897C86B8, 0x8EAF, 0x4AE3, [0xBD, 0xDE, 0x56, 0x41, 0x9F, 0xCF, 0x42, 0x36]);
+@GUID("897C86B8-8EAF-4AE3-BDDE-56419FCF4236")
 interface IXpsOMDictionary : IUnknown
 {
     HRESULT GetOwner(IUnknown* owner);
@@ -720,8 +864,7 @@ interface IXpsOMDictionary : IUnknown
     HRESULT Clone(IXpsOMDictionary* dictionary);
 }
 
-const GUID IID_IXpsOMFontResource = {0xA8C45708, 0x47D9, 0x4AF4, [0x8D, 0x20, 0x33, 0xB4, 0x8C, 0x9B, 0x84, 0x85]};
-@GUID(0xA8C45708, 0x47D9, 0x4AF4, [0x8D, 0x20, 0x33, 0xB4, 0x8C, 0x9B, 0x84, 0x85]);
+@GUID("A8C45708-47D9-4AF4-8D20-33B48C9B8485")
 interface IXpsOMFontResource : IXpsOMResource
 {
     HRESULT GetStream(IStream* readerStream);
@@ -729,8 +872,7 @@ interface IXpsOMFontResource : IXpsOMResource
     HRESULT GetEmbeddingOption(XPS_FONT_EMBEDDING* embeddingOption);
 }
 
-const GUID IID_IXpsOMFontResourceCollection = {0x70B4A6BB, 0x88D4, 0x4FA8, [0xAA, 0xF9, 0x6D, 0x9C, 0x59, 0x6F, 0xDB, 0xAD]};
-@GUID(0x70B4A6BB, 0x88D4, 0x4FA8, [0xAA, 0xF9, 0x6D, 0x9C, 0x59, 0x6F, 0xDB, 0xAD]);
+@GUID("70B4A6BB-88D4-4FA8-AAF9-6D9C596FDBAD")
 interface IXpsOMFontResourceCollection : IUnknown
 {
     HRESULT GetCount(uint* count);
@@ -742,8 +884,7 @@ interface IXpsOMFontResourceCollection : IUnknown
     HRESULT GetByPartName(IOpcPartUri partName, IXpsOMFontResource* part);
 }
 
-const GUID IID_IXpsOMImageResource = {0x3DB8417D, 0xAE50, 0x485E, [0x9A, 0x44, 0xD7, 0x75, 0x8F, 0x78, 0xA2, 0x3F]};
-@GUID(0x3DB8417D, 0xAE50, 0x485E, [0x9A, 0x44, 0xD7, 0x75, 0x8F, 0x78, 0xA2, 0x3F]);
+@GUID("3DB8417D-AE50-485E-9A44-D7758F78A23F")
 interface IXpsOMImageResource : IXpsOMResource
 {
     HRESULT GetStream(IStream* readerStream);
@@ -751,8 +892,7 @@ interface IXpsOMImageResource : IXpsOMResource
     HRESULT GetImageType(XPS_IMAGE_TYPE* imageType);
 }
 
-const GUID IID_IXpsOMImageResourceCollection = {0x7A4A1A71, 0x9CDE, 0x4B71, [0xB3, 0x3F, 0x62, 0xDE, 0x84, 0x3E, 0xAB, 0xFE]};
-@GUID(0x7A4A1A71, 0x9CDE, 0x4B71, [0xB3, 0x3F, 0x62, 0xDE, 0x84, 0x3E, 0xAB, 0xFE]);
+@GUID("7A4A1A71-9CDE-4B71-B33F-62DE843EABFE")
 interface IXpsOMImageResourceCollection : IUnknown
 {
     HRESULT GetCount(uint* count);
@@ -764,16 +904,14 @@ interface IXpsOMImageResourceCollection : IUnknown
     HRESULT GetByPartName(IOpcPartUri partName, IXpsOMImageResource* part);
 }
 
-const GUID IID_IXpsOMColorProfileResource = {0x67BD7D69, 0x1EEF, 0x4BB1, [0xB5, 0xE7, 0x6F, 0x4F, 0x87, 0xBE, 0x8A, 0xBE]};
-@GUID(0x67BD7D69, 0x1EEF, 0x4BB1, [0xB5, 0xE7, 0x6F, 0x4F, 0x87, 0xBE, 0x8A, 0xBE]);
+@GUID("67BD7D69-1EEF-4BB1-B5E7-6F4F87BE8ABE")
 interface IXpsOMColorProfileResource : IXpsOMResource
 {
     HRESULT GetStream(IStream* stream);
     HRESULT SetContent(IStream sourceStream, IOpcPartUri partName);
 }
 
-const GUID IID_IXpsOMColorProfileResourceCollection = {0x12759630, 0x5FBA, 0x4283, [0x8F, 0x7D, 0xCC, 0xA8, 0x49, 0x80, 0x9E, 0xDB]};
-@GUID(0x12759630, 0x5FBA, 0x4283, [0x8F, 0x7D, 0xCC, 0xA8, 0x49, 0x80, 0x9E, 0xDB]);
+@GUID("12759630-5FBA-4283-8F7D-CCA849809EDB")
 interface IXpsOMColorProfileResourceCollection : IUnknown
 {
     HRESULT GetCount(uint* count);
@@ -785,24 +923,21 @@ interface IXpsOMColorProfileResourceCollection : IUnknown
     HRESULT GetByPartName(IOpcPartUri partName, IXpsOMColorProfileResource* part);
 }
 
-const GUID IID_IXpsOMPrintTicketResource = {0xE7FF32D2, 0x34AA, 0x499B, [0xBB, 0xE9, 0x9C, 0xD4, 0xEE, 0x6C, 0x59, 0xF7]};
-@GUID(0xE7FF32D2, 0x34AA, 0x499B, [0xBB, 0xE9, 0x9C, 0xD4, 0xEE, 0x6C, 0x59, 0xF7]);
+@GUID("E7FF32D2-34AA-499B-BBE9-9CD4EE6C59F7")
 interface IXpsOMPrintTicketResource : IXpsOMResource
 {
     HRESULT GetStream(IStream* stream);
     HRESULT SetContent(IStream sourceStream, IOpcPartUri partName);
 }
 
-const GUID IID_IXpsOMRemoteDictionaryResource = {0xC9BD7CD4, 0xE16A, 0x4BF8, [0x8C, 0x84, 0xC9, 0x50, 0xAF, 0x7A, 0x30, 0x61]};
-@GUID(0xC9BD7CD4, 0xE16A, 0x4BF8, [0x8C, 0x84, 0xC9, 0x50, 0xAF, 0x7A, 0x30, 0x61]);
+@GUID("C9BD7CD4-E16A-4BF8-8C84-C950AF7A3061")
 interface IXpsOMRemoteDictionaryResource : IXpsOMResource
 {
     HRESULT GetDictionary(IXpsOMDictionary* dictionary);
     HRESULT SetDictionary(IXpsOMDictionary dictionary);
 }
 
-const GUID IID_IXpsOMRemoteDictionaryResourceCollection = {0x5C38DB61, 0x7FEC, 0x464A, [0x87, 0xBD, 0x41, 0xE3, 0xBE, 0xF0, 0x18, 0xBE]};
-@GUID(0x5C38DB61, 0x7FEC, 0x464A, [0x87, 0xBD, 0x41, 0xE3, 0xBE, 0xF0, 0x18, 0xBE]);
+@GUID("5C38DB61-7FEC-464A-87BD-41E3BEF018BE")
 interface IXpsOMRemoteDictionaryResourceCollection : IUnknown
 {
     HRESULT GetCount(uint* count);
@@ -814,8 +949,7 @@ interface IXpsOMRemoteDictionaryResourceCollection : IUnknown
     HRESULT GetByPartName(IOpcPartUri partName, IXpsOMRemoteDictionaryResource* remoteDictionaryResource);
 }
 
-const GUID IID_IXpsOMSignatureBlockResourceCollection = {0xAB8F5D8E, 0x351B, 0x4D33, [0xAA, 0xED, 0xFA, 0x56, 0xF0, 0x02, 0x29, 0x31]};
-@GUID(0xAB8F5D8E, 0x351B, 0x4D33, [0xAA, 0xED, 0xFA, 0x56, 0xF0, 0x02, 0x29, 0x31]);
+@GUID("AB8F5D8E-351B-4D33-AAED-FA56F0022931")
 interface IXpsOMSignatureBlockResourceCollection : IUnknown
 {
     HRESULT GetCount(uint* count);
@@ -827,8 +961,7 @@ interface IXpsOMSignatureBlockResourceCollection : IUnknown
     HRESULT GetByPartName(IOpcPartUri partName, IXpsOMSignatureBlockResource* signatureBlockResource);
 }
 
-const GUID IID_IXpsOMDocumentStructureResource = {0x85FEBC8A, 0x6B63, 0x48A9, [0xAF, 0x07, 0x70, 0x64, 0xE4, 0xEC, 0xFF, 0x30]};
-@GUID(0x85FEBC8A, 0x6B63, 0x48A9, [0xAF, 0x07, 0x70, 0x64, 0xE4, 0xEC, 0xFF, 0x30]);
+@GUID("85FEBC8A-6B63-48A9-AF07-7064E4ECFF30")
 interface IXpsOMDocumentStructureResource : IXpsOMResource
 {
     HRESULT GetOwner(IXpsOMDocument* owner);
@@ -836,8 +969,7 @@ interface IXpsOMDocumentStructureResource : IXpsOMResource
     HRESULT SetContent(IStream sourceStream, IOpcPartUri partName);
 }
 
-const GUID IID_IXpsOMStoryFragmentsResource = {0xC2B3CA09, 0x0473, 0x4282, [0x87, 0xAE, 0x17, 0x80, 0x86, 0x32, 0x23, 0xF0]};
-@GUID(0xC2B3CA09, 0x0473, 0x4282, [0x87, 0xAE, 0x17, 0x80, 0x86, 0x32, 0x23, 0xF0]);
+@GUID("C2B3CA09-0473-4282-87AE-1780863223F0")
 interface IXpsOMStoryFragmentsResource : IXpsOMResource
 {
     HRESULT GetOwner(IXpsOMPageReference* owner);
@@ -845,8 +977,7 @@ interface IXpsOMStoryFragmentsResource : IXpsOMResource
     HRESULT SetContent(IStream sourceStream, IOpcPartUri partName);
 }
 
-const GUID IID_IXpsOMSignatureBlockResource = {0x4776AD35, 0x2E04, 0x4357, [0x87, 0x43, 0xEB, 0xF6, 0xC1, 0x71, 0xA9, 0x05]};
-@GUID(0x4776AD35, 0x2E04, 0x4357, [0x87, 0x43, 0xEB, 0xF6, 0xC1, 0x71, 0xA9, 0x05]);
+@GUID("4776AD35-2E04-4357-8743-EBF6C171A905")
 interface IXpsOMSignatureBlockResource : IXpsOMResource
 {
     HRESULT GetOwner(IXpsOMDocument* owner);
@@ -854,8 +985,7 @@ interface IXpsOMSignatureBlockResource : IXpsOMResource
     HRESULT SetContent(IStream sourceStream, IOpcPartUri partName);
 }
 
-const GUID IID_IXpsOMVisualCollection = {0x94D8ABDE, 0xAB91, 0x46A8, [0x82, 0xB7, 0xF5, 0xB0, 0x5E, 0xF0, 0x1A, 0x96]};
-@GUID(0x94D8ABDE, 0xAB91, 0x46A8, [0x82, 0xB7, 0xF5, 0xB0, 0x5E, 0xF0, 0x1A, 0x96]);
+@GUID("94D8ABDE-AB91-46A8-82B7-F5B05EF01A96")
 interface IXpsOMVisualCollection : IUnknown
 {
     HRESULT GetCount(uint* count);
@@ -866,8 +996,7 @@ interface IXpsOMVisualCollection : IUnknown
     HRESULT Append(IXpsOMVisual object);
 }
 
-const GUID IID_IXpsOMCanvas = {0x221D1452, 0x331E, 0x47C6, [0x87, 0xE9, 0x6C, 0xCE, 0xFB, 0x9B, 0x5B, 0xA3]};
-@GUID(0x221D1452, 0x331E, 0x47C6, [0x87, 0xE9, 0x6C, 0xCE, 0xFB, 0x9B, 0x5B, 0xA3]);
+@GUID("221D1452-331E-47C6-87E9-6CCEFB9B5BA3")
 interface IXpsOMCanvas : IXpsOMVisual
 {
     HRESULT GetVisuals(IXpsOMVisualCollection* visuals);
@@ -885,8 +1014,7 @@ interface IXpsOMCanvas : IXpsOMVisual
     HRESULT Clone(IXpsOMCanvas* canvas);
 }
 
-const GUID IID_IXpsOMPage = {0xD3E18888, 0xF120, 0x4FEE, [0x8C, 0x68, 0x35, 0x29, 0x6E, 0xAE, 0x91, 0xD4]};
-@GUID(0xD3E18888, 0xF120, 0x4FEE, [0x8C, 0x68, 0x35, 0x29, 0x6E, 0xAE, 0x91, 0xD4]);
+@GUID("D3E18888-F120-4FEE-8C68-35296EAE91D4")
 interface IXpsOMPage : IXpsOMPart
 {
     HRESULT GetOwner(IXpsOMPageReference* pageReference);
@@ -913,8 +1041,7 @@ interface IXpsOMPage : IXpsOMPart
     HRESULT Clone(IXpsOMPage* page);
 }
 
-const GUID IID_IXpsOMPageReference = {0xED360180, 0x6F92, 0x4998, [0x89, 0x0D, 0x2F, 0x20, 0x85, 0x31, 0xA0, 0xA0]};
-@GUID(0xED360180, 0x6F92, 0x4998, [0x89, 0x0D, 0x2F, 0x20, 0x85, 0x31, 0xA0, 0xA0]);
+@GUID("ED360180-6F92-4998-890D-2F208531A0A0")
 interface IXpsOMPageReference : IUnknown
 {
     HRESULT GetOwner(IXpsOMDocument* document);
@@ -936,8 +1063,7 @@ interface IXpsOMPageReference : IUnknown
     HRESULT Clone(IXpsOMPageReference* pageReference);
 }
 
-const GUID IID_IXpsOMPageReferenceCollection = {0xCA16BA4D, 0xE7B9, 0x45C5, [0x95, 0x8B, 0xF9, 0x80, 0x22, 0x47, 0x37, 0x45]};
-@GUID(0xCA16BA4D, 0xE7B9, 0x45C5, [0x95, 0x8B, 0xF9, 0x80, 0x22, 0x47, 0x37, 0x45]);
+@GUID("CA16BA4D-E7B9-45C5-958B-F98022473745")
 interface IXpsOMPageReferenceCollection : IUnknown
 {
     HRESULT GetCount(uint* count);
@@ -948,8 +1074,7 @@ interface IXpsOMPageReferenceCollection : IUnknown
     HRESULT Append(IXpsOMPageReference pageReference);
 }
 
-const GUID IID_IXpsOMDocument = {0x2C2C94CB, 0xAC5F, 0x4254, [0x8E, 0xE9, 0x23, 0x94, 0x83, 0x09, 0xD9, 0xF0]};
-@GUID(0x2C2C94CB, 0xAC5F, 0x4254, [0x8E, 0xE9, 0x23, 0x94, 0x83, 0x09, 0xD9, 0xF0]);
+@GUID("2C2C94CB-AC5F-4254-8EE9-23948309D9F0")
 interface IXpsOMDocument : IXpsOMPart
 {
     HRESULT GetOwner(IXpsOMDocumentSequence* documentSequence);
@@ -962,8 +1087,7 @@ interface IXpsOMDocument : IXpsOMPart
     HRESULT Clone(IXpsOMDocument* document);
 }
 
-const GUID IID_IXpsOMDocumentCollection = {0xD1C87F0D, 0xE947, 0x4754, [0x8A, 0x25, 0x97, 0x14, 0x78, 0xF7, 0xE8, 0x3E]};
-@GUID(0xD1C87F0D, 0xE947, 0x4754, [0x8A, 0x25, 0x97, 0x14, 0x78, 0xF7, 0xE8, 0x3E]);
+@GUID("D1C87F0D-E947-4754-8A25-971478F7E83E")
 interface IXpsOMDocumentCollection : IUnknown
 {
     HRESULT GetCount(uint* count);
@@ -974,21 +1098,19 @@ interface IXpsOMDocumentCollection : IUnknown
     HRESULT Append(IXpsOMDocument document);
 }
 
-const GUID IID_IXpsOMDocumentSequence = {0x56492EB4, 0xD8D5, 0x425E, [0x82, 0x56, 0x4C, 0x2B, 0x64, 0xAD, 0x02, 0x64]};
-@GUID(0x56492EB4, 0xD8D5, 0x425E, [0x82, 0x56, 0x4C, 0x2B, 0x64, 0xAD, 0x02, 0x64]);
+@GUID("56492EB4-D8D5-425E-8256-4C2B64AD0264")
 interface IXpsOMDocumentSequence : IXpsOMPart
 {
-    HRESULT GetOwner(IXpsOMPackage* package);
+    HRESULT GetOwner(IXpsOMPackage* package_);
     HRESULT GetDocuments(IXpsOMDocumentCollection* documents);
     HRESULT GetPrintTicketResource(IXpsOMPrintTicketResource* printTicketResource);
     HRESULT SetPrintTicketResource(IXpsOMPrintTicketResource printTicketResource);
 }
 
-const GUID IID_IXpsOMCoreProperties = {0x3340FE8F, 0x4027, 0x4AA1, [0x8F, 0x5F, 0xD3, 0x5A, 0xE4, 0x5F, 0xE5, 0x97]};
-@GUID(0x3340FE8F, 0x4027, 0x4AA1, [0x8F, 0x5F, 0xD3, 0x5A, 0xE4, 0x5F, 0xE5, 0x97]);
+@GUID("3340FE8F-4027-4AA1-8F5F-D35AE45FE597")
 interface IXpsOMCoreProperties : IXpsOMPart
 {
-    HRESULT GetOwner(IXpsOMPackage* package);
+    HRESULT GetOwner(IXpsOMPackage* package_);
     HRESULT GetCategory(ushort** category);
     HRESULT SetCategory(const(wchar)* category);
     HRESULT GetContentStatus(ushort** contentStatus);
@@ -1019,13 +1141,12 @@ interface IXpsOMCoreProperties : IXpsOMPart
     HRESULT SetSubject(const(wchar)* subject);
     HRESULT GetTitle(ushort** title);
     HRESULT SetTitle(const(wchar)* title);
-    HRESULT GetVersion(ushort** version);
-    HRESULT SetVersion(const(wchar)* version);
+    HRESULT GetVersion(ushort** version_);
+    HRESULT SetVersion(const(wchar)* version_);
     HRESULT Clone(IXpsOMCoreProperties* coreProperties);
 }
 
-const GUID IID_IXpsOMPackage = {0x18C3DF65, 0x81E1, 0x4674, [0x91, 0xDC, 0xFC, 0x45, 0x2F, 0x5A, 0x41, 0x6F]};
-@GUID(0x18C3DF65, 0x81E1, 0x4674, [0x91, 0xDC, 0xFC, 0x45, 0x2F, 0x5A, 0x41, 0x6F]);
+@GUID("18C3DF65-81E1-4674-91DC-FC452F5A416F")
 interface IXpsOMPackage : IUnknown
 {
     HRESULT GetDocumentSequence(IXpsOMDocumentSequence* documentSequence);
@@ -1036,63 +1157,89 @@ interface IXpsOMPackage : IUnknown
     HRESULT SetDiscardControlPartName(IOpcPartUri discardControlPartUri);
     HRESULT GetThumbnailResource(IXpsOMImageResource* imageResource);
     HRESULT SetThumbnailResource(IXpsOMImageResource imageResource);
-    HRESULT WriteToFile(const(wchar)* fileName, SECURITY_ATTRIBUTES* securityAttributes, uint flagsAndAttributes, BOOL optimizeMarkupSize);
+    HRESULT WriteToFile(const(wchar)* fileName, SECURITY_ATTRIBUTES* securityAttributes, uint flagsAndAttributes, 
+                        BOOL optimizeMarkupSize);
     HRESULT WriteToStream(ISequentialStream stream, BOOL optimizeMarkupSize);
 }
 
-const GUID IID_IXpsOMObjectFactory = {0xF9B2A685, 0xA50D, 0x4FC2, [0xB7, 0x64, 0xB5, 0x6E, 0x09, 0x3E, 0xA0, 0xCA]};
-@GUID(0xF9B2A685, 0xA50D, 0x4FC2, [0xB7, 0x64, 0xB5, 0x6E, 0x09, 0x3E, 0xA0, 0xCA]);
+@GUID("F9B2A685-A50D-4FC2-B764-B56E093EA0CA")
 interface IXpsOMObjectFactory : IUnknown
 {
-    HRESULT CreatePackage(IXpsOMPackage* package);
-    HRESULT CreatePackageFromFile(const(wchar)* filename, BOOL reuseObjects, IXpsOMPackage* package);
-    HRESULT CreatePackageFromStream(IStream stream, BOOL reuseObjects, IXpsOMPackage* package);
-    HRESULT CreateStoryFragmentsResource(IStream acquiredStream, IOpcPartUri partUri, IXpsOMStoryFragmentsResource* storyFragmentsResource);
-    HRESULT CreateDocumentStructureResource(IStream acquiredStream, IOpcPartUri partUri, IXpsOMDocumentStructureResource* documentStructureResource);
-    HRESULT CreateSignatureBlockResource(IStream acquiredStream, IOpcPartUri partUri, IXpsOMSignatureBlockResource* signatureBlockResource);
-    HRESULT CreateRemoteDictionaryResource(IXpsOMDictionary dictionary, IOpcPartUri partUri, IXpsOMRemoteDictionaryResource* remoteDictionaryResource);
-    HRESULT CreateRemoteDictionaryResourceFromStream(IStream dictionaryMarkupStream, IOpcPartUri dictionaryPartUri, IXpsOMPartResources resources, IXpsOMRemoteDictionaryResource* dictionaryResource);
+    HRESULT CreatePackage(IXpsOMPackage* package_);
+    HRESULT CreatePackageFromFile(const(wchar)* filename, BOOL reuseObjects, IXpsOMPackage* package_);
+    HRESULT CreatePackageFromStream(IStream stream, BOOL reuseObjects, IXpsOMPackage* package_);
+    HRESULT CreateStoryFragmentsResource(IStream acquiredStream, IOpcPartUri partUri, 
+                                         IXpsOMStoryFragmentsResource* storyFragmentsResource);
+    HRESULT CreateDocumentStructureResource(IStream acquiredStream, IOpcPartUri partUri, 
+                                            IXpsOMDocumentStructureResource* documentStructureResource);
+    HRESULT CreateSignatureBlockResource(IStream acquiredStream, IOpcPartUri partUri, 
+                                         IXpsOMSignatureBlockResource* signatureBlockResource);
+    HRESULT CreateRemoteDictionaryResource(IXpsOMDictionary dictionary, IOpcPartUri partUri, 
+                                           IXpsOMRemoteDictionaryResource* remoteDictionaryResource);
+    HRESULT CreateRemoteDictionaryResourceFromStream(IStream dictionaryMarkupStream, IOpcPartUri dictionaryPartUri, 
+                                                     IXpsOMPartResources resources, 
+                                                     IXpsOMRemoteDictionaryResource* dictionaryResource);
     HRESULT CreatePartResources(IXpsOMPartResources* partResources);
     HRESULT CreateDocumentSequence(IOpcPartUri partUri, IXpsOMDocumentSequence* documentSequence);
     HRESULT CreateDocument(IOpcPartUri partUri, IXpsOMDocument* document);
     HRESULT CreatePageReference(const(XPS_SIZE)* advisoryPageDimensions, IXpsOMPageReference* pageReference);
-    HRESULT CreatePage(const(XPS_SIZE)* pageDimensions, const(wchar)* language, IOpcPartUri partUri, IXpsOMPage* page);
-    HRESULT CreatePageFromStream(IStream pageMarkupStream, IOpcPartUri partUri, IXpsOMPartResources resources, BOOL reuseObjects, IXpsOMPage* page);
+    HRESULT CreatePage(const(XPS_SIZE)* pageDimensions, const(wchar)* language, IOpcPartUri partUri, 
+                       IXpsOMPage* page);
+    HRESULT CreatePageFromStream(IStream pageMarkupStream, IOpcPartUri partUri, IXpsOMPartResources resources, 
+                                 BOOL reuseObjects, IXpsOMPage* page);
     HRESULT CreateCanvas(IXpsOMCanvas* canvas);
     HRESULT CreateGlyphs(IXpsOMFontResource fontResource, IXpsOMGlyphs* glyphs);
     HRESULT CreatePath(IXpsOMPath* path);
     HRESULT CreateGeometry(IXpsOMGeometry* geometry);
     HRESULT CreateGeometryFigure(const(XPS_POINT)* startPoint, IXpsOMGeometryFigure* figure);
     HRESULT CreateMatrixTransform(const(XPS_MATRIX)* matrix, IXpsOMMatrixTransform* transform);
-    HRESULT CreateSolidColorBrush(const(XPS_COLOR)* color, IXpsOMColorProfileResource colorProfile, IXpsOMSolidColorBrush* solidColorBrush);
-    HRESULT CreateColorProfileResource(IStream acquiredStream, IOpcPartUri partUri, IXpsOMColorProfileResource* colorProfileResource);
-    HRESULT CreateImageBrush(IXpsOMImageResource image, const(XPS_RECT)* viewBox, const(XPS_RECT)* viewPort, IXpsOMImageBrush* imageBrush);
+    HRESULT CreateSolidColorBrush(const(XPS_COLOR)* color, IXpsOMColorProfileResource colorProfile, 
+                                  IXpsOMSolidColorBrush* solidColorBrush);
+    HRESULT CreateColorProfileResource(IStream acquiredStream, IOpcPartUri partUri, 
+                                       IXpsOMColorProfileResource* colorProfileResource);
+    HRESULT CreateImageBrush(IXpsOMImageResource image, const(XPS_RECT)* viewBox, const(XPS_RECT)* viewPort, 
+                             IXpsOMImageBrush* imageBrush);
     HRESULT CreateVisualBrush(const(XPS_RECT)* viewBox, const(XPS_RECT)* viewPort, IXpsOMVisualBrush* visualBrush);
-    HRESULT CreateImageResource(IStream acquiredStream, XPS_IMAGE_TYPE contentType, IOpcPartUri partUri, IXpsOMImageResource* imageResource);
-    HRESULT CreatePrintTicketResource(IStream acquiredStream, IOpcPartUri partUri, IXpsOMPrintTicketResource* printTicketResource);
-    HRESULT CreateFontResource(IStream acquiredStream, XPS_FONT_EMBEDDING fontEmbedding, IOpcPartUri partUri, BOOL isObfSourceStream, IXpsOMFontResource* fontResource);
-    HRESULT CreateGradientStop(const(XPS_COLOR)* color, IXpsOMColorProfileResource colorProfile, float offset, IXpsOMGradientStop* gradientStop);
-    HRESULT CreateLinearGradientBrush(IXpsOMGradientStop gradStop1, IXpsOMGradientStop gradStop2, const(XPS_POINT)* startPoint, const(XPS_POINT)* endPoint, IXpsOMLinearGradientBrush* linearGradientBrush);
-    HRESULT CreateRadialGradientBrush(IXpsOMGradientStop gradStop1, IXpsOMGradientStop gradStop2, const(XPS_POINT)* centerPoint, const(XPS_POINT)* gradientOrigin, const(XPS_SIZE)* radiiSizes, IXpsOMRadialGradientBrush* radialGradientBrush);
+    HRESULT CreateImageResource(IStream acquiredStream, XPS_IMAGE_TYPE contentType, IOpcPartUri partUri, 
+                                IXpsOMImageResource* imageResource);
+    HRESULT CreatePrintTicketResource(IStream acquiredStream, IOpcPartUri partUri, 
+                                      IXpsOMPrintTicketResource* printTicketResource);
+    HRESULT CreateFontResource(IStream acquiredStream, XPS_FONT_EMBEDDING fontEmbedding, IOpcPartUri partUri, 
+                               BOOL isObfSourceStream, IXpsOMFontResource* fontResource);
+    HRESULT CreateGradientStop(const(XPS_COLOR)* color, IXpsOMColorProfileResource colorProfile, float offset, 
+                               IXpsOMGradientStop* gradientStop);
+    HRESULT CreateLinearGradientBrush(IXpsOMGradientStop gradStop1, IXpsOMGradientStop gradStop2, 
+                                      const(XPS_POINT)* startPoint, const(XPS_POINT)* endPoint, 
+                                      IXpsOMLinearGradientBrush* linearGradientBrush);
+    HRESULT CreateRadialGradientBrush(IXpsOMGradientStop gradStop1, IXpsOMGradientStop gradStop2, 
+                                      const(XPS_POINT)* centerPoint, const(XPS_POINT)* gradientOrigin, 
+                                      const(XPS_SIZE)* radiiSizes, IXpsOMRadialGradientBrush* radialGradientBrush);
     HRESULT CreateCoreProperties(IOpcPartUri partUri, IXpsOMCoreProperties* coreProperties);
     HRESULT CreateDictionary(IXpsOMDictionary* dictionary);
     HRESULT CreatePartUriCollection(IXpsOMPartUriCollection* partUriCollection);
-    HRESULT CreatePackageWriterOnFile(const(wchar)* fileName, SECURITY_ATTRIBUTES* securityAttributes, uint flagsAndAttributes, BOOL optimizeMarkupSize, XPS_INTERLEAVING interleaving, IOpcPartUri documentSequencePartName, IXpsOMCoreProperties coreProperties, IXpsOMImageResource packageThumbnail, IXpsOMPrintTicketResource documentSequencePrintTicket, IOpcPartUri discardControlPartName, IXpsOMPackageWriter* packageWriter);
-    HRESULT CreatePackageWriterOnStream(ISequentialStream outputStream, BOOL optimizeMarkupSize, XPS_INTERLEAVING interleaving, IOpcPartUri documentSequencePartName, IXpsOMCoreProperties coreProperties, IXpsOMImageResource packageThumbnail, IXpsOMPrintTicketResource documentSequencePrintTicket, IOpcPartUri discardControlPartName, IXpsOMPackageWriter* packageWriter);
+    HRESULT CreatePackageWriterOnFile(const(wchar)* fileName, SECURITY_ATTRIBUTES* securityAttributes, 
+                                      uint flagsAndAttributes, BOOL optimizeMarkupSize, 
+                                      XPS_INTERLEAVING interleaving, IOpcPartUri documentSequencePartName, 
+                                      IXpsOMCoreProperties coreProperties, IXpsOMImageResource packageThumbnail, 
+                                      IXpsOMPrintTicketResource documentSequencePrintTicket, 
+                                      IOpcPartUri discardControlPartName, IXpsOMPackageWriter* packageWriter);
+    HRESULT CreatePackageWriterOnStream(ISequentialStream outputStream, BOOL optimizeMarkupSize, 
+                                        XPS_INTERLEAVING interleaving, IOpcPartUri documentSequencePartName, 
+                                        IXpsOMCoreProperties coreProperties, IXpsOMImageResource packageThumbnail, 
+                                        IXpsOMPrintTicketResource documentSequencePrintTicket, 
+                                        IOpcPartUri discardControlPartName, IXpsOMPackageWriter* packageWriter);
     HRESULT CreatePartUri(const(wchar)* uri, IOpcPartUri* partUri);
     HRESULT CreateReadOnlyStreamOnFile(const(wchar)* filename, IStream* stream);
 }
 
-const GUID IID_IXpsOMNameCollection = {0x4BDDF8EC, 0xC915, 0x421B, [0xA1, 0x66, 0xD1, 0x73, 0xD2, 0x56, 0x53, 0xD2]};
-@GUID(0x4BDDF8EC, 0xC915, 0x421B, [0xA1, 0x66, 0xD1, 0x73, 0xD2, 0x56, 0x53, 0xD2]);
+@GUID("4BDDF8EC-C915-421B-A166-D173D25653D2")
 interface IXpsOMNameCollection : IUnknown
 {
     HRESULT GetCount(uint* count);
     HRESULT GetAt(uint index, ushort** name);
 }
 
-const GUID IID_IXpsOMPartUriCollection = {0x57C650D4, 0x067C, 0x4893, [0x8C, 0x33, 0xF6, 0x2A, 0x06, 0x33, 0x73, 0x0F]};
-@GUID(0x57C650D4, 0x067C, 0x4893, [0x8C, 0x33, 0xF6, 0x2A, 0x06, 0x33, 0x73, 0x0F]);
+@GUID("57C650D4-067C-4893-8C33-F62A0633730F")
 interface IXpsOMPartUriCollection : IUnknown
 {
     HRESULT GetCount(uint* count);
@@ -1103,137 +1250,117 @@ interface IXpsOMPartUriCollection : IUnknown
     HRESULT Append(IOpcPartUri partUri);
 }
 
-const GUID IID_IXpsOMPackageWriter = {0x4E2AA182, 0xA443, 0x42C6, [0xB4, 0x1B, 0x4F, 0x8E, 0x9D, 0xE7, 0x3F, 0xF9]};
-@GUID(0x4E2AA182, 0xA443, 0x42C6, [0xB4, 0x1B, 0x4F, 0x8E, 0x9D, 0xE7, 0x3F, 0xF9]);
+@GUID("4E2AA182-A443-42C6-B41B-4F8E9DE73FF9")
 interface IXpsOMPackageWriter : IUnknown
 {
-    HRESULT StartNewDocument(IOpcPartUri documentPartName, IXpsOMPrintTicketResource documentPrintTicket, IXpsOMDocumentStructureResource documentStructure, IXpsOMSignatureBlockResourceCollection signatureBlockResources, IXpsOMPartUriCollection restrictedFonts);
-    HRESULT AddPage(IXpsOMPage page, const(XPS_SIZE)* advisoryPageDimensions, IXpsOMPartUriCollection discardableResourceParts, IXpsOMStoryFragmentsResource storyFragments, IXpsOMPrintTicketResource pagePrintTicket, IXpsOMImageResource pageThumbnail);
+    HRESULT StartNewDocument(IOpcPartUri documentPartName, IXpsOMPrintTicketResource documentPrintTicket, 
+                             IXpsOMDocumentStructureResource documentStructure, 
+                             IXpsOMSignatureBlockResourceCollection signatureBlockResources, 
+                             IXpsOMPartUriCollection restrictedFonts);
+    HRESULT AddPage(IXpsOMPage page, const(XPS_SIZE)* advisoryPageDimensions, 
+                    IXpsOMPartUriCollection discardableResourceParts, IXpsOMStoryFragmentsResource storyFragments, 
+                    IXpsOMPrintTicketResource pagePrintTicket, IXpsOMImageResource pageThumbnail);
     HRESULT AddResource(IXpsOMResource resource);
     HRESULT Close();
     HRESULT IsClosed(int* isClosed);
 }
 
-const GUID IID_IXpsOMPackageTarget = {0x219A9DB0, 0x4959, 0x47D0, [0x80, 0x34, 0xB1, 0xCE, 0x84, 0xF4, 0x1A, 0x4D]};
-@GUID(0x219A9DB0, 0x4959, 0x47D0, [0x80, 0x34, 0xB1, 0xCE, 0x84, 0xF4, 0x1A, 0x4D]);
+@GUID("219A9DB0-4959-47D0-8034-B1CE84F41A4D")
 interface IXpsOMPackageTarget : IUnknown
 {
-    HRESULT CreateXpsOMPackageWriter(IOpcPartUri documentSequencePartName, IXpsOMPrintTicketResource documentSequencePrintTicket, IOpcPartUri discardControlPartName, IXpsOMPackageWriter* packageWriter);
+    HRESULT CreateXpsOMPackageWriter(IOpcPartUri documentSequencePartName, 
+                                     IXpsOMPrintTicketResource documentSequencePrintTicket, 
+                                     IOpcPartUri discardControlPartName, IXpsOMPackageWriter* packageWriter);
 }
 
-const GUID IID_IXpsOMThumbnailGenerator = {0x15B873D5, 0x1971, 0x41E8, [0x83, 0xA3, 0x65, 0x78, 0x40, 0x30, 0x64, 0xC7]};
-@GUID(0x15B873D5, 0x1971, 0x41E8, [0x83, 0xA3, 0x65, 0x78, 0x40, 0x30, 0x64, 0xC7]);
+@GUID("15B873D5-1971-41E8-83A3-6578403064C7")
 interface IXpsOMThumbnailGenerator : IUnknown
 {
-    HRESULT GenerateThumbnail(IXpsOMPage page, XPS_IMAGE_TYPE thumbnailType, XPS_THUMBNAIL_SIZE thumbnailSize, IOpcPartUri imageResourcePartName, IXpsOMImageResource* imageResource);
+    HRESULT GenerateThumbnail(IXpsOMPage page, XPS_IMAGE_TYPE thumbnailType, XPS_THUMBNAIL_SIZE thumbnailSize, 
+                              IOpcPartUri imageResourcePartName, IXpsOMImageResource* imageResource);
 }
 
-enum XPS_DOCUMENT_TYPE
-{
-    XPS_DOCUMENT_TYPE_UNSPECIFIED = 1,
-    XPS_DOCUMENT_TYPE_XPS = 2,
-    XPS_DOCUMENT_TYPE_OPENXPS = 3,
-}
-
-const GUID IID_IXpsOMObjectFactory1 = {0x0A91B617, 0xD612, 0x4181, [0xBF, 0x7C, 0xBE, 0x58, 0x24, 0xE9, 0xCC, 0x8F]};
-@GUID(0x0A91B617, 0xD612, 0x4181, [0xBF, 0x7C, 0xBE, 0x58, 0x24, 0xE9, 0xCC, 0x8F]);
+@GUID("0A91B617-D612-4181-BF7C-BE5824E9CC8F")
 interface IXpsOMObjectFactory1 : IXpsOMObjectFactory
 {
     HRESULT GetDocumentTypeFromFile(const(wchar)* filename, XPS_DOCUMENT_TYPE* documentType);
     HRESULT GetDocumentTypeFromStream(IStream xpsDocumentStream, XPS_DOCUMENT_TYPE* documentType);
     HRESULT ConvertHDPhotoToJpegXR(IXpsOMImageResource imageResource);
     HRESULT ConvertJpegXRToHDPhoto(IXpsOMImageResource imageResource);
-    HRESULT CreatePackageWriterOnFile1(const(wchar)* fileName, SECURITY_ATTRIBUTES* securityAttributes, uint flagsAndAttributes, BOOL optimizeMarkupSize, XPS_INTERLEAVING interleaving, IOpcPartUri documentSequencePartName, IXpsOMCoreProperties coreProperties, IXpsOMImageResource packageThumbnail, IXpsOMPrintTicketResource documentSequencePrintTicket, IOpcPartUri discardControlPartName, XPS_DOCUMENT_TYPE documentType, IXpsOMPackageWriter* packageWriter);
-    HRESULT CreatePackageWriterOnStream1(ISequentialStream outputStream, BOOL optimizeMarkupSize, XPS_INTERLEAVING interleaving, IOpcPartUri documentSequencePartName, IXpsOMCoreProperties coreProperties, IXpsOMImageResource packageThumbnail, IXpsOMPrintTicketResource documentSequencePrintTicket, IOpcPartUri discardControlPartName, XPS_DOCUMENT_TYPE documentType, IXpsOMPackageWriter* packageWriter);
-    HRESULT CreatePackage1(IXpsOMPackage1* package);
-    HRESULT CreatePackageFromStream1(IStream stream, BOOL reuseObjects, IXpsOMPackage1* package);
-    HRESULT CreatePackageFromFile1(const(wchar)* filename, BOOL reuseObjects, IXpsOMPackage1* package);
-    HRESULT CreatePage1(const(XPS_SIZE)* pageDimensions, const(wchar)* language, IOpcPartUri partUri, IXpsOMPage1* page);
-    HRESULT CreatePageFromStream1(IStream pageMarkupStream, IOpcPartUri partUri, IXpsOMPartResources resources, BOOL reuseObjects, IXpsOMPage1* page);
-    HRESULT CreateRemoteDictionaryResourceFromStream1(IStream dictionaryMarkupStream, IOpcPartUri partUri, IXpsOMPartResources resources, IXpsOMRemoteDictionaryResource* dictionaryResource);
+    HRESULT CreatePackageWriterOnFile1(const(wchar)* fileName, SECURITY_ATTRIBUTES* securityAttributes, 
+                                       uint flagsAndAttributes, BOOL optimizeMarkupSize, 
+                                       XPS_INTERLEAVING interleaving, IOpcPartUri documentSequencePartName, 
+                                       IXpsOMCoreProperties coreProperties, IXpsOMImageResource packageThumbnail, 
+                                       IXpsOMPrintTicketResource documentSequencePrintTicket, 
+                                       IOpcPartUri discardControlPartName, XPS_DOCUMENT_TYPE documentType, 
+                                       IXpsOMPackageWriter* packageWriter);
+    HRESULT CreatePackageWriterOnStream1(ISequentialStream outputStream, BOOL optimizeMarkupSize, 
+                                         XPS_INTERLEAVING interleaving, IOpcPartUri documentSequencePartName, 
+                                         IXpsOMCoreProperties coreProperties, IXpsOMImageResource packageThumbnail, 
+                                         IXpsOMPrintTicketResource documentSequencePrintTicket, 
+                                         IOpcPartUri discardControlPartName, XPS_DOCUMENT_TYPE documentType, 
+                                         IXpsOMPackageWriter* packageWriter);
+    HRESULT CreatePackage1(IXpsOMPackage1* package_);
+    HRESULT CreatePackageFromStream1(IStream stream, BOOL reuseObjects, IXpsOMPackage1* package_);
+    HRESULT CreatePackageFromFile1(const(wchar)* filename, BOOL reuseObjects, IXpsOMPackage1* package_);
+    HRESULT CreatePage1(const(XPS_SIZE)* pageDimensions, const(wchar)* language, IOpcPartUri partUri, 
+                        IXpsOMPage1* page);
+    HRESULT CreatePageFromStream1(IStream pageMarkupStream, IOpcPartUri partUri, IXpsOMPartResources resources, 
+                                  BOOL reuseObjects, IXpsOMPage1* page);
+    HRESULT CreateRemoteDictionaryResourceFromStream1(IStream dictionaryMarkupStream, IOpcPartUri partUri, 
+                                                      IXpsOMPartResources resources, 
+                                                      IXpsOMRemoteDictionaryResource* dictionaryResource);
 }
 
-const GUID IID_IXpsOMPackage1 = {0x95A9435E, 0x12BB, 0x461B, [0x8E, 0x7F, 0xC6, 0xAD, 0xB0, 0x4C, 0xD9, 0x6A]};
-@GUID(0x95A9435E, 0x12BB, 0x461B, [0x8E, 0x7F, 0xC6, 0xAD, 0xB0, 0x4C, 0xD9, 0x6A]);
+@GUID("95A9435E-12BB-461B-8E7F-C6ADB04CD96A")
 interface IXpsOMPackage1 : IXpsOMPackage
 {
     HRESULT GetDocumentType(XPS_DOCUMENT_TYPE* documentType);
-    HRESULT WriteToFile1(const(wchar)* fileName, SECURITY_ATTRIBUTES* securityAttributes, uint flagsAndAttributes, BOOL optimizeMarkupSize, XPS_DOCUMENT_TYPE documentType);
+    HRESULT WriteToFile1(const(wchar)* fileName, SECURITY_ATTRIBUTES* securityAttributes, uint flagsAndAttributes, 
+                         BOOL optimizeMarkupSize, XPS_DOCUMENT_TYPE documentType);
     HRESULT WriteToStream1(ISequentialStream outputStream, BOOL optimizeMarkupSize, XPS_DOCUMENT_TYPE documentType);
 }
 
-const GUID IID_IXpsOMPage1 = {0x305B60EF, 0x6892, 0x4DDA, [0x9C, 0xBB, 0x3A, 0xA6, 0x59, 0x74, 0x50, 0x8A]};
-@GUID(0x305B60EF, 0x6892, 0x4DDA, [0x9C, 0xBB, 0x3A, 0xA6, 0x59, 0x74, 0x50, 0x8A]);
+@GUID("305B60EF-6892-4DDA-9CBB-3AA65974508A")
 interface IXpsOMPage1 : IXpsOMPage
 {
     HRESULT GetDocumentType(XPS_DOCUMENT_TYPE* documentType);
     HRESULT Write1(ISequentialStream stream, BOOL optimizeMarkupSize, XPS_DOCUMENT_TYPE documentType);
 }
 
-const GUID IID_IXpsDocumentPackageTarget = {0x3B0B6D38, 0x53AD, 0x41DA, [0xB2, 0x12, 0xD3, 0x76, 0x37, 0xA6, 0x71, 0x4E]};
-@GUID(0x3B0B6D38, 0x53AD, 0x41DA, [0xB2, 0x12, 0xD3, 0x76, 0x37, 0xA6, 0x71, 0x4E]);
+@GUID("3B0B6D38-53AD-41DA-B212-D37637A6714E")
 interface IXpsDocumentPackageTarget : IUnknown
 {
-    HRESULT GetXpsOMPackageWriter(IOpcPartUri documentSequencePartName, IOpcPartUri discardControlPartName, IXpsOMPackageWriter* packageWriter);
+    HRESULT GetXpsOMPackageWriter(IOpcPartUri documentSequencePartName, IOpcPartUri discardControlPartName, 
+                                  IXpsOMPackageWriter* packageWriter);
     HRESULT GetXpsOMFactory(IXpsOMObjectFactory* xpsFactory);
     HRESULT GetXpsType(XPS_DOCUMENT_TYPE* documentType);
 }
 
-const GUID IID_IXpsOMRemoteDictionaryResource1 = {0xBF8FC1D4, 0x9D46, 0x4141, [0xBA, 0x5F, 0x94, 0xBB, 0x92, 0x50, 0xD0, 0x41]};
-@GUID(0xBF8FC1D4, 0x9D46, 0x4141, [0xBA, 0x5F, 0x94, 0xBB, 0x92, 0x50, 0xD0, 0x41]);
+@GUID("BF8FC1D4-9D46-4141-BA5F-94BB9250D041")
 interface IXpsOMRemoteDictionaryResource1 : IXpsOMRemoteDictionaryResource
 {
     HRESULT GetDocumentType(XPS_DOCUMENT_TYPE* documentType);
     HRESULT Write1(ISequentialStream stream, XPS_DOCUMENT_TYPE documentType);
 }
 
-const GUID IID_IXpsOMPackageWriter3D = {0xE8A45033, 0x640E, 0x43FA, [0x9B, 0xDF, 0xFD, 0xDE, 0xAA, 0x31, 0xC6, 0xA0]};
-@GUID(0xE8A45033, 0x640E, 0x43FA, [0x9B, 0xDF, 0xFD, 0xDE, 0xAA, 0x31, 0xC6, 0xA0]);
+@GUID("E8A45033-640E-43FA-9BDF-FDDEAA31C6A0")
 interface IXpsOMPackageWriter3D : IXpsOMPackageWriter
 {
     HRESULT AddModelTexture(IOpcPartUri texturePartName, IStream textureData);
     HRESULT SetModelPrintTicket(IOpcPartUri printTicketPartName, IStream printTicketData);
 }
 
-const GUID IID_IXpsDocumentPackageTarget3D = {0x60BA71B8, 0x3101, 0x4984, [0x91, 0x99, 0xF4, 0xEA, 0x77, 0x5F, 0xF0, 0x1D]};
-@GUID(0x60BA71B8, 0x3101, 0x4984, [0x91, 0x99, 0xF4, 0xEA, 0x77, 0x5F, 0xF0, 0x1D]);
+@GUID("60BA71B8-3101-4984-9199-F4EA775FF01D")
 interface IXpsDocumentPackageTarget3D : IUnknown
 {
-    HRESULT GetXpsOMPackageWriter3D(IOpcPartUri documentSequencePartName, IOpcPartUri discardControlPartName, IOpcPartUri modelPartName, IStream modelData, IXpsOMPackageWriter3D* packageWriter);
+    HRESULT GetXpsOMPackageWriter3D(IOpcPartUri documentSequencePartName, IOpcPartUri discardControlPartName, 
+                                    IOpcPartUri modelPartName, IStream modelData, 
+                                    IXpsOMPackageWriter3D* packageWriter);
     HRESULT GetXpsOMFactory(IXpsOMObjectFactory* xpsFactory);
 }
 
-const GUID CLSID_XpsSignatureManager = {0xB0C43320, 0x2315, 0x44A2, [0xB7, 0x0A, 0x09, 0x43, 0xA1, 0x40, 0xA8, 0xEE]};
-@GUID(0xB0C43320, 0x2315, 0x44A2, [0xB7, 0x0A, 0x09, 0x43, 0xA1, 0x40, 0xA8, 0xEE]);
-struct XpsSignatureManager;
-
-enum XPS_SIGNATURE_STATUS
-{
-    XPS_SIGNATURE_STATUS_INCOMPLIANT = 1,
-    XPS_SIGNATURE_STATUS_INCOMPLETE = 2,
-    XPS_SIGNATURE_STATUS_BROKEN = 3,
-    XPS_SIGNATURE_STATUS_QUESTIONABLE = 4,
-    XPS_SIGNATURE_STATUS_VALID = 5,
-}
-
-enum XPS_SIGN_POLICY
-{
-    XPS_SIGN_POLICY_NONE = 0,
-    XPS_SIGN_POLICY_CORE_PROPERTIES = 1,
-    XPS_SIGN_POLICY_SIGNATURE_RELATIONSHIPS = 2,
-    XPS_SIGN_POLICY_PRINT_TICKET = 4,
-    XPS_SIGN_POLICY_DISCARD_CONTROL = 8,
-    XPS_SIGN_POLICY_ALL = 15,
-}
-
-enum XPS_SIGN_FLAGS
-{
-    XPS_SIGN_FLAGS_NONE = 0,
-    XPS_SIGN_FLAGS_IGNORE_MARKUP_COMPATIBILITY = 1,
-}
-
-const GUID IID_IXpsSigningOptions = {0x7718EAE4, 0x3215, 0x49BE, [0xAF, 0x5B, 0x59, 0x4F, 0xEF, 0x7F, 0xCF, 0xA6]};
-@GUID(0x7718EAE4, 0x3215, 0x49BE, [0xAF, 0x5B, 0x59, 0x4F, 0xEF, 0x7F, 0xCF, 0xA6]);
+@GUID("7718EAE4-3215-49BE-AF5B-594FEF7FCFA6")
 interface IXpsSigningOptions : IUnknown
 {
     HRESULT GetSignatureId(ushort** signatureId);
@@ -1255,8 +1382,7 @@ interface IXpsSigningOptions : IUnknown
     HRESULT SetFlags(XPS_SIGN_FLAGS flags);
 }
 
-const GUID IID_IXpsSignatureCollection = {0xA2D1D95D, 0xADD2, 0x4DFF, [0xAB, 0x27, 0x6B, 0x9C, 0x64, 0x5F, 0xF3, 0x22]};
-@GUID(0xA2D1D95D, 0xADD2, 0x4DFF, [0xAB, 0x27, 0x6B, 0x9C, 0x64, 0x5F, 0xF3, 0x22]);
+@GUID("A2D1D95D-ADD2-4DFF-AB27-6B9C645FF322")
 interface IXpsSignatureCollection : IUnknown
 {
     HRESULT GetCount(uint* count);
@@ -1264,8 +1390,7 @@ interface IXpsSignatureCollection : IUnknown
     HRESULT RemoveAt(uint index);
 }
 
-const GUID IID_IXpsSignature = {0x6AE4C93E, 0x1ADE, 0x42FB, [0x89, 0x8B, 0x3A, 0x56, 0x58, 0x28, 0x48, 0x57]};
-@GUID(0x6AE4C93E, 0x1ADE, 0x42FB, [0x89, 0x8B, 0x3A, 0x56, 0x58, 0x28, 0x48, 0x57]);
+@GUID("6AE4C93E-1ADE-42FB-898B-3A5658284857")
 interface IXpsSignature : IUnknown
 {
     HRESULT GetSignatureId(ushort** sigId);
@@ -1282,8 +1407,7 @@ interface IXpsSignature : IUnknown
     HRESULT SetSignatureXml(const(ubyte)* signatureXml, uint count);
 }
 
-const GUID IID_IXpsSignatureBlockCollection = {0x23397050, 0xFE99, 0x467A, [0x8D, 0xCE, 0x92, 0x37, 0xF0, 0x74, 0xFF, 0xE4]};
-@GUID(0x23397050, 0xFE99, 0x467A, [0x8D, 0xCE, 0x92, 0x37, 0xF0, 0x74, 0xFF, 0xE4]);
+@GUID("23397050-FE99-467A-8DCE-9237F074FFE4")
 interface IXpsSignatureBlockCollection : IUnknown
 {
     HRESULT GetCount(uint* count);
@@ -1291,8 +1415,7 @@ interface IXpsSignatureBlockCollection : IUnknown
     HRESULT RemoveAt(uint index);
 }
 
-const GUID IID_IXpsSignatureBlock = {0x151FAC09, 0x0B97, 0x4AC6, [0xA3, 0x23, 0x5E, 0x42, 0x97, 0xD4, 0x32, 0x2B]};
-@GUID(0x151FAC09, 0x0B97, 0x4AC6, [0xA3, 0x23, 0x5E, 0x42, 0x97, 0xD4, 0x32, 0x2B]);
+@GUID("151FAC09-0B97-4AC6-A323-5E4297D4322B")
 interface IXpsSignatureBlock : IUnknown
 {
     HRESULT GetRequests(IXpsSignatureRequestCollection* requests);
@@ -1302,8 +1425,7 @@ interface IXpsSignatureBlock : IUnknown
     HRESULT CreateRequest(const(wchar)* requestId, IXpsSignatureRequest* signatureRequest);
 }
 
-const GUID IID_IXpsSignatureRequestCollection = {0xF0253E68, 0x9F19, 0x412E, [0x9B, 0x4F, 0x54, 0xD3, 0xB0, 0xAC, 0x6C, 0xD9]};
-@GUID(0xF0253E68, 0x9F19, 0x412E, [0x9B, 0x4F, 0x54, 0xD3, 0xB0, 0xAC, 0x6C, 0xD9]);
+@GUID("F0253E68-9F19-412E-9B4F-54D3B0AC6CD9")
 interface IXpsSignatureRequestCollection : IUnknown
 {
     HRESULT GetCount(uint* count);
@@ -1311,8 +1433,7 @@ interface IXpsSignatureRequestCollection : IUnknown
     HRESULT RemoveAt(uint index);
 }
 
-const GUID IID_IXpsSignatureRequest = {0xAC58950B, 0x7208, 0x4B2D, [0xB2, 0xC4, 0x95, 0x10, 0x83, 0xD3, 0xB8, 0xEB]};
-@GUID(0xAC58950B, 0x7208, 0x4B2D, [0xB2, 0xC4, 0x95, 0x10, 0x83, 0xD3, 0xB8, 0xEB]);
+@GUID("AC58950B-7208-4B2D-B2C4-951083D3B8EB")
 interface IXpsSignatureRequest : IUnknown
 {
     HRESULT GetIntent(ushort** intent);
@@ -1329,8 +1450,7 @@ interface IXpsSignatureRequest : IUnknown
     HRESULT GetSignature(IXpsSignature* signature);
 }
 
-const GUID IID_IXpsSignatureManager = {0xD3E8D338, 0xFDC4, 0x4AFC, [0x80, 0xB5, 0xD5, 0x32, 0xA1, 0x78, 0x2E, 0xE1]};
-@GUID(0xD3E8D338, 0xFDC4, 0x4AFC, [0x80, 0xB5, 0xD5, 0x32, 0xA1, 0x78, 0x2E, 0xE1]);
+@GUID("D3E8D338-FDC4-4AFC-80B5-D532A1782EE1")
 interface IXpsSignatureManager : IUnknown
 {
     HRESULT LoadPackageFile(const(wchar)* fileName);
@@ -1342,74 +1462,110 @@ interface IXpsSignatureManager : IUnknown
     HRESULT AddSignatureBlock(IOpcPartUri partName, uint fixedDocumentIndex, IXpsSignatureBlock* signatureBlock);
     HRESULT GetSignatureBlocks(IXpsSignatureBlockCollection* signatureBlocks);
     HRESULT CreateSigningOptions(IXpsSigningOptions* signingOptions);
-    HRESULT SavePackageToFile(const(wchar)* fileName, SECURITY_ATTRIBUTES* securityAttributes, uint flagsAndAttributes);
+    HRESULT SavePackageToFile(const(wchar)* fileName, SECURITY_ATTRIBUTES* securityAttributes, 
+                              uint flagsAndAttributes);
     HRESULT SavePackageToStream(IStream stream);
 }
 
-const GUID CLSID_PrintDocumentPackageTarget = {0x4842669E, 0x9947, 0x46EA, [0x8B, 0xA2, 0xD8, 0xCC, 0xE4, 0x32, 0xC2, 0xCA]};
-@GUID(0x4842669E, 0x9947, 0x46EA, [0x8B, 0xA2, 0xD8, 0xCC, 0xE4, 0x32, 0xC2, 0xCA]);
-struct PrintDocumentPackageTarget;
-
-const GUID CLSID_PrintDocumentPackageTargetFactory = {0x348EF17D, 0x6C81, 0x4982, [0x92, 0xB4, 0xEE, 0x18, 0x8A, 0x43, 0x86, 0x7A]};
-@GUID(0x348EF17D, 0x6C81, 0x4982, [0x92, 0xB4, 0xEE, 0x18, 0x8A, 0x43, 0x86, 0x7A]);
-struct PrintDocumentPackageTargetFactory;
-
-const GUID IID_IPrintDocumentPackageTarget = {0x1B8EFEC4, 0x3019, 0x4C27, [0x96, 0x4E, 0x36, 0x72, 0x02, 0x15, 0x69, 0x06]};
-@GUID(0x1B8EFEC4, 0x3019, 0x4C27, [0x96, 0x4E, 0x36, 0x72, 0x02, 0x15, 0x69, 0x06]);
+@GUID("1B8EFEC4-3019-4C27-964E-367202156906")
 interface IPrintDocumentPackageTarget : IUnknown
 {
     HRESULT GetPackageTargetTypes(uint* targetCount, char* targetTypes);
-    HRESULT GetPackageTarget(const(Guid)* guidTargetType, const(Guid)* riid, void** ppvTarget);
+    HRESULT GetPackageTarget(const(GUID)* guidTargetType, const(GUID)* riid, void** ppvTarget);
     HRESULT Cancel();
 }
 
-enum PrintDocumentPackageCompletion
-{
-    PrintDocumentPackageCompletion_InProgress = 0,
-    PrintDocumentPackageCompletion_Completed = 1,
-    PrintDocumentPackageCompletion_Canceled = 2,
-    PrintDocumentPackageCompletion_Failed = 3,
-}
-
-struct PrintDocumentPackageStatus
-{
-    uint JobId;
-    int CurrentDocument;
-    int CurrentPage;
-    int CurrentPageTotal;
-    PrintDocumentPackageCompletion Completion;
-    HRESULT PackageStatus;
-}
-
-const GUID IID_IPrintDocumentPackageStatusEvent = {0xED90C8AD, 0x5C34, 0x4D05, [0xA1, 0xEC, 0x0E, 0x8A, 0x9B, 0x3A, 0xD7, 0xAF]};
-@GUID(0xED90C8AD, 0x5C34, 0x4D05, [0xA1, 0xEC, 0x0E, 0x8A, 0x9B, 0x3A, 0xD7, 0xAF]);
+@GUID("ED90C8AD-5C34-4D05-A1EC-0E8A9B3AD7AF")
 interface IPrintDocumentPackageStatusEvent : IDispatch
 {
     HRESULT PackageStatusUpdated(PrintDocumentPackageStatus* packageStatus);
 }
 
-const GUID IID_IPrintDocumentPackageTargetFactory = {0xD2959BF7, 0xB31B, 0x4A3D, [0x96, 0x00, 0x71, 0x2E, 0xB1, 0x33, 0x5B, 0xA4]};
-@GUID(0xD2959BF7, 0xB31B, 0x4A3D, [0x96, 0x00, 0x71, 0x2E, 0xB1, 0x33, 0x5B, 0xA4]);
+@GUID("D2959BF7-B31B-4A3D-9600-712EB1335BA4")
 interface IPrintDocumentPackageTargetFactory : IUnknown
 {
-    HRESULT CreateDocumentPackageTargetForPrintJob(const(wchar)* printerName, const(wchar)* jobName, IStream jobOutputStream, IStream jobPrintTicketStream, IPrintDocumentPackageTarget* docPackageTarget);
+    HRESULT CreateDocumentPackageTargetForPrintJob(const(wchar)* printerName, const(wchar)* jobName, 
+                                                   IStream jobOutputStream, IStream jobPrintTicketStream, 
+                                                   IPrintDocumentPackageTarget* docPackageTarget);
 }
 
-struct HPTPROVIDER__
-{
-    int unused;
-}
 
-enum EDefaultDevmodeType
-{
-    kUserDefaultDevmode = 0,
-    kPrinterDefaultDevmode = 1,
-}
+// GUIDs
 
-enum EPrintTicketScope
-{
-    kPTPageScope = 0,
-    kPTDocumentScope = 1,
-    kPTJobScope = 2,
-}
+const GUID CLSID_PrintDocumentPackageTarget        = GUIDOF!PrintDocumentPackageTarget;
+const GUID CLSID_PrintDocumentPackageTargetFactory = GUIDOF!PrintDocumentPackageTargetFactory;
+const GUID CLSID_XpsOMObjectFactory                = GUIDOF!XpsOMObjectFactory;
+const GUID CLSID_XpsOMThumbnailGenerator           = GUIDOF!XpsOMThumbnailGenerator;
+const GUID CLSID_XpsSignatureManager               = GUIDOF!XpsSignatureManager;
 
+const GUID IID_IPrintDocumentPackageStatusEvent         = GUIDOF!IPrintDocumentPackageStatusEvent;
+const GUID IID_IPrintDocumentPackageTarget              = GUIDOF!IPrintDocumentPackageTarget;
+const GUID IID_IPrintDocumentPackageTargetFactory       = GUIDOF!IPrintDocumentPackageTargetFactory;
+const GUID IID_IXpsDocumentPackageTarget                = GUIDOF!IXpsDocumentPackageTarget;
+const GUID IID_IXpsDocumentPackageTarget3D              = GUIDOF!IXpsDocumentPackageTarget3D;
+const GUID IID_IXpsOMBrush                              = GUIDOF!IXpsOMBrush;
+const GUID IID_IXpsOMCanvas                             = GUIDOF!IXpsOMCanvas;
+const GUID IID_IXpsOMColorProfileResource               = GUIDOF!IXpsOMColorProfileResource;
+const GUID IID_IXpsOMColorProfileResourceCollection     = GUIDOF!IXpsOMColorProfileResourceCollection;
+const GUID IID_IXpsOMCoreProperties                     = GUIDOF!IXpsOMCoreProperties;
+const GUID IID_IXpsOMDashCollection                     = GUIDOF!IXpsOMDashCollection;
+const GUID IID_IXpsOMDictionary                         = GUIDOF!IXpsOMDictionary;
+const GUID IID_IXpsOMDocument                           = GUIDOF!IXpsOMDocument;
+const GUID IID_IXpsOMDocumentCollection                 = GUIDOF!IXpsOMDocumentCollection;
+const GUID IID_IXpsOMDocumentSequence                   = GUIDOF!IXpsOMDocumentSequence;
+const GUID IID_IXpsOMDocumentStructureResource          = GUIDOF!IXpsOMDocumentStructureResource;
+const GUID IID_IXpsOMFontResource                       = GUIDOF!IXpsOMFontResource;
+const GUID IID_IXpsOMFontResourceCollection             = GUIDOF!IXpsOMFontResourceCollection;
+const GUID IID_IXpsOMGeometry                           = GUIDOF!IXpsOMGeometry;
+const GUID IID_IXpsOMGeometryFigure                     = GUIDOF!IXpsOMGeometryFigure;
+const GUID IID_IXpsOMGeometryFigureCollection           = GUIDOF!IXpsOMGeometryFigureCollection;
+const GUID IID_IXpsOMGlyphs                             = GUIDOF!IXpsOMGlyphs;
+const GUID IID_IXpsOMGlyphsEditor                       = GUIDOF!IXpsOMGlyphsEditor;
+const GUID IID_IXpsOMGradientBrush                      = GUIDOF!IXpsOMGradientBrush;
+const GUID IID_IXpsOMGradientStop                       = GUIDOF!IXpsOMGradientStop;
+const GUID IID_IXpsOMGradientStopCollection             = GUIDOF!IXpsOMGradientStopCollection;
+const GUID IID_IXpsOMImageBrush                         = GUIDOF!IXpsOMImageBrush;
+const GUID IID_IXpsOMImageResource                      = GUIDOF!IXpsOMImageResource;
+const GUID IID_IXpsOMImageResourceCollection            = GUIDOF!IXpsOMImageResourceCollection;
+const GUID IID_IXpsOMLinearGradientBrush                = GUIDOF!IXpsOMLinearGradientBrush;
+const GUID IID_IXpsOMMatrixTransform                    = GUIDOF!IXpsOMMatrixTransform;
+const GUID IID_IXpsOMNameCollection                     = GUIDOF!IXpsOMNameCollection;
+const GUID IID_IXpsOMObjectFactory                      = GUIDOF!IXpsOMObjectFactory;
+const GUID IID_IXpsOMObjectFactory1                     = GUIDOF!IXpsOMObjectFactory1;
+const GUID IID_IXpsOMPackage                            = GUIDOF!IXpsOMPackage;
+const GUID IID_IXpsOMPackage1                           = GUIDOF!IXpsOMPackage1;
+const GUID IID_IXpsOMPackageTarget                      = GUIDOF!IXpsOMPackageTarget;
+const GUID IID_IXpsOMPackageWriter                      = GUIDOF!IXpsOMPackageWriter;
+const GUID IID_IXpsOMPackageWriter3D                    = GUIDOF!IXpsOMPackageWriter3D;
+const GUID IID_IXpsOMPage                               = GUIDOF!IXpsOMPage;
+const GUID IID_IXpsOMPage1                              = GUIDOF!IXpsOMPage1;
+const GUID IID_IXpsOMPageReference                      = GUIDOF!IXpsOMPageReference;
+const GUID IID_IXpsOMPageReferenceCollection            = GUIDOF!IXpsOMPageReferenceCollection;
+const GUID IID_IXpsOMPart                               = GUIDOF!IXpsOMPart;
+const GUID IID_IXpsOMPartResources                      = GUIDOF!IXpsOMPartResources;
+const GUID IID_IXpsOMPartUriCollection                  = GUIDOF!IXpsOMPartUriCollection;
+const GUID IID_IXpsOMPath                               = GUIDOF!IXpsOMPath;
+const GUID IID_IXpsOMPrintTicketResource                = GUIDOF!IXpsOMPrintTicketResource;
+const GUID IID_IXpsOMRadialGradientBrush                = GUIDOF!IXpsOMRadialGradientBrush;
+const GUID IID_IXpsOMRemoteDictionaryResource           = GUIDOF!IXpsOMRemoteDictionaryResource;
+const GUID IID_IXpsOMRemoteDictionaryResource1          = GUIDOF!IXpsOMRemoteDictionaryResource1;
+const GUID IID_IXpsOMRemoteDictionaryResourceCollection = GUIDOF!IXpsOMRemoteDictionaryResourceCollection;
+const GUID IID_IXpsOMResource                           = GUIDOF!IXpsOMResource;
+const GUID IID_IXpsOMShareable                          = GUIDOF!IXpsOMShareable;
+const GUID IID_IXpsOMSignatureBlockResource             = GUIDOF!IXpsOMSignatureBlockResource;
+const GUID IID_IXpsOMSignatureBlockResourceCollection   = GUIDOF!IXpsOMSignatureBlockResourceCollection;
+const GUID IID_IXpsOMSolidColorBrush                    = GUIDOF!IXpsOMSolidColorBrush;
+const GUID IID_IXpsOMStoryFragmentsResource             = GUIDOF!IXpsOMStoryFragmentsResource;
+const GUID IID_IXpsOMThumbnailGenerator                 = GUIDOF!IXpsOMThumbnailGenerator;
+const GUID IID_IXpsOMTileBrush                          = GUIDOF!IXpsOMTileBrush;
+const GUID IID_IXpsOMVisual                             = GUIDOF!IXpsOMVisual;
+const GUID IID_IXpsOMVisualBrush                        = GUIDOF!IXpsOMVisualBrush;
+const GUID IID_IXpsOMVisualCollection                   = GUIDOF!IXpsOMVisualCollection;
+const GUID IID_IXpsSignature                            = GUIDOF!IXpsSignature;
+const GUID IID_IXpsSignatureBlock                       = GUIDOF!IXpsSignatureBlock;
+const GUID IID_IXpsSignatureBlockCollection             = GUIDOF!IXpsSignatureBlockCollection;
+const GUID IID_IXpsSignatureCollection                  = GUIDOF!IXpsSignatureCollection;
+const GUID IID_IXpsSignatureManager                     = GUIDOF!IXpsSignatureManager;
+const GUID IID_IXpsSignatureRequest                     = GUIDOF!IXpsSignatureRequest;
+const GUID IID_IXpsSignatureRequestCollection           = GUIDOF!IXpsSignatureRequestCollection;
+const GUID IID_IXpsSigningOptions                       = GUIDOF!IXpsSigningOptions;

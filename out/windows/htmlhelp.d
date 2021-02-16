@@ -1,52 +1,148 @@
 module windows.htmlhelp;
 
-public import system;
-public import windows.automation;
-public import windows.com;
-public import windows.controls;
-public import windows.displaydevices;
-public import windows.search;
-public import windows.structuredstorage;
-public import windows.systemservices;
-public import windows.windowsandmessaging;
+public import windows.core;
+public import windows.automation : VARIANT;
+public import windows.com : HRESULT, IPersistStreamInit, IUnknown;
+public import windows.controls : NMHDR;
+public import windows.displaydevices : POINT, RECT;
+public import windows.search : IStemmer;
+public import windows.structuredstorage : IStream;
+public import windows.systemservices : BOOL, HINSTANCE;
+public import windows.windowsandmessaging : HWND;
 
 extern(Windows):
 
+
+// Enums
+
+
+enum : int
+{
+    HH_GPROPID_SINGLETHREAD     = 0x00000001,
+    HH_GPROPID_TOOLBAR_MARGIN   = 0x00000002,
+    HH_GPROPID_UI_LANGUAGE      = 0x00000003,
+    HH_GPROPID_CURRENT_SUBSET   = 0x00000004,
+    HH_GPROPID_CONTENT_LANGUAGE = 0x00000005,
+}
+alias HH_GPROPID = int;
+
+enum : int
+{
+    PRIORITY_LOW    = 0x00000000,
+    PRIORITY_NORMAL = 0x00000001,
+    PRIORITY_HIGH   = 0x00000002,
+}
+alias PRIORITY = int;
+
+// Constants
+
+
+enum : int
+{
+    HHWIN_NAVTYPE_TOC          = 0x00000000,
+    HHWIN_NAVTYPE_INDEX        = 0x00000001,
+    HHWIN_NAVTYPE_SEARCH       = 0x00000002,
+    HHWIN_NAVTYPE_FAVORITES    = 0x00000003,
+    HHWIN_NAVTYPE_HISTORY      = 0x00000004,
+    HHWIN_NAVTYPE_AUTHOR       = 0x00000005,
+    HHWIN_NAVTYPE_CUSTOM_FIRST = 0x0000000b,
+}
+
+enum int IT_EXCLUSIVE = 0x00000001;
+
+enum : int
+{
+    HHWIN_NAVTAB_TOP    = 0x00000000,
+    HHWIN_NAVTAB_LEFT   = 0x00000001,
+    HHWIN_NAVTAB_BOTTOM = 0x00000002,
+}
+
+enum : int
+{
+    HH_TAB_INDEX        = 0x00000001,
+    HH_TAB_SEARCH       = 0x00000002,
+    HH_TAB_FAVORITES    = 0x00000003,
+    HH_TAB_HISTORY      = 0x00000004,
+    HH_TAB_AUTHOR       = 0x00000005,
+    HH_TAB_CUSTOM_FIRST = 0x0000000b,
+    HH_TAB_CUSTOM_LAST  = 0x00000013,
+}
+
+enum : int
+{
+    HHACT_TAB_INDEX     = 0x00000001,
+    HHACT_TAB_SEARCH    = 0x00000002,
+    HHACT_TAB_HISTORY   = 0x00000003,
+    HHACT_TAB_FAVORITES = 0x00000004,
+}
+
+enum : int
+{
+    HHACT_CONTRACT  = 0x00000006,
+    HHACT_BACK      = 0x00000007,
+    HHACT_FORWARD   = 0x00000008,
+    HHACT_STOP      = 0x00000009,
+    HHACT_REFRESH   = 0x0000000a,
+    HHACT_HOME      = 0x0000000b,
+    HHACT_SYNC      = 0x0000000c,
+    HHACT_OPTIONS   = 0x0000000d,
+    HHACT_PRINT     = 0x0000000e,
+    HHACT_HIGHLIGHT = 0x0000000f,
+}
+
+enum : int
+{
+    HHACT_JUMP1     = 0x00000011,
+    HHACT_JUMP2     = 0x00000012,
+    HHACT_ZOOM      = 0x00000013,
+    HHACT_TOC_NEXT  = 0x00000014,
+    HHACT_TOC_PREV  = 0x00000015,
+    HHACT_NOTES     = 0x00000016,
+    HHACT_LAST_ENUM = 0x00000017,
+}
+
+// Callbacks
+
+alias PFNCOLHEAPFREE = int function(void* param0);
+
+// Structs
+
+
 struct HHN_NOTIFY
 {
-    NMHDR hdr;
+    NMHDR        hdr;
     const(char)* pszUrl;
 }
 
 struct HH_POPUP
 {
-    int cbStruct;
+    int       cbStruct;
     HINSTANCE hinst;
-    uint idString;
-    byte* pszText;
-    POINT pt;
-    uint clrForeground;
-    uint clrBackground;
-    RECT rcMargins;
-    byte* pszFont;
+    uint      idString;
+    byte*     pszText;
+    POINT     pt;
+    uint      clrForeground;
+    uint      clrBackground;
+    RECT      rcMargins;
+    byte*     pszFont;
 }
 
 struct HH_AKLINK
 {
-    int cbStruct;
-    BOOL fReserved;
+    int   cbStruct;
+    BOOL  fReserved;
     byte* pszKeywords;
     byte* pszUrl;
     byte* pszMsgText;
     byte* pszMsgTitle;
     byte* pszWindow;
-    BOOL fIndexOnFail;
+    BOOL  fIndexOnFail;
 }
 
 struct HH_ENUM_IT
 {
-    int cbStruct;
-    int iType;
+    int          cbStruct;
+    int          iType;
     const(char)* pszCatName;
     const(char)* pszITName;
     const(char)* pszITDescription;
@@ -54,91 +150,82 @@ struct HH_ENUM_IT
 
 struct HH_ENUM_CAT
 {
-    int cbStruct;
+    int          cbStruct;
     const(char)* pszCatName;
     const(char)* pszCatDescription;
 }
 
 struct HH_SET_INFOTYPE
 {
-    int cbStruct;
+    int          cbStruct;
     const(char)* pszCatName;
     const(char)* pszInfoTypeName;
 }
 
 struct HH_FTS_QUERY
 {
-    int cbStruct;
-    BOOL fUniCodeStrings;
+    int   cbStruct;
+    BOOL  fUniCodeStrings;
     byte* pszSearchQuery;
-    int iProximity;
-    BOOL fStemmedSearch;
-    BOOL fTitleOnly;
-    BOOL fExecute;
+    int   iProximity;
+    BOOL  fStemmedSearch;
+    BOOL  fTitleOnly;
+    BOOL  fExecute;
     byte* pszWindow;
 }
 
 struct HH_WINTYPE
 {
-    int cbStruct;
-    BOOL fUniCodeStrings;
-    byte* pszType;
-    uint fsValidMembers;
-    uint fsWinProperties;
-    byte* pszCaption;
-    uint dwStyles;
-    uint dwExStyles;
-    RECT rcWindowPos;
-    int nShowState;
-    HWND hwndHelp;
-    HWND hwndCaller;
-    uint* paInfoTypes;
-    HWND hwndToolBar;
-    HWND hwndNavigation;
-    HWND hwndHTML;
-    int iNavWidth;
-    RECT rcHTML;
-    byte* pszToc;
-    byte* pszIndex;
-    byte* pszFile;
-    byte* pszHome;
-    uint fsToolBarFlags;
-    BOOL fNotExpanded;
-    int curNavType;
-    int tabpos;
-    int idNotify;
-    ubyte tabOrder;
-    int cHistory;
-    byte* pszJump1;
-    byte* pszJump2;
-    byte* pszUrlJump1;
-    byte* pszUrlJump2;
-    RECT rcMinSize;
-    int cbInfoTypes;
-    byte* pszCustomTabs;
+    int       cbStruct;
+    BOOL      fUniCodeStrings;
+    byte*     pszType;
+    uint      fsValidMembers;
+    uint      fsWinProperties;
+    byte*     pszCaption;
+    uint      dwStyles;
+    uint      dwExStyles;
+    RECT      rcWindowPos;
+    int       nShowState;
+    HWND      hwndHelp;
+    HWND      hwndCaller;
+    uint*     paInfoTypes;
+    HWND      hwndToolBar;
+    HWND      hwndNavigation;
+    HWND      hwndHTML;
+    int       iNavWidth;
+    RECT      rcHTML;
+    byte*     pszToc;
+    byte*     pszIndex;
+    byte*     pszFile;
+    byte*     pszHome;
+    uint      fsToolBarFlags;
+    BOOL      fNotExpanded;
+    int       curNavType;
+    int       tabpos;
+    int       idNotify;
+    ubyte[20] tabOrder;
+    int       cHistory;
+    byte*     pszJump1;
+    byte*     pszJump2;
+    byte*     pszUrlJump1;
+    byte*     pszUrlJump2;
+    RECT      rcMinSize;
+    int       cbInfoTypes;
+    byte*     pszCustomTabs;
 }
 
 struct HHNTRACK
 {
-    NMHDR hdr;
+    NMHDR        hdr;
     const(char)* pszCurUrl;
-    int idAction;
-    HH_WINTYPE* phhWinType;
-}
-
-enum HH_GPROPID
-{
-    HH_GPROPID_SINGLETHREAD = 1,
-    HH_GPROPID_TOOLBAR_MARGIN = 2,
-    HH_GPROPID_UI_LANGUAGE = 3,
-    HH_GPROPID_CURRENT_SUBSET = 4,
-    HH_GPROPID_CONTENT_LANGUAGE = 5,
+    int          idAction;
+    HH_WINTYPE*  phhWinType;
 }
 
 struct HH_GLOBAL_PROPERTY
 {
     HH_GPROPID id;
-    VARIANT var;
+    VARIANT    var;
 }
 
 struct CProperty
@@ -146,9 +233,42 @@ struct CProperty
     uint dwPropID;
     uint cbData;
     uint dwType;
-    _Anonymous_e__Union Anonymous;
+    union
+    {
+        const(wchar)* lpszwData;
+        void*         lpvData;
+        uint          dwValue;
+    }
     BOOL fPersist;
 }
+
+struct IITGroup
+{
+}
+
+struct IITQuery
+{
+}
+
+struct IITStopWordList
+{
+}
+
+struct ROWSTATUS
+{
+    int lRowFirst;
+    int cRows;
+    int cProperties;
+    int cRowsTotal;
+}
+
+struct COLUMNSTATUS
+{
+    int cPropCount;
+    int cPropsLoaded;
+}
+
+// Interfaces
 
 interface IITPropList : IPersistStreamInit
 {
@@ -176,17 +296,10 @@ interface IITDatabase : IUnknown
 {
     HRESULT Open(const(wchar)* lpszHost, const(wchar)* lpszMoniker, uint dwFlags);
     HRESULT Close();
-    HRESULT CreateObject(const(Guid)* rclsid, uint* pdwObjInstance);
-    HRESULT GetObjectA(uint dwObjInstance, const(Guid)* riid, void** ppvObj);
-    HRESULT GetObjectPersistence(const(wchar)* lpwszObject, uint dwObjInstance, void** ppvPersistence, BOOL fStream);
-}
-
-struct IITGroup
-{
-}
-
-struct IITQuery
-{
+    HRESULT CreateObject(const(GUID)* rclsid, uint* pdwObjInstance);
+    HRESULT GetObjectA(uint dwObjInstance, const(GUID)* riid, void** ppvObj);
+    HRESULT GetObjectPersistence(const(wchar)* lpwszObject, uint dwObjInstance, void** ppvPersistence, 
+                                 BOOL fStream);
 }
 
 interface IITWordWheel : IUnknown
@@ -221,10 +334,6 @@ interface IStemmerConfig : IUnknown
     HRESULT LoadExternalStemmerData(IStream pStream, uint dwExtDataType);
 }
 
-struct IITStopWordList
-{
-}
-
 interface IWordBreakerConfig : IUnknown
 {
     HRESULT SetLocaleInfoA(uint dwCodePageID, uint lcid);
@@ -234,32 +343,10 @@ interface IWordBreakerConfig : IUnknown
     HRESULT SetControlInfo(uint grfBreakFlags, uint dwReserved);
     HRESULT GetControlInfo(uint* pgrfBreakFlags, uint* pdwReserved);
     HRESULT LoadExternalBreakerData(IStream pStream, uint dwExtDataType);
-    HRESULT SetWordStemmer(const(Guid)* rclsid, IStemmer pStemmer);
+    HRESULT SetWordStemmer(const(GUID)* rclsid, IStemmer pStemmer);
     HRESULT GetWordStemmer(IStemmer* ppStemmer);
 }
 
-enum PRIORITY
-{
-    PRIORITY_LOW = 0,
-    PRIORITY_NORMAL = 1,
-    PRIORITY_HIGH = 2,
-}
-
-struct ROWSTATUS
-{
-    int lRowFirst;
-    int cRows;
-    int cProperties;
-    int cRowsTotal;
-}
-
-struct COLUMNSTATUS
-{
-    int cPropCount;
-    int cPropsLoaded;
-}
-
-alias PFNCOLHEAPFREE = extern(Windows) int function(void* param0);
 interface IITResultSet : IUnknown
 {
     HRESULT SetColumnPriority(int lColumnIndex, PRIORITY ColumnPriority);
@@ -271,7 +358,7 @@ interface IITResultSet : IUnknown
     HRESULT Add(uint PropID, uint dwDefaultData, PRIORITY Priority);
     HRESULT Append(void* lpvHdr, void* lpvData);
     HRESULT Set(int lRowIndex, void* lpvHdr, void* lpvData);
-    HRESULT Set(int lRowIndex, int lColumnIndex, uint dwData);
+    HRESULT Set(int lRowIndex, int lColumnIndex, size_t dwData);
     HRESULT Set(int lRowIndex, int lColumnIndex, const(wchar)* lpwStr);
     HRESULT Set(int lRowIndex, int lColumnIndex, void* lpvData, uint cbData);
     HRESULT Copy(IITResultSet pRSCopy);
@@ -282,7 +369,8 @@ interface IITResultSet : IUnknown
     HRESULT GetRowCount(int* lNumberOfRows);
     HRESULT GetColumnCount(int* lNumberOfColumns);
     HRESULT GetColumn(int lColumnIndex, uint* PropID);
-    HRESULT GetColumn(int lColumnIndex, uint* PropID, uint* dwType, void** lpvDefaultValue, uint* cbSize, PRIORITY* ColumnPriority);
+    HRESULT GetColumn(int lColumnIndex, uint* PropID, uint* dwType, void** lpvDefaultValue, uint* cbSize, 
+                      PRIORITY* ColumnPriority);
     HRESULT GetColumnFromPropID(uint PropID, int* lColumnIndex);
     HRESULT Clear();
     HRESULT ClearRows();
@@ -293,4 +381,5 @@ interface IITResultSet : IUnknown
     HRESULT GetRowStatus(int lRowFirst, int cRows, ROWSTATUS* lpRowStatus);
     HRESULT GetColumnStatus(COLUMNSTATUS* lpColStatus);
 }
+
 

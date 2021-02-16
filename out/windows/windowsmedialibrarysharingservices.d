@@ -1,31 +1,35 @@
 module windows.windowsmedialibrarysharingservices;
 
-public import windows.automation;
-public import windows.com;
+public import windows.core;
+public import windows.automation : BSTR, IDispatch, VARIANT;
+public import windows.com : HRESULT;
 
 extern(Windows):
 
-const GUID CLSID_WindowsMediaLibrarySharingServices = {0xAD581B00, 0x7B64, 0x4E59, [0xA3, 0x8D, 0xD2, 0xC5, 0xBF, 0x51, 0xDD, 0xB3]};
-@GUID(0xAD581B00, 0x7B64, 0x4E59, [0xA3, 0x8D, 0xD2, 0xC5, 0xBF, 0x51, 0xDD, 0xB3]);
-struct WindowsMediaLibrarySharingServices;
 
-enum WindowsMediaLibrarySharingDeviceAuthorizationStatus
+// Enums
+
+
+enum WindowsMediaLibrarySharingDeviceAuthorizationStatus : int
 {
-    DEVICE_AUTHORIZATION_UNKNOWN = 0,
-    DEVICE_AUTHORIZATION_ALLOWED = 1,
-    DEVICE_AUTHORIZATION_DENIED = 2,
+    DEVICE_AUTHORIZATION_UNKNOWN = 0x00000000,
+    DEVICE_AUTHORIZATION_ALLOWED = 0x00000001,
+    DEVICE_AUTHORIZATION_DENIED  = 0x00000002,
 }
 
-const GUID IID_IWindowsMediaLibrarySharingDeviceProperty = {0x81E26927, 0x7A7D, 0x40A7, [0x81, 0xD4, 0xBD, 0xDC, 0x02, 0x96, 0x0E, 0x3E]};
-@GUID(0x81E26927, 0x7A7D, 0x40A7, [0x81, 0xD4, 0xBD, 0xDC, 0x02, 0x96, 0x0E, 0x3E]);
+// Interfaces
+
+@GUID("AD581B00-7B64-4E59-A38D-D2C5BF51DDB3")
+struct WindowsMediaLibrarySharingServices;
+
+@GUID("81E26927-7A7D-40A7-81D4-BDDC02960E3E")
 interface IWindowsMediaLibrarySharingDeviceProperty : IDispatch
 {
     HRESULT get_Name(BSTR* name);
     HRESULT get_Value(VARIANT* value);
 }
 
-const GUID IID_IWindowsMediaLibrarySharingDeviceProperties = {0xC4623214, 0x6B06, 0x40C5, [0xA6, 0x23, 0xB2, 0xFF, 0x4C, 0x07, 0x6B, 0xFD]};
-@GUID(0xC4623214, 0x6B06, 0x40C5, [0xA6, 0x23, 0xB2, 0xFF, 0x4C, 0x07, 0x6B, 0xFD]);
+@GUID("C4623214-6B06-40C5-A623-B2FF4C076BFD")
 interface IWindowsMediaLibrarySharingDeviceProperties : IDispatch
 {
     HRESULT get_Item(int index, IWindowsMediaLibrarySharingDeviceProperty* property);
@@ -33,8 +37,7 @@ interface IWindowsMediaLibrarySharingDeviceProperties : IDispatch
     HRESULT GetProperty(BSTR name, IWindowsMediaLibrarySharingDeviceProperty* property);
 }
 
-const GUID IID_IWindowsMediaLibrarySharingDevice = {0x3DCCC293, 0x4FD9, 0x4191, [0xA2, 0x5B, 0x8E, 0x57, 0xC5, 0xD2, 0x7B, 0xD4]};
-@GUID(0x3DCCC293, 0x4FD9, 0x4191, [0xA2, 0x5B, 0x8E, 0x57, 0xC5, 0xD2, 0x7B, 0xD4]);
+@GUID("3DCCC293-4FD9-4191-A25B-8E57C5D27BD4")
 interface IWindowsMediaLibrarySharingDevice : IDispatch
 {
     HRESULT get_DeviceID(BSTR* deviceID);
@@ -43,8 +46,7 @@ interface IWindowsMediaLibrarySharingDevice : IDispatch
     HRESULT get_Properties(IWindowsMediaLibrarySharingDeviceProperties* deviceProperties);
 }
 
-const GUID IID_IWindowsMediaLibrarySharingDevices = {0x1803F9D6, 0xFE6D, 0x4546, [0xBF, 0x5B, 0x99, 0x2F, 0xE8, 0xEC, 0x12, 0xD1]};
-@GUID(0x1803F9D6, 0xFE6D, 0x4546, [0xBF, 0x5B, 0x99, 0x2F, 0xE8, 0xEC, 0x12, 0xD1]);
+@GUID("1803F9D6-FE6D-4546-BF5B-992FE8EC12D1")
 interface IWindowsMediaLibrarySharingDevices : IDispatch
 {
     HRESULT get_Item(int index, IWindowsMediaLibrarySharingDevice* device);
@@ -52,8 +54,7 @@ interface IWindowsMediaLibrarySharingDevices : IDispatch
     HRESULT GetDevice(BSTR deviceID, IWindowsMediaLibrarySharingDevice* device);
 }
 
-const GUID IID_IWindowsMediaLibrarySharingServices = {0x01F5F85E, 0x0A81, 0x40DA, [0xA7, 0xC8, 0x21, 0xEF, 0x3A, 0xF8, 0x44, 0x0C]};
-@GUID(0x01F5F85E, 0x0A81, 0x40DA, [0xA7, 0xC8, 0x21, 0xEF, 0x3A, 0xF8, 0x44, 0x0C]);
+@GUID("01F5F85E-0A81-40DA-A7C8-21EF3AF8440C")
 interface IWindowsMediaLibrarySharingServices : IDispatch
 {
     HRESULT showShareMediaCPL(BSTR device);
@@ -77,3 +78,13 @@ interface IWindowsMediaLibrarySharingServices : IDispatch
     HRESULT get_customSettingsApplied(short* customSettingsApplied);
 }
 
+
+// GUIDs
+
+const GUID CLSID_WindowsMediaLibrarySharingServices = GUIDOF!WindowsMediaLibrarySharingServices;
+
+const GUID IID_IWindowsMediaLibrarySharingDevice           = GUIDOF!IWindowsMediaLibrarySharingDevice;
+const GUID IID_IWindowsMediaLibrarySharingDeviceProperties = GUIDOF!IWindowsMediaLibrarySharingDeviceProperties;
+const GUID IID_IWindowsMediaLibrarySharingDeviceProperty   = GUIDOF!IWindowsMediaLibrarySharingDeviceProperty;
+const GUID IID_IWindowsMediaLibrarySharingDevices          = GUIDOF!IWindowsMediaLibrarySharingDevices;
+const GUID IID_IWindowsMediaLibrarySharingServices         = GUIDOF!IWindowsMediaLibrarySharingServices;

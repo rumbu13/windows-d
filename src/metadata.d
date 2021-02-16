@@ -367,6 +367,11 @@ public struct Metadata
         return RangeEnumerator!md(&this, sourceIndex, targetColumn);
     }
 
+    private auto getAll(MD md)(uint sourceIndex, ubyte targetColumn) const
+    {
+        return RandomEnumerator!md(&this, sourceIndex, targetColumn);
+    }
+
     private auto getRange(MD md, T)(CompositeIndex!T sourceIndex, ubyte targetColumn) const
     {
         return CompositeRangeEnumerator!(md, T)(&this, sourceIndex, targetColumn);
@@ -429,6 +434,18 @@ public struct Metadata
         }
         return (Nullable!TypeDef).init;
      }
+
+    public Nullable!TypeDef findByName(string ns, string nm) const
+    {
+        foreach(r; typeDefTable.items)
+        {
+            auto name = r.name;
+            auto namespace = r.namespace;
+            if (ns == namespace && nm == name)
+                return Nullable!TypeDef(r);
+        }
+        return (Nullable!TypeDef).init;
+    }
     
 }
 
@@ -536,7 +553,6 @@ public struct Row(MD md)
 
     private uint index;
 
-    @disable this();
     private this(const(Table!md)* table, uint index)
     {
         this.table = table;
@@ -577,6 +593,11 @@ public struct Row(MD md)
     private auto getRange(MD target)(ubyte targetColumn) const
     {
         return table.db.getRange!target(index, targetColumn);
+    }
+
+    private auto getAll(MD target)(ubyte targetColumn) const
+    {
+        return table.db.getAll!target(index, targetColumn);
     }
 
     private auto getRange(MD target, T)(ubyte targetColumn, T enumVal) const
@@ -628,6 +649,29 @@ public struct Row(MD md)
         }
     }
 
+    @safe pure nothrow
+    bool opEquals()(auto ref const Row!md other) const
+    {
+        return this.index == other.index;
+    }
+
+    @safe pure nothrow
+    int opCmp(ref const Row!md other) const
+    {
+        if (this.index > other.index)
+            return 1;
+        if (this.index < other.index)
+            return -1;
+        return 0;
+    }
+
+    @safe pure nothrow
+    size_t toHash() const
+    {
+        return index;
+    }
+
+
     static if (md == MD.module_)
     {
         public string name()
@@ -676,6 +720,29 @@ public struct Row(MD md)
         {
             return getRange!(MD.customAttribute, HasCustomAttribute)(0, HasCustomAttribute.typeRef);
         }
+
+        Nullable!TypeDef resolve() const
+        {
+            auto rs = resolutionScope();
+            if (auto md = rs.peek!Module)
+            {
+                return table.db.findByName(namespace, name);
+            }
+            else if (auto tr = rs.peek!TypeRef)
+            {
+                auto parent = tr.resolve();
+                if (parent.isNull)
+                    return parent;
+                auto nestings = parent.get.getAll!(MD.nestedClass)(1);
+                foreach(n; nestings)
+                {
+
+                    if (n.nested.name  == this.name)
+                        return Nullable!TypeDef(n.nested);
+                }
+            }
+            return (Nullable!TypeDef).init;
+        }
     }
     else static if (md == MD.typeDef)
     {
@@ -722,6 +789,11 @@ public struct Row(MD md)
         public auto interfaces() const
         {
             return getRange!(MD.interfaceImpl)(0);
+        }
+
+        public auto layout() const
+        {
+            return findFirst!(MD.classLayout)(2);
         }
 
         public auto genericParameters() const
@@ -835,9 +907,9 @@ public struct Row(MD md)
                 return ListEnumerator!(MD.event)(table.db, 2, 1);
         }
 
-        public bool isNested()
+        public bool isNested() const
         {
-            return !findFirst!(MD.nestedClass)(0).isNull;
+            return !findFirst!(MD.nestedClass)(1).isNull;
         }
     }
     else static if (md == MD.field)
@@ -1876,6 +1948,57 @@ private struct ListEnumerator(MD md)
 
 }
 
+
+private struct RandomEnumerator(MD md)
+{
+    const(Metadata)* db;
+    uint sourceIndex;
+    uint targetRow;
+    uint targetColumn;    
+
+
+    @disable this();
+
+    this(const(Metadata)* db, uint sourceIndex, uint targetColumn)
+    {
+        this.db = db;
+        this.sourceIndex = sourceIndex;
+        this. targetColumn = targetColumn;
+        targetRow = 0;
+        while (targetRow < db.getTable!md.rowCount)
+        {
+            auto targetIndex = db.getTable!md.getValue!uint(targetRow, targetColumn);
+            if (targetIndex == sourceIndex)
+                break;
+            ++targetRow;
+        }
+    }
+
+    pragma(inline, true)
+        bool empty() const
+        {        
+            return targetRow >= db.getTable!md.rowCount;
+        }
+
+    pragma(inline, true)
+        void popFront()
+        {
+            ++targetRow; 
+            while (targetRow < db.getTable!md.rowCount)
+            {
+                auto targetIndex = db.getTable!md.getValue!uint(targetRow, targetColumn);
+                if (targetIndex == sourceIndex)
+                    break;
+                ++targetRow;
+            }
+        }
+
+    pragma(inline, true)
+        auto front()
+        {
+            return db.getTable!md[targetRow + 1];        
+        }
+}
 private struct Column
 {
     ubyte offset;
@@ -2671,9 +2794,9 @@ enum ManifestVisibility: uint
 
 enum TypeLayout 
 {
-    AutoLayout          = 0x00000000,
-    SequentialLayout    = 0x00000008,
-    ExplicitLayout      = 0x00000010,
+    autoLayout          = 0x00000000,
+    sequentialLayout    = 0x00000008,
+    explicitLayout      = 0x00000010,
 }
 
 enum TypeSemantics

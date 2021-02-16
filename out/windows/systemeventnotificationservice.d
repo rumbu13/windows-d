@@ -1,10 +1,15 @@
 module windows.systemeventnotificationservice;
 
-public import windows.automation;
-public import windows.com;
-public import windows.systemservices;
+public import windows.core;
+public import windows.automation : BSTR, IDispatch;
+public import windows.com : HRESULT;
+public import windows.systemservices : BOOL;
 
 extern(Windows):
+
+
+// Structs
+
 
 struct QOCINFO
 {
@@ -14,10 +19,6 @@ struct QOCINFO
     uint dwOutSpeed;
 }
 
-const GUID CLSID_SENS = {0xD597CAFE, 0x5B9F, 0x11D1, [0x8D, 0xD2, 0x00, 0xAA, 0x00, 0x4A, 0xBD, 0x5E]};
-@GUID(0xD597CAFE, 0x5B9F, 0x11D1, [0x8D, 0xD2, 0x00, 0xAA, 0x00, 0x4A, 0xBD, 0x5E]);
-struct SENS;
-
 struct SENS_QOCINFO
 {
     uint dwSize;
@@ -26,8 +27,24 @@ struct SENS_QOCINFO
     uint dwInSpeed;
 }
 
-const GUID IID_ISensNetwork = {0xD597BAB1, 0x5B9F, 0x11D1, [0x8D, 0xD2, 0x00, 0xAA, 0x00, 0x4A, 0xBD, 0x5E]};
-@GUID(0xD597BAB1, 0x5B9F, 0x11D1, [0x8D, 0xD2, 0x00, 0xAA, 0x00, 0x4A, 0xBD, 0x5E]);
+// Functions
+
+@DllImport("SensApi")
+BOOL IsDestinationReachableA(const(char)* lpszDestination, QOCINFO* lpQOCInfo);
+
+@DllImport("SensApi")
+BOOL IsDestinationReachableW(const(wchar)* lpszDestination, QOCINFO* lpQOCInfo);
+
+@DllImport("SensApi")
+BOOL IsNetworkAlive(uint* lpdwFlags);
+
+
+// Interfaces
+
+@GUID("D597CAFE-5B9F-11D1-8DD2-00AA004ABD5E")
+struct SENS;
+
+@GUID("D597BAB1-5B9F-11D1-8DD2-00AA004ABD5E")
 interface ISensNetwork : IDispatch
 {
     HRESULT ConnectionMade(BSTR bstrConnection, uint ulType, SENS_QOCINFO* lpQOCInfo);
@@ -37,8 +54,7 @@ interface ISensNetwork : IDispatch
     HRESULT DestinationReachableNoQOCInfo(BSTR bstrDestination, BSTR bstrConnection, uint ulType);
 }
 
-const GUID IID_ISensOnNow = {0xD597BAB2, 0x5B9F, 0x11D1, [0x8D, 0xD2, 0x00, 0xAA, 0x00, 0x4A, 0xBD, 0x5E]};
-@GUID(0xD597BAB2, 0x5B9F, 0x11D1, [0x8D, 0xD2, 0x00, 0xAA, 0x00, 0x4A, 0xBD, 0x5E]);
+@GUID("D597BAB2-5B9F-11D1-8DD2-00AA004ABD5E")
 interface ISensOnNow : IDispatch
 {
     HRESULT OnACPower();
@@ -46,8 +62,7 @@ interface ISensOnNow : IDispatch
     HRESULT BatteryLow(uint dwBatteryLifePercent);
 }
 
-const GUID IID_ISensLogon = {0xD597BAB3, 0x5B9F, 0x11D1, [0x8D, 0xD2, 0x00, 0xAA, 0x00, 0x4A, 0xBD, 0x5E]};
-@GUID(0xD597BAB3, 0x5B9F, 0x11D1, [0x8D, 0xD2, 0x00, 0xAA, 0x00, 0x4A, 0xBD, 0x5E]);
+@GUID("D597BAB3-5B9F-11D1-8DD2-00AA004ABD5E")
 interface ISensLogon : IDispatch
 {
     HRESULT Logon(BSTR bstrUserName);
@@ -59,8 +74,7 @@ interface ISensLogon : IDispatch
     HRESULT StopScreenSaver(BSTR bstrUserName);
 }
 
-const GUID IID_ISensLogon2 = {0xD597BAB4, 0x5B9F, 0x11D1, [0x8D, 0xD2, 0x00, 0xAA, 0x00, 0x4A, 0xBD, 0x5E]};
-@GUID(0xD597BAB4, 0x5B9F, 0x11D1, [0x8D, 0xD2, 0x00, 0xAA, 0x00, 0x4A, 0xBD, 0x5E]);
+@GUID("D597BAB4-5B9F-11D1-8DD2-00AA004ABD5E")
 interface ISensLogon2 : IDispatch
 {
     HRESULT Logon(BSTR bstrUserName, uint dwSessionId);
@@ -70,12 +84,12 @@ interface ISensLogon2 : IDispatch
     HRESULT PostShell(BSTR bstrUserName, uint dwSessionId);
 }
 
-@DllImport("SensApi.dll")
-BOOL IsDestinationReachableA(const(char)* lpszDestination, QOCINFO* lpQOCInfo);
 
-@DllImport("SensApi.dll")
-BOOL IsDestinationReachableW(const(wchar)* lpszDestination, QOCINFO* lpQOCInfo);
+// GUIDs
 
-@DllImport("SensApi.dll")
-BOOL IsNetworkAlive(uint* lpdwFlags);
+const GUID CLSID_SENS = GUIDOF!SENS;
 
+const GUID IID_ISensLogon   = GUIDOF!ISensLogon;
+const GUID IID_ISensLogon2  = GUIDOF!ISensLogon2;
+const GUID IID_ISensNetwork = GUIDOF!ISensNetwork;
+const GUID IID_ISensOnNow   = GUIDOF!ISensOnNow;

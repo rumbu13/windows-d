@@ -1,26 +1,165 @@
 module windows.taskscheduler;
 
-public import system;
-public import windows.automation;
-public import windows.com;
-public import windows.controls;
-public import windows.systemservices;
-public import windows.windowsandmessaging;
-public import windows.windowsprogramming;
+public import windows.core;
+public import windows.automation : BSTR, IDispatch, SAFEARRAY, VARIANT;
+public import windows.com : HRESULT, IUnknown;
+public import windows.controls : HPROPSHEETPAGE;
+public import windows.systemservices : BOOL;
+public import windows.windowsandmessaging : HWND;
+public import windows.windowsprogramming : SYSTEMTIME;
 
 extern(Windows):
 
-enum TASK_TRIGGER_TYPE
+
+// Enums
+
+
+enum : int
 {
-    TASK_TIME_TRIGGER_ONCE = 0,
-    TASK_TIME_TRIGGER_DAILY = 1,
-    TASK_TIME_TRIGGER_WEEKLY = 2,
-    TASK_TIME_TRIGGER_MONTHLYDATE = 3,
-    TASK_TIME_TRIGGER_MONTHLYDOW = 4,
-    TASK_EVENT_TRIGGER_ON_IDLE = 5,
-    TASK_EVENT_TRIGGER_AT_SYSTEMSTART = 6,
-    TASK_EVENT_TRIGGER_AT_LOGON = 7,
+    TASK_TIME_TRIGGER_ONCE            = 0x00000000,
+    TASK_TIME_TRIGGER_DAILY           = 0x00000001,
+    TASK_TIME_TRIGGER_WEEKLY          = 0x00000002,
+    TASK_TIME_TRIGGER_MONTHLYDATE     = 0x00000003,
+    TASK_TIME_TRIGGER_MONTHLYDOW      = 0x00000004,
+    TASK_EVENT_TRIGGER_ON_IDLE        = 0x00000005,
+    TASK_EVENT_TRIGGER_AT_SYSTEMSTART = 0x00000006,
+    TASK_EVENT_TRIGGER_AT_LOGON       = 0x00000007,
 }
+alias TASK_TRIGGER_TYPE = int;
+
+enum : int
+{
+    TASKPAGE_TASK     = 0x00000000,
+    TASKPAGE_SCHEDULE = 0x00000001,
+    TASKPAGE_SETTINGS = 0x00000002,
+}
+alias TASKPAGE = int;
+
+enum : int
+{
+    TASK_RUN_NO_FLAGS           = 0x00000000,
+    TASK_RUN_AS_SELF            = 0x00000001,
+    TASK_RUN_IGNORE_CONSTRAINTS = 0x00000002,
+    TASK_RUN_USE_SESSION_ID     = 0x00000004,
+    TASK_RUN_USER_SID           = 0x00000008,
+}
+alias TASK_RUN_FLAGS = int;
+
+enum : int
+{
+    TASK_ENUM_HIDDEN = 0x00000001,
+}
+alias TASK_ENUM_FLAGS = int;
+
+enum : int
+{
+    TASK_LOGON_NONE                          = 0x00000000,
+    TASK_LOGON_PASSWORD                      = 0x00000001,
+    TASK_LOGON_S4U                           = 0x00000002,
+    TASK_LOGON_INTERACTIVE_TOKEN             = 0x00000003,
+    TASK_LOGON_GROUP                         = 0x00000004,
+    TASK_LOGON_SERVICE_ACCOUNT               = 0x00000005,
+    TASK_LOGON_INTERACTIVE_TOKEN_OR_PASSWORD = 0x00000006,
+}
+alias TASK_LOGON_TYPE = int;
+
+enum : int
+{
+    TASK_RUNLEVEL_LUA     = 0x00000000,
+    TASK_RUNLEVEL_HIGHEST = 0x00000001,
+}
+alias TASK_RUNLEVEL_TYPE = int;
+
+enum : int
+{
+    TASK_PROCESSTOKENSID_NONE         = 0x00000000,
+    TASK_PROCESSTOKENSID_UNRESTRICTED = 0x00000001,
+    TASK_PROCESSTOKENSID_DEFAULT      = 0x00000002,
+}
+alias TASK_PROCESSTOKENSID_TYPE = int;
+
+enum : int
+{
+    TASK_STATE_UNKNOWN  = 0x00000000,
+    TASK_STATE_DISABLED = 0x00000001,
+    TASK_STATE_QUEUED   = 0x00000002,
+    TASK_STATE_READY    = 0x00000003,
+    TASK_STATE_RUNNING  = 0x00000004,
+}
+alias TASK_STATE = int;
+
+enum : int
+{
+    TASK_VALIDATE_ONLY                = 0x00000001,
+    TASK_CREATE                       = 0x00000002,
+    TASK_UPDATE                       = 0x00000004,
+    TASK_CREATE_OR_UPDATE             = 0x00000006,
+    TASK_DISABLE                      = 0x00000008,
+    TASK_DONT_ADD_PRINCIPAL_ACE       = 0x00000010,
+    TASK_IGNORE_REGISTRATION_TRIGGERS = 0x00000020,
+}
+alias TASK_CREATION = int;
+
+enum : int
+{
+    TASK_TRIGGER_EVENT                = 0x00000000,
+    TASK_TRIGGER_TIME                 = 0x00000001,
+    TASK_TRIGGER_DAILY                = 0x00000002,
+    TASK_TRIGGER_WEEKLY               = 0x00000003,
+    TASK_TRIGGER_MONTHLY              = 0x00000004,
+    TASK_TRIGGER_MONTHLYDOW           = 0x00000005,
+    TASK_TRIGGER_IDLE                 = 0x00000006,
+    TASK_TRIGGER_REGISTRATION         = 0x00000007,
+    TASK_TRIGGER_BOOT                 = 0x00000008,
+    TASK_TRIGGER_LOGON                = 0x00000009,
+    TASK_TRIGGER_SESSION_STATE_CHANGE = 0x0000000b,
+    TASK_TRIGGER_CUSTOM_TRIGGER_01    = 0x0000000c,
+}
+alias TASK_TRIGGER_TYPE2 = int;
+
+enum : int
+{
+    TASK_CONSOLE_CONNECT    = 0x00000001,
+    TASK_CONSOLE_DISCONNECT = 0x00000002,
+    TASK_REMOTE_CONNECT     = 0x00000003,
+    TASK_REMOTE_DISCONNECT  = 0x00000004,
+    TASK_SESSION_LOCK       = 0x00000007,
+    TASK_SESSION_UNLOCK     = 0x00000008,
+}
+alias TASK_SESSION_STATE_CHANGE_TYPE = int;
+
+enum : int
+{
+    TASK_ACTION_EXEC         = 0x00000000,
+    TASK_ACTION_COM_HANDLER  = 0x00000005,
+    TASK_ACTION_SEND_EMAIL   = 0x00000006,
+    TASK_ACTION_SHOW_MESSAGE = 0x00000007,
+}
+alias TASK_ACTION_TYPE = int;
+
+enum : int
+{
+    TASK_INSTANCES_PARALLEL      = 0x00000000,
+    TASK_INSTANCES_QUEUE         = 0x00000001,
+    TASK_INSTANCES_IGNORE_NEW    = 0x00000002,
+    TASK_INSTANCES_STOP_EXISTING = 0x00000003,
+}
+alias TASK_INSTANCES_POLICY = int;
+
+enum : int
+{
+    TASK_COMPATIBILITY_AT   = 0x00000000,
+    TASK_COMPATIBILITY_V1   = 0x00000001,
+    TASK_COMPATIBILITY_V2   = 0x00000002,
+    TASK_COMPATIBILITY_V2_1 = 0x00000003,
+    TASK_COMPATIBILITY_V2_2 = 0x00000004,
+    TASK_COMPATIBILITY_V2_3 = 0x00000005,
+    TASK_COMPATIBILITY_V2_4 = 0x00000006,
+}
+alias TASK_COMPATIBILITY = int;
+
+// Structs
+
 
 struct DAILY
 {
@@ -35,7 +174,7 @@ struct WEEKLY
 
 struct MONTHLYDATE
 {
-    uint rgfDays;
+    uint   rgfDays;
     ushort rgfMonths;
 }
 
@@ -46,37 +185,47 @@ struct MONTHLYDOW
     ushort rgfMonths;
 }
 
-struct TRIGGER_TYPE_UNION
+union TRIGGER_TYPE_UNION
 {
-    DAILY Daily;
-    WEEKLY Weekly;
+    DAILY       Daily;
+    WEEKLY      Weekly;
     MONTHLYDATE MonthlyDate;
-    MONTHLYDOW MonthlyDOW;
+    MONTHLYDOW  MonthlyDOW;
 }
 
 struct TASK_TRIGGER
 {
-    ushort cbTriggerSize;
-    ushort Reserved1;
-    ushort wBeginYear;
-    ushort wBeginMonth;
-    ushort wBeginDay;
-    ushort wEndYear;
-    ushort wEndMonth;
-    ushort wEndDay;
-    ushort wStartHour;
-    ushort wStartMinute;
-    uint MinutesDuration;
-    uint MinutesInterval;
-    uint rgFlags;
-    TASK_TRIGGER_TYPE TriggerType;
+    ushort             cbTriggerSize;
+    ushort             Reserved1;
+    ushort             wBeginYear;
+    ushort             wBeginMonth;
+    ushort             wBeginDay;
+    ushort             wEndYear;
+    ushort             wEndMonth;
+    ushort             wEndDay;
+    ushort             wStartHour;
+    ushort             wStartMinute;
+    uint               MinutesDuration;
+    uint               MinutesInterval;
+    uint               rgFlags;
+    TASK_TRIGGER_TYPE  TriggerType;
     TRIGGER_TYPE_UNION Type;
-    ushort Reserved2;
-    ushort wRandomMinutesInterval;
+    ushort             Reserved2;
+    ushort             wRandomMinutesInterval;
 }
 
-const GUID IID_ITaskTrigger = {0x148BD52B, 0xA2AB, 0x11CE, [0xB1, 0x1F, 0x00, 0xAA, 0x00, 0x53, 0x05, 0x03]};
-@GUID(0x148BD52B, 0xA2AB, 0x11CE, [0xB1, 0x1F, 0x00, 0xAA, 0x00, 0x53, 0x05, 0x03]);
+// Interfaces
+
+@GUID("0F87369F-A4E5-4CFC-BD3E-73E6154572DD")
+struct TaskScheduler;
+
+@GUID("F2A69DB7-DA2C-4352-9066-86FEE6DACAC9")
+struct TaskHandlerPS;
+
+@GUID("9F15266D-D7BA-48F0-93C1-E6895F6FE5AC")
+struct TaskHandlerStatusPS;
+
+@GUID("148BD52B-A2AB-11CE-B11F-00AA00530503")
 interface ITaskTrigger : IUnknown
 {
     HRESULT SetTrigger(const(TASK_TRIGGER)* pTrigger);
@@ -84,8 +233,7 @@ interface ITaskTrigger : IUnknown
     HRESULT GetTriggerString(ushort** ppwszTrigger);
 }
 
-const GUID IID_IScheduledWorkItem = {0xA6B952F0, 0xA4B1, 0x11D0, [0x99, 0x7D, 0x00, 0xAA, 0x00, 0x68, 0x87, 0xEC]};
-@GUID(0xA6B952F0, 0xA4B1, 0x11D0, [0x99, 0x7D, 0x00, 0xAA, 0x00, 0x68, 0x87, 0xEC]);
+@GUID("A6B952F0-A4B1-11D0-997D-00AA006887EC")
 interface IScheduledWorkItem : IUnknown
 {
     HRESULT CreateTrigger(ushort* piNewTrigger, ITaskTrigger* ppTrigger);
@@ -93,7 +241,8 @@ interface IScheduledWorkItem : IUnknown
     HRESULT GetTriggerCount(ushort* pwCount);
     HRESULT GetTrigger(ushort iTrigger, ITaskTrigger* ppTrigger);
     HRESULT GetTriggerString(ushort iTrigger, ushort** ppwszTrigger);
-    HRESULT GetRunTimes(const(SYSTEMTIME)* pstBegin, const(SYSTEMTIME)* pstEnd, ushort* pCount, SYSTEMTIME** rgstTaskTimes);
+    HRESULT GetRunTimes(const(SYSTEMTIME)* pstBegin, const(SYSTEMTIME)* pstEnd, ushort* pCount, 
+                        SYSTEMTIME** rgstTaskTimes);
     HRESULT GetNextRunTime(SYSTEMTIME* pstNextRun);
     HRESULT SetIdleWait(ushort wIdleMinutes, ushort wDeadlineMinutes);
     HRESULT GetIdleWait(ushort* pwIdleMinutes, ushort* pwDeadlineMinutes);
@@ -119,8 +268,7 @@ interface IScheduledWorkItem : IUnknown
     HRESULT GetAccountInformation(ushort** ppwszAccountName);
 }
 
-const GUID IID_ITask = {0x148BD524, 0xA2AB, 0x11CE, [0xB1, 0x1F, 0x00, 0xAA, 0x00, 0x53, 0x05, 0x03]};
-@GUID(0x148BD524, 0xA2AB, 0x11CE, [0xB1, 0x1F, 0x00, 0xAA, 0x00, 0x53, 0x05, 0x03]);
+@GUID("148BD524-A2AB-11CE-B11F-00AA00530503")
 interface ITask : IScheduledWorkItem
 {
     HRESULT SetApplicationName(const(wchar)* pwszApplicationName);
@@ -137,8 +285,7 @@ interface ITask : IScheduledWorkItem
     HRESULT GetMaxRunTime(uint* pdwMaxRunTimeMS);
 }
 
-const GUID IID_IEnumWorkItems = {0x148BD528, 0xA2AB, 0x11CE, [0xB1, 0x1F, 0x00, 0xAA, 0x00, 0x53, 0x05, 0x03]};
-@GUID(0x148BD528, 0xA2AB, 0x11CE, [0xB1, 0x1F, 0x00, 0xAA, 0x00, 0x53, 0x05, 0x03]);
+@GUID("148BD528-A2AB-11CE-B11F-00AA00530503")
 interface IEnumWorkItems : IUnknown
 {
     HRESULT Next(uint celt, ushort*** rgpwszNames, uint* pceltFetched);
@@ -147,159 +294,26 @@ interface IEnumWorkItems : IUnknown
     HRESULT Clone(IEnumWorkItems* ppEnumWorkItems);
 }
 
-const GUID IID_ITaskScheduler = {0x148BD527, 0xA2AB, 0x11CE, [0xB1, 0x1F, 0x00, 0xAA, 0x00, 0x53, 0x05, 0x03]};
-@GUID(0x148BD527, 0xA2AB, 0x11CE, [0xB1, 0x1F, 0x00, 0xAA, 0x00, 0x53, 0x05, 0x03]);
+@GUID("148BD527-A2AB-11CE-B11F-00AA00530503")
 interface ITaskScheduler : IUnknown
 {
     HRESULT SetTargetComputer(const(wchar)* pwszComputer);
     HRESULT GetTargetComputer(ushort** ppwszComputer);
     HRESULT Enum(IEnumWorkItems* ppEnumWorkItems);
-    HRESULT Activate(const(wchar)* pwszName, const(Guid)* riid, IUnknown* ppUnk);
+    HRESULT Activate(const(wchar)* pwszName, const(GUID)* riid, IUnknown* ppUnk);
     HRESULT Delete(const(wchar)* pwszName);
-    HRESULT NewWorkItem(const(wchar)* pwszTaskName, const(Guid)* rclsid, const(Guid)* riid, IUnknown* ppUnk);
+    HRESULT NewWorkItem(const(wchar)* pwszTaskName, const(GUID)* rclsid, const(GUID)* riid, IUnknown* ppUnk);
     HRESULT AddWorkItem(const(wchar)* pwszTaskName, IScheduledWorkItem pWorkItem);
-    HRESULT IsOfType(const(wchar)* pwszName, const(Guid)* riid);
+    HRESULT IsOfType(const(wchar)* pwszName, const(GUID)* riid);
 }
 
-enum TASKPAGE
-{
-    TASKPAGE_TASK = 0,
-    TASKPAGE_SCHEDULE = 1,
-    TASKPAGE_SETTINGS = 2,
-}
-
-const GUID IID_IProvideTaskPage = {0x4086658A, 0xCBBB, 0x11CF, [0xB6, 0x04, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x65]};
-@GUID(0x4086658A, 0xCBBB, 0x11CF, [0xB6, 0x04, 0x00, 0xC0, 0x4F, 0xD8, 0xD5, 0x65]);
+@GUID("4086658A-CBBB-11CF-B604-00C04FD8D565")
 interface IProvideTaskPage : IUnknown
 {
     HRESULT GetPage(TASKPAGE tpType, BOOL fPersistChanges, HPROPSHEETPAGE* phPage);
 }
 
-const GUID CLSID_TaskScheduler = {0x0F87369F, 0xA4E5, 0x4CFC, [0xBD, 0x3E, 0x73, 0xE6, 0x15, 0x45, 0x72, 0xDD]};
-@GUID(0x0F87369F, 0xA4E5, 0x4CFC, [0xBD, 0x3E, 0x73, 0xE6, 0x15, 0x45, 0x72, 0xDD]);
-struct TaskScheduler;
-
-const GUID CLSID_TaskHandlerPS = {0xF2A69DB7, 0xDA2C, 0x4352, [0x90, 0x66, 0x86, 0xFE, 0xE6, 0xDA, 0xCA, 0xC9]};
-@GUID(0xF2A69DB7, 0xDA2C, 0x4352, [0x90, 0x66, 0x86, 0xFE, 0xE6, 0xDA, 0xCA, 0xC9]);
-struct TaskHandlerPS;
-
-const GUID CLSID_TaskHandlerStatusPS = {0x9F15266D, 0xD7BA, 0x48F0, [0x93, 0xC1, 0xE6, 0x89, 0x5F, 0x6F, 0xE5, 0xAC]};
-@GUID(0x9F15266D, 0xD7BA, 0x48F0, [0x93, 0xC1, 0xE6, 0x89, 0x5F, 0x6F, 0xE5, 0xAC]);
-struct TaskHandlerStatusPS;
-
-enum TASK_RUN_FLAGS
-{
-    TASK_RUN_NO_FLAGS = 0,
-    TASK_RUN_AS_SELF = 1,
-    TASK_RUN_IGNORE_CONSTRAINTS = 2,
-    TASK_RUN_USE_SESSION_ID = 4,
-    TASK_RUN_USER_SID = 8,
-}
-
-enum TASK_ENUM_FLAGS
-{
-    TASK_ENUM_HIDDEN = 1,
-}
-
-enum TASK_LOGON_TYPE
-{
-    TASK_LOGON_NONE = 0,
-    TASK_LOGON_PASSWORD = 1,
-    TASK_LOGON_S4U = 2,
-    TASK_LOGON_INTERACTIVE_TOKEN = 3,
-    TASK_LOGON_GROUP = 4,
-    TASK_LOGON_SERVICE_ACCOUNT = 5,
-    TASK_LOGON_INTERACTIVE_TOKEN_OR_PASSWORD = 6,
-}
-
-enum TASK_RUNLEVEL_TYPE
-{
-    TASK_RUNLEVEL_LUA = 0,
-    TASK_RUNLEVEL_HIGHEST = 1,
-}
-
-enum TASK_PROCESSTOKENSID_TYPE
-{
-    TASK_PROCESSTOKENSID_NONE = 0,
-    TASK_PROCESSTOKENSID_UNRESTRICTED = 1,
-    TASK_PROCESSTOKENSID_DEFAULT = 2,
-}
-
-enum TASK_STATE
-{
-    TASK_STATE_UNKNOWN = 0,
-    TASK_STATE_DISABLED = 1,
-    TASK_STATE_QUEUED = 2,
-    TASK_STATE_READY = 3,
-    TASK_STATE_RUNNING = 4,
-}
-
-enum TASK_CREATION
-{
-    TASK_VALIDATE_ONLY = 1,
-    TASK_CREATE = 2,
-    TASK_UPDATE = 4,
-    TASK_CREATE_OR_UPDATE = 6,
-    TASK_DISABLE = 8,
-    TASK_DONT_ADD_PRINCIPAL_ACE = 16,
-    TASK_IGNORE_REGISTRATION_TRIGGERS = 32,
-}
-
-enum TASK_TRIGGER_TYPE2
-{
-    TASK_TRIGGER_EVENT = 0,
-    TASK_TRIGGER_TIME = 1,
-    TASK_TRIGGER_DAILY = 2,
-    TASK_TRIGGER_WEEKLY = 3,
-    TASK_TRIGGER_MONTHLY = 4,
-    TASK_TRIGGER_MONTHLYDOW = 5,
-    TASK_TRIGGER_IDLE = 6,
-    TASK_TRIGGER_REGISTRATION = 7,
-    TASK_TRIGGER_BOOT = 8,
-    TASK_TRIGGER_LOGON = 9,
-    TASK_TRIGGER_SESSION_STATE_CHANGE = 11,
-    TASK_TRIGGER_CUSTOM_TRIGGER_01 = 12,
-}
-
-enum TASK_SESSION_STATE_CHANGE_TYPE
-{
-    TASK_CONSOLE_CONNECT = 1,
-    TASK_CONSOLE_DISCONNECT = 2,
-    TASK_REMOTE_CONNECT = 3,
-    TASK_REMOTE_DISCONNECT = 4,
-    TASK_SESSION_LOCK = 7,
-    TASK_SESSION_UNLOCK = 8,
-}
-
-enum TASK_ACTION_TYPE
-{
-    TASK_ACTION_EXEC = 0,
-    TASK_ACTION_COM_HANDLER = 5,
-    TASK_ACTION_SEND_EMAIL = 6,
-    TASK_ACTION_SHOW_MESSAGE = 7,
-}
-
-enum TASK_INSTANCES_POLICY
-{
-    TASK_INSTANCES_PARALLEL = 0,
-    TASK_INSTANCES_QUEUE = 1,
-    TASK_INSTANCES_IGNORE_NEW = 2,
-    TASK_INSTANCES_STOP_EXISTING = 3,
-}
-
-enum TASK_COMPATIBILITY
-{
-    TASK_COMPATIBILITY_AT = 0,
-    TASK_COMPATIBILITY_V1 = 1,
-    TASK_COMPATIBILITY_V2 = 2,
-    TASK_COMPATIBILITY_V2_1 = 3,
-    TASK_COMPATIBILITY_V2_2 = 4,
-    TASK_COMPATIBILITY_V2_3 = 5,
-    TASK_COMPATIBILITY_V2_4 = 6,
-}
-
-const GUID IID_ITaskFolderCollection = {0x79184A66, 0x8664, 0x423F, [0x97, 0xF1, 0x63, 0x73, 0x56, 0xA5, 0xD8, 0x12]};
-@GUID(0x79184A66, 0x8664, 0x423F, [0x97, 0xF1, 0x63, 0x73, 0x56, 0xA5, 0xD8, 0x12]);
+@GUID("79184A66-8664-423F-97F1-637356A5D812")
 interface ITaskFolderCollection : IDispatch
 {
     HRESULT get_Count(int* pCount);
@@ -307,8 +321,7 @@ interface ITaskFolderCollection : IDispatch
     HRESULT get__NewEnum(IUnknown* ppEnum);
 }
 
-const GUID IID_ITaskService = {0x2FABA4C7, 0x4DA9, 0x4013, [0x96, 0x97, 0x20, 0xCC, 0x3F, 0xD4, 0x0F, 0x85]};
-@GUID(0x2FABA4C7, 0x4DA9, 0x4013, [0x96, 0x97, 0x20, 0xCC, 0x3F, 0xD4, 0x0F, 0x85]);
+@GUID("2FABA4C7-4DA9-4013-9697-20CC3FD40F85")
 interface ITaskService : IDispatch
 {
     HRESULT GetFolder(BSTR path, ITaskFolder* ppFolder);
@@ -322,8 +335,7 @@ interface ITaskService : IDispatch
     HRESULT get_HighestVersion(uint* pVersion);
 }
 
-const GUID IID_ITaskHandler = {0x839D7762, 0x5121, 0x4009, [0x92, 0x34, 0x4F, 0x0D, 0x19, 0x39, 0x4F, 0x04]};
-@GUID(0x839D7762, 0x5121, 0x4009, [0x92, 0x34, 0x4F, 0x0D, 0x19, 0x39, 0x4F, 0x04]);
+@GUID("839D7762-5121-4009-9234-4F0D19394F04")
 interface ITaskHandler : IUnknown
 {
     HRESULT Start(IUnknown pHandlerServices, BSTR data);
@@ -332,16 +344,14 @@ interface ITaskHandler : IUnknown
     HRESULT Resume();
 }
 
-const GUID IID_ITaskHandlerStatus = {0xEAEC7A8F, 0x27A0, 0x4DDC, [0x86, 0x75, 0x14, 0x72, 0x6A, 0x01, 0xA3, 0x8A]};
-@GUID(0xEAEC7A8F, 0x27A0, 0x4DDC, [0x86, 0x75, 0x14, 0x72, 0x6A, 0x01, 0xA3, 0x8A]);
+@GUID("EAEC7A8F-27A0-4DDC-8675-14726A01A38A")
 interface ITaskHandlerStatus : IUnknown
 {
     HRESULT UpdateStatus(short percentComplete, BSTR statusMessage);
     HRESULT TaskCompleted(HRESULT taskErrCode);
 }
 
-const GUID IID_ITaskVariables = {0x3E4C9351, 0xD966, 0x4B8B, [0xBB, 0x87, 0xCE, 0xBA, 0x68, 0xBB, 0x01, 0x07]};
-@GUID(0x3E4C9351, 0xD966, 0x4B8B, [0xBB, 0x87, 0xCE, 0xBA, 0x68, 0xBB, 0x01, 0x07]);
+@GUID("3E4C9351-D966-4B8B-BB87-CEBA68BB0107")
 interface ITaskVariables : IUnknown
 {
     HRESULT GetInput(BSTR* pInput);
@@ -349,8 +359,7 @@ interface ITaskVariables : IUnknown
     HRESULT GetContext(BSTR* pContext);
 }
 
-const GUID IID_ITaskNamedValuePair = {0x39038068, 0x2B46, 0x4AFD, [0x86, 0x62, 0x7B, 0xB6, 0xF8, 0x68, 0xD2, 0x21]};
-@GUID(0x39038068, 0x2B46, 0x4AFD, [0x86, 0x62, 0x7B, 0xB6, 0xF8, 0x68, 0xD2, 0x21]);
+@GUID("39038068-2B46-4AFD-8662-7BB6F868D221")
 interface ITaskNamedValuePair : IDispatch
 {
     HRESULT get_Name(BSTR* pName);
@@ -359,8 +368,7 @@ interface ITaskNamedValuePair : IDispatch
     HRESULT put_Value(BSTR value);
 }
 
-const GUID IID_ITaskNamedValueCollection = {0xB4EF826B, 0x63C3, 0x46E4, [0xA5, 0x04, 0xEF, 0x69, 0xE4, 0xF7, 0xEA, 0x4D]};
-@GUID(0xB4EF826B, 0x63C3, 0x46E4, [0xA5, 0x04, 0xEF, 0x69, 0xE4, 0xF7, 0xEA, 0x4D]);
+@GUID("B4EF826B-63C3-46E4-A504-EF69E4F7EA4D")
 interface ITaskNamedValueCollection : IDispatch
 {
     HRESULT get_Count(int* pCount);
@@ -371,8 +379,7 @@ interface ITaskNamedValueCollection : IDispatch
     HRESULT Clear();
 }
 
-const GUID IID_IRunningTask = {0x653758FB, 0x7B9A, 0x4F1E, [0xA4, 0x71, 0xBE, 0xEB, 0x8E, 0x9B, 0x83, 0x4E]};
-@GUID(0x653758FB, 0x7B9A, 0x4F1E, [0xA4, 0x71, 0xBE, 0xEB, 0x8E, 0x9B, 0x83, 0x4E]);
+@GUID("653758FB-7B9A-4F1E-A471-BEEB8E9B834E")
 interface IRunningTask : IDispatch
 {
     HRESULT get_Name(BSTR* pName);
@@ -385,8 +392,7 @@ interface IRunningTask : IDispatch
     HRESULT get_EnginePID(uint* pPID);
 }
 
-const GUID IID_IRunningTaskCollection = {0x6A67614B, 0x6828, 0x4FEC, [0xAA, 0x54, 0x6D, 0x52, 0xE8, 0xF1, 0xF2, 0xDB]};
-@GUID(0x6A67614B, 0x6828, 0x4FEC, [0xAA, 0x54, 0x6D, 0x52, 0xE8, 0xF1, 0xF2, 0xDB]);
+@GUID("6A67614B-6828-4FEC-AA54-6D52E8F1F2DB")
 interface IRunningTaskCollection : IDispatch
 {
     HRESULT get_Count(int* pCount);
@@ -394,8 +400,7 @@ interface IRunningTaskCollection : IDispatch
     HRESULT get__NewEnum(IUnknown* ppEnum);
 }
 
-const GUID IID_IRegisteredTask = {0x9C86F320, 0xDEE3, 0x4DD1, [0xB9, 0x72, 0xA3, 0x03, 0xF2, 0x6B, 0x06, 0x1E]};
-@GUID(0x9C86F320, 0xDEE3, 0x4DD1, [0xB9, 0x72, 0xA3, 0x03, 0xF2, 0x6B, 0x06, 0x1E]);
+@GUID("9C86F320-DEE3-4DD1-B972-A303F26B061E")
 interface IRegisteredTask : IDispatch
 {
     HRESULT get_Name(BSTR* pName);
@@ -415,11 +420,11 @@ interface IRegisteredTask : IDispatch
     HRESULT GetSecurityDescriptor(int securityInformation, BSTR* pSddl);
     HRESULT SetSecurityDescriptor(BSTR sddl, int flags);
     HRESULT Stop(int flags);
-    HRESULT GetRunTimes(const(SYSTEMTIME)* pstStart, const(SYSTEMTIME)* pstEnd, uint* pCount, SYSTEMTIME** pRunTimes);
+    HRESULT GetRunTimes(const(SYSTEMTIME)* pstStart, const(SYSTEMTIME)* pstEnd, uint* pCount, 
+                        SYSTEMTIME** pRunTimes);
 }
 
-const GUID IID_ITrigger = {0x09941815, 0xEA89, 0x4B5B, [0x89, 0xE0, 0x2A, 0x77, 0x38, 0x01, 0xFA, 0xC3]};
-@GUID(0x09941815, 0xEA89, 0x4B5B, [0x89, 0xE0, 0x2A, 0x77, 0x38, 0x01, 0xFA, 0xC3]);
+@GUID("09941815-EA89-4B5B-89E0-2A773801FAC3")
 interface ITrigger : IDispatch
 {
     HRESULT get_Type(TASK_TRIGGER_TYPE2* pType);
@@ -437,14 +442,12 @@ interface ITrigger : IDispatch
     HRESULT put_Enabled(short enabled);
 }
 
-const GUID IID_IIdleTrigger = {0xD537D2B0, 0x9FB3, 0x4D34, [0x97, 0x39, 0x1F, 0xF5, 0xCE, 0x7B, 0x1E, 0xF3]};
-@GUID(0xD537D2B0, 0x9FB3, 0x4D34, [0x97, 0x39, 0x1F, 0xF5, 0xCE, 0x7B, 0x1E, 0xF3]);
+@GUID("D537D2B0-9FB3-4D34-9739-1FF5CE7B1EF3")
 interface IIdleTrigger : ITrigger
 {
 }
 
-const GUID IID_ILogonTrigger = {0x72DADE38, 0xFAE4, 0x4B3E, [0xBA, 0xF4, 0x5D, 0x00, 0x9A, 0xF0, 0x2B, 0x1C]};
-@GUID(0x72DADE38, 0xFAE4, 0x4B3E, [0xBA, 0xF4, 0x5D, 0x00, 0x9A, 0xF0, 0x2B, 0x1C]);
+@GUID("72DADE38-FAE4-4B3E-BAF4-5D009AF02B1C")
 interface ILogonTrigger : ITrigger
 {
     HRESULT get_Delay(BSTR* pDelay);
@@ -453,8 +456,7 @@ interface ILogonTrigger : ITrigger
     HRESULT put_UserId(BSTR user);
 }
 
-const GUID IID_ISessionStateChangeTrigger = {0x754DA71B, 0x4385, 0x4475, [0x9D, 0xD9, 0x59, 0x82, 0x94, 0xFA, 0x36, 0x41]};
-@GUID(0x754DA71B, 0x4385, 0x4475, [0x9D, 0xD9, 0x59, 0x82, 0x94, 0xFA, 0x36, 0x41]);
+@GUID("754DA71B-4385-4475-9DD9-598294FA3641")
 interface ISessionStateChangeTrigger : ITrigger
 {
     HRESULT get_Delay(BSTR* pDelay);
@@ -465,8 +467,7 @@ interface ISessionStateChangeTrigger : ITrigger
     HRESULT put_StateChange(TASK_SESSION_STATE_CHANGE_TYPE type);
 }
 
-const GUID IID_IEventTrigger = {0xD45B0167, 0x9653, 0x4EEF, [0xB9, 0x4F, 0x07, 0x32, 0xCA, 0x7A, 0xF2, 0x51]};
-@GUID(0xD45B0167, 0x9653, 0x4EEF, [0xB9, 0x4F, 0x07, 0x32, 0xCA, 0x7A, 0xF2, 0x51]);
+@GUID("D45B0167-9653-4EEF-B94F-0732CA7AF251")
 interface IEventTrigger : ITrigger
 {
     HRESULT get_Subscription(BSTR* pQuery);
@@ -477,16 +478,14 @@ interface IEventTrigger : ITrigger
     HRESULT put_ValueQueries(ITaskNamedValueCollection pNamedXPaths);
 }
 
-const GUID IID_ITimeTrigger = {0xB45747E0, 0xEBA7, 0x4276, [0x9F, 0x29, 0x85, 0xC5, 0xBB, 0x30, 0x00, 0x06]};
-@GUID(0xB45747E0, 0xEBA7, 0x4276, [0x9F, 0x29, 0x85, 0xC5, 0xBB, 0x30, 0x00, 0x06]);
+@GUID("B45747E0-EBA7-4276-9F29-85C5BB300006")
 interface ITimeTrigger : ITrigger
 {
     HRESULT get_RandomDelay(BSTR* pRandomDelay);
     HRESULT put_RandomDelay(BSTR randomDelay);
 }
 
-const GUID IID_IDailyTrigger = {0x126C5CD8, 0xB288, 0x41D5, [0x8D, 0xBF, 0xE4, 0x91, 0x44, 0x6A, 0xDC, 0x5C]};
-@GUID(0x126C5CD8, 0xB288, 0x41D5, [0x8D, 0xBF, 0xE4, 0x91, 0x44, 0x6A, 0xDC, 0x5C]);
+@GUID("126C5CD8-B288-41D5-8DBF-E491446ADC5C")
 interface IDailyTrigger : ITrigger
 {
     HRESULT get_DaysInterval(short* pDays);
@@ -495,8 +494,7 @@ interface IDailyTrigger : ITrigger
     HRESULT put_RandomDelay(BSTR randomDelay);
 }
 
-const GUID IID_IWeeklyTrigger = {0x5038FC98, 0x82FF, 0x436D, [0x87, 0x28, 0xA5, 0x12, 0xA5, 0x7C, 0x9D, 0xC1]};
-@GUID(0x5038FC98, 0x82FF, 0x436D, [0x87, 0x28, 0xA5, 0x12, 0xA5, 0x7C, 0x9D, 0xC1]);
+@GUID("5038FC98-82FF-436D-8728-A512A57C9DC1")
 interface IWeeklyTrigger : ITrigger
 {
     HRESULT get_DaysOfWeek(short* pDays);
@@ -507,8 +505,7 @@ interface IWeeklyTrigger : ITrigger
     HRESULT put_RandomDelay(BSTR randomDelay);
 }
 
-const GUID IID_IMonthlyTrigger = {0x97C45EF1, 0x6B02, 0x4A1A, [0x9C, 0x0E, 0x1E, 0xBF, 0xBA, 0x15, 0x00, 0xAC]};
-@GUID(0x97C45EF1, 0x6B02, 0x4A1A, [0x9C, 0x0E, 0x1E, 0xBF, 0xBA, 0x15, 0x00, 0xAC]);
+@GUID("97C45EF1-6B02-4A1A-9C0E-1EBFBA1500AC")
 interface IMonthlyTrigger : ITrigger
 {
     HRESULT get_DaysOfMonth(int* pDays);
@@ -521,8 +518,7 @@ interface IMonthlyTrigger : ITrigger
     HRESULT put_RandomDelay(BSTR randomDelay);
 }
 
-const GUID IID_IMonthlyDOWTrigger = {0x77D025A3, 0x90FA, 0x43AA, [0xB5, 0x2E, 0xCD, 0xA5, 0x49, 0x9B, 0x94, 0x6A]};
-@GUID(0x77D025A3, 0x90FA, 0x43AA, [0xB5, 0x2E, 0xCD, 0xA5, 0x49, 0x9B, 0x94, 0x6A]);
+@GUID("77D025A3-90FA-43AA-B52E-CDA5499B946A")
 interface IMonthlyDOWTrigger : ITrigger
 {
     HRESULT get_DaysOfWeek(short* pDays);
@@ -537,24 +533,21 @@ interface IMonthlyDOWTrigger : ITrigger
     HRESULT put_RandomDelay(BSTR randomDelay);
 }
 
-const GUID IID_IBootTrigger = {0x2A9C35DA, 0xD357, 0x41F4, [0xBB, 0xC1, 0x20, 0x7A, 0xC1, 0xB1, 0xF3, 0xCB]};
-@GUID(0x2A9C35DA, 0xD357, 0x41F4, [0xBB, 0xC1, 0x20, 0x7A, 0xC1, 0xB1, 0xF3, 0xCB]);
+@GUID("2A9C35DA-D357-41F4-BBC1-207AC1B1F3CB")
 interface IBootTrigger : ITrigger
 {
     HRESULT get_Delay(BSTR* pDelay);
     HRESULT put_Delay(BSTR delay);
 }
 
-const GUID IID_IRegistrationTrigger = {0x4C8FEC3A, 0xC218, 0x4E0C, [0xB2, 0x3D, 0x62, 0x90, 0x24, 0xDB, 0x91, 0xA2]};
-@GUID(0x4C8FEC3A, 0xC218, 0x4E0C, [0xB2, 0x3D, 0x62, 0x90, 0x24, 0xDB, 0x91, 0xA2]);
+@GUID("4C8FEC3A-C218-4E0C-B23D-629024DB91A2")
 interface IRegistrationTrigger : ITrigger
 {
     HRESULT get_Delay(BSTR* pDelay);
     HRESULT put_Delay(BSTR delay);
 }
 
-const GUID IID_IAction = {0xBAE54997, 0x48B1, 0x4CBE, [0x99, 0x65, 0xD6, 0xBE, 0x26, 0x3E, 0xBE, 0xA4]};
-@GUID(0xBAE54997, 0x48B1, 0x4CBE, [0x99, 0x65, 0xD6, 0xBE, 0x26, 0x3E, 0xBE, 0xA4]);
+@GUID("BAE54997-48B1-4CBE-9965-D6BE263EBEA4")
 interface IAction : IDispatch
 {
     HRESULT get_Id(BSTR* pId);
@@ -562,8 +555,7 @@ interface IAction : IDispatch
     HRESULT get_Type(TASK_ACTION_TYPE* pType);
 }
 
-const GUID IID_IExecAction = {0x4C3D624D, 0xFD6B, 0x49A3, [0xB9, 0xB7, 0x09, 0xCB, 0x3C, 0xD3, 0xF0, 0x47]};
-@GUID(0x4C3D624D, 0xFD6B, 0x49A3, [0xB9, 0xB7, 0x09, 0xCB, 0x3C, 0xD3, 0xF0, 0x47]);
+@GUID("4C3D624D-FD6B-49A3-B9B7-09CB3CD3F047")
 interface IExecAction : IAction
 {
     HRESULT get_Path(BSTR* pPath);
@@ -574,16 +566,14 @@ interface IExecAction : IAction
     HRESULT put_WorkingDirectory(BSTR workingDirectory);
 }
 
-const GUID IID_IExecAction2 = {0xF2A82542, 0xBDA5, 0x4E6B, [0x91, 0x43, 0xE2, 0xBF, 0x4F, 0x89, 0x87, 0xB6]};
-@GUID(0xF2A82542, 0xBDA5, 0x4E6B, [0x91, 0x43, 0xE2, 0xBF, 0x4F, 0x89, 0x87, 0xB6]);
+@GUID("F2A82542-BDA5-4E6B-9143-E2BF4F8987B6")
 interface IExecAction2 : IExecAction
 {
     HRESULT get_HideAppWindow(short* pHideAppWindow);
     HRESULT put_HideAppWindow(short hideAppWindow);
 }
 
-const GUID IID_IShowMessageAction = {0x505E9E68, 0xAF89, 0x46B8, [0xA3, 0x0F, 0x56, 0x16, 0x2A, 0x83, 0xD5, 0x37]};
-@GUID(0x505E9E68, 0xAF89, 0x46B8, [0xA3, 0x0F, 0x56, 0x16, 0x2A, 0x83, 0xD5, 0x37]);
+@GUID("505E9E68-AF89-46B8-A30F-56162A83D537")
 interface IShowMessageAction : IAction
 {
     HRESULT get_Title(BSTR* pTitle);
@@ -592,8 +582,7 @@ interface IShowMessageAction : IAction
     HRESULT put_MessageBody(BSTR messageBody);
 }
 
-const GUID IID_IComHandlerAction = {0x6D2FD252, 0x75C5, 0x4F66, [0x90, 0xBA, 0x2A, 0x7D, 0x8C, 0xC3, 0x03, 0x9F]};
-@GUID(0x6D2FD252, 0x75C5, 0x4F66, [0x90, 0xBA, 0x2A, 0x7D, 0x8C, 0xC3, 0x03, 0x9F]);
+@GUID("6D2FD252-75C5-4F66-90BA-2A7D8CC3039F")
 interface IComHandlerAction : IAction
 {
     HRESULT get_ClassId(BSTR* pClsid);
@@ -602,8 +591,7 @@ interface IComHandlerAction : IAction
     HRESULT put_Data(BSTR data);
 }
 
-const GUID IID_IEmailAction = {0x10F62C64, 0x7E16, 0x4314, [0xA0, 0xC2, 0x0C, 0x36, 0x83, 0xF9, 0x9D, 0x40]};
-@GUID(0x10F62C64, 0x7E16, 0x4314, [0xA0, 0xC2, 0x0C, 0x36, 0x83, 0xF9, 0x9D, 0x40]);
+@GUID("10F62C64-7E16-4314-A0C2-0C3683F99D40")
 interface IEmailAction : IAction
 {
     HRESULT get_Server(BSTR* pServer);
@@ -623,13 +611,12 @@ interface IEmailAction : IAction
     HRESULT get_HeaderFields(ITaskNamedValueCollection* ppHeaderFields);
     HRESULT put_HeaderFields(ITaskNamedValueCollection pHeaderFields);
     HRESULT get_Body(BSTR* pBody);
-    HRESULT put_Body(BSTR body);
+    HRESULT put_Body(BSTR body_);
     HRESULT get_Attachments(SAFEARRAY** pAttachements);
     HRESULT put_Attachments(SAFEARRAY* pAttachements);
 }
 
-const GUID IID_ITriggerCollection = {0x85DF5081, 0x1B24, 0x4F32, [0x87, 0x8A, 0xD9, 0xD1, 0x4D, 0xF4, 0xCB, 0x77]};
-@GUID(0x85DF5081, 0x1B24, 0x4F32, [0x87, 0x8A, 0xD9, 0xD1, 0x4D, 0xF4, 0xCB, 0x77]);
+@GUID("85DF5081-1B24-4F32-878A-D9D14DF4CB77")
 interface ITriggerCollection : IDispatch
 {
     HRESULT get_Count(int* pCount);
@@ -640,8 +627,7 @@ interface ITriggerCollection : IDispatch
     HRESULT Clear();
 }
 
-const GUID IID_IActionCollection = {0x02820E19, 0x7B98, 0x4ED2, [0xB2, 0xE8, 0xFD, 0xCC, 0xCE, 0xFF, 0x61, 0x9B]};
-@GUID(0x02820E19, 0x7B98, 0x4ED2, [0xB2, 0xE8, 0xFD, 0xCC, 0xCE, 0xFF, 0x61, 0x9B]);
+@GUID("02820E19-7B98-4ED2-B2E8-FDCCCEFF619B")
 interface IActionCollection : IDispatch
 {
     HRESULT get_Count(int* pCount);
@@ -656,8 +642,7 @@ interface IActionCollection : IDispatch
     HRESULT put_Context(BSTR context);
 }
 
-const GUID IID_IPrincipal = {0xD98D51E5, 0xC9B4, 0x496A, [0xA9, 0xC1, 0x18, 0x98, 0x02, 0x61, 0xCF, 0x0F]};
-@GUID(0xD98D51E5, 0xC9B4, 0x496A, [0xA9, 0xC1, 0x18, 0x98, 0x02, 0x61, 0xCF, 0x0F]);
+@GUID("D98D51E5-C9B4-496A-A9C1-18980261CF0F")
 interface IPrincipal : IDispatch
 {
     HRESULT get_Id(BSTR* pId);
@@ -674,8 +659,7 @@ interface IPrincipal : IDispatch
     HRESULT put_RunLevel(TASK_RUNLEVEL_TYPE runLevel);
 }
 
-const GUID IID_IPrincipal2 = {0x248919AE, 0xE345, 0x4A6D, [0x8A, 0xEB, 0xE0, 0xD3, 0x16, 0x5C, 0x90, 0x4E]};
-@GUID(0x248919AE, 0xE345, 0x4A6D, [0x8A, 0xEB, 0xE0, 0xD3, 0x16, 0x5C, 0x90, 0x4E]);
+@GUID("248919AE-E345-4A6D-8AEB-E0D3165C904E")
 interface IPrincipal2 : IDispatch
 {
     HRESULT get_ProcessTokenSidType(TASK_PROCESSTOKENSID_TYPE* pProcessTokenSidType);
@@ -685,8 +669,7 @@ interface IPrincipal2 : IDispatch
     HRESULT AddRequiredPrivilege(BSTR privilege);
 }
 
-const GUID IID_IRegistrationInfo = {0x416D8B73, 0xCB41, 0x4EA1, [0x80, 0x5C, 0x9B, 0xE9, 0xA5, 0xAC, 0x4A, 0x74]};
-@GUID(0x416D8B73, 0xCB41, 0x4EA1, [0x80, 0x5C, 0x9B, 0xE9, 0xA5, 0xAC, 0x4A, 0x74]);
+@GUID("416D8B73-CB41-4EA1-805C-9BE9A5AC4A74")
 interface IRegistrationInfo : IDispatch
 {
     HRESULT get_Description(BSTR* pDescription);
@@ -694,7 +677,7 @@ interface IRegistrationInfo : IDispatch
     HRESULT get_Author(BSTR* pAuthor);
     HRESULT put_Author(BSTR author);
     HRESULT get_Version(BSTR* pVersion);
-    HRESULT put_Version(BSTR version);
+    HRESULT put_Version(BSTR version_);
     HRESULT get_Date(BSTR* pDate);
     HRESULT put_Date(BSTR date);
     HRESULT get_Documentation(BSTR* pDocumentation);
@@ -709,8 +692,7 @@ interface IRegistrationInfo : IDispatch
     HRESULT put_Source(BSTR source);
 }
 
-const GUID IID_ITaskDefinition = {0xF5BC8FC5, 0x536D, 0x4F77, [0xB8, 0x52, 0xFB, 0xC1, 0x35, 0x6F, 0xDE, 0xB6]};
-@GUID(0xF5BC8FC5, 0x536D, 0x4F77, [0xB8, 0x52, 0xFB, 0xC1, 0x35, 0x6F, 0xDE, 0xB6]);
+@GUID("F5BC8FC5-536D-4F77-B852-FBC1356FDEB6")
 interface ITaskDefinition : IDispatch
 {
     HRESULT get_RegistrationInfo(IRegistrationInfo* ppRegistrationInfo);
@@ -729,8 +711,7 @@ interface ITaskDefinition : IDispatch
     HRESULT put_XmlText(BSTR xml);
 }
 
-const GUID IID_ITaskSettings = {0x8FD4711D, 0x2D02, 0x4C8C, [0x87, 0xE3, 0xEF, 0xF6, 0x99, 0xDE, 0x12, 0x7E]};
-@GUID(0x8FD4711D, 0x2D02, 0x4C8C, [0x87, 0xE3, 0xEF, 0xF6, 0x99, 0xDE, 0x12, 0x7E]);
+@GUID("8FD4711D-2D02-4C8C-87E3-EFF699DE127E")
 interface ITaskSettings : IDispatch
 {
     HRESULT get_AllowDemandStart(short* pAllowDemandStart);
@@ -775,8 +756,7 @@ interface ITaskSettings : IDispatch
     HRESULT put_NetworkSettings(INetworkSettings pNetworkSettings);
 }
 
-const GUID IID_ITaskSettings2 = {0x2C05C3F0, 0x6EED, 0x4C05, [0xA1, 0x5F, 0xED, 0x7D, 0x7A, 0x98, 0xA3, 0x69]};
-@GUID(0x2C05C3F0, 0x6EED, 0x4C05, [0xA1, 0x5F, 0xED, 0x7D, 0x7A, 0x98, 0xA3, 0x69]);
+@GUID("2C05C3F0-6EED-4C05-A15F-ED7D7A98A369")
 interface ITaskSettings2 : IDispatch
 {
     HRESULT get_DisallowStartOnRemoteAppSession(short* pDisallowStart);
@@ -785,8 +765,7 @@ interface ITaskSettings2 : IDispatch
     HRESULT put_UseUnifiedSchedulingEngine(short useUnifiedEngine);
 }
 
-const GUID IID_ITaskSettings3 = {0x0AD9D0D7, 0x0C7F, 0x4EBB, [0x9A, 0x5F, 0xD1, 0xC6, 0x48, 0xDC, 0xA5, 0x28]};
-@GUID(0x0AD9D0D7, 0x0C7F, 0x4EBB, [0x9A, 0x5F, 0xD1, 0xC6, 0x48, 0xDC, 0xA5, 0x28]);
+@GUID("0AD9D0D7-0C7F-4EBB-9A5F-D1C648DCA528")
 interface ITaskSettings3 : ITaskSettings
 {
     HRESULT get_DisallowStartOnRemoteAppSession(short* pDisallowStart);
@@ -800,8 +779,7 @@ interface ITaskSettings3 : ITaskSettings
     HRESULT put_Volatile(short Volatile);
 }
 
-const GUID IID_IMaintenanceSettings = {0xA6024FA8, 0x9652, 0x4ADB, [0xA6, 0xBF, 0x5C, 0xFC, 0xD8, 0x77, 0xA7, 0xBA]};
-@GUID(0xA6024FA8, 0x9652, 0x4ADB, [0xA6, 0xBF, 0x5C, 0xFC, 0xD8, 0x77, 0xA7, 0xBA]);
+@GUID("A6024FA8-9652-4ADB-A6BF-5CFCD877A7BA")
 interface IMaintenanceSettings : IDispatch
 {
     HRESULT put_Period(BSTR value);
@@ -812,8 +790,7 @@ interface IMaintenanceSettings : IDispatch
     HRESULT get_Exclusive(short* target);
 }
 
-const GUID IID_IRegisteredTaskCollection = {0x86627EB4, 0x42A7, 0x41E4, [0xA4, 0xD9, 0xAC, 0x33, 0xA7, 0x2F, 0x2D, 0x52]};
-@GUID(0x86627EB4, 0x42A7, 0x41E4, [0xA4, 0xD9, 0xAC, 0x33, 0xA7, 0x2F, 0x2D, 0x52]);
+@GUID("86627EB4-42A7-41E4-A4D9-AC33A72F2D52")
 interface IRegisteredTaskCollection : IDispatch
 {
     HRESULT get_Count(int* pCount);
@@ -821,8 +798,7 @@ interface IRegisteredTaskCollection : IDispatch
     HRESULT get__NewEnum(IUnknown* ppEnum);
 }
 
-const GUID IID_ITaskFolder = {0x8CFAC062, 0xA080, 0x4C15, [0x9A, 0x88, 0xAA, 0x7C, 0x2A, 0xF8, 0x0D, 0xFC]};
-@GUID(0x8CFAC062, 0xA080, 0x4C15, [0x9A, 0x88, 0xAA, 0x7C, 0x2A, 0xF8, 0x0D, 0xFC]);
+@GUID("8CFAC062-A080-4C15-9A88-AA7C2AF80DFC")
 interface ITaskFolder : IDispatch
 {
     HRESULT get_Name(BSTR* pName);
@@ -834,14 +810,16 @@ interface ITaskFolder : IDispatch
     HRESULT GetTask(BSTR path, IRegisteredTask* ppTask);
     HRESULT GetTasks(int flags, IRegisteredTaskCollection* ppTasks);
     HRESULT DeleteTask(BSTR name, int flags);
-    HRESULT RegisterTask(BSTR path, BSTR xmlText, int flags, VARIANT userId, VARIANT password, TASK_LOGON_TYPE logonType, VARIANT sddl, IRegisteredTask* ppTask);
-    HRESULT RegisterTaskDefinition(BSTR path, ITaskDefinition pDefinition, int flags, VARIANT userId, VARIANT password, TASK_LOGON_TYPE logonType, VARIANT sddl, IRegisteredTask* ppTask);
+    HRESULT RegisterTask(BSTR path, BSTR xmlText, int flags, VARIANT userId, VARIANT password, 
+                         TASK_LOGON_TYPE logonType, VARIANT sddl, IRegisteredTask* ppTask);
+    HRESULT RegisterTaskDefinition(BSTR path, ITaskDefinition pDefinition, int flags, VARIANT userId, 
+                                   VARIANT password, TASK_LOGON_TYPE logonType, VARIANT sddl, 
+                                   IRegisteredTask* ppTask);
     HRESULT GetSecurityDescriptor(int securityInformation, BSTR* pSddl);
     HRESULT SetSecurityDescriptor(BSTR sddl, int flags);
 }
 
-const GUID IID_IIdleSettings = {0x84594461, 0x0053, 0x4342, [0xA8, 0xFD, 0x08, 0x8F, 0xAB, 0xF1, 0x1F, 0x32]};
-@GUID(0x84594461, 0x0053, 0x4342, [0xA8, 0xFD, 0x08, 0x8F, 0xAB, 0xF1, 0x1F, 0x32]);
+@GUID("84594461-0053-4342-A8FD-088FABF11F32")
 interface IIdleSettings : IDispatch
 {
     HRESULT get_IdleDuration(BSTR* pDelay);
@@ -854,8 +832,7 @@ interface IIdleSettings : IDispatch
     HRESULT put_RestartOnIdle(short restart);
 }
 
-const GUID IID_INetworkSettings = {0x9F7DEA84, 0xC30B, 0x4245, [0x80, 0xB6, 0x00, 0xE9, 0xF6, 0x46, 0xF1, 0xB4]};
-@GUID(0x9F7DEA84, 0xC30B, 0x4245, [0x80, 0xB6, 0x00, 0xE9, 0xF6, 0x46, 0xF1, 0xB4]);
+@GUID("9F7DEA84-C30B-4245-80B6-00E9F646F1B4")
 interface INetworkSettings : IDispatch
 {
     HRESULT get_Name(BSTR* pName);
@@ -864,8 +841,7 @@ interface INetworkSettings : IDispatch
     HRESULT put_Id(BSTR id);
 }
 
-const GUID IID_IRepetitionPattern = {0x7FB9ACF1, 0x26BE, 0x400E, [0x85, 0xB5, 0x29, 0x4B, 0x9C, 0x75, 0xDF, 0xD6]};
-@GUID(0x7FB9ACF1, 0x26BE, 0x400E, [0x85, 0xB5, 0x29, 0x4B, 0x9C, 0x75, 0xDF, 0xD6]);
+@GUID("7FB9ACF1-26BE-400E-85B5-294B9C75DFD6")
 interface IRepetitionPattern : IDispatch
 {
     HRESULT get_Interval(BSTR* pInterval);
@@ -876,3 +852,59 @@ interface IRepetitionPattern : IDispatch
     HRESULT put_StopAtDurationEnd(short stop);
 }
 
+
+// GUIDs
+
+const GUID CLSID_TaskHandlerPS       = GUIDOF!TaskHandlerPS;
+const GUID CLSID_TaskHandlerStatusPS = GUIDOF!TaskHandlerStatusPS;
+const GUID CLSID_TaskScheduler       = GUIDOF!TaskScheduler;
+
+const GUID IID_IAction                    = GUIDOF!IAction;
+const GUID IID_IActionCollection          = GUIDOF!IActionCollection;
+const GUID IID_IBootTrigger               = GUIDOF!IBootTrigger;
+const GUID IID_IComHandlerAction          = GUIDOF!IComHandlerAction;
+const GUID IID_IDailyTrigger              = GUIDOF!IDailyTrigger;
+const GUID IID_IEmailAction               = GUIDOF!IEmailAction;
+const GUID IID_IEnumWorkItems             = GUIDOF!IEnumWorkItems;
+const GUID IID_IEventTrigger              = GUIDOF!IEventTrigger;
+const GUID IID_IExecAction                = GUIDOF!IExecAction;
+const GUID IID_IExecAction2               = GUIDOF!IExecAction2;
+const GUID IID_IIdleSettings              = GUIDOF!IIdleSettings;
+const GUID IID_IIdleTrigger               = GUIDOF!IIdleTrigger;
+const GUID IID_ILogonTrigger              = GUIDOF!ILogonTrigger;
+const GUID IID_IMaintenanceSettings       = GUIDOF!IMaintenanceSettings;
+const GUID IID_IMonthlyDOWTrigger         = GUIDOF!IMonthlyDOWTrigger;
+const GUID IID_IMonthlyTrigger            = GUIDOF!IMonthlyTrigger;
+const GUID IID_INetworkSettings           = GUIDOF!INetworkSettings;
+const GUID IID_IPrincipal                 = GUIDOF!IPrincipal;
+const GUID IID_IPrincipal2                = GUIDOF!IPrincipal2;
+const GUID IID_IProvideTaskPage           = GUIDOF!IProvideTaskPage;
+const GUID IID_IRegisteredTask            = GUIDOF!IRegisteredTask;
+const GUID IID_IRegisteredTaskCollection  = GUIDOF!IRegisteredTaskCollection;
+const GUID IID_IRegistrationInfo          = GUIDOF!IRegistrationInfo;
+const GUID IID_IRegistrationTrigger       = GUIDOF!IRegistrationTrigger;
+const GUID IID_IRepetitionPattern         = GUIDOF!IRepetitionPattern;
+const GUID IID_IRunningTask               = GUIDOF!IRunningTask;
+const GUID IID_IRunningTaskCollection     = GUIDOF!IRunningTaskCollection;
+const GUID IID_IScheduledWorkItem         = GUIDOF!IScheduledWorkItem;
+const GUID IID_ISessionStateChangeTrigger = GUIDOF!ISessionStateChangeTrigger;
+const GUID IID_IShowMessageAction         = GUIDOF!IShowMessageAction;
+const GUID IID_ITask                      = GUIDOF!ITask;
+const GUID IID_ITaskDefinition            = GUIDOF!ITaskDefinition;
+const GUID IID_ITaskFolder                = GUIDOF!ITaskFolder;
+const GUID IID_ITaskFolderCollection      = GUIDOF!ITaskFolderCollection;
+const GUID IID_ITaskHandler               = GUIDOF!ITaskHandler;
+const GUID IID_ITaskHandlerStatus         = GUIDOF!ITaskHandlerStatus;
+const GUID IID_ITaskNamedValueCollection  = GUIDOF!ITaskNamedValueCollection;
+const GUID IID_ITaskNamedValuePair        = GUIDOF!ITaskNamedValuePair;
+const GUID IID_ITaskScheduler             = GUIDOF!ITaskScheduler;
+const GUID IID_ITaskService               = GUIDOF!ITaskService;
+const GUID IID_ITaskSettings              = GUIDOF!ITaskSettings;
+const GUID IID_ITaskSettings2             = GUIDOF!ITaskSettings2;
+const GUID IID_ITaskSettings3             = GUIDOF!ITaskSettings3;
+const GUID IID_ITaskTrigger               = GUIDOF!ITaskTrigger;
+const GUID IID_ITaskVariables             = GUIDOF!ITaskVariables;
+const GUID IID_ITimeTrigger               = GUIDOF!ITimeTrigger;
+const GUID IID_ITrigger                   = GUIDOF!ITrigger;
+const GUID IID_ITriggerCollection         = GUIDOF!ITriggerCollection;
+const GUID IID_IWeeklyTrigger             = GUIDOF!IWeeklyTrigger;

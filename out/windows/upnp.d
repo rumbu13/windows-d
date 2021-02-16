@@ -1,74 +1,67 @@
 module windows.upnp;
 
-public import system;
-public import windows.automation;
-public import windows.com;
-public import windows.systemservices;
+public import windows.core;
+public import windows.automation : BSTR, IDispatch, VARIANT;
+public import windows.com : HRESULT, IUnknown;
+public import windows.systemservices : BOOL;
 
 extern(Windows):
 
-const GUID CLSID_UIAnimationManager = {0x4C1FC63A, 0x695C, 0x47E8, [0xA3, 0x39, 0x1A, 0x19, 0x4B, 0xE3, 0xD0, 0xB8]};
-@GUID(0x4C1FC63A, 0x695C, 0x47E8, [0xA3, 0x39, 0x1A, 0x19, 0x4B, 0xE3, 0xD0, 0xB8]);
+
+// Interfaces
+
+@GUID("4C1FC63A-695C-47E8-A339-1A194BE3D0B8")
 struct UIAnimationManager;
 
-const GUID CLSID_UIAnimationManager2 = {0xD25D8842, 0x8884, 0x4A4A, [0xB3, 0x21, 0x09, 0x13, 0x14, 0x37, 0x9B, 0xDD]};
-@GUID(0xD25D8842, 0x8884, 0x4A4A, [0xB3, 0x21, 0x09, 0x13, 0x14, 0x37, 0x9B, 0xDD]);
+@GUID("D25D8842-8884-4A4A-B321-091314379BDD")
 struct UIAnimationManager2;
 
-const GUID CLSID_UIAnimationTransitionLibrary = {0x1D6322AD, 0xAA85, 0x4EF5, [0xA8, 0x28, 0x86, 0xD7, 0x10, 0x67, 0xD1, 0x45]};
-@GUID(0x1D6322AD, 0xAA85, 0x4EF5, [0xA8, 0x28, 0x86, 0xD7, 0x10, 0x67, 0xD1, 0x45]);
+@GUID("1D6322AD-AA85-4EF5-A828-86D71067D145")
 struct UIAnimationTransitionLibrary;
 
-const GUID CLSID_UIAnimationTransitionLibrary2 = {0x812F944A, 0xC5C8, 0x4CD9, [0xB0, 0xA6, 0xB3, 0xDA, 0x80, 0x2F, 0x22, 0x8D]};
-@GUID(0x812F944A, 0xC5C8, 0x4CD9, [0xB0, 0xA6, 0xB3, 0xDA, 0x80, 0x2F, 0x22, 0x8D]);
+@GUID("812F944A-C5C8-4CD9-B0A6-B3DA802F228D")
 struct UIAnimationTransitionLibrary2;
 
-const GUID CLSID_UIAnimationTransitionFactory = {0x8A9B1CDD, 0xFCD7, 0x419C, [0x8B, 0x44, 0x42, 0xFD, 0x17, 0xDB, 0x18, 0x87]};
-@GUID(0x8A9B1CDD, 0xFCD7, 0x419C, [0x8B, 0x44, 0x42, 0xFD, 0x17, 0xDB, 0x18, 0x87]);
+@GUID("8A9B1CDD-FCD7-419C-8B44-42FD17DB1887")
 struct UIAnimationTransitionFactory;
 
-const GUID CLSID_UIAnimationTransitionFactory2 = {0x84302F97, 0x7F7B, 0x4040, [0xB1, 0x90, 0x72, 0xAC, 0x9D, 0x18, 0xE4, 0x20]};
-@GUID(0x84302F97, 0x7F7B, 0x4040, [0xB1, 0x90, 0x72, 0xAC, 0x9D, 0x18, 0xE4, 0x20]);
+@GUID("84302F97-7F7B-4040-B190-72AC9D18E420")
 struct UIAnimationTransitionFactory2;
 
-const GUID CLSID_UIAnimationTimer = {0xBFCD4A0C, 0x06B6, 0x4384, [0xB7, 0x68, 0x0D, 0xAA, 0x79, 0x2C, 0x38, 0x0E]};
-@GUID(0xBFCD4A0C, 0x06B6, 0x4384, [0xB7, 0x68, 0x0D, 0xAA, 0x79, 0x2C, 0x38, 0x0E]);
+@GUID("BFCD4A0C-06B6-4384-B768-0DAA792C380E")
 struct UIAnimationTimer;
 
-const GUID CLSID_UPnPDeviceFinder = {0xE2085F28, 0xFEB7, 0x404A, [0xB8, 0xE7, 0xE6, 0x59, 0xBD, 0xEA, 0xAA, 0x02]};
-@GUID(0xE2085F28, 0xFEB7, 0x404A, [0xB8, 0xE7, 0xE6, 0x59, 0xBD, 0xEA, 0xAA, 0x02]);
+@GUID("E2085F28-FEB7-404A-B8E7-E659BDEAAA02")
 struct UPnPDeviceFinder;
 
-const GUID CLSID_UPnPDevices = {0xB9E84FFD, 0xAD3C, 0x40A4, [0xB8, 0x35, 0x08, 0x82, 0xEB, 0xCB, 0xAA, 0xA8]};
-@GUID(0xB9E84FFD, 0xAD3C, 0x40A4, [0xB8, 0x35, 0x08, 0x82, 0xEB, 0xCB, 0xAA, 0xA8]);
+@GUID("B9E84FFD-AD3C-40A4-B835-0882EBCBAAA8")
 struct UPnPDevices;
 
-const GUID CLSID_UPnPDevice = {0xA32552C5, 0xBA61, 0x457A, [0xB5, 0x9A, 0xA2, 0x56, 0x1E, 0x12, 0x5E, 0x33]};
-@GUID(0xA32552C5, 0xBA61, 0x457A, [0xB5, 0x9A, 0xA2, 0x56, 0x1E, 0x12, 0x5E, 0x33]);
+@GUID("A32552C5-BA61-457A-B59A-A2561E125E33")
 struct UPnPDevice;
 
-const GUID CLSID_UPnPServices = {0xC0BC4B4A, 0xA406, 0x4EFC, [0x93, 0x2F, 0xB8, 0x54, 0x6B, 0x81, 0x00, 0xCC]};
-@GUID(0xC0BC4B4A, 0xA406, 0x4EFC, [0x93, 0x2F, 0xB8, 0x54, 0x6B, 0x81, 0x00, 0xCC]);
+@GUID("C0BC4B4A-A406-4EFC-932F-B8546B8100CC")
 struct UPnPServices;
 
-const GUID CLSID_UPnPService = {0xC624BA95, 0xFBCB, 0x4409, [0x8C, 0x03, 0x8C, 0xCE, 0xEC, 0x53, 0x3E, 0xF1]};
-@GUID(0xC624BA95, 0xFBCB, 0x4409, [0x8C, 0x03, 0x8C, 0xCE, 0xEC, 0x53, 0x3E, 0xF1]);
+@GUID("C624BA95-FBCB-4409-8C03-8CCEEC533EF1")
 struct UPnPService;
 
-const GUID CLSID_UPnPDescriptionDocument = {0x1D8A9B47, 0x3A28, 0x4CE2, [0x8A, 0x4B, 0xBD, 0x34, 0xE4, 0x5B, 0xCE, 0xEB]};
-@GUID(0x1D8A9B47, 0x3A28, 0x4CE2, [0x8A, 0x4B, 0xBD, 0x34, 0xE4, 0x5B, 0xCE, 0xEB]);
+@GUID("1D8A9B47-3A28-4CE2-8A4B-BD34E45BCEEB")
 struct UPnPDescriptionDocument;
 
-const GUID CLSID_UPnPDeviceFinderEx = {0x181B54FC, 0x380B, 0x4A75, [0xB3, 0xF1, 0x4A, 0xC4, 0x5E, 0x96, 0x05, 0xB0]};
-@GUID(0x181B54FC, 0x380B, 0x4A75, [0xB3, 0xF1, 0x4A, 0xC4, 0x5E, 0x96, 0x05, 0xB0]);
+@GUID("181B54FC-380B-4A75-B3F1-4AC45E9605B0")
 struct UPnPDeviceFinderEx;
 
-const GUID CLSID_UPnPDescriptionDocumentEx = {0x33FD0563, 0xD81A, 0x4393, [0x83, 0xCC, 0x01, 0x95, 0xB1, 0xDA, 0x2F, 0x91]};
-@GUID(0x33FD0563, 0xD81A, 0x4393, [0x83, 0xCC, 0x01, 0x95, 0xB1, 0xDA, 0x2F, 0x91]);
+@GUID("33FD0563-D81A-4393-83CC-0195B1DA2F91")
 struct UPnPDescriptionDocumentEx;
 
-const GUID IID_IUPnPDeviceFinder = {0xADDA3D55, 0x6F72, 0x4319, [0xBF, 0xF9, 0x18, 0x60, 0x0A, 0x53, 0x9B, 0x10]};
-@GUID(0xADDA3D55, 0x6F72, 0x4319, [0xBF, 0xF9, 0x18, 0x60, 0x0A, 0x53, 0x9B, 0x10]);
+@GUID("204810B9-73B2-11D4-BF42-00B0D0118B56")
+struct UPnPRegistrar;
+
+@GUID("2E5E84E9-4049-4244-B728-2D24227157C7")
+struct UPnPRemoteEndpointInfo;
+
+@GUID("ADDA3D55-6F72-4319-BFF9-18600A539B10")
 interface IUPnPDeviceFinder : IDispatch
 {
     HRESULT FindByType(BSTR bstrTypeURI, uint dwFlags, IUPnPDevices* pDevices);
@@ -78,23 +71,20 @@ interface IUPnPDeviceFinder : IDispatch
     HRESULT FindByUDN(BSTR bstrUDN, IUPnPDevice* pDevice);
 }
 
-const GUID IID_IUPnPAddressFamilyControl = {0xE3BF6178, 0x694E, 0x459F, [0xA5, 0xA6, 0x19, 0x1E, 0xA0, 0xFF, 0xA1, 0xC7]};
-@GUID(0xE3BF6178, 0x694E, 0x459F, [0xA5, 0xA6, 0x19, 0x1E, 0xA0, 0xFF, 0xA1, 0xC7]);
+@GUID("E3BF6178-694E-459F-A5A6-191EA0FFA1C7")
 interface IUPnPAddressFamilyControl : IUnknown
 {
     HRESULT SetAddressFamily(int dwFlags);
     HRESULT GetAddressFamily(int* pdwFlags);
 }
 
-const GUID IID_IUPnPHttpHeaderControl = {0x0405AF4F, 0x8B5C, 0x447C, [0x80, 0xF2, 0xB7, 0x59, 0x84, 0xA3, 0x1F, 0x3C]};
-@GUID(0x0405AF4F, 0x8B5C, 0x447C, [0x80, 0xF2, 0xB7, 0x59, 0x84, 0xA3, 0x1F, 0x3C]);
+@GUID("0405AF4F-8B5C-447C-80F2-B75984A31F3C")
 interface IUPnPHttpHeaderControl : IUnknown
 {
     HRESULT AddRequestHeaders(BSTR bstrHttpHeaders);
 }
 
-const GUID IID_IUPnPDeviceFinderCallback = {0x415A984A, 0x88B3, 0x49F3, [0x92, 0xAF, 0x05, 0x08, 0xBE, 0xDF, 0x0D, 0x6C]};
-@GUID(0x415A984A, 0x88B3, 0x49F3, [0x92, 0xAF, 0x05, 0x08, 0xBE, 0xDF, 0x0D, 0x6C]);
+@GUID("415A984A-88B3-49F3-92AF-0508BEDF0D6C")
 interface IUPnPDeviceFinderCallback : IUnknown
 {
     HRESULT DeviceAdded(int lFindData, IUPnPDevice pDevice);
@@ -102,8 +92,7 @@ interface IUPnPDeviceFinderCallback : IUnknown
     HRESULT SearchComplete(int lFindData);
 }
 
-const GUID IID_IUPnPServices = {0x3F8C8E9E, 0x9A7A, 0x4DC8, [0xBC, 0x41, 0xFF, 0x31, 0xFA, 0x37, 0x49, 0x56]};
-@GUID(0x3F8C8E9E, 0x9A7A, 0x4DC8, [0xBC, 0x41, 0xFF, 0x31, 0xFA, 0x37, 0x49, 0x56]);
+@GUID("3F8C8E9E-9A7A-4DC8-BC41-FF31FA374956")
 interface IUPnPServices : IDispatch
 {
     HRESULT get_Count(int* plCount);
@@ -111,8 +100,7 @@ interface IUPnPServices : IDispatch
     HRESULT get_Item(BSTR bstrServiceId, IUPnPService* ppService);
 }
 
-const GUID IID_IUPnPService = {0xA295019C, 0xDC65, 0x47DD, [0x90, 0xDC, 0x7F, 0xE9, 0x18, 0xA1, 0xAB, 0x44]};
-@GUID(0xA295019C, 0xDC65, 0x47DD, [0x90, 0xDC, 0x7F, 0xE9, 0x18, 0xA1, 0xAB, 0x44]);
+@GUID("A295019C-DC65-47DD-90DC-7FE918A1AB44")
 interface IUPnPService : IDispatch
 {
     HRESULT QueryStateVariable(BSTR bstrVariableName, VARIANT* pValue);
@@ -123,18 +111,17 @@ interface IUPnPService : IDispatch
     HRESULT get_LastTransportStatus(int* plValue);
 }
 
-const GUID IID_IUPnPAsyncResult = {0x4D65FD08, 0xD13E, 0x4274, [0x9C, 0x8B, 0xDD, 0x8D, 0x02, 0x8C, 0x86, 0x44]};
-@GUID(0x4D65FD08, 0xD13E, 0x4274, [0x9C, 0x8B, 0xDD, 0x8D, 0x02, 0x8C, 0x86, 0x44]);
+@GUID("4D65FD08-D13E-4274-9C8B-DD8D028C8644")
 interface IUPnPAsyncResult : IUnknown
 {
     HRESULT AsyncOperationComplete(ulong ullRequestID);
 }
 
-const GUID IID_IUPnPServiceAsync = {0x098BDAF5, 0x5EC1, 0x49E7, [0xA2, 0x60, 0xB3, 0xA1, 0x1D, 0xD8, 0x68, 0x0C]};
-@GUID(0x098BDAF5, 0x5EC1, 0x49E7, [0xA2, 0x60, 0xB3, 0xA1, 0x1D, 0xD8, 0x68, 0x0C]);
+@GUID("098BDAF5-5EC1-49E7-A260-B3A11DD8680C")
 interface IUPnPServiceAsync : IUnknown
 {
-    HRESULT BeginInvokeAction(BSTR bstrActionName, VARIANT vInActionArgs, IUPnPAsyncResult pAsyncResult, ulong* pullRequestID);
+    HRESULT BeginInvokeAction(BSTR bstrActionName, VARIANT vInActionArgs, IUPnPAsyncResult pAsyncResult, 
+                              ulong* pullRequestID);
     HRESULT EndInvokeAction(ulong ullRequestID, VARIANT* pvOutActionArgs, VARIANT* pvRetVal);
     HRESULT BeginQueryStateVariable(BSTR bstrVariableName, IUPnPAsyncResult pAsyncResult, ulong* pullRequestID);
     HRESULT EndQueryStateVariable(ulong ullRequestID, VARIANT* pValue);
@@ -145,31 +132,27 @@ interface IUPnPServiceAsync : IUnknown
     HRESULT CancelAsyncOperation(ulong ullRequestID);
 }
 
-const GUID IID_IUPnPServiceCallback = {0x31FADCA9, 0xAB73, 0x464B, [0xB6, 0x7D, 0x5C, 0x1D, 0x0F, 0x83, 0xC8, 0xB8]};
-@GUID(0x31FADCA9, 0xAB73, 0x464B, [0xB6, 0x7D, 0x5C, 0x1D, 0x0F, 0x83, 0xC8, 0xB8]);
+@GUID("31FADCA9-AB73-464B-B67D-5C1D0F83C8B8")
 interface IUPnPServiceCallback : IUnknown
 {
     HRESULT StateVariableChanged(IUPnPService pus, const(wchar)* pcwszStateVarName, VARIANT vaValue);
     HRESULT ServiceInstanceDied(IUPnPService pus);
 }
 
-const GUID IID_IUPnPServiceEnumProperty = {0x38873B37, 0x91BB, 0x49F4, [0xB2, 0x49, 0x2E, 0x8E, 0xFB, 0xB8, 0xA8, 0x16]};
-@GUID(0x38873B37, 0x91BB, 0x49F4, [0xB2, 0x49, 0x2E, 0x8E, 0xFB, 0xB8, 0xA8, 0x16]);
+@GUID("38873B37-91BB-49F4-B249-2E8EFBB8A816")
 interface IUPnPServiceEnumProperty : IUnknown
 {
     HRESULT SetServiceEnumProperty(uint dwMask);
 }
 
-const GUID IID_IUPnPServiceDocumentAccess = {0x21905529, 0x0A5E, 0x4589, [0x82, 0x5D, 0x7E, 0x6D, 0x87, 0xEA, 0x69, 0x98]};
-@GUID(0x21905529, 0x0A5E, 0x4589, [0x82, 0x5D, 0x7E, 0x6D, 0x87, 0xEA, 0x69, 0x98]);
+@GUID("21905529-0A5E-4589-825D-7E6D87EA6998")
 interface IUPnPServiceDocumentAccess : IUnknown
 {
     HRESULT GetDocumentURL(BSTR* pbstrDocUrl);
     HRESULT GetDocument(BSTR* pbstrDoc);
 }
 
-const GUID IID_IUPnPDevices = {0xFDBC0C73, 0xBDA3, 0x4C66, [0xAC, 0x4F, 0xF2, 0xD9, 0x6F, 0xDA, 0xD6, 0x8C]};
-@GUID(0xFDBC0C73, 0xBDA3, 0x4C66, [0xAC, 0x4F, 0xF2, 0xD9, 0x6F, 0xDA, 0xD6, 0x8C]);
+@GUID("FDBC0C73-BDA3-4C66-AC4F-F2D96FDAD68C")
 interface IUPnPDevices : IDispatch
 {
     HRESULT get_Count(int* plCount);
@@ -177,8 +160,7 @@ interface IUPnPDevices : IDispatch
     HRESULT get_Item(BSTR bstrUDN, IUPnPDevice* ppDevice);
 }
 
-const GUID IID_IUPnPDevice = {0x3D44D0D1, 0x98C9, 0x4889, [0xAC, 0xD1, 0xF9, 0xD6, 0x74, 0xBF, 0x22, 0x21]};
-@GUID(0x3D44D0D1, 0x98C9, 0x4889, [0xAC, 0xD1, 0xF9, 0xD6, 0x74, 0xBF, 0x22, 0x21]);
+@GUID("3D44D0D1-98C9-4889-ACD1-F9D674BF2221")
 interface IUPnPDevice : IDispatch
 {
     HRESULT get_IsRootDevice(short* pvarb);
@@ -202,22 +184,19 @@ interface IUPnPDevice : IDispatch
     HRESULT get_Services(IUPnPServices* ppusServices);
 }
 
-const GUID IID_IUPnPDeviceDocumentAccess = {0xE7772804, 0x3287, 0x418E, [0x90, 0x72, 0xCF, 0x2B, 0x47, 0x23, 0x89, 0x81]};
-@GUID(0xE7772804, 0x3287, 0x418E, [0x90, 0x72, 0xCF, 0x2B, 0x47, 0x23, 0x89, 0x81]);
+@GUID("E7772804-3287-418E-9072-CF2B47238981")
 interface IUPnPDeviceDocumentAccess : IUnknown
 {
     HRESULT GetDocumentURL(BSTR* pbstrDocument);
 }
 
-const GUID IID_IUPnPDeviceDocumentAccessEx = {0xC4BC4050, 0x6178, 0x4BD1, [0xA4, 0xB8, 0x63, 0x98, 0x32, 0x1F, 0x32, 0x47]};
-@GUID(0xC4BC4050, 0x6178, 0x4BD1, [0xA4, 0xB8, 0x63, 0x98, 0x32, 0x1F, 0x32, 0x47]);
+@GUID("C4BC4050-6178-4BD1-A4B8-6398321F3247")
 interface IUPnPDeviceDocumentAccessEx : IUnknown
 {
     HRESULT GetDocument(BSTR* pbstrDocument);
 }
 
-const GUID IID_IUPnPDescriptionDocument = {0x11D1C1B2, 0x7DAA, 0x4C9E, [0x95, 0x95, 0x7F, 0x82, 0xED, 0x20, 0x6D, 0x1E]};
-@GUID(0x11D1C1B2, 0x7DAA, 0x4C9E, [0x95, 0x95, 0x7F, 0x82, 0xED, 0x20, 0x6D, 0x1E]);
+@GUID("11D1C1B2-7DAA-4C9E-9595-7F82ED206D1E")
 interface IUPnPDescriptionDocument : IDispatch
 {
     HRESULT get_ReadyState(int* plReadyState);
@@ -229,93 +208,127 @@ interface IUPnPDescriptionDocument : IDispatch
     HRESULT DeviceByUDN(BSTR bstrUDN, IUPnPDevice* ppudDevice);
 }
 
-const GUID IID_IUPnPDeviceFinderAddCallbackWithInterface = {0x983DFC0B, 0x1796, 0x44DF, [0x89, 0x75, 0xCA, 0x54, 0x5B, 0x62, 0x0E, 0xE5]};
-@GUID(0x983DFC0B, 0x1796, 0x44DF, [0x89, 0x75, 0xCA, 0x54, 0x5B, 0x62, 0x0E, 0xE5]);
+@GUID("983DFC0B-1796-44DF-8975-CA545B620EE5")
 interface IUPnPDeviceFinderAddCallbackWithInterface : IUnknown
 {
-    HRESULT DeviceAddedWithInterface(int lFindData, IUPnPDevice pDevice, Guid* pguidInterface);
+    HRESULT DeviceAddedWithInterface(int lFindData, IUPnPDevice pDevice, GUID* pguidInterface);
 }
 
-const GUID IID_IUPnPDescriptionDocumentCallback = {0x77394C69, 0x5486, 0x40D6, [0x9B, 0xC3, 0x49, 0x91, 0x98, 0x3E, 0x02, 0xDA]};
-@GUID(0x77394C69, 0x5486, 0x40D6, [0x9B, 0xC3, 0x49, 0x91, 0x98, 0x3E, 0x02, 0xDA]);
+@GUID("77394C69-5486-40D6-9BC3-4991983E02DA")
 interface IUPnPDescriptionDocumentCallback : IUnknown
 {
     HRESULT LoadComplete(HRESULT hrLoadResult);
 }
 
-const GUID CLSID_UPnPRegistrar = {0x204810B9, 0x73B2, 0x11D4, [0xBF, 0x42, 0x00, 0xB0, 0xD0, 0x11, 0x8B, 0x56]};
-@GUID(0x204810B9, 0x73B2, 0x11D4, [0xBF, 0x42, 0x00, 0xB0, 0xD0, 0x11, 0x8B, 0x56]);
-struct UPnPRegistrar;
-
-const GUID CLSID_UPnPRemoteEndpointInfo = {0x2E5E84E9, 0x4049, 0x4244, [0xB7, 0x28, 0x2D, 0x24, 0x22, 0x71, 0x57, 0xC7]};
-@GUID(0x2E5E84E9, 0x4049, 0x4244, [0xB7, 0x28, 0x2D, 0x24, 0x22, 0x71, 0x57, 0xC7]);
-struct UPnPRemoteEndpointInfo;
-
-const GUID IID_IUPnPEventSink = {0x204810B4, 0x73B2, 0x11D4, [0xBF, 0x42, 0x00, 0xB0, 0xD0, 0x11, 0x8B, 0x56]};
-@GUID(0x204810B4, 0x73B2, 0x11D4, [0xBF, 0x42, 0x00, 0xB0, 0xD0, 0x11, 0x8B, 0x56]);
+@GUID("204810B4-73B2-11D4-BF42-00B0D0118B56")
 interface IUPnPEventSink : IUnknown
 {
     HRESULT OnStateChanged(uint cChanges, char* rgdispidChanges);
     HRESULT OnStateChangedSafe(VARIANT varsadispidChanges);
 }
 
-const GUID IID_IUPnPEventSource = {0x204810B5, 0x73B2, 0x11D4, [0xBF, 0x42, 0x00, 0xB0, 0xD0, 0x11, 0x8B, 0x56]};
-@GUID(0x204810B5, 0x73B2, 0x11D4, [0xBF, 0x42, 0x00, 0xB0, 0xD0, 0x11, 0x8B, 0x56]);
+@GUID("204810B5-73B2-11D4-BF42-00B0D0118B56")
 interface IUPnPEventSource : IUnknown
 {
     HRESULT Advise(IUPnPEventSink pesSubscriber);
     HRESULT Unadvise(IUPnPEventSink pesSubscriber);
 }
 
-const GUID IID_IUPnPRegistrar = {0x204810B6, 0x73B2, 0x11D4, [0xBF, 0x42, 0x00, 0xB0, 0xD0, 0x11, 0x8B, 0x56]};
-@GUID(0x204810B6, 0x73B2, 0x11D4, [0xBF, 0x42, 0x00, 0xB0, 0xD0, 0x11, 0x8B, 0x56]);
+@GUID("204810B6-73B2-11D4-BF42-00B0D0118B56")
 interface IUPnPRegistrar : IUnknown
 {
-    HRESULT RegisterDevice(BSTR bstrXMLDesc, BSTR bstrProgIDDeviceControlClass, BSTR bstrInitString, BSTR bstrContainerId, BSTR bstrResourcePath, int nLifeTime, BSTR* pbstrDeviceIdentifier);
-    HRESULT RegisterRunningDevice(BSTR bstrXMLDesc, IUnknown punkDeviceControl, BSTR bstrInitString, BSTR bstrResourcePath, int nLifeTime, BSTR* pbstrDeviceIdentifier);
-    HRESULT RegisterDeviceProvider(BSTR bstrProviderName, BSTR bstrProgIDProviderClass, BSTR bstrInitString, BSTR bstrContainerId);
+    HRESULT RegisterDevice(BSTR bstrXMLDesc, BSTR bstrProgIDDeviceControlClass, BSTR bstrInitString, 
+                           BSTR bstrContainerId, BSTR bstrResourcePath, int nLifeTime, BSTR* pbstrDeviceIdentifier);
+    HRESULT RegisterRunningDevice(BSTR bstrXMLDesc, IUnknown punkDeviceControl, BSTR bstrInitString, 
+                                  BSTR bstrResourcePath, int nLifeTime, BSTR* pbstrDeviceIdentifier);
+    HRESULT RegisterDeviceProvider(BSTR bstrProviderName, BSTR bstrProgIDProviderClass, BSTR bstrInitString, 
+                                   BSTR bstrContainerId);
     HRESULT GetUniqueDeviceName(BSTR bstrDeviceIdentifier, BSTR bstrTemplateUDN, BSTR* pbstrUDN);
     HRESULT UnregisterDevice(BSTR bstrDeviceIdentifier, BOOL fPermanent);
     HRESULT UnregisterDeviceProvider(BSTR bstrProviderName);
 }
 
-const GUID IID_IUPnPReregistrar = {0x204810B7, 0x73B2, 0x11D4, [0xBF, 0x42, 0x00, 0xB0, 0xD0, 0x11, 0x8B, 0x56]};
-@GUID(0x204810B7, 0x73B2, 0x11D4, [0xBF, 0x42, 0x00, 0xB0, 0xD0, 0x11, 0x8B, 0x56]);
+@GUID("204810B7-73B2-11D4-BF42-00B0D0118B56")
 interface IUPnPReregistrar : IUnknown
 {
-    HRESULT ReregisterDevice(BSTR bstrDeviceIdentifier, BSTR bstrXMLDesc, BSTR bstrProgIDDeviceControlClass, BSTR bstrInitString, BSTR bstrContainerId, BSTR bstrResourcePath, int nLifeTime);
-    HRESULT ReregisterRunningDevice(BSTR bstrDeviceIdentifier, BSTR bstrXMLDesc, IUnknown punkDeviceControl, BSTR bstrInitString, BSTR bstrResourcePath, int nLifeTime);
+    HRESULT ReregisterDevice(BSTR bstrDeviceIdentifier, BSTR bstrXMLDesc, BSTR bstrProgIDDeviceControlClass, 
+                             BSTR bstrInitString, BSTR bstrContainerId, BSTR bstrResourcePath, int nLifeTime);
+    HRESULT ReregisterRunningDevice(BSTR bstrDeviceIdentifier, BSTR bstrXMLDesc, IUnknown punkDeviceControl, 
+                                    BSTR bstrInitString, BSTR bstrResourcePath, int nLifeTime);
 }
 
-const GUID IID_IUPnPDeviceControl = {0x204810BA, 0x73B2, 0x11D4, [0xBF, 0x42, 0x00, 0xB0, 0xD0, 0x11, 0x8B, 0x56]};
-@GUID(0x204810BA, 0x73B2, 0x11D4, [0xBF, 0x42, 0x00, 0xB0, 0xD0, 0x11, 0x8B, 0x56]);
+@GUID("204810BA-73B2-11D4-BF42-00B0D0118B56")
 interface IUPnPDeviceControl : IUnknown
 {
     HRESULT Initialize(BSTR bstrXMLDesc, BSTR bstrDeviceIdentifier, BSTR bstrInitString);
     HRESULT GetServiceObject(BSTR bstrUDN, BSTR bstrServiceId, IDispatch* ppdispService);
 }
 
-const GUID IID_IUPnPDeviceControlHttpHeaders = {0x204810BB, 0x73B2, 0x11D4, [0xBF, 0x42, 0x00, 0xB0, 0xD0, 0x11, 0x8B, 0x56]};
-@GUID(0x204810BB, 0x73B2, 0x11D4, [0xBF, 0x42, 0x00, 0xB0, 0xD0, 0x11, 0x8B, 0x56]);
+@GUID("204810BB-73B2-11D4-BF42-00B0D0118B56")
 interface IUPnPDeviceControlHttpHeaders : IUnknown
 {
     HRESULT GetAdditionalResponseHeaders(BSTR* bstrHttpResponseHeaders);
 }
 
-const GUID IID_IUPnPDeviceProvider = {0x204810B8, 0x73B2, 0x11D4, [0xBF, 0x42, 0x00, 0xB0, 0xD0, 0x11, 0x8B, 0x56]};
-@GUID(0x204810B8, 0x73B2, 0x11D4, [0xBF, 0x42, 0x00, 0xB0, 0xD0, 0x11, 0x8B, 0x56]);
+@GUID("204810B8-73B2-11D4-BF42-00B0D0118B56")
 interface IUPnPDeviceProvider : IUnknown
 {
     HRESULT Start(BSTR bstrInitString);
     HRESULT Stop();
 }
 
-const GUID IID_IUPnPRemoteEndpointInfo = {0xC92EB863, 0x0269, 0x4AFF, [0x9C, 0x72, 0x75, 0x32, 0x1B, 0xBA, 0x29, 0x52]};
-@GUID(0xC92EB863, 0x0269, 0x4AFF, [0x9C, 0x72, 0x75, 0x32, 0x1B, 0xBA, 0x29, 0x52]);
+@GUID("C92EB863-0269-4AFF-9C72-75321BBA2952")
 interface IUPnPRemoteEndpointInfo : IUnknown
 {
     HRESULT GetDwordValue(BSTR bstrValueName, uint* pdwValue);
     HRESULT GetStringValue(BSTR bstrValueName, BSTR* pbstrValue);
-    HRESULT GetGuidValue(BSTR bstrValueName, Guid* pguidValue);
+    HRESULT GetGuidValue(BSTR bstrValueName, GUID* pguidValue);
 }
 
+
+// GUIDs
+
+const GUID CLSID_UIAnimationManager            = GUIDOF!UIAnimationManager;
+const GUID CLSID_UIAnimationManager2           = GUIDOF!UIAnimationManager2;
+const GUID CLSID_UIAnimationTimer              = GUIDOF!UIAnimationTimer;
+const GUID CLSID_UIAnimationTransitionFactory  = GUIDOF!UIAnimationTransitionFactory;
+const GUID CLSID_UIAnimationTransitionFactory2 = GUIDOF!UIAnimationTransitionFactory2;
+const GUID CLSID_UIAnimationTransitionLibrary  = GUIDOF!UIAnimationTransitionLibrary;
+const GUID CLSID_UIAnimationTransitionLibrary2 = GUIDOF!UIAnimationTransitionLibrary2;
+const GUID CLSID_UPnPDescriptionDocument       = GUIDOF!UPnPDescriptionDocument;
+const GUID CLSID_UPnPDescriptionDocumentEx     = GUIDOF!UPnPDescriptionDocumentEx;
+const GUID CLSID_UPnPDevice                    = GUIDOF!UPnPDevice;
+const GUID CLSID_UPnPDeviceFinder              = GUIDOF!UPnPDeviceFinder;
+const GUID CLSID_UPnPDeviceFinderEx            = GUIDOF!UPnPDeviceFinderEx;
+const GUID CLSID_UPnPDevices                   = GUIDOF!UPnPDevices;
+const GUID CLSID_UPnPRegistrar                 = GUIDOF!UPnPRegistrar;
+const GUID CLSID_UPnPRemoteEndpointInfo        = GUIDOF!UPnPRemoteEndpointInfo;
+const GUID CLSID_UPnPService                   = GUIDOF!UPnPService;
+const GUID CLSID_UPnPServices                  = GUIDOF!UPnPServices;
+
+const GUID IID_IUPnPAddressFamilyControl                 = GUIDOF!IUPnPAddressFamilyControl;
+const GUID IID_IUPnPAsyncResult                          = GUIDOF!IUPnPAsyncResult;
+const GUID IID_IUPnPDescriptionDocument                  = GUIDOF!IUPnPDescriptionDocument;
+const GUID IID_IUPnPDescriptionDocumentCallback          = GUIDOF!IUPnPDescriptionDocumentCallback;
+const GUID IID_IUPnPDevice                               = GUIDOF!IUPnPDevice;
+const GUID IID_IUPnPDeviceControl                        = GUIDOF!IUPnPDeviceControl;
+const GUID IID_IUPnPDeviceControlHttpHeaders             = GUIDOF!IUPnPDeviceControlHttpHeaders;
+const GUID IID_IUPnPDeviceDocumentAccess                 = GUIDOF!IUPnPDeviceDocumentAccess;
+const GUID IID_IUPnPDeviceDocumentAccessEx               = GUIDOF!IUPnPDeviceDocumentAccessEx;
+const GUID IID_IUPnPDeviceFinder                         = GUIDOF!IUPnPDeviceFinder;
+const GUID IID_IUPnPDeviceFinderAddCallbackWithInterface = GUIDOF!IUPnPDeviceFinderAddCallbackWithInterface;
+const GUID IID_IUPnPDeviceFinderCallback                 = GUIDOF!IUPnPDeviceFinderCallback;
+const GUID IID_IUPnPDeviceProvider                       = GUIDOF!IUPnPDeviceProvider;
+const GUID IID_IUPnPDevices                              = GUIDOF!IUPnPDevices;
+const GUID IID_IUPnPEventSink                            = GUIDOF!IUPnPEventSink;
+const GUID IID_IUPnPEventSource                          = GUIDOF!IUPnPEventSource;
+const GUID IID_IUPnPHttpHeaderControl                    = GUIDOF!IUPnPHttpHeaderControl;
+const GUID IID_IUPnPRegistrar                            = GUIDOF!IUPnPRegistrar;
+const GUID IID_IUPnPRemoteEndpointInfo                   = GUIDOF!IUPnPRemoteEndpointInfo;
+const GUID IID_IUPnPReregistrar                          = GUIDOF!IUPnPReregistrar;
+const GUID IID_IUPnPService                              = GUIDOF!IUPnPService;
+const GUID IID_IUPnPServiceAsync                         = GUIDOF!IUPnPServiceAsync;
+const GUID IID_IUPnPServiceCallback                      = GUIDOF!IUPnPServiceCallback;
+const GUID IID_IUPnPServiceDocumentAccess                = GUIDOF!IUPnPServiceDocumentAccess;
+const GUID IID_IUPnPServiceEnumProperty                  = GUIDOF!IUPnPServiceEnumProperty;
+const GUID IID_IUPnPServices                             = GUIDOF!IUPnPServices;

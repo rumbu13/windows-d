@@ -1,23 +1,28 @@
 module windows.xinput;
 
-public import windows.systemservices;
+public import windows.core;
+public import windows.systemservices : BOOL;
 
 extern(Windows):
+
+
+// Structs
+
 
 struct XINPUT_GAMEPAD
 {
     ushort wButtons;
-    ubyte bLeftTrigger;
-    ubyte bRightTrigger;
-    short sThumbLX;
-    short sThumbLY;
-    short sThumbRX;
-    short sThumbRY;
+    ubyte  bLeftTrigger;
+    ubyte  bRightTrigger;
+    short  sThumbLX;
+    short  sThumbLY;
+    short  sThumbRX;
+    short  sThumbRY;
 }
 
 struct XINPUT_STATE
 {
-    uint dwPacketNumber;
+    uint           dwPacketNumber;
     XINPUT_GAMEPAD Gamepad;
 }
 
@@ -29,10 +34,10 @@ struct XINPUT_VIBRATION
 
 struct XINPUT_CAPABILITIES
 {
-    ubyte Type;
-    ubyte SubType;
-    ushort Flags;
-    XINPUT_GAMEPAD Gamepad;
+    ubyte            Type;
+    ubyte            SubType;
+    ushort           Flags;
+    XINPUT_GAMEPAD   Gamepad;
     XINPUT_VIBRATION Vibration;
 }
 
@@ -47,28 +52,32 @@ struct XINPUT_KEYSTROKE
     ushort VirtualKey;
     ushort Unicode;
     ushort Flags;
-    ubyte UserIndex;
-    ubyte HidCode;
+    ubyte  UserIndex;
+    ubyte  HidCode;
 }
 
-@DllImport("XINPUTUAP.dll")
+// Functions
+
+@DllImport("XINPUTUAP")
 uint XInputGetState(uint dwUserIndex, XINPUT_STATE* pState);
 
-@DllImport("XINPUTUAP.dll")
+@DllImport("XINPUTUAP")
 uint XInputSetState(uint dwUserIndex, XINPUT_VIBRATION* pVibration);
 
-@DllImport("XINPUTUAP.dll")
+@DllImport("XINPUTUAP")
 uint XInputGetCapabilities(uint dwUserIndex, uint dwFlags, XINPUT_CAPABILITIES* pCapabilities);
 
-@DllImport("XINPUTUAP.dll")
+@DllImport("XINPUTUAP")
 void XInputEnable(BOOL enable);
 
-@DllImport("XINPUTUAP.dll")
-uint XInputGetAudioDeviceIds(uint dwUserIndex, const(wchar)* pRenderDeviceId, uint* pRenderCount, const(wchar)* pCaptureDeviceId, uint* pCaptureCount);
+@DllImport("XINPUTUAP")
+uint XInputGetAudioDeviceIds(uint dwUserIndex, const(wchar)* pRenderDeviceId, uint* pRenderCount, 
+                             const(wchar)* pCaptureDeviceId, uint* pCaptureCount);
 
-@DllImport("XINPUTUAP.dll")
+@DllImport("XINPUTUAP")
 uint XInputGetBatteryInformation(uint dwUserIndex, ubyte devType, XINPUT_BATTERY_INFORMATION* pBatteryInformation);
 
-@DllImport("XINPUTUAP.dll")
+@DllImport("XINPUTUAP")
 uint XInputGetKeystroke(uint dwUserIndex, uint dwReserved, XINPUT_KEYSTROKE* pKeystroke);
+
 

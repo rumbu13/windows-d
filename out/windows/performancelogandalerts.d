@@ -1,189 +1,181 @@
 module windows.performancelogandalerts;
 
-public import system;
-public import windows.automation;
-public import windows.com;
+public import windows.core;
+public import windows.automation : BSTR, IDispatch, SAFEARRAY, VARIANT;
+public import windows.com : HRESULT, IUnknown;
 
 extern(Windows):
 
-const GUID CLSID_DataCollectorSet = {0x03837521, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]};
-@GUID(0x03837521, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]);
+
+// Enums
+
+
+enum DataCollectorType : int
+{
+    plaPerformanceCounter = 0x00000000,
+    plaTrace              = 0x00000001,
+    plaConfiguration      = 0x00000002,
+    plaAlert              = 0x00000003,
+    plaApiTrace           = 0x00000004,
+}
+
+enum FileFormat : int
+{
+    plaCommaSeparated = 0x00000000,
+    plaTabSeparated   = 0x00000001,
+    plaSql            = 0x00000002,
+    plaBinary         = 0x00000003,
+}
+
+enum AutoPathFormat : int
+{
+    plaNone               = 0x00000000,
+    plaPattern            = 0x00000001,
+    plaComputer           = 0x00000002,
+    plaMonthDayHour       = 0x00000100,
+    plaSerialNumber       = 0x00000200,
+    plaYearDayOfYear      = 0x00000400,
+    plaYearMonth          = 0x00000800,
+    plaYearMonthDay       = 0x00001000,
+    plaYearMonthDayHour   = 0x00002000,
+    plaMonthDayHourMinute = 0x00004000,
+}
+
+enum DataCollectorSetStatus : int
+{
+    plaStopped   = 0x00000000,
+    plaRunning   = 0x00000001,
+    plaCompiling = 0x00000002,
+    plaPending   = 0x00000003,
+    plaUndefined = 0x00000004,
+}
+
+enum ClockType : int
+{
+    plaTimeStamp   = 0x00000000,
+    plaPerformance = 0x00000001,
+    plaSystem      = 0x00000002,
+    plaCycle       = 0x00000003,
+}
+
+enum StreamMode : int
+{
+    plaFile      = 0x00000001,
+    plaRealTime  = 0x00000002,
+    plaBoth      = 0x00000003,
+    plaBuffering = 0x00000004,
+}
+
+enum CommitMode : int
+{
+    plaCreateNew             = 0x00000001,
+    plaModify                = 0x00000002,
+    plaCreateOrModify        = 0x00000003,
+    plaUpdateRunningInstance = 0x00000010,
+    plaFlushTrace            = 0x00000020,
+    plaValidateOnly          = 0x00001000,
+}
+
+enum ValueMapType : int
+{
+    plaIndex      = 0x00000001,
+    plaFlag       = 0x00000002,
+    plaFlagArray  = 0x00000003,
+    plaValidation = 0x00000004,
+}
+
+enum WeekDays : int
+{
+    plaRunOnce   = 0x00000000,
+    plaSunday    = 0x00000001,
+    plaMonday    = 0x00000002,
+    plaTuesday   = 0x00000004,
+    plaWednesday = 0x00000008,
+    plaThursday  = 0x00000010,
+    plaFriday    = 0x00000020,
+    plaSaturday  = 0x00000040,
+    plaEveryday  = 0x0000007f,
+}
+
+enum ResourcePolicy : int
+{
+    plaDeleteLargest = 0x00000000,
+    plaDeleteOldest  = 0x00000001,
+}
+
+enum DataManagerSteps : int
+{
+    plaCreateReport    = 0x00000001,
+    plaRunRules        = 0x00000002,
+    plaCreateHtml      = 0x00000004,
+    plaFolderActions   = 0x00000008,
+    plaResourceFreeing = 0x00000010,
+}
+
+enum FolderActionSteps : int
+{
+    plaCreateCab    = 0x00000001,
+    plaDeleteData   = 0x00000002,
+    plaSendCab      = 0x00000004,
+    plaDeleteCab    = 0x00000008,
+    plaDeleteReport = 0x00000010,
+}
+
+// Callbacks
+
+alias PLA_CABEXTRACT_CALLBACK = void function(const(wchar)* FileName, void* Context);
+
+// Interfaces
+
+@GUID("03837521-098B-11D8-9414-505054503030")
 struct DataCollectorSet;
 
-const GUID CLSID_TraceSession = {0x0383751C, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]};
-@GUID(0x0383751C, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]);
+@GUID("0383751C-098B-11D8-9414-505054503030")
 struct TraceSession;
 
-const GUID CLSID_TraceSessionCollection = {0x03837530, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]};
-@GUID(0x03837530, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]);
+@GUID("03837530-098B-11D8-9414-505054503030")
 struct TraceSessionCollection;
 
-const GUID CLSID_TraceDataProvider = {0x03837513, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]};
-@GUID(0x03837513, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]);
+@GUID("03837513-098B-11D8-9414-505054503030")
 struct TraceDataProvider;
 
-const GUID CLSID_TraceDataProviderCollection = {0x03837511, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]};
-@GUID(0x03837511, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]);
+@GUID("03837511-098B-11D8-9414-505054503030")
 struct TraceDataProviderCollection;
 
-const GUID CLSID_DataCollectorSetCollection = {0x03837525, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]};
-@GUID(0x03837525, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]);
+@GUID("03837525-098B-11D8-9414-505054503030")
 struct DataCollectorSetCollection;
 
-const GUID CLSID_LegacyDataCollectorSet = {0x03837526, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]};
-@GUID(0x03837526, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]);
+@GUID("03837526-098B-11D8-9414-505054503030")
 struct LegacyDataCollectorSet;
 
-const GUID CLSID_LegacyDataCollectorSetCollection = {0x03837527, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]};
-@GUID(0x03837527, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]);
+@GUID("03837527-098B-11D8-9414-505054503030")
 struct LegacyDataCollectorSetCollection;
 
-const GUID CLSID_LegacyTraceSession = {0x03837528, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]};
-@GUID(0x03837528, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]);
+@GUID("03837528-098B-11D8-9414-505054503030")
 struct LegacyTraceSession;
 
-const GUID CLSID_LegacyTraceSessionCollection = {0x03837529, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]};
-@GUID(0x03837529, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]);
+@GUID("03837529-098B-11D8-9414-505054503030")
 struct LegacyTraceSessionCollection;
 
-const GUID CLSID_ServerDataCollectorSet = {0x03837531, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]};
-@GUID(0x03837531, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]);
+@GUID("03837531-098B-11D8-9414-505054503030")
 struct ServerDataCollectorSet;
 
-const GUID CLSID_ServerDataCollectorSetCollection = {0x03837532, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]};
-@GUID(0x03837532, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]);
+@GUID("03837532-098B-11D8-9414-505054503030")
 struct ServerDataCollectorSetCollection;
 
-const GUID CLSID_SystemDataCollectorSet = {0x03837546, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]};
-@GUID(0x03837546, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]);
+@GUID("03837546-098B-11D8-9414-505054503030")
 struct SystemDataCollectorSet;
 
-const GUID CLSID_SystemDataCollectorSetCollection = {0x03837547, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]};
-@GUID(0x03837547, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]);
+@GUID("03837547-098B-11D8-9414-505054503030")
 struct SystemDataCollectorSetCollection;
 
-const GUID CLSID_BootTraceSession = {0x03837538, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]};
-@GUID(0x03837538, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]);
+@GUID("03837538-098B-11D8-9414-505054503030")
 struct BootTraceSession;
 
-const GUID CLSID_BootTraceSessionCollection = {0x03837539, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]};
-@GUID(0x03837539, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]);
+@GUID("03837539-098B-11D8-9414-505054503030")
 struct BootTraceSessionCollection;
 
-enum DataCollectorType
-{
-    plaPerformanceCounter = 0,
-    plaTrace = 1,
-    plaConfiguration = 2,
-    plaAlert = 3,
-    plaApiTrace = 4,
-}
-
-enum FileFormat
-{
-    plaCommaSeparated = 0,
-    plaTabSeparated = 1,
-    plaSql = 2,
-    plaBinary = 3,
-}
-
-enum AutoPathFormat
-{
-    plaNone = 0,
-    plaPattern = 1,
-    plaComputer = 2,
-    plaMonthDayHour = 256,
-    plaSerialNumber = 512,
-    plaYearDayOfYear = 1024,
-    plaYearMonth = 2048,
-    plaYearMonthDay = 4096,
-    plaYearMonthDayHour = 8192,
-    plaMonthDayHourMinute = 16384,
-}
-
-enum DataCollectorSetStatus
-{
-    plaStopped = 0,
-    plaRunning = 1,
-    plaCompiling = 2,
-    plaPending = 3,
-    plaUndefined = 4,
-}
-
-enum ClockType
-{
-    plaTimeStamp = 0,
-    plaPerformance = 1,
-    plaSystem = 2,
-    plaCycle = 3,
-}
-
-enum StreamMode
-{
-    plaFile = 1,
-    plaRealTime = 2,
-    plaBoth = 3,
-    plaBuffering = 4,
-}
-
-enum CommitMode
-{
-    plaCreateNew = 1,
-    plaModify = 2,
-    plaCreateOrModify = 3,
-    plaUpdateRunningInstance = 16,
-    plaFlushTrace = 32,
-    plaValidateOnly = 4096,
-}
-
-enum ValueMapType
-{
-    plaIndex = 1,
-    plaFlag = 2,
-    plaFlagArray = 3,
-    plaValidation = 4,
-}
-
-enum WeekDays
-{
-    plaRunOnce = 0,
-    plaSunday = 1,
-    plaMonday = 2,
-    plaTuesday = 4,
-    plaWednesday = 8,
-    plaThursday = 16,
-    plaFriday = 32,
-    plaSaturday = 64,
-    plaEveryday = 127,
-}
-
-enum ResourcePolicy
-{
-    plaDeleteLargest = 0,
-    plaDeleteOldest = 1,
-}
-
-enum DataManagerSteps
-{
-    plaCreateReport = 1,
-    plaRunRules = 2,
-    plaCreateHtml = 4,
-    plaFolderActions = 8,
-    plaResourceFreeing = 16,
-}
-
-enum FolderActionSteps
-{
-    plaCreateCab = 1,
-    plaDeleteData = 2,
-    plaSendCab = 4,
-    plaDeleteCab = 8,
-    plaDeleteReport = 16,
-}
-
-alias PLA_CABEXTRACT_CALLBACK = extern(Windows) void function(const(wchar)* FileName, void* Context);
-const GUID IID_IDataCollectorSet = {0x03837520, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]};
-@GUID(0x03837520, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]);
+@GUID("03837520-098B-11D8-9414-505054503030")
 interface IDataCollectorSet : IDispatch
 {
     HRESULT get_DataCollectors(IDataCollectorCollection* collectors);
@@ -248,8 +240,7 @@ interface IDataCollectorSet : IDispatch
     HRESULT GetValue(BSTR key, BSTR* value);
 }
 
-const GUID IID_IDataManager = {0x03837541, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]};
-@GUID(0x03837541, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]);
+@GUID("03837541-098B-11D8-9414-505054503030")
 interface IDataManager : IDispatch
 {
     HRESULT get_Enabled(short* pfEnabled);
@@ -279,8 +270,7 @@ interface IDataManager : IDispatch
     HRESULT Extract(BSTR CabFilename, BSTR DestinationPath);
 }
 
-const GUID IID_IFolderAction = {0x03837543, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]};
-@GUID(0x03837543, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]);
+@GUID("03837543-098B-11D8-9414-505054503030")
 interface IFolderAction : IDispatch
 {
     HRESULT get_Age(uint* pulAge);
@@ -293,8 +283,7 @@ interface IFolderAction : IDispatch
     HRESULT put_SendCabTo(BSTR bstrDestination);
 }
 
-const GUID IID_IFolderActionCollection = {0x03837544, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]};
-@GUID(0x03837544, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]);
+@GUID("03837544-098B-11D8-9414-505054503030")
 interface IFolderActionCollection : IDispatch
 {
     HRESULT get_Count(uint* Count);
@@ -307,8 +296,7 @@ interface IFolderActionCollection : IDispatch
     HRESULT CreateFolderAction(IFolderAction* FolderAction);
 }
 
-const GUID IID_IDataCollector = {0x038374FF, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]};
-@GUID(0x038374FF, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]);
+@GUID("038374FF-098B-11D8-9414-505054503030")
 interface IDataCollector : IDispatch
 {
     HRESULT get_DataCollectorSet(IDataCollectorSet* group);
@@ -338,8 +326,7 @@ interface IDataCollector : IDispatch
     HRESULT CreateOutputLocation(short Latest, BSTR* Location);
 }
 
-const GUID IID_IPerformanceCounterDataCollector = {0x03837506, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]};
-@GUID(0x03837506, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]);
+@GUID("03837506-098B-11D8-9414-505054503030")
 interface IPerformanceCounterDataCollector : IDataCollector
 {
     HRESULT get_DataSourceName(BSTR* dsn);
@@ -354,8 +341,7 @@ interface IPerformanceCounterDataCollector : IDataCollector
     HRESULT put_SegmentMaxRecords(uint records);
 }
 
-const GUID IID_ITraceDataCollector = {0x0383750B, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]};
-@GUID(0x0383750B, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]);
+@GUID("0383750B-098B-11D8-9414-505054503030")
 interface ITraceDataCollector : IDataCollector
 {
     HRESULT get_BufferSize(uint* size);
@@ -374,8 +360,8 @@ interface ITraceDataCollector : IDataCollector
     HRESULT put_FlushTimer(uint seconds);
     HRESULT get_FreeBuffers(uint* buffers);
     HRESULT put_FreeBuffers(uint buffers);
-    HRESULT get_Guid(Guid* guid);
-    HRESULT put_Guid(Guid guid);
+    HRESULT get_Guid(GUID* guid);
+    HRESULT put_Guid(GUID guid);
     HRESULT get_IsKernelTrace(short* kernel);
     HRESULT get_MaximumBuffers(uint* buffers);
     HRESULT put_MaximumBuffers(uint buffers);
@@ -400,8 +386,7 @@ interface ITraceDataCollector : IDataCollector
     HRESULT get_TraceDataProviders(ITraceDataProviderCollection* providers);
 }
 
-const GUID IID_IConfigurationDataCollector = {0x03837514, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]};
-@GUID(0x03837514, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]);
+@GUID("03837514-098B-11D8-9414-505054503030")
 interface IConfigurationDataCollector : IDataCollector
 {
     HRESULT get_FileMaxCount(uint* count);
@@ -424,8 +409,7 @@ interface IConfigurationDataCollector : IDataCollector
     HRESULT put_SystemStateFile(BSTR FileName);
 }
 
-const GUID IID_IAlertDataCollector = {0x03837516, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]};
-@GUID(0x03837516, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]);
+@GUID("03837516-098B-11D8-9414-505054503030")
 interface IAlertDataCollector : IDataCollector
 {
     HRESULT get_AlertThresholds(SAFEARRAY** alerts);
@@ -446,8 +430,7 @@ interface IAlertDataCollector : IDataCollector
     HRESULT put_TriggerDataCollectorSet(BSTR name);
 }
 
-const GUID IID_IApiTracingDataCollector = {0x0383751A, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]};
-@GUID(0x0383751A, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]);
+@GUID("0383751A-098B-11D8-9414-505054503030")
 interface IApiTracingDataCollector : IDataCollector
 {
     HRESULT get_LogApiNamesOnly(short* logapinames);
@@ -466,8 +449,7 @@ interface IApiTracingDataCollector : IDataCollector
     HRESULT put_ExcludeApis(SAFEARRAY* excludeapis);
 }
 
-const GUID IID_IDataCollectorCollection = {0x03837502, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]};
-@GUID(0x03837502, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]);
+@GUID("03837502-098B-11D8-9414-505054503030")
 interface IDataCollectorCollection : IDispatch
 {
     HRESULT get_Count(int* retVal);
@@ -481,8 +463,7 @@ interface IDataCollectorCollection : IDispatch
     HRESULT CreateDataCollector(DataCollectorType Type, IDataCollector* Collector);
 }
 
-const GUID IID_IDataCollectorSetCollection = {0x03837524, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]};
-@GUID(0x03837524, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]);
+@GUID("03837524-098B-11D8-9414-505054503030")
 interface IDataCollectorSetCollection : IDispatch
 {
     HRESULT get_Count(int* retVal);
@@ -495,14 +476,13 @@ interface IDataCollectorSetCollection : IDispatch
     HRESULT GetDataCollectorSets(BSTR server, BSTR filter);
 }
 
-const GUID IID_ITraceDataProvider = {0x03837512, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]};
-@GUID(0x03837512, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]);
+@GUID("03837512-098B-11D8-9414-505054503030")
 interface ITraceDataProvider : IDispatch
 {
     HRESULT get_DisplayName(BSTR* name);
     HRESULT put_DisplayName(BSTR name);
-    HRESULT get_Guid(Guid* guid);
-    HRESULT put_Guid(Guid guid);
+    HRESULT get_Guid(GUID* guid);
+    HRESULT put_Guid(GUID guid);
     HRESULT get_Level(IValueMap* ppLevel);
     HRESULT get_KeywordsAny(IValueMap* ppKeywords);
     HRESULT get_KeywordsAll(IValueMap* ppKeywords);
@@ -520,8 +500,7 @@ interface ITraceDataProvider : IDispatch
     HRESULT GetRegisteredProcesses(IValueMap* Processes);
 }
 
-const GUID IID_ITraceDataProviderCollection = {0x03837510, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]};
-@GUID(0x03837510, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]);
+@GUID("03837510-098B-11D8-9414-505054503030")
 interface ITraceDataProviderCollection : IDispatch
 {
     HRESULT get_Count(int* retVal);
@@ -536,8 +515,7 @@ interface ITraceDataProviderCollection : IDispatch
     HRESULT GetTraceDataProvidersByProcess(BSTR Server, uint Pid);
 }
 
-const GUID IID_ISchedule = {0x0383753A, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]};
-@GUID(0x0383753A, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]);
+@GUID("0383753A-098B-11D8-9414-505054503030")
 interface ISchedule : IDispatch
 {
     HRESULT get_StartDate(VARIANT* start);
@@ -550,8 +528,7 @@ interface ISchedule : IDispatch
     HRESULT put_Days(WeekDays days);
 }
 
-const GUID IID_IScheduleCollection = {0x0383753D, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]};
-@GUID(0x0383753D, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]);
+@GUID("0383753D-098B-11D8-9414-505054503030")
 interface IScheduleCollection : IDispatch
 {
     HRESULT get_Count(int* retVal);
@@ -564,8 +541,7 @@ interface IScheduleCollection : IDispatch
     HRESULT CreateSchedule(ISchedule* Schedule);
 }
 
-const GUID IID_IValueMapItem = {0x03837533, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]};
-@GUID(0x03837533, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]);
+@GUID("03837533-098B-11D8-9414-505054503030")
 interface IValueMapItem : IDispatch
 {
     HRESULT get_Description(BSTR* description);
@@ -580,8 +556,7 @@ interface IValueMapItem : IDispatch
     HRESULT put_ValueMapType(ValueMapType type);
 }
 
-const GUID IID_IValueMap = {0x03837534, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]};
-@GUID(0x03837534, 0x098B, 0x11D8, [0x94, 0x14, 0x50, 0x50, 0x54, 0x50, 0x30, 0x30]);
+@GUID("03837534-098B-11D8-9414-505054503030")
 interface IValueMap : IDispatch
 {
     HRESULT get_Count(int* retVal);
@@ -600,3 +575,41 @@ interface IValueMap : IDispatch
     HRESULT CreateValueMapItem(IValueMapItem* Item);
 }
 
+
+// GUIDs
+
+const GUID CLSID_BootTraceSession                 = GUIDOF!BootTraceSession;
+const GUID CLSID_BootTraceSessionCollection       = GUIDOF!BootTraceSessionCollection;
+const GUID CLSID_DataCollectorSet                 = GUIDOF!DataCollectorSet;
+const GUID CLSID_DataCollectorSetCollection       = GUIDOF!DataCollectorSetCollection;
+const GUID CLSID_LegacyDataCollectorSet           = GUIDOF!LegacyDataCollectorSet;
+const GUID CLSID_LegacyDataCollectorSetCollection = GUIDOF!LegacyDataCollectorSetCollection;
+const GUID CLSID_LegacyTraceSession               = GUIDOF!LegacyTraceSession;
+const GUID CLSID_LegacyTraceSessionCollection     = GUIDOF!LegacyTraceSessionCollection;
+const GUID CLSID_ServerDataCollectorSet           = GUIDOF!ServerDataCollectorSet;
+const GUID CLSID_ServerDataCollectorSetCollection = GUIDOF!ServerDataCollectorSetCollection;
+const GUID CLSID_SystemDataCollectorSet           = GUIDOF!SystemDataCollectorSet;
+const GUID CLSID_SystemDataCollectorSetCollection = GUIDOF!SystemDataCollectorSetCollection;
+const GUID CLSID_TraceDataProvider                = GUIDOF!TraceDataProvider;
+const GUID CLSID_TraceDataProviderCollection      = GUIDOF!TraceDataProviderCollection;
+const GUID CLSID_TraceSession                     = GUIDOF!TraceSession;
+const GUID CLSID_TraceSessionCollection           = GUIDOF!TraceSessionCollection;
+
+const GUID IID_IAlertDataCollector              = GUIDOF!IAlertDataCollector;
+const GUID IID_IApiTracingDataCollector         = GUIDOF!IApiTracingDataCollector;
+const GUID IID_IConfigurationDataCollector      = GUIDOF!IConfigurationDataCollector;
+const GUID IID_IDataCollector                   = GUIDOF!IDataCollector;
+const GUID IID_IDataCollectorCollection         = GUIDOF!IDataCollectorCollection;
+const GUID IID_IDataCollectorSet                = GUIDOF!IDataCollectorSet;
+const GUID IID_IDataCollectorSetCollection      = GUIDOF!IDataCollectorSetCollection;
+const GUID IID_IDataManager                     = GUIDOF!IDataManager;
+const GUID IID_IFolderAction                    = GUIDOF!IFolderAction;
+const GUID IID_IFolderActionCollection          = GUIDOF!IFolderActionCollection;
+const GUID IID_IPerformanceCounterDataCollector = GUIDOF!IPerformanceCounterDataCollector;
+const GUID IID_ISchedule                        = GUIDOF!ISchedule;
+const GUID IID_IScheduleCollection              = GUIDOF!IScheduleCollection;
+const GUID IID_ITraceDataCollector              = GUIDOF!ITraceDataCollector;
+const GUID IID_ITraceDataProvider               = GUIDOF!ITraceDataProvider;
+const GUID IID_ITraceDataProviderCollection     = GUIDOF!ITraceDataProviderCollection;
+const GUID IID_IValueMap                        = GUIDOF!IValueMap;
+const GUID IID_IValueMapItem                    = GUIDOF!IValueMapItem;

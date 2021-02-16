@@ -1,397 +1,446 @@
 module windows.fileseverresourcemanager;
 
-public import system;
-public import windows.automation;
-public import windows.com;
+public import windows.core;
+public import windows.automation : BSTR, IDispatch, SAFEARRAY, VARIANT;
+public import windows.com : HRESULT, IUnknown;
 
 extern(Windows):
 
-enum FsrmQuotaFlags
+
+// Enums
+
+
+enum FsrmQuotaFlags : int
 {
-    FsrmQuotaFlags_Enforce = 256,
-    FsrmQuotaFlags_Disable = 512,
-    FsrmQuotaFlags_StatusIncomplete = 65536,
-    FsrmQuotaFlags_StatusRebuilding = 131072,
+    FsrmQuotaFlags_Enforce          = 0x00000100,
+    FsrmQuotaFlags_Disable          = 0x00000200,
+    FsrmQuotaFlags_StatusIncomplete = 0x00010000,
+    FsrmQuotaFlags_StatusRebuilding = 0x00020000,
 }
 
-enum FsrmFileScreenFlags
+enum FsrmFileScreenFlags : int
 {
-    FsrmFileScreenFlags_Enforce = 1,
+    FsrmFileScreenFlags_Enforce = 0x00000001,
 }
 
-enum FsrmCollectionState
+enum FsrmCollectionState : int
 {
-    FsrmCollectionState_Fetching = 1,
-    FsrmCollectionState_Committing = 2,
-    FsrmCollectionState_Complete = 3,
-    FsrmCollectionState_Cancelled = 4,
+    FsrmCollectionState_Fetching   = 0x00000001,
+    FsrmCollectionState_Committing = 0x00000002,
+    FsrmCollectionState_Complete   = 0x00000003,
+    FsrmCollectionState_Cancelled  = 0x00000004,
 }
 
-enum FsrmEnumOptions
+enum FsrmEnumOptions : int
 {
-    FsrmEnumOptions_None = 0,
-    FsrmEnumOptions_Asynchronous = 1,
-    FsrmEnumOptions_CheckRecycleBin = 2,
-    FsrmEnumOptions_IncludeClusterNodes = 4,
-    FsrmEnumOptions_IncludeDeprecatedObjects = 8,
+    FsrmEnumOptions_None                     = 0x00000000,
+    FsrmEnumOptions_Asynchronous             = 0x00000001,
+    FsrmEnumOptions_CheckRecycleBin          = 0x00000002,
+    FsrmEnumOptions_IncludeClusterNodes      = 0x00000004,
+    FsrmEnumOptions_IncludeDeprecatedObjects = 0x00000008,
 }
 
-enum FsrmCommitOptions
+enum FsrmCommitOptions : int
 {
-    FsrmCommitOptions_None = 0,
-    FsrmCommitOptions_Asynchronous = 1,
+    FsrmCommitOptions_None         = 0x00000000,
+    FsrmCommitOptions_Asynchronous = 0x00000001,
 }
 
-enum FsrmTemplateApplyOptions
+enum FsrmTemplateApplyOptions : int
 {
-    FsrmTemplateApplyOptions_ApplyToDerivedMatching = 1,
-    FsrmTemplateApplyOptions_ApplyToDerivedAll = 2,
+    FsrmTemplateApplyOptions_ApplyToDerivedMatching = 0x00000001,
+    FsrmTemplateApplyOptions_ApplyToDerivedAll      = 0x00000002,
 }
 
-enum FsrmActionType
+enum FsrmActionType : int
 {
-    FsrmActionType_Unknown = 0,
-    FsrmActionType_EventLog = 1,
-    FsrmActionType_Email = 2,
-    FsrmActionType_Command = 3,
-    FsrmActionType_Report = 4,
+    FsrmActionType_Unknown  = 0x00000000,
+    FsrmActionType_EventLog = 0x00000001,
+    FsrmActionType_Email    = 0x00000002,
+    FsrmActionType_Command  = 0x00000003,
+    FsrmActionType_Report   = 0x00000004,
 }
 
-enum FsrmEventType
+enum FsrmEventType : int
 {
-    FsrmEventType_Unknown = 0,
-    FsrmEventType_Information = 1,
-    FsrmEventType_Warning = 2,
-    FsrmEventType_Error = 3,
+    FsrmEventType_Unknown     = 0x00000000,
+    FsrmEventType_Information = 0x00000001,
+    FsrmEventType_Warning     = 0x00000002,
+    FsrmEventType_Error       = 0x00000003,
 }
 
-enum FsrmAccountType
+enum FsrmAccountType : int
 {
-    FsrmAccountType_Unknown = 0,
-    FsrmAccountType_NetworkService = 1,
-    FsrmAccountType_LocalService = 2,
-    FsrmAccountType_LocalSystem = 3,
-    FsrmAccountType_InProc = 4,
-    FsrmAccountType_External = 5,
-    FsrmAccountType_Automatic = 500,
+    FsrmAccountType_Unknown        = 0x00000000,
+    FsrmAccountType_NetworkService = 0x00000001,
+    FsrmAccountType_LocalService   = 0x00000002,
+    FsrmAccountType_LocalSystem    = 0x00000003,
+    FsrmAccountType_InProc         = 0x00000004,
+    FsrmAccountType_External       = 0x00000005,
+    FsrmAccountType_Automatic      = 0x000001f4,
 }
 
-enum FsrmReportType
+enum FsrmReportType : int
 {
-    FsrmReportType_Unknown = 0,
-    FsrmReportType_LargeFiles = 1,
-    FsrmReportType_FilesByType = 2,
-    FsrmReportType_LeastRecentlyAccessed = 3,
-    FsrmReportType_MostRecentlyAccessed = 4,
-    FsrmReportType_QuotaUsage = 5,
-    FsrmReportType_FilesByOwner = 6,
-    FsrmReportType_ExportReport = 7,
-    FsrmReportType_DuplicateFiles = 8,
-    FsrmReportType_FileScreenAudit = 9,
-    FsrmReportType_FilesByProperty = 10,
-    FsrmReportType_AutomaticClassification = 11,
-    FsrmReportType_Expiration = 12,
-    FsrmReportType_FoldersByProperty = 13,
+    FsrmReportType_Unknown                 = 0x00000000,
+    FsrmReportType_LargeFiles              = 0x00000001,
+    FsrmReportType_FilesByType             = 0x00000002,
+    FsrmReportType_LeastRecentlyAccessed   = 0x00000003,
+    FsrmReportType_MostRecentlyAccessed    = 0x00000004,
+    FsrmReportType_QuotaUsage              = 0x00000005,
+    FsrmReportType_FilesByOwner            = 0x00000006,
+    FsrmReportType_ExportReport            = 0x00000007,
+    FsrmReportType_DuplicateFiles          = 0x00000008,
+    FsrmReportType_FileScreenAudit         = 0x00000009,
+    FsrmReportType_FilesByProperty         = 0x0000000a,
+    FsrmReportType_AutomaticClassification = 0x0000000b,
+    FsrmReportType_Expiration              = 0x0000000c,
+    FsrmReportType_FoldersByProperty       = 0x0000000d,
 }
 
-enum FsrmReportFormat
+enum FsrmReportFormat : int
 {
-    FsrmReportFormat_Unknown = 0,
-    FsrmReportFormat_DHtml = 1,
-    FsrmReportFormat_Html = 2,
-    FsrmReportFormat_Txt = 3,
-    FsrmReportFormat_Csv = 4,
-    FsrmReportFormat_Xml = 5,
+    FsrmReportFormat_Unknown = 0x00000000,
+    FsrmReportFormat_DHtml   = 0x00000001,
+    FsrmReportFormat_Html    = 0x00000002,
+    FsrmReportFormat_Txt     = 0x00000003,
+    FsrmReportFormat_Csv     = 0x00000004,
+    FsrmReportFormat_Xml     = 0x00000005,
 }
 
-enum FsrmReportRunningStatus
+enum FsrmReportRunningStatus : int
 {
-    FsrmReportRunningStatus_Unknown = 0,
-    FsrmReportRunningStatus_NotRunning = 1,
-    FsrmReportRunningStatus_Queued = 2,
-    FsrmReportRunningStatus_Running = 3,
+    FsrmReportRunningStatus_Unknown    = 0x00000000,
+    FsrmReportRunningStatus_NotRunning = 0x00000001,
+    FsrmReportRunningStatus_Queued     = 0x00000002,
+    FsrmReportRunningStatus_Running    = 0x00000003,
 }
 
-enum FsrmReportGenerationContext
+enum FsrmReportGenerationContext : int
 {
-    FsrmReportGenerationContext_Undefined = 1,
-    FsrmReportGenerationContext_ScheduledReport = 2,
-    FsrmReportGenerationContext_InteractiveReport = 3,
-    FsrmReportGenerationContext_IncidentReport = 4,
+    FsrmReportGenerationContext_Undefined         = 0x00000001,
+    FsrmReportGenerationContext_ScheduledReport   = 0x00000002,
+    FsrmReportGenerationContext_InteractiveReport = 0x00000003,
+    FsrmReportGenerationContext_IncidentReport    = 0x00000004,
 }
 
-enum FsrmReportFilter
+enum FsrmReportFilter : int
 {
-    FsrmReportFilter_MinSize = 1,
-    FsrmReportFilter_MinAgeDays = 2,
-    FsrmReportFilter_MaxAgeDays = 3,
-    FsrmReportFilter_MinQuotaUsage = 4,
-    FsrmReportFilter_FileGroups = 5,
-    FsrmReportFilter_Owners = 6,
-    FsrmReportFilter_NamePattern = 7,
-    FsrmReportFilter_Property = 8,
+    FsrmReportFilter_MinSize       = 0x00000001,
+    FsrmReportFilter_MinAgeDays    = 0x00000002,
+    FsrmReportFilter_MaxAgeDays    = 0x00000003,
+    FsrmReportFilter_MinQuotaUsage = 0x00000004,
+    FsrmReportFilter_FileGroups    = 0x00000005,
+    FsrmReportFilter_Owners        = 0x00000006,
+    FsrmReportFilter_NamePattern   = 0x00000007,
+    FsrmReportFilter_Property      = 0x00000008,
 }
 
-enum FsrmReportLimit
+enum FsrmReportLimit : int
 {
-    FsrmReportLimit_MaxFiles = 1,
-    FsrmReportLimit_MaxFileGroups = 2,
-    FsrmReportLimit_MaxOwners = 3,
-    FsrmReportLimit_MaxFilesPerFileGroup = 4,
-    FsrmReportLimit_MaxFilesPerOwner = 5,
-    FsrmReportLimit_MaxFilesPerDuplGroup = 6,
-    FsrmReportLimit_MaxDuplicateGroups = 7,
-    FsrmReportLimit_MaxQuotas = 8,
-    FsrmReportLimit_MaxFileScreenEvents = 9,
-    FsrmReportLimit_MaxPropertyValues = 10,
-    FsrmReportLimit_MaxFilesPerPropertyValue = 11,
-    FsrmReportLimit_MaxFolders = 12,
+    FsrmReportLimit_MaxFiles                 = 0x00000001,
+    FsrmReportLimit_MaxFileGroups            = 0x00000002,
+    FsrmReportLimit_MaxOwners                = 0x00000003,
+    FsrmReportLimit_MaxFilesPerFileGroup     = 0x00000004,
+    FsrmReportLimit_MaxFilesPerOwner         = 0x00000005,
+    FsrmReportLimit_MaxFilesPerDuplGroup     = 0x00000006,
+    FsrmReportLimit_MaxDuplicateGroups       = 0x00000007,
+    FsrmReportLimit_MaxQuotas                = 0x00000008,
+    FsrmReportLimit_MaxFileScreenEvents      = 0x00000009,
+    FsrmReportLimit_MaxPropertyValues        = 0x0000000a,
+    FsrmReportLimit_MaxFilesPerPropertyValue = 0x0000000b,
+    FsrmReportLimit_MaxFolders               = 0x0000000c,
 }
 
-enum FsrmPropertyDefinitionType
+enum FsrmPropertyDefinitionType : int
 {
-    FsrmPropertyDefinitionType_Unknown = 0,
-    FsrmPropertyDefinitionType_OrderedList = 1,
-    FsrmPropertyDefinitionType_MultiChoiceList = 2,
-    FsrmPropertyDefinitionType_SingleChoiceList = 3,
-    FsrmPropertyDefinitionType_String = 4,
-    FsrmPropertyDefinitionType_MultiString = 5,
-    FsrmPropertyDefinitionType_Int = 6,
-    FsrmPropertyDefinitionType_Bool = 7,
-    FsrmPropertyDefinitionType_Date = 8,
+    FsrmPropertyDefinitionType_Unknown          = 0x00000000,
+    FsrmPropertyDefinitionType_OrderedList      = 0x00000001,
+    FsrmPropertyDefinitionType_MultiChoiceList  = 0x00000002,
+    FsrmPropertyDefinitionType_SingleChoiceList = 0x00000003,
+    FsrmPropertyDefinitionType_String           = 0x00000004,
+    FsrmPropertyDefinitionType_MultiString      = 0x00000005,
+    FsrmPropertyDefinitionType_Int              = 0x00000006,
+    FsrmPropertyDefinitionType_Bool             = 0x00000007,
+    FsrmPropertyDefinitionType_Date             = 0x00000008,
 }
 
-enum FsrmPropertyDefinitionFlags
+enum FsrmPropertyDefinitionFlags : int
 {
-    FsrmPropertyDefinitionFlags_Global = 1,
-    FsrmPropertyDefinitionFlags_Deprecated = 2,
-    FsrmPropertyDefinitionFlags_Secure = 4,
+    FsrmPropertyDefinitionFlags_Global     = 0x00000001,
+    FsrmPropertyDefinitionFlags_Deprecated = 0x00000002,
+    FsrmPropertyDefinitionFlags_Secure     = 0x00000004,
 }
 
-enum FsrmPropertyDefinitionAppliesTo
+enum FsrmPropertyDefinitionAppliesTo : int
 {
-    FsrmPropertyDefinitionAppliesTo_Files = 1,
-    FsrmPropertyDefinitionAppliesTo_Folders = 2,
+    FsrmPropertyDefinitionAppliesTo_Files   = 0x00000001,
+    FsrmPropertyDefinitionAppliesTo_Folders = 0x00000002,
 }
 
-enum FsrmRuleType
+enum FsrmRuleType : int
 {
-    FsrmRuleType_Unknown = 0,
-    FsrmRuleType_Classification = 1,
-    FsrmRuleType_Generic = 2,
+    FsrmRuleType_Unknown        = 0x00000000,
+    FsrmRuleType_Classification = 0x00000001,
+    FsrmRuleType_Generic        = 0x00000002,
 }
 
-enum FsrmRuleFlags
+enum FsrmRuleFlags : int
 {
-    FsrmRuleFlags_Disabled = 256,
-    FsrmRuleFlags_ClearAutomaticallyClassifiedProperty = 1024,
-    FsrmRuleFlags_ClearManuallyClassifiedProperty = 2048,
-    FsrmRuleFlags_Invalid = 4096,
+    FsrmRuleFlags_Disabled                             = 0x00000100,
+    FsrmRuleFlags_ClearAutomaticallyClassifiedProperty = 0x00000400,
+    FsrmRuleFlags_ClearManuallyClassifiedProperty      = 0x00000800,
+    FsrmRuleFlags_Invalid                              = 0x00001000,
 }
 
-enum FsrmClassificationLoggingFlags
+enum FsrmClassificationLoggingFlags : int
 {
-    FsrmClassificationLoggingFlags_None = 0,
-    FsrmClassificationLoggingFlags_ClassificationsInLogFile = 1,
-    FsrmClassificationLoggingFlags_ErrorsInLogFile = 2,
-    FsrmClassificationLoggingFlags_ClassificationsInSystemLog = 4,
-    FsrmClassificationLoggingFlags_ErrorsInSystemLog = 8,
+    FsrmClassificationLoggingFlags_None                       = 0x00000000,
+    FsrmClassificationLoggingFlags_ClassificationsInLogFile   = 0x00000001,
+    FsrmClassificationLoggingFlags_ErrorsInLogFile            = 0x00000002,
+    FsrmClassificationLoggingFlags_ClassificationsInSystemLog = 0x00000004,
+    FsrmClassificationLoggingFlags_ErrorsInSystemLog          = 0x00000008,
 }
 
-enum FsrmExecutionOption
+enum FsrmExecutionOption : int
 {
-    FsrmExecutionOption_Unknown = 0,
-    FsrmExecutionOption_EvaluateUnset = 1,
-    FsrmExecutionOption_ReEvaluate_ConsiderExistingValue = 2,
-    FsrmExecutionOption_ReEvaluate_IgnoreExistingValue = 3,
+    FsrmExecutionOption_Unknown                          = 0x00000000,
+    FsrmExecutionOption_EvaluateUnset                    = 0x00000001,
+    FsrmExecutionOption_ReEvaluate_ConsiderExistingValue = 0x00000002,
+    FsrmExecutionOption_ReEvaluate_IgnoreExistingValue   = 0x00000003,
 }
 
-enum FsrmStorageModuleCaps
+enum FsrmStorageModuleCaps : int
 {
-    FsrmStorageModuleCaps_Unknown = 0,
-    FsrmStorageModuleCaps_CanGet = 1,
-    FsrmStorageModuleCaps_CanSet = 2,
-    FsrmStorageModuleCaps_CanHandleDirectories = 4,
-    FsrmStorageModuleCaps_CanHandleFiles = 8,
+    FsrmStorageModuleCaps_Unknown              = 0x00000000,
+    FsrmStorageModuleCaps_CanGet               = 0x00000001,
+    FsrmStorageModuleCaps_CanSet               = 0x00000002,
+    FsrmStorageModuleCaps_CanHandleDirectories = 0x00000004,
+    FsrmStorageModuleCaps_CanHandleFiles       = 0x00000008,
 }
 
-enum FsrmStorageModuleType
+enum FsrmStorageModuleType : int
 {
-    FsrmStorageModuleType_Unknown = 0,
-    FsrmStorageModuleType_Cache = 1,
-    FsrmStorageModuleType_InFile = 2,
-    FsrmStorageModuleType_Database = 3,
-    FsrmStorageModuleType_System = 100,
+    FsrmStorageModuleType_Unknown  = 0x00000000,
+    FsrmStorageModuleType_Cache    = 0x00000001,
+    FsrmStorageModuleType_InFile   = 0x00000002,
+    FsrmStorageModuleType_Database = 0x00000003,
+    FsrmStorageModuleType_System   = 0x00000064,
 }
 
-enum FsrmPropertyBagFlags
+enum FsrmPropertyBagFlags : int
 {
-    FsrmPropertyBagFlags_UpdatedByClassifier = 1,
-    FsrmPropertyBagFlags_FailedLoadingProperties = 2,
-    FsrmPropertyBagFlags_FailedSavingProperties = 4,
-    FsrmPropertyBagFlags_FailedClassifyingProperties = 8,
+    FsrmPropertyBagFlags_UpdatedByClassifier         = 0x00000001,
+    FsrmPropertyBagFlags_FailedLoadingProperties     = 0x00000002,
+    FsrmPropertyBagFlags_FailedSavingProperties      = 0x00000004,
+    FsrmPropertyBagFlags_FailedClassifyingProperties = 0x00000008,
 }
 
-enum FsrmPropertyBagField
+enum FsrmPropertyBagField : int
 {
-    FsrmPropertyBagField_AccessVolume = 0,
-    FsrmPropertyBagField_VolumeGuidName = 1,
+    FsrmPropertyBagField_AccessVolume   = 0x00000000,
+    FsrmPropertyBagField_VolumeGuidName = 0x00000001,
 }
 
-enum FsrmPropertyFlags
+enum FsrmPropertyFlags : int
 {
-    FsrmPropertyFlags_None = 0,
-    FsrmPropertyFlags_Orphaned = 1,
-    FsrmPropertyFlags_RetrievedFromCache = 2,
-    FsrmPropertyFlags_RetrievedFromStorage = 4,
-    FsrmPropertyFlags_SetByClassifier = 8,
-    FsrmPropertyFlags_Deleted = 16,
-    FsrmPropertyFlags_Reclassified = 32,
-    FsrmPropertyFlags_AggregationFailed = 64,
-    FsrmPropertyFlags_Existing = 128,
-    FsrmPropertyFlags_FailedLoadingProperties = 256,
-    FsrmPropertyFlags_FailedClassifyingProperties = 512,
-    FsrmPropertyFlags_FailedSavingProperties = 1024,
-    FsrmPropertyFlags_Secure = 2048,
-    FsrmPropertyFlags_PolicyDerived = 4096,
-    FsrmPropertyFlags_Inherited = 8192,
-    FsrmPropertyFlags_Manual = 16384,
-    FsrmPropertyFlags_ExplicitValueDeleted = 32768,
-    FsrmPropertyFlags_PropertyDeletedFromClear = 65536,
-    FsrmPropertyFlags_PropertySourceMask = 14,
-    FsrmPropertyFlags_PersistentMask = 20480,
+    FsrmPropertyFlags_None                        = 0x00000000,
+    FsrmPropertyFlags_Orphaned                    = 0x00000001,
+    FsrmPropertyFlags_RetrievedFromCache          = 0x00000002,
+    FsrmPropertyFlags_RetrievedFromStorage        = 0x00000004,
+    FsrmPropertyFlags_SetByClassifier             = 0x00000008,
+    FsrmPropertyFlags_Deleted                     = 0x00000010,
+    FsrmPropertyFlags_Reclassified                = 0x00000020,
+    FsrmPropertyFlags_AggregationFailed           = 0x00000040,
+    FsrmPropertyFlags_Existing                    = 0x00000080,
+    FsrmPropertyFlags_FailedLoadingProperties     = 0x00000100,
+    FsrmPropertyFlags_FailedClassifyingProperties = 0x00000200,
+    FsrmPropertyFlags_FailedSavingProperties      = 0x00000400,
+    FsrmPropertyFlags_Secure                      = 0x00000800,
+    FsrmPropertyFlags_PolicyDerived               = 0x00001000,
+    FsrmPropertyFlags_Inherited                   = 0x00002000,
+    FsrmPropertyFlags_Manual                      = 0x00004000,
+    FsrmPropertyFlags_ExplicitValueDeleted        = 0x00008000,
+    FsrmPropertyFlags_PropertyDeletedFromClear    = 0x00010000,
+    FsrmPropertyFlags_PropertySourceMask          = 0x0000000e,
+    FsrmPropertyFlags_PersistentMask              = 0x00005000,
 }
 
-enum FsrmPipelineModuleType
+enum FsrmPipelineModuleType : int
 {
-    FsrmPipelineModuleType_Unknown = 0,
-    FsrmPipelineModuleType_Storage = 1,
-    FsrmPipelineModuleType_Classifier = 2,
+    FsrmPipelineModuleType_Unknown    = 0x00000000,
+    FsrmPipelineModuleType_Storage    = 0x00000001,
+    FsrmPipelineModuleType_Classifier = 0x00000002,
 }
 
-enum FsrmGetFilePropertyOptions
+enum FsrmGetFilePropertyOptions : int
 {
-    FsrmGetFilePropertyOptions_None = 0,
-    FsrmGetFilePropertyOptions_NoRuleEvaluation = 1,
-    FsrmGetFilePropertyOptions_Persistent = 2,
-    FsrmGetFilePropertyOptions_FailOnPersistErrors = 4,
-    FsrmGetFilePropertyOptions_SkipOrphaned = 8,
+    FsrmGetFilePropertyOptions_None                = 0x00000000,
+    FsrmGetFilePropertyOptions_NoRuleEvaluation    = 0x00000001,
+    FsrmGetFilePropertyOptions_Persistent          = 0x00000002,
+    FsrmGetFilePropertyOptions_FailOnPersistErrors = 0x00000004,
+    FsrmGetFilePropertyOptions_SkipOrphaned        = 0x00000008,
 }
 
-enum FsrmFileManagementType
+enum FsrmFileManagementType : int
 {
-    FsrmFileManagementType_Unknown = 0,
-    FsrmFileManagementType_Expiration = 1,
-    FsrmFileManagementType_Custom = 2,
-    FsrmFileManagementType_Rms = 3,
+    FsrmFileManagementType_Unknown    = 0x00000000,
+    FsrmFileManagementType_Expiration = 0x00000001,
+    FsrmFileManagementType_Custom     = 0x00000002,
+    FsrmFileManagementType_Rms        = 0x00000003,
 }
 
-enum FsrmFileManagementLoggingFlags
+enum FsrmFileManagementLoggingFlags : int
 {
-    FsrmFileManagementLoggingFlags_None = 0,
-    FsrmFileManagementLoggingFlags_Error = 1,
-    FsrmFileManagementLoggingFlags_Information = 2,
-    FsrmFileManagementLoggingFlags_Audit = 4,
+    FsrmFileManagementLoggingFlags_None        = 0x00000000,
+    FsrmFileManagementLoggingFlags_Error       = 0x00000001,
+    FsrmFileManagementLoggingFlags_Information = 0x00000002,
+    FsrmFileManagementLoggingFlags_Audit       = 0x00000004,
 }
 
-enum FsrmPropertyConditionType
+enum FsrmPropertyConditionType : int
 {
-    FsrmPropertyConditionType_Unknown = 0,
-    FsrmPropertyConditionType_Equal = 1,
-    FsrmPropertyConditionType_NotEqual = 2,
-    FsrmPropertyConditionType_GreaterThan = 3,
-    FsrmPropertyConditionType_LessThan = 4,
-    FsrmPropertyConditionType_Contain = 5,
-    FsrmPropertyConditionType_Exist = 6,
-    FsrmPropertyConditionType_NotExist = 7,
-    FsrmPropertyConditionType_StartWith = 8,
-    FsrmPropertyConditionType_EndWith = 9,
-    FsrmPropertyConditionType_ContainedIn = 10,
-    FsrmPropertyConditionType_PrefixOf = 11,
-    FsrmPropertyConditionType_SuffixOf = 12,
-    FsrmPropertyConditionType_MatchesPattern = 13,
+    FsrmPropertyConditionType_Unknown        = 0x00000000,
+    FsrmPropertyConditionType_Equal          = 0x00000001,
+    FsrmPropertyConditionType_NotEqual       = 0x00000002,
+    FsrmPropertyConditionType_GreaterThan    = 0x00000003,
+    FsrmPropertyConditionType_LessThan       = 0x00000004,
+    FsrmPropertyConditionType_Contain        = 0x00000005,
+    FsrmPropertyConditionType_Exist          = 0x00000006,
+    FsrmPropertyConditionType_NotExist       = 0x00000007,
+    FsrmPropertyConditionType_StartWith      = 0x00000008,
+    FsrmPropertyConditionType_EndWith        = 0x00000009,
+    FsrmPropertyConditionType_ContainedIn    = 0x0000000a,
+    FsrmPropertyConditionType_PrefixOf       = 0x0000000b,
+    FsrmPropertyConditionType_SuffixOf       = 0x0000000c,
+    FsrmPropertyConditionType_MatchesPattern = 0x0000000d,
 }
 
-enum FsrmFileStreamingMode
+enum FsrmFileStreamingMode : int
 {
-    FsrmFileStreamingMode_Unknown = 0,
-    FsrmFileStreamingMode_Read = 1,
-    FsrmFileStreamingMode_Write = 2,
+    FsrmFileStreamingMode_Unknown = 0x00000000,
+    FsrmFileStreamingMode_Read    = 0x00000001,
+    FsrmFileStreamingMode_Write   = 0x00000002,
 }
 
-enum FsrmFileStreamingInterfaceType
+enum FsrmFileStreamingInterfaceType : int
 {
-    FsrmFileStreamingInterfaceType_Unknown = 0,
-    FsrmFileStreamingInterfaceType_ILockBytes = 1,
-    FsrmFileStreamingInterfaceType_IStream = 2,
+    FsrmFileStreamingInterfaceType_Unknown    = 0x00000000,
+    FsrmFileStreamingInterfaceType_ILockBytes = 0x00000001,
+    FsrmFileStreamingInterfaceType_IStream    = 0x00000002,
 }
 
-enum FsrmFileConditionType
+enum FsrmFileConditionType : int
 {
-    FsrmFileConditionType_Unknown = 0,
-    FsrmFileConditionType_Property = 1,
+    FsrmFileConditionType_Unknown  = 0x00000000,
+    FsrmFileConditionType_Property = 0x00000001,
 }
 
-enum FsrmFileSystemPropertyId
+enum FsrmFileSystemPropertyId : int
 {
-    FsrmFileSystemPropertyId_Undefined = 0,
-    FsrmFileSystemPropertyId_FileName = 1,
-    FsrmFileSystemPropertyId_DateCreated = 2,
-    FsrmFileSystemPropertyId_DateLastAccessed = 3,
-    FsrmFileSystemPropertyId_DateLastModified = 4,
-    FsrmFileSystemPropertyId_DateNow = 5,
+    FsrmFileSystemPropertyId_Undefined        = 0x00000000,
+    FsrmFileSystemPropertyId_FileName         = 0x00000001,
+    FsrmFileSystemPropertyId_DateCreated      = 0x00000002,
+    FsrmFileSystemPropertyId_DateLastAccessed = 0x00000003,
+    FsrmFileSystemPropertyId_DateLastModified = 0x00000004,
+    FsrmFileSystemPropertyId_DateNow          = 0x00000005,
 }
 
-enum FsrmPropertyValueType
+enum FsrmPropertyValueType : int
 {
-    FsrmPropertyValueType_Undefined = 0,
-    FsrmPropertyValueType_Literal = 1,
-    FsrmPropertyValueType_DateOffset = 2,
+    FsrmPropertyValueType_Undefined  = 0x00000000,
+    FsrmPropertyValueType_Literal    = 0x00000001,
+    FsrmPropertyValueType_DateOffset = 0x00000002,
 }
 
-enum AdrClientDisplayFlags
+enum AdrClientDisplayFlags : int
 {
-    AdrClientDisplayFlags_AllowEmailRequests = 1,
-    AdrClientDisplayFlags_ShowDeviceTroubleshooting = 2,
+    AdrClientDisplayFlags_AllowEmailRequests        = 0x00000001,
+    AdrClientDisplayFlags_ShowDeviceTroubleshooting = 0x00000002,
 }
 
-enum AdrEmailFlags
+enum AdrEmailFlags : int
 {
-    AdrEmailFlags_PutDataOwnerOnToLine = 1,
-    AdrEmailFlags_PutAdminOnToLine = 2,
-    AdrEmailFlags_IncludeDeviceClaims = 4,
-    AdrEmailFlags_IncludeUserInfo = 8,
-    AdrEmailFlags_GenerateEventLog = 16,
+    AdrEmailFlags_PutDataOwnerOnToLine = 0x00000001,
+    AdrEmailFlags_PutAdminOnToLine     = 0x00000002,
+    AdrEmailFlags_IncludeDeviceClaims  = 0x00000004,
+    AdrEmailFlags_IncludeUserInfo      = 0x00000008,
+    AdrEmailFlags_GenerateEventLog     = 0x00000010,
 }
 
-enum AdrClientErrorType
+enum AdrClientErrorType : int
 {
-    AdrClientErrorType_Unknown = 0,
-    AdrClientErrorType_AccessDenied = 1,
-    AdrClientErrorType_FileNotFound = 2,
+    AdrClientErrorType_Unknown      = 0x00000000,
+    AdrClientErrorType_AccessDenied = 0x00000001,
+    AdrClientErrorType_FileNotFound = 0x00000002,
 }
 
-enum AdrClientFlags
+enum AdrClientFlags : int
 {
-    AdrClientFlags_None = 0,
-    AdrClientFlags_FailForLocalPaths = 1,
-    AdrClientFlags_FailIfNotSupportedByServer = 2,
-    AdrClientFlags_FailIfNotDomainJoined = 4,
+    AdrClientFlags_None                       = 0x00000000,
+    AdrClientFlags_FailForLocalPaths          = 0x00000001,
+    AdrClientFlags_FailIfNotSupportedByServer = 0x00000002,
+    AdrClientFlags_FailIfNotDomainJoined      = 0x00000004,
 }
 
-const GUID IID_IFsrmObject = {0x22BCEF93, 0x4A3F, 0x4183, [0x89, 0xF9, 0x2F, 0x8B, 0x8A, 0x62, 0x8A, 0xEE]};
-@GUID(0x22BCEF93, 0x4A3F, 0x4183, [0x89, 0xF9, 0x2F, 0x8B, 0x8A, 0x62, 0x8A, 0xEE]);
+// Interfaces
+
+@GUID("F556D708-6D4D-4594-9C61-7DBB0DAE2A46")
+struct FsrmSetting;
+
+@GUID("F3BE42BD-8AC2-409E-BBD8-FAF9B6B41FEB")
+struct FsrmPathMapper;
+
+@GUID("1482DC37-FAE9-4787-9025-8CE4E024AB56")
+struct FsrmExportImport;
+
+@GUID("90DCAB7F-347C-4BFC-B543-540326305FBE")
+struct FsrmQuotaManager;
+
+@GUID("97D3D443-251C-4337-81E7-B32E8F4EE65E")
+struct FsrmQuotaTemplateManager;
+
+@GUID("8F1363F6-656F-4496-9226-13AECBD7718F")
+struct FsrmFileGroupManager;
+
+@GUID("95941183-DB53-4C5F-B37B-7D0921CF9DC7")
+struct FsrmFileScreenManager;
+
+@GUID("243111DF-E474-46AA-A054-EAA33EDC292A")
+struct FsrmFileScreenTemplateManager;
+
+@GUID("0058EF37-AA66-4C48-BD5B-2FCE432AB0C8")
+struct FsrmReportManager;
+
+@GUID("EA25F1B8-1B8D-4290-8EE8-E17C12C2FE20")
+struct FsrmReportScheduler;
+
+@GUID("EB18F9B2-4C3A-4321-B203-205120CFF614")
+struct FsrmFileManagementJobManager;
+
+@GUID("B15C0E47-C391-45B9-95C8-EB596C853F3A")
+struct FsrmClassificationManager;
+
+@GUID("C7643375-1EB5-44DE-A062-623547D933BC")
+struct FsrmPipelineModuleConnector;
+
+@GUID("2AE64751-B728-4D6B-97A0-B2DA2E7D2A3B")
+struct AdSyncTask;
+
+@GUID("100B4FC8-74C1-470F-B1B7-DD7B6BAE79BD")
+struct FsrmAccessDeniedRemediationClient;
+
+@GUID("22BCEF93-4A3F-4183-89F9-2F8B8A628AEE")
 interface IFsrmObject : IDispatch
 {
-    HRESULT get_Id(Guid* id);
+    HRESULT get_Id(GUID* id);
     HRESULT get_Description(BSTR* description);
     HRESULT put_Description(BSTR description);
     HRESULT Delete();
     HRESULT Commit();
 }
 
-const GUID IID_IFsrmCollection = {0xF76FBF3B, 0x8DDD, 0x4B42, [0xB0, 0x5A, 0xCB, 0x1C, 0x3F, 0xF1, 0xFE, 0xE8]};
-@GUID(0xF76FBF3B, 0x8DDD, 0x4B42, [0xB0, 0x5A, 0xCB, 0x1C, 0x3F, 0xF1, 0xFE, 0xE8]);
+@GUID("F76FBF3B-8DDD-4B42-B05A-CB1C3FF1FEE8")
 interface IFsrmCollection : IDispatch
 {
     HRESULT get__NewEnum(IUnknown* unknown);
@@ -400,39 +449,35 @@ interface IFsrmCollection : IDispatch
     HRESULT get_State(FsrmCollectionState* state);
     HRESULT Cancel();
     HRESULT WaitForCompletion(int waitSeconds, short* completed);
-    HRESULT GetById(Guid id, VARIANT* entry);
+    HRESULT GetById(GUID id, VARIANT* entry);
 }
 
-const GUID IID_IFsrmMutableCollection = {0x1BB617B8, 0x3886, 0x49DC, [0xAF, 0x82, 0xA6, 0xC9, 0x0F, 0xA3, 0x5D, 0xDA]};
-@GUID(0x1BB617B8, 0x3886, 0x49DC, [0xAF, 0x82, 0xA6, 0xC9, 0x0F, 0xA3, 0x5D, 0xDA]);
+@GUID("1BB617B8-3886-49DC-AF82-A6C90FA35DDA")
 interface IFsrmMutableCollection : IFsrmCollection
 {
     HRESULT Add(VARIANT item);
     HRESULT Remove(int index);
-    HRESULT RemoveById(Guid id);
+    HRESULT RemoveById(GUID id);
     HRESULT Clone(IFsrmMutableCollection* collection);
 }
 
-const GUID IID_IFsrmCommittableCollection = {0x96DEB3B5, 0x8B91, 0x4A2A, [0x9D, 0x93, 0x80, 0xA3, 0x5D, 0x8A, 0xA8, 0x47]};
-@GUID(0x96DEB3B5, 0x8B91, 0x4A2A, [0x9D, 0x93, 0x80, 0xA3, 0x5D, 0x8A, 0xA8, 0x47]);
+@GUID("96DEB3B5-8B91-4A2A-9D93-80A35D8AA847")
 interface IFsrmCommittableCollection : IFsrmMutableCollection
 {
     HRESULT Commit(FsrmCommitOptions options, IFsrmCollection* results);
 }
 
-const GUID IID_IFsrmAction = {0x6CD6408A, 0xAE60, 0x463B, [0x9E, 0xF1, 0xE1, 0x17, 0x53, 0x4D, 0x69, 0xDC]};
-@GUID(0x6CD6408A, 0xAE60, 0x463B, [0x9E, 0xF1, 0xE1, 0x17, 0x53, 0x4D, 0x69, 0xDC]);
+@GUID("6CD6408A-AE60-463B-9EF1-E117534D69DC")
 interface IFsrmAction : IDispatch
 {
-    HRESULT get_Id(Guid* id);
+    HRESULT get_Id(GUID* id);
     HRESULT get_ActionType(FsrmActionType* actionType);
     HRESULT get_RunLimitInterval(int* minutes);
     HRESULT put_RunLimitInterval(int minutes);
     HRESULT Delete();
 }
 
-const GUID IID_IFsrmActionEmail = {0xD646567D, 0x26AE, 0x4CAA, [0x9F, 0x84, 0x4E, 0x0A, 0xAD, 0x20, 0x7F, 0xCA]};
-@GUID(0xD646567D, 0x26AE, 0x4CAA, [0x9F, 0x84, 0x4E, 0x0A, 0xAD, 0x20, 0x7F, 0xCA]);
+@GUID("D646567D-26AE-4CAA-9F84-4E0AAD207FCA")
 interface IFsrmActionEmail : IFsrmAction
 {
     HRESULT get_MailFrom(BSTR* mailFrom);
@@ -451,16 +496,14 @@ interface IFsrmActionEmail : IFsrmAction
     HRESULT put_MessageText(BSTR messageText);
 }
 
-const GUID IID_IFsrmActionEmail2 = {0x8276702F, 0x2532, 0x4839, [0x89, 0xBF, 0x48, 0x72, 0x60, 0x9A, 0x2E, 0xA4]};
-@GUID(0x8276702F, 0x2532, 0x4839, [0x89, 0xBF, 0x48, 0x72, 0x60, 0x9A, 0x2E, 0xA4]);
+@GUID("8276702F-2532-4839-89BF-4872609A2EA4")
 interface IFsrmActionEmail2 : IFsrmActionEmail
 {
     HRESULT get_AttachmentFileListSize(int* attachmentFileListSize);
     HRESULT put_AttachmentFileListSize(int attachmentFileListSize);
 }
 
-const GUID IID_IFsrmActionReport = {0x2DBE63C4, 0xB340, 0x48A0, [0xA5, 0xB0, 0x15, 0x8E, 0x07, 0xFC, 0x56, 0x7E]};
-@GUID(0x2DBE63C4, 0xB340, 0x48A0, [0xA5, 0xB0, 0x15, 0x8E, 0x07, 0xFC, 0x56, 0x7E]);
+@GUID("2DBE63C4-B340-48A0-A5B0-158E07FC567E")
 interface IFsrmActionReport : IFsrmAction
 {
     HRESULT get_ReportTypes(SAFEARRAY** reportTypes);
@@ -469,8 +512,7 @@ interface IFsrmActionReport : IFsrmAction
     HRESULT put_MailTo(BSTR mailTo);
 }
 
-const GUID IID_IFsrmActionEventLog = {0x4C8F96C3, 0x5D94, 0x4F37, [0xA4, 0xF4, 0xF5, 0x6A, 0xB4, 0x63, 0x54, 0x6F]};
-@GUID(0x4C8F96C3, 0x5D94, 0x4F37, [0xA4, 0xF4, 0xF5, 0x6A, 0xB4, 0x63, 0x54, 0x6F]);
+@GUID("4C8F96C3-5D94-4F37-A4F4-F56AB463546F")
 interface IFsrmActionEventLog : IFsrmAction
 {
     HRESULT get_EventType(FsrmEventType* eventType);
@@ -479,8 +521,7 @@ interface IFsrmActionEventLog : IFsrmAction
     HRESULT put_MessageText(BSTR messageText);
 }
 
-const GUID IID_IFsrmActionCommand = {0x12937789, 0xE247, 0x4917, [0x9C, 0x20, 0xF3, 0xEE, 0x9C, 0x7E, 0xE7, 0x83]};
-@GUID(0x12937789, 0xE247, 0x4917, [0x9C, 0x20, 0xF3, 0xEE, 0x9C, 0x7E, 0xE7, 0x83]);
+@GUID("12937789-E247-4917-9C20-F3EE9C7EE783")
 interface IFsrmActionCommand : IFsrmAction
 {
     HRESULT get_ExecutablePath(BSTR* executablePath);
@@ -499,8 +540,7 @@ interface IFsrmActionCommand : IFsrmAction
     HRESULT put_LogResult(short logResults);
 }
 
-const GUID IID_IFsrmSetting = {0xF411D4FD, 0x14BE, 0x4260, [0x8C, 0x40, 0x03, 0xB7, 0xC9, 0x5E, 0x60, 0x8A]};
-@GUID(0xF411D4FD, 0x14BE, 0x4260, [0x8C, 0x40, 0x03, 0xB7, 0xC9, 0x5E, 0x60, 0x8A]);
+@GUID("F411D4FD-14BE-4260-8C40-03B7C95E608A")
 interface IFsrmSetting : IDispatch
 {
     HRESULT get_SmtpServer(BSTR* smtpServer);
@@ -518,102 +558,41 @@ interface IFsrmSetting : IDispatch
     HRESULT GetActionRunLimitInterval(FsrmActionType actionType, int* delayTimeMinutes);
 }
 
-const GUID IID_IFsrmPathMapper = {0x6F4DBFFF, 0x6920, 0x4821, [0xA6, 0xC3, 0xB7, 0xE9, 0x4C, 0x1F, 0xD6, 0x0C]};
-@GUID(0x6F4DBFFF, 0x6920, 0x4821, [0xA6, 0xC3, 0xB7, 0xE9, 0x4C, 0x1F, 0xD6, 0x0C]);
+@GUID("6F4DBFFF-6920-4821-A6C3-B7E94C1FD60C")
 interface IFsrmPathMapper : IDispatch
 {
     HRESULT GetSharePathsForLocalPath(BSTR localPath, SAFEARRAY** sharePaths);
 }
 
-const GUID IID_IFsrmExportImport = {0xEFCB0AB1, 0x16C4, 0x4A79, [0x81, 0x2C, 0x72, 0x56, 0x14, 0xC3, 0x30, 0x6B]};
-@GUID(0xEFCB0AB1, 0x16C4, 0x4A79, [0x81, 0x2C, 0x72, 0x56, 0x14, 0xC3, 0x30, 0x6B]);
+@GUID("EFCB0AB1-16C4-4A79-812C-725614C3306B")
 interface IFsrmExportImport : IDispatch
 {
     HRESULT ExportFileGroups(BSTR filePath, VARIANT* fileGroupNamesSafeArray, BSTR remoteHost);
-    HRESULT ImportFileGroups(BSTR filePath, VARIANT* fileGroupNamesSafeArray, BSTR remoteHost, IFsrmCommittableCollection* fileGroups);
+    HRESULT ImportFileGroups(BSTR filePath, VARIANT* fileGroupNamesSafeArray, BSTR remoteHost, 
+                             IFsrmCommittableCollection* fileGroups);
     HRESULT ExportFileScreenTemplates(BSTR filePath, VARIANT* templateNamesSafeArray, BSTR remoteHost);
-    HRESULT ImportFileScreenTemplates(BSTR filePath, VARIANT* templateNamesSafeArray, BSTR remoteHost, IFsrmCommittableCollection* templates);
+    HRESULT ImportFileScreenTemplates(BSTR filePath, VARIANT* templateNamesSafeArray, BSTR remoteHost, 
+                                      IFsrmCommittableCollection* templates);
     HRESULT ExportQuotaTemplates(BSTR filePath, VARIANT* templateNamesSafeArray, BSTR remoteHost);
-    HRESULT ImportQuotaTemplates(BSTR filePath, VARIANT* templateNamesSafeArray, BSTR remoteHost, IFsrmCommittableCollection* templates);
+    HRESULT ImportQuotaTemplates(BSTR filePath, VARIANT* templateNamesSafeArray, BSTR remoteHost, 
+                                 IFsrmCommittableCollection* templates);
 }
 
-const GUID IID_IFsrmDerivedObjectsResult = {0x39322A2D, 0x38EE, 0x4D0D, [0x80, 0x95, 0x42, 0x1A, 0x80, 0x84, 0x9A, 0x82]};
-@GUID(0x39322A2D, 0x38EE, 0x4D0D, [0x80, 0x95, 0x42, 0x1A, 0x80, 0x84, 0x9A, 0x82]);
+@GUID("39322A2D-38EE-4D0D-8095-421A80849A82")
 interface IFsrmDerivedObjectsResult : IDispatch
 {
     HRESULT get_DerivedObjects(IFsrmCollection* derivedObjects);
     HRESULT get_Results(IFsrmCollection* results);
 }
 
-const GUID IID_IFsrmAccessDeniedRemediationClient = {0x40002314, 0x590B, 0x45A5, [0x8E, 0x1B, 0x8C, 0x05, 0xDA, 0x52, 0x7E, 0x52]};
-@GUID(0x40002314, 0x590B, 0x45A5, [0x8E, 0x1B, 0x8C, 0x05, 0xDA, 0x52, 0x7E, 0x52]);
+@GUID("40002314-590B-45A5-8E1B-8C05DA527E52")
 interface IFsrmAccessDeniedRemediationClient : IDispatch
 {
-    HRESULT Show(uint parentWnd, BSTR accessPath, AdrClientErrorType errorType, int flags, BSTR windowTitle, BSTR windowMessage, int* result);
+    HRESULT Show(size_t parentWnd, BSTR accessPath, AdrClientErrorType errorType, int flags, BSTR windowTitle, 
+                 BSTR windowMessage, int* result);
 }
 
-const GUID CLSID_FsrmSetting = {0xF556D708, 0x6D4D, 0x4594, [0x9C, 0x61, 0x7D, 0xBB, 0x0D, 0xAE, 0x2A, 0x46]};
-@GUID(0xF556D708, 0x6D4D, 0x4594, [0x9C, 0x61, 0x7D, 0xBB, 0x0D, 0xAE, 0x2A, 0x46]);
-struct FsrmSetting;
-
-const GUID CLSID_FsrmPathMapper = {0xF3BE42BD, 0x8AC2, 0x409E, [0xBB, 0xD8, 0xFA, 0xF9, 0xB6, 0xB4, 0x1F, 0xEB]};
-@GUID(0xF3BE42BD, 0x8AC2, 0x409E, [0xBB, 0xD8, 0xFA, 0xF9, 0xB6, 0xB4, 0x1F, 0xEB]);
-struct FsrmPathMapper;
-
-const GUID CLSID_FsrmExportImport = {0x1482DC37, 0xFAE9, 0x4787, [0x90, 0x25, 0x8C, 0xE4, 0xE0, 0x24, 0xAB, 0x56]};
-@GUID(0x1482DC37, 0xFAE9, 0x4787, [0x90, 0x25, 0x8C, 0xE4, 0xE0, 0x24, 0xAB, 0x56]);
-struct FsrmExportImport;
-
-const GUID CLSID_FsrmQuotaManager = {0x90DCAB7F, 0x347C, 0x4BFC, [0xB5, 0x43, 0x54, 0x03, 0x26, 0x30, 0x5F, 0xBE]};
-@GUID(0x90DCAB7F, 0x347C, 0x4BFC, [0xB5, 0x43, 0x54, 0x03, 0x26, 0x30, 0x5F, 0xBE]);
-struct FsrmQuotaManager;
-
-const GUID CLSID_FsrmQuotaTemplateManager = {0x97D3D443, 0x251C, 0x4337, [0x81, 0xE7, 0xB3, 0x2E, 0x8F, 0x4E, 0xE6, 0x5E]};
-@GUID(0x97D3D443, 0x251C, 0x4337, [0x81, 0xE7, 0xB3, 0x2E, 0x8F, 0x4E, 0xE6, 0x5E]);
-struct FsrmQuotaTemplateManager;
-
-const GUID CLSID_FsrmFileGroupManager = {0x8F1363F6, 0x656F, 0x4496, [0x92, 0x26, 0x13, 0xAE, 0xCB, 0xD7, 0x71, 0x8F]};
-@GUID(0x8F1363F6, 0x656F, 0x4496, [0x92, 0x26, 0x13, 0xAE, 0xCB, 0xD7, 0x71, 0x8F]);
-struct FsrmFileGroupManager;
-
-const GUID CLSID_FsrmFileScreenManager = {0x95941183, 0xDB53, 0x4C5F, [0xB3, 0x7B, 0x7D, 0x09, 0x21, 0xCF, 0x9D, 0xC7]};
-@GUID(0x95941183, 0xDB53, 0x4C5F, [0xB3, 0x7B, 0x7D, 0x09, 0x21, 0xCF, 0x9D, 0xC7]);
-struct FsrmFileScreenManager;
-
-const GUID CLSID_FsrmFileScreenTemplateManager = {0x243111DF, 0xE474, 0x46AA, [0xA0, 0x54, 0xEA, 0xA3, 0x3E, 0xDC, 0x29, 0x2A]};
-@GUID(0x243111DF, 0xE474, 0x46AA, [0xA0, 0x54, 0xEA, 0xA3, 0x3E, 0xDC, 0x29, 0x2A]);
-struct FsrmFileScreenTemplateManager;
-
-const GUID CLSID_FsrmReportManager = {0x0058EF37, 0xAA66, 0x4C48, [0xBD, 0x5B, 0x2F, 0xCE, 0x43, 0x2A, 0xB0, 0xC8]};
-@GUID(0x0058EF37, 0xAA66, 0x4C48, [0xBD, 0x5B, 0x2F, 0xCE, 0x43, 0x2A, 0xB0, 0xC8]);
-struct FsrmReportManager;
-
-const GUID CLSID_FsrmReportScheduler = {0xEA25F1B8, 0x1B8D, 0x4290, [0x8E, 0xE8, 0xE1, 0x7C, 0x12, 0xC2, 0xFE, 0x20]};
-@GUID(0xEA25F1B8, 0x1B8D, 0x4290, [0x8E, 0xE8, 0xE1, 0x7C, 0x12, 0xC2, 0xFE, 0x20]);
-struct FsrmReportScheduler;
-
-const GUID CLSID_FsrmFileManagementJobManager = {0xEB18F9B2, 0x4C3A, 0x4321, [0xB2, 0x03, 0x20, 0x51, 0x20, 0xCF, 0xF6, 0x14]};
-@GUID(0xEB18F9B2, 0x4C3A, 0x4321, [0xB2, 0x03, 0x20, 0x51, 0x20, 0xCF, 0xF6, 0x14]);
-struct FsrmFileManagementJobManager;
-
-const GUID CLSID_FsrmClassificationManager = {0xB15C0E47, 0xC391, 0x45B9, [0x95, 0xC8, 0xEB, 0x59, 0x6C, 0x85, 0x3F, 0x3A]};
-@GUID(0xB15C0E47, 0xC391, 0x45B9, [0x95, 0xC8, 0xEB, 0x59, 0x6C, 0x85, 0x3F, 0x3A]);
-struct FsrmClassificationManager;
-
-const GUID CLSID_FsrmPipelineModuleConnector = {0xC7643375, 0x1EB5, 0x44DE, [0xA0, 0x62, 0x62, 0x35, 0x47, 0xD9, 0x33, 0xBC]};
-@GUID(0xC7643375, 0x1EB5, 0x44DE, [0xA0, 0x62, 0x62, 0x35, 0x47, 0xD9, 0x33, 0xBC]);
-struct FsrmPipelineModuleConnector;
-
-const GUID CLSID_AdSyncTask = {0x2AE64751, 0xB728, 0x4D6B, [0x97, 0xA0, 0xB2, 0xDA, 0x2E, 0x7D, 0x2A, 0x3B]};
-@GUID(0x2AE64751, 0xB728, 0x4D6B, [0x97, 0xA0, 0xB2, 0xDA, 0x2E, 0x7D, 0x2A, 0x3B]);
-struct AdSyncTask;
-
-const GUID CLSID_FsrmAccessDeniedRemediationClient = {0x100B4FC8, 0x74C1, 0x470F, [0xB1, 0xB7, 0xDD, 0x7B, 0x6B, 0xAE, 0x79, 0xBD]};
-@GUID(0x100B4FC8, 0x74C1, 0x470F, [0xB1, 0xB7, 0xDD, 0x7B, 0x6B, 0xAE, 0x79, 0xBD]);
-struct FsrmAccessDeniedRemediationClient;
-
-const GUID IID_IFsrmQuotaBase = {0x1568A795, 0x3924, 0x4118, [0xB7, 0x4B, 0x68, 0xD8, 0xF0, 0xFA, 0x5D, 0xAF]};
-@GUID(0x1568A795, 0x3924, 0x4118, [0xB7, 0x4B, 0x68, 0xD8, 0xF0, 0xFA, 0x5D, 0xAF]);
+@GUID("1568A795-3924-4118-B74B-68D8F0FA5DAF")
 interface IFsrmQuotaBase : IFsrmObject
 {
     HRESULT get_QuotaLimit(VARIANT* quotaLimit);
@@ -628,8 +607,7 @@ interface IFsrmQuotaBase : IFsrmObject
     HRESULT EnumThresholdActions(int threshold, IFsrmCollection* actions);
 }
 
-const GUID IID_IFsrmQuotaObject = {0x42DC3511, 0x61D5, 0x48AE, [0xB6, 0xDC, 0x59, 0xFC, 0x00, 0xC0, 0xA8, 0xD6]};
-@GUID(0x42DC3511, 0x61D5, 0x48AE, [0xB6, 0xDC, 0x59, 0xFC, 0x00, 0xC0, 0xA8, 0xD6]);
+@GUID("42DC3511-61D5-48AE-B6DC-59FC00C0A8D6")
 interface IFsrmQuotaObject : IFsrmQuotaBase
 {
     HRESULT get_Path(BSTR* path);
@@ -640,8 +618,7 @@ interface IFsrmQuotaObject : IFsrmQuotaBase
     HRESULT ApplyTemplate(BSTR quotaTemplateName);
 }
 
-const GUID IID_IFsrmQuota = {0x377F739D, 0x9647, 0x4B8E, [0x97, 0xD2, 0x5F, 0xFC, 0xE6, 0xD7, 0x59, 0xCD]};
-@GUID(0x377F739D, 0x9647, 0x4B8E, [0x97, 0xD2, 0x5F, 0xFC, 0xE6, 0xD7, 0x59, 0xCD]);
+@GUID("377F739D-9647-4B8E-97D2-5FFCE6D759CD")
 interface IFsrmQuota : IFsrmQuotaObject
 {
     HRESULT get_QuotaUsed(VARIANT* used);
@@ -651,17 +628,16 @@ interface IFsrmQuota : IFsrmQuotaObject
     HRESULT RefreshUsageProperties();
 }
 
-const GUID IID_IFsrmAutoApplyQuota = {0xF82E5729, 0x6ABA, 0x4740, [0xBF, 0xC7, 0xC7, 0xF5, 0x8F, 0x75, 0xFB, 0x7B]};
-@GUID(0xF82E5729, 0x6ABA, 0x4740, [0xBF, 0xC7, 0xC7, 0xF5, 0x8F, 0x75, 0xFB, 0x7B]);
+@GUID("F82E5729-6ABA-4740-BFC7-C7F58F75FB7B")
 interface IFsrmAutoApplyQuota : IFsrmQuotaObject
 {
     HRESULT get_ExcludeFolders(SAFEARRAY** folders);
     HRESULT put_ExcludeFolders(SAFEARRAY* folders);
-    HRESULT CommitAndUpdateDerived(FsrmCommitOptions commitOptions, FsrmTemplateApplyOptions applyOptions, IFsrmDerivedObjectsResult* derivedObjectsResult);
+    HRESULT CommitAndUpdateDerived(FsrmCommitOptions commitOptions, FsrmTemplateApplyOptions applyOptions, 
+                                   IFsrmDerivedObjectsResult* derivedObjectsResult);
 }
 
-const GUID IID_IFsrmQuotaManager = {0x8BB68C7D, 0x19D8, 0x4FFB, [0x80, 0x9E, 0xBE, 0x4F, 0xC1, 0x73, 0x40, 0x14]};
-@GUID(0x8BB68C7D, 0x19D8, 0x4FFB, [0x80, 0x9E, 0xBE, 0x4F, 0xC1, 0x73, 0x40, 0x14]);
+@GUID("8BB68C7D-19D8-4FFB-809E-BE4FC1734014")
 interface IFsrmQuotaManager : IDispatch
 {
     HRESULT get_ActionVariables(SAFEARRAY** variables);
@@ -678,44 +654,41 @@ interface IFsrmQuotaManager : IDispatch
     HRESULT CreateQuotaCollection(IFsrmCommittableCollection* collection);
 }
 
-const GUID IID_IFsrmQuotaManagerEx = {0x4846CB01, 0xD430, 0x494F, [0xAB, 0xB4, 0xB1, 0x05, 0x49, 0x99, 0xFB, 0x09]};
-@GUID(0x4846CB01, 0xD430, 0x494F, [0xAB, 0xB4, 0xB1, 0x05, 0x49, 0x99, 0xFB, 0x09]);
+@GUID("4846CB01-D430-494F-ABB4-B1054999FB09")
 interface IFsrmQuotaManagerEx : IFsrmQuotaManager
 {
     HRESULT IsAffectedByQuota(BSTR path, FsrmEnumOptions options, short* affected);
 }
 
-const GUID IID_IFsrmQuotaTemplate = {0xA2EFAB31, 0x295E, 0x46BB, [0xB9, 0x76, 0xE8, 0x6D, 0x58, 0xB5, 0x2E, 0x8B]};
-@GUID(0xA2EFAB31, 0x295E, 0x46BB, [0xB9, 0x76, 0xE8, 0x6D, 0x58, 0xB5, 0x2E, 0x8B]);
+@GUID("A2EFAB31-295E-46BB-B976-E86D58B52E8B")
 interface IFsrmQuotaTemplate : IFsrmQuotaBase
 {
     HRESULT get_Name(BSTR* name);
     HRESULT put_Name(BSTR name);
     HRESULT CopyTemplate(BSTR quotaTemplateName);
-    HRESULT CommitAndUpdateDerived(FsrmCommitOptions commitOptions, FsrmTemplateApplyOptions applyOptions, IFsrmDerivedObjectsResult* derivedObjectsResult);
+    HRESULT CommitAndUpdateDerived(FsrmCommitOptions commitOptions, FsrmTemplateApplyOptions applyOptions, 
+                                   IFsrmDerivedObjectsResult* derivedObjectsResult);
 }
 
-const GUID IID_IFsrmQuotaTemplateImported = {0x9A2BF113, 0xA329, 0x44CC, [0x80, 0x9A, 0x5C, 0x00, 0xFC, 0xE8, 0xDA, 0x40]};
-@GUID(0x9A2BF113, 0xA329, 0x44CC, [0x80, 0x9A, 0x5C, 0x00, 0xFC, 0xE8, 0xDA, 0x40]);
+@GUID("9A2BF113-A329-44CC-809A-5C00FCE8DA40")
 interface IFsrmQuotaTemplateImported : IFsrmQuotaTemplate
 {
     HRESULT get_OverwriteOnCommit(short* overwrite);
     HRESULT put_OverwriteOnCommit(short overwrite);
 }
 
-const GUID IID_IFsrmQuotaTemplateManager = {0x4173AC41, 0x172D, 0x4D52, [0x96, 0x3C, 0xFD, 0xC7, 0xE4, 0x15, 0xF7, 0x17]};
-@GUID(0x4173AC41, 0x172D, 0x4D52, [0x96, 0x3C, 0xFD, 0xC7, 0xE4, 0x15, 0xF7, 0x17]);
+@GUID("4173AC41-172D-4D52-963C-FDC7E415F717")
 interface IFsrmQuotaTemplateManager : IDispatch
 {
     HRESULT CreateTemplate(IFsrmQuotaTemplate* quotaTemplate);
     HRESULT GetTemplate(BSTR name, IFsrmQuotaTemplate* quotaTemplate);
     HRESULT EnumTemplates(FsrmEnumOptions options, IFsrmCommittableCollection* quotaTemplates);
     HRESULT ExportTemplates(VARIANT* quotaTemplateNamesArray, BSTR* serializedQuotaTemplates);
-    HRESULT ImportTemplates(BSTR serializedQuotaTemplates, VARIANT* quotaTemplateNamesArray, IFsrmCommittableCollection* quotaTemplates);
+    HRESULT ImportTemplates(BSTR serializedQuotaTemplates, VARIANT* quotaTemplateNamesArray, 
+                            IFsrmCommittableCollection* quotaTemplates);
 }
 
-const GUID IID_IFsrmFileGroup = {0x8DD04909, 0x0E34, 0x4D55, [0xAF, 0xAA, 0x89, 0xE1, 0xF1, 0xA1, 0xBB, 0xB9]};
-@GUID(0x8DD04909, 0x0E34, 0x4D55, [0xAF, 0xAA, 0x89, 0xE1, 0xF1, 0xA1, 0xBB, 0xB9]);
+@GUID("8DD04909-0E34-4D55-AFAA-89E1F1A1BBB9")
 interface IFsrmFileGroup : IFsrmObject
 {
     HRESULT get_Name(BSTR* name);
@@ -726,27 +699,25 @@ interface IFsrmFileGroup : IFsrmObject
     HRESULT put_NonMembers(IFsrmMutableCollection nonMembers);
 }
 
-const GUID IID_IFsrmFileGroupImported = {0xAD55F10B, 0x5F11, 0x4BE7, [0x94, 0xEF, 0xD9, 0xEE, 0x2E, 0x47, 0x0D, 0xED]};
-@GUID(0xAD55F10B, 0x5F11, 0x4BE7, [0x94, 0xEF, 0xD9, 0xEE, 0x2E, 0x47, 0x0D, 0xED]);
+@GUID("AD55F10B-5F11-4BE7-94EF-D9EE2E470DED")
 interface IFsrmFileGroupImported : IFsrmFileGroup
 {
     HRESULT get_OverwriteOnCommit(short* overwrite);
     HRESULT put_OverwriteOnCommit(short overwrite);
 }
 
-const GUID IID_IFsrmFileGroupManager = {0x426677D5, 0x018C, 0x485C, [0x8A, 0x51, 0x20, 0xB8, 0x6D, 0x00, 0xBD, 0xC4]};
-@GUID(0x426677D5, 0x018C, 0x485C, [0x8A, 0x51, 0x20, 0xB8, 0x6D, 0x00, 0xBD, 0xC4]);
+@GUID("426677D5-018C-485C-8A51-20B86D00BDC4")
 interface IFsrmFileGroupManager : IDispatch
 {
     HRESULT CreateFileGroup(IFsrmFileGroup* fileGroup);
     HRESULT GetFileGroup(BSTR name, IFsrmFileGroup* fileGroup);
     HRESULT EnumFileGroups(FsrmEnumOptions options, IFsrmCommittableCollection* fileGroups);
     HRESULT ExportFileGroups(VARIANT* fileGroupNamesArray, BSTR* serializedFileGroups);
-    HRESULT ImportFileGroups(BSTR serializedFileGroups, VARIANT* fileGroupNamesArray, IFsrmCommittableCollection* fileGroups);
+    HRESULT ImportFileGroups(BSTR serializedFileGroups, VARIANT* fileGroupNamesArray, 
+                             IFsrmCommittableCollection* fileGroups);
 }
 
-const GUID IID_IFsrmFileScreenBase = {0xF3637E80, 0x5B22, 0x4A2B, [0xA6, 0x37, 0xBB, 0xB6, 0x42, 0xB4, 0x1C, 0xFC]};
-@GUID(0xF3637E80, 0x5B22, 0x4A2B, [0xA6, 0x37, 0xBB, 0xB6, 0x42, 0xB4, 0x1C, 0xFC]);
+@GUID("F3637E80-5B22-4A2B-A637-BBB642B41CFC")
 interface IFsrmFileScreenBase : IFsrmObject
 {
     HRESULT get_BlockedFileGroups(IFsrmMutableCollection* blockList);
@@ -757,8 +728,7 @@ interface IFsrmFileScreenBase : IFsrmObject
     HRESULT EnumActions(IFsrmCollection* actions);
 }
 
-const GUID IID_IFsrmFileScreen = {0x5F6325D3, 0xCE88, 0x4733, [0x84, 0xC1, 0x2D, 0x6A, 0xEF, 0xC5, 0xEA, 0x07]};
-@GUID(0x5F6325D3, 0xCE88, 0x4733, [0x84, 0xC1, 0x2D, 0x6A, 0xEF, 0xC5, 0xEA, 0x07]);
+@GUID("5F6325D3-CE88-4733-84C1-2D6AEFC5EA07")
 interface IFsrmFileScreen : IFsrmFileScreenBase
 {
     HRESULT get_Path(BSTR* path);
@@ -769,8 +739,7 @@ interface IFsrmFileScreen : IFsrmFileScreenBase
     HRESULT ApplyTemplate(BSTR fileScreenTemplateName);
 }
 
-const GUID IID_IFsrmFileScreenException = {0xBEE7CE02, 0xDF77, 0x4515, [0x93, 0x89, 0x78, 0xF0, 0x1C, 0x5A, 0xFC, 0x1A]};
-@GUID(0xBEE7CE02, 0xDF77, 0x4515, [0x93, 0x89, 0x78, 0xF0, 0x1C, 0x5A, 0xFC, 0x1A]);
+@GUID("BEE7CE02-DF77-4515-9389-78F01C5AFC1A")
 interface IFsrmFileScreenException : IFsrmObject
 {
     HRESULT get_Path(BSTR* path);
@@ -778,8 +747,7 @@ interface IFsrmFileScreenException : IFsrmObject
     HRESULT put_AllowedFileGroups(IFsrmMutableCollection allowList);
 }
 
-const GUID IID_IFsrmFileScreenManager = {0xFF4FA04E, 0x5A94, 0x4BDA, [0xA3, 0xA0, 0xD5, 0xB4, 0xD3, 0xC5, 0x2E, 0xBA]};
-@GUID(0xFF4FA04E, 0x5A94, 0x4BDA, [0xA3, 0xA0, 0xD5, 0xB4, 0xD3, 0xC5, 0x2E, 0xBA]);
+@GUID("FF4FA04E-5A94-4BDA-A3A0-D5B4D3C52EBA")
 interface IFsrmFileScreenManager : IDispatch
 {
     HRESULT get_ActionVariables(SAFEARRAY** variables);
@@ -789,41 +757,40 @@ interface IFsrmFileScreenManager : IDispatch
     HRESULT EnumFileScreens(BSTR path, FsrmEnumOptions options, IFsrmCommittableCollection* fileScreens);
     HRESULT CreateFileScreenException(BSTR path, IFsrmFileScreenException* fileScreenException);
     HRESULT GetFileScreenException(BSTR path, IFsrmFileScreenException* fileScreenException);
-    HRESULT EnumFileScreenExceptions(BSTR path, FsrmEnumOptions options, IFsrmCommittableCollection* fileScreenExceptions);
+    HRESULT EnumFileScreenExceptions(BSTR path, FsrmEnumOptions options, 
+                                     IFsrmCommittableCollection* fileScreenExceptions);
     HRESULT CreateFileScreenCollection(IFsrmCommittableCollection* collection);
 }
 
-const GUID IID_IFsrmFileScreenTemplate = {0x205BEBF8, 0xDD93, 0x452A, [0x95, 0xA6, 0x32, 0xB5, 0x66, 0xB3, 0x58, 0x28]};
-@GUID(0x205BEBF8, 0xDD93, 0x452A, [0x95, 0xA6, 0x32, 0xB5, 0x66, 0xB3, 0x58, 0x28]);
+@GUID("205BEBF8-DD93-452A-95A6-32B566B35828")
 interface IFsrmFileScreenTemplate : IFsrmFileScreenBase
 {
     HRESULT get_Name(BSTR* name);
     HRESULT put_Name(BSTR name);
     HRESULT CopyTemplate(BSTR fileScreenTemplateName);
-    HRESULT CommitAndUpdateDerived(FsrmCommitOptions commitOptions, FsrmTemplateApplyOptions applyOptions, IFsrmDerivedObjectsResult* derivedObjectsResult);
+    HRESULT CommitAndUpdateDerived(FsrmCommitOptions commitOptions, FsrmTemplateApplyOptions applyOptions, 
+                                   IFsrmDerivedObjectsResult* derivedObjectsResult);
 }
 
-const GUID IID_IFsrmFileScreenTemplateImported = {0xE1010359, 0x3E5D, 0x4ECD, [0x9F, 0xE4, 0xEF, 0x48, 0x62, 0x2F, 0xDF, 0x30]};
-@GUID(0xE1010359, 0x3E5D, 0x4ECD, [0x9F, 0xE4, 0xEF, 0x48, 0x62, 0x2F, 0xDF, 0x30]);
+@GUID("E1010359-3E5D-4ECD-9FE4-EF48622FDF30")
 interface IFsrmFileScreenTemplateImported : IFsrmFileScreenTemplate
 {
     HRESULT get_OverwriteOnCommit(short* overwrite);
     HRESULT put_OverwriteOnCommit(short overwrite);
 }
 
-const GUID IID_IFsrmFileScreenTemplateManager = {0xCFE36CBA, 0x1949, 0x4E74, [0xA1, 0x4F, 0xF1, 0xD5, 0x80, 0xCE, 0xAF, 0x13]};
-@GUID(0xCFE36CBA, 0x1949, 0x4E74, [0xA1, 0x4F, 0xF1, 0xD5, 0x80, 0xCE, 0xAF, 0x13]);
+@GUID("CFE36CBA-1949-4E74-A14F-F1D580CEAF13")
 interface IFsrmFileScreenTemplateManager : IDispatch
 {
     HRESULT CreateTemplate(IFsrmFileScreenTemplate* fileScreenTemplate);
     HRESULT GetTemplate(BSTR name, IFsrmFileScreenTemplate* fileScreenTemplate);
     HRESULT EnumTemplates(FsrmEnumOptions options, IFsrmCommittableCollection* fileScreenTemplates);
     HRESULT ExportTemplates(VARIANT* fileScreenTemplateNamesArray, BSTR* serializedFileScreenTemplates);
-    HRESULT ImportTemplates(BSTR serializedFileScreenTemplates, VARIANT* fileScreenTemplateNamesArray, IFsrmCommittableCollection* fileScreenTemplates);
+    HRESULT ImportTemplates(BSTR serializedFileScreenTemplates, VARIANT* fileScreenTemplateNamesArray, 
+                            IFsrmCommittableCollection* fileScreenTemplates);
 }
 
-const GUID IID_IFsrmReportManager = {0x27B899FE, 0x6FFA, 0x4481, [0xA1, 0x84, 0xD3, 0xDA, 0xAD, 0xE8, 0xA0, 0x2B]};
-@GUID(0x27B899FE, 0x6FFA, 0x4481, [0xA1, 0x84, 0xD3, 0xDA, 0xAD, 0xE8, 0xA0, 0x2B]);
+@GUID("27B899FE-6FFA-4481-A184-D3DAADE8A02B")
 interface IFsrmReportManager : IDispatch
 {
     HRESULT EnumReportJobs(FsrmEnumOptions options, IFsrmCollection* reportJobs);
@@ -838,8 +805,7 @@ interface IFsrmReportManager : IDispatch
     HRESULT SetReportSizeLimit(FsrmReportLimit limit, VARIANT limitValue);
 }
 
-const GUID IID_IFsrmReportJob = {0x38E87280, 0x715C, 0x4C7D, [0xA2, 0x80, 0xEA, 0x16, 0x51, 0xA1, 0x9F, 0xEF]};
-@GUID(0x38E87280, 0x715C, 0x4C7D, [0xA2, 0x80, 0xEA, 0x16, 0x51, 0xA1, 0x9F, 0xEF]);
+@GUID("38E87280-715C-4C7D-A280-EA1651A19FEF")
 interface IFsrmReportJob : IFsrmObject
 {
     HRESULT get_Task(BSTR* taskName);
@@ -861,8 +827,7 @@ interface IFsrmReportJob : IFsrmObject
     HRESULT Cancel();
 }
 
-const GUID IID_IFsrmReport = {0xD8CC81D9, 0x46B8, 0x4FA4, [0xBF, 0xA5, 0x4A, 0xA9, 0xDE, 0xC9, 0xB6, 0x38]};
-@GUID(0xD8CC81D9, 0x46B8, 0x4FA4, [0xBF, 0xA5, 0x4A, 0xA9, 0xDE, 0xC9, 0xB6, 0x38]);
+@GUID("D8CC81D9-46B8-4FA4-BFA5-4AA9DEC9B638")
 interface IFsrmReport : IDispatch
 {
     HRESULT get_Type(FsrmReportType* reportType);
@@ -876,8 +841,7 @@ interface IFsrmReport : IDispatch
     HRESULT Delete();
 }
 
-const GUID IID_IFsrmReportScheduler = {0x6879CAF9, 0x6617, 0x4484, [0x87, 0x19, 0x71, 0xC3, 0xD8, 0x64, 0x5F, 0x94]};
-@GUID(0x6879CAF9, 0x6617, 0x4484, [0x87, 0x19, 0x71, 0xC3, 0xD8, 0x64, 0x5F, 0x94]);
+@GUID("6879CAF9-6617-4484-8719-71C3D8645F94")
 interface IFsrmReportScheduler : IDispatch
 {
     HRESULT VerifyNamespaces(VARIANT* namespacesSafeArray);
@@ -886,8 +850,7 @@ interface IFsrmReportScheduler : IDispatch
     HRESULT DeleteScheduleTask(BSTR taskName);
 }
 
-const GUID IID_IFsrmFileManagementJobManager = {0xEE321ECB, 0xD95E, 0x48E9, [0x90, 0x7C, 0xC7, 0x68, 0x5A, 0x01, 0x32, 0x35]};
-@GUID(0xEE321ECB, 0xD95E, 0x48E9, [0x90, 0x7C, 0xC7, 0x68, 0x5A, 0x01, 0x32, 0x35]);
+@GUID("EE321ECB-D95E-48E9-907C-C7685A013235")
 interface IFsrmFileManagementJobManager : IDispatch
 {
     HRESULT get_ActionVariables(SAFEARRAY** variables);
@@ -897,8 +860,7 @@ interface IFsrmFileManagementJobManager : IDispatch
     HRESULT GetFileManagementJob(BSTR name, IFsrmFileManagementJob* fileManagementJob);
 }
 
-const GUID IID_IFsrmFileManagementJob = {0x0770687E, 0x9F36, 0x4D6F, [0x87, 0x78, 0x59, 0x9D, 0x18, 0x84, 0x61, 0xC9]};
-@GUID(0x0770687E, 0x9F36, 0x4D6F, [0x87, 0x78, 0x59, 0x9D, 0x18, 0x84, 0x61, 0xC9]);
+@GUID("0770687E-9F36-4D6F-8778-599D188461C9")
 interface IFsrmFileManagementJob : IFsrmObject
 {
     HRESULT get_Name(BSTR* name);
@@ -952,8 +914,7 @@ interface IFsrmFileManagementJob : IFsrmObject
     HRESULT CreateCustomAction(IFsrmActionCommand* customAction);
 }
 
-const GUID IID_IFsrmPropertyCondition = {0x326AF66F, 0x2AC0, 0x4F68, [0xBF, 0x8C, 0x47, 0x59, 0xF0, 0x54, 0xFA, 0x29]};
-@GUID(0x326AF66F, 0x2AC0, 0x4F68, [0xBF, 0x8C, 0x47, 0x59, 0xF0, 0x54, 0xFA, 0x29]);
+@GUID("326AF66F-2AC0-4F68-BF8C-4759F054FA29")
 interface IFsrmPropertyCondition : IDispatch
 {
     HRESULT get_Name(BSTR* name);
@@ -965,16 +926,14 @@ interface IFsrmPropertyCondition : IDispatch
     HRESULT Delete();
 }
 
-const GUID IID_IFsrmFileCondition = {0x70684FFC, 0x691A, 0x4A1A, [0xB9, 0x22, 0x97, 0x75, 0x2E, 0x13, 0x8C, 0xC1]};
-@GUID(0x70684FFC, 0x691A, 0x4A1A, [0xB9, 0x22, 0x97, 0x75, 0x2E, 0x13, 0x8C, 0xC1]);
+@GUID("70684FFC-691A-4A1A-B922-97752E138CC1")
 interface IFsrmFileCondition : IDispatch
 {
     HRESULT get_Type(FsrmFileConditionType* pVal);
     HRESULT Delete();
 }
 
-const GUID IID_IFsrmFileConditionProperty = {0x81926775, 0xB981, 0x4479, [0x98, 0x8F, 0xDA, 0x17, 0x1D, 0x62, 0x73, 0x60]};
-@GUID(0x81926775, 0xB981, 0x4479, [0x98, 0x8F, 0xDA, 0x17, 0x1D, 0x62, 0x73, 0x60]);
+@GUID("81926775-B981-4479-988F-DA171D627360")
 interface IFsrmFileConditionProperty : IFsrmFileCondition
 {
     HRESULT get_PropertyName(BSTR* pVal);
@@ -989,8 +948,7 @@ interface IFsrmFileConditionProperty : IFsrmFileCondition
     HRESULT put_Value(VARIANT newVal);
 }
 
-const GUID IID_IFsrmPropertyDefinition = {0xEDE0150F, 0xE9A3, 0x419C, [0x87, 0x7C, 0x01, 0xFE, 0x5D, 0x24, 0xC5, 0xD3]};
-@GUID(0xEDE0150F, 0xE9A3, 0x419C, [0x87, 0x7C, 0x01, 0xFE, 0x5D, 0x24, 0xC5, 0xD3]);
+@GUID("EDE0150F-E9A3-419C-877C-01FE5D24C5D3")
 interface IFsrmPropertyDefinition : IFsrmObject
 {
     HRESULT get_Name(BSTR* name);
@@ -1005,8 +963,7 @@ interface IFsrmPropertyDefinition : IFsrmObject
     HRESULT put_Parameters(SAFEARRAY* parameters);
 }
 
-const GUID IID_IFsrmPropertyDefinition2 = {0x47782152, 0xD16C, 0x4229, [0xB4, 0xE1, 0x0D, 0xDF, 0xE3, 0x08, 0xB9, 0xF6]};
-@GUID(0x47782152, 0xD16C, 0x4229, [0xB4, 0xE1, 0x0D, 0xDF, 0xE3, 0x08, 0xB9, 0xF6]);
+@GUID("47782152-D16C-4229-B4E1-0DDFE308B9F6")
 interface IFsrmPropertyDefinition2 : IFsrmPropertyDefinition
 {
     HRESULT get_PropertyDefinitionFlags(int* propertyDefinitionFlags);
@@ -1016,8 +973,7 @@ interface IFsrmPropertyDefinition2 : IFsrmPropertyDefinition
     HRESULT get_ValueDefinitions(IFsrmCollection* valueDefinitions);
 }
 
-const GUID IID_IFsrmPropertyDefinitionValue = {0xE946D148, 0xBD67, 0x4178, [0x8E, 0x22, 0x1C, 0x44, 0x92, 0x5E, 0xD7, 0x10]};
-@GUID(0xE946D148, 0xBD67, 0x4178, [0x8E, 0x22, 0x1C, 0x44, 0x92, 0x5E, 0xD7, 0x10]);
+@GUID("E946D148-BD67-4178-8E22-1C44925ED710")
 interface IFsrmPropertyDefinitionValue : IDispatch
 {
     HRESULT get_Name(BSTR* name);
@@ -1026,8 +982,7 @@ interface IFsrmPropertyDefinitionValue : IDispatch
     HRESULT get_UniqueID(BSTR* uniqueID);
 }
 
-const GUID IID_IFsrmProperty = {0x4A73FEE4, 0x4102, 0x4FCC, [0x9F, 0xFB, 0x38, 0x61, 0x4F, 0x9E, 0xE7, 0x68]};
-@GUID(0x4A73FEE4, 0x4102, 0x4FCC, [0x9F, 0xFB, 0x38, 0x61, 0x4F, 0x9E, 0xE7, 0x68]);
+@GUID("4A73FEE4-4102-4FCC-9FFB-38614F9EE768")
 interface IFsrmProperty : IDispatch
 {
     HRESULT get_Name(BSTR* name);
@@ -1036,8 +991,7 @@ interface IFsrmProperty : IDispatch
     HRESULT get_PropertyFlags(int* flags);
 }
 
-const GUID IID_IFsrmRule = {0xCB0DF960, 0x16F5, 0x4495, [0x90, 0x79, 0x3F, 0x93, 0x60, 0xD8, 0x31, 0xDF]};
-@GUID(0xCB0DF960, 0x16F5, 0x4495, [0x90, 0x79, 0x3F, 0x93, 0x60, 0xD8, 0x31, 0xDF]);
+@GUID("CB0DF960-16F5-4495-9079-3F9360D831DF")
 interface IFsrmRule : IFsrmObject
 {
     HRESULT get_Name(BSTR* name);
@@ -1054,8 +1008,7 @@ interface IFsrmRule : IFsrmObject
     HRESULT get_LastModified(VARIANT* lastModified);
 }
 
-const GUID IID_IFsrmClassificationRule = {0xAFC052C2, 0x5315, 0x45AB, [0x84, 0x1B, 0xC6, 0xDB, 0x0E, 0x12, 0x01, 0x48]};
-@GUID(0xAFC052C2, 0x5315, 0x45AB, [0x84, 0x1B, 0xC6, 0xDB, 0x0E, 0x12, 0x01, 0x48]);
+@GUID("AFC052C2-5315-45AB-841B-C6DB0E120148")
 interface IFsrmClassificationRule : IFsrmRule
 {
     HRESULT get_ExecutionOption(FsrmExecutionOption* executionOption);
@@ -1066,8 +1019,7 @@ interface IFsrmClassificationRule : IFsrmRule
     HRESULT put_Value(BSTR value);
 }
 
-const GUID IID_IFsrmPipelineModuleDefinition = {0x515C1277, 0x2C81, 0x440E, [0x8F, 0xCF, 0x36, 0x79, 0x21, 0xED, 0x4F, 0x59]};
-@GUID(0x515C1277, 0x2C81, 0x440E, [0x8F, 0xCF, 0x36, 0x79, 0x21, 0xED, 0x4F, 0x59]);
+@GUID("515C1277-2C81-440E-8FCF-367921ED4F59")
 interface IFsrmPipelineModuleDefinition : IFsrmObject
 {
     HRESULT get_ModuleClsid(BSTR* moduleClsid);
@@ -1076,8 +1028,8 @@ interface IFsrmPipelineModuleDefinition : IFsrmObject
     HRESULT put_Name(BSTR name);
     HRESULT get_Company(BSTR* company);
     HRESULT put_Company(BSTR company);
-    HRESULT get_Version(BSTR* version);
-    HRESULT put_Version(BSTR version);
+    HRESULT get_Version(BSTR* version_);
+    HRESULT put_Version(BSTR version_);
     HRESULT get_ModuleType(FsrmPipelineModuleType* moduleType);
     HRESULT get_Enabled(short* enabled);
     HRESULT put_Enabled(short enabled);
@@ -1091,8 +1043,7 @@ interface IFsrmPipelineModuleDefinition : IFsrmObject
     HRESULT put_Parameters(SAFEARRAY* parameters);
 }
 
-const GUID IID_IFsrmClassifierModuleDefinition = {0xBB36EA26, 0x6318, 0x4B8C, [0x85, 0x92, 0xF7, 0x2D, 0xD6, 0x02, 0xE7, 0xA5]};
-@GUID(0xBB36EA26, 0x6318, 0x4B8C, [0x85, 0x92, 0xF7, 0x2D, 0xD6, 0x02, 0xE7, 0xA5]);
+@GUID("BB36EA26-6318-4B8C-8592-F72DD602E7A5")
 interface IFsrmClassifierModuleDefinition : IFsrmPipelineModuleDefinition
 {
     HRESULT get_PropertiesAffected(SAFEARRAY** propertiesAffected);
@@ -1103,8 +1054,7 @@ interface IFsrmClassifierModuleDefinition : IFsrmPipelineModuleDefinition
     HRESULT put_NeedsExplicitValue(short needsExplicitValue);
 }
 
-const GUID IID_IFsrmStorageModuleDefinition = {0x15A81350, 0x497D, 0x4ABA, [0x80, 0xE9, 0xD4, 0xDB, 0xCC, 0x55, 0x21, 0xFE]};
-@GUID(0x15A81350, 0x497D, 0x4ABA, [0x80, 0xE9, 0xD4, 0xDB, 0xCC, 0x55, 0x21, 0xFE]);
+@GUID("15A81350-497D-4ABA-80E9-D4DBCC5521FE")
 interface IFsrmStorageModuleDefinition : IFsrmPipelineModuleDefinition
 {
     HRESULT get_Capabilities(FsrmStorageModuleCaps* capabilities);
@@ -1115,8 +1065,7 @@ interface IFsrmStorageModuleDefinition : IFsrmPipelineModuleDefinition
     HRESULT put_UpdatesFileContent(short updatesFileContent);
 }
 
-const GUID IID_IFsrmClassificationManager = {0xD2DC89DA, 0xEE91, 0x48A0, [0x85, 0xD8, 0xCC, 0x72, 0xA5, 0x6F, 0x7D, 0x04]};
-@GUID(0xD2DC89DA, 0xEE91, 0x48A0, [0x85, 0xD8, 0xCC, 0x72, 0xA5, 0x6F, 0x7D, 0x04]);
+@GUID("D2DC89DA-EE91-48A0-85D8-CC72A56F7D04")
 interface IFsrmClassificationManager : IDispatch
 {
     HRESULT get_ClassificationReportFormats(SAFEARRAY** formats);
@@ -1136,27 +1085,30 @@ interface IFsrmClassificationManager : IDispatch
     HRESULT EnumRules(FsrmRuleType ruleType, FsrmEnumOptions options, IFsrmCollection* Rules);
     HRESULT CreateRule(FsrmRuleType ruleType, IFsrmRule* Rule);
     HRESULT GetRule(BSTR ruleName, FsrmRuleType ruleType, IFsrmRule* Rule);
-    HRESULT EnumModuleDefinitions(FsrmPipelineModuleType moduleType, FsrmEnumOptions options, IFsrmCollection* moduleDefinitions);
-    HRESULT CreateModuleDefinition(FsrmPipelineModuleType moduleType, IFsrmPipelineModuleDefinition* moduleDefinition);
-    HRESULT GetModuleDefinition(BSTR moduleName, FsrmPipelineModuleType moduleType, IFsrmPipelineModuleDefinition* moduleDefinition);
+    HRESULT EnumModuleDefinitions(FsrmPipelineModuleType moduleType, FsrmEnumOptions options, 
+                                  IFsrmCollection* moduleDefinitions);
+    HRESULT CreateModuleDefinition(FsrmPipelineModuleType moduleType, 
+                                   IFsrmPipelineModuleDefinition* moduleDefinition);
+    HRESULT GetModuleDefinition(BSTR moduleName, FsrmPipelineModuleType moduleType, 
+                                IFsrmPipelineModuleDefinition* moduleDefinition);
     HRESULT RunClassification(FsrmReportGenerationContext context, BSTR reserved);
     HRESULT WaitForClassificationCompletion(int waitSeconds, short* completed);
     HRESULT CancelClassification();
     HRESULT EnumFileProperties(BSTR filePath, FsrmGetFilePropertyOptions options, IFsrmCollection* fileProperties);
-    HRESULT GetFileProperty(BSTR filePath, BSTR propertyName, FsrmGetFilePropertyOptions options, IFsrmProperty* property);
+    HRESULT GetFileProperty(BSTR filePath, BSTR propertyName, FsrmGetFilePropertyOptions options, 
+                            IFsrmProperty* property);
     HRESULT SetFileProperty(BSTR filePath, BSTR propertyName, BSTR propertyValue);
     HRESULT ClearFileProperty(BSTR filePath, BSTR property);
 }
 
-const GUID IID_IFsrmClassificationManager2 = {0x0004C1C9, 0x127E, 0x4765, [0xBA, 0x07, 0x6A, 0x31, 0x47, 0xBC, 0xA1, 0x12]};
-@GUID(0x0004C1C9, 0x127E, 0x4765, [0xBA, 0x07, 0x6A, 0x31, 0x47, 0xBC, 0xA1, 0x12]);
+@GUID("0004C1C9-127E-4765-BA07-6A3147BCA112")
 interface IFsrmClassificationManager2 : IFsrmClassificationManager
 {
-    HRESULT ClassifyFiles(SAFEARRAY* filePaths, SAFEARRAY* propertyNames, SAFEARRAY* propertyValues, FsrmGetFilePropertyOptions options);
+    HRESULT ClassifyFiles(SAFEARRAY* filePaths, SAFEARRAY* propertyNames, SAFEARRAY* propertyValues, 
+                          FsrmGetFilePropertyOptions options);
 }
 
-const GUID IID_IFsrmPropertyBag = {0x774589D1, 0xD300, 0x4F7A, [0x9A, 0x24, 0xF7, 0xB7, 0x66, 0x80, 0x02, 0x50]};
-@GUID(0x774589D1, 0xD300, 0x4F7A, [0x9A, 0x24, 0xF7, 0xB7, 0x66, 0x80, 0x02, 0x50]);
+@GUID("774589D1-D300-4F7A-9A24-F7B766800250")
 interface IFsrmPropertyBag : IDispatch
 {
     HRESULT get_Name(BSTR* name);
@@ -1179,39 +1131,36 @@ interface IFsrmPropertyBag : IDispatch
     HRESULT GetFileProperty(BSTR name, IFsrmProperty* fileProperty);
     HRESULT SetFileProperty(BSTR name, BSTR value);
     HRESULT AddMessage(BSTR message);
-    HRESULT GetFileStreamInterface(FsrmFileStreamingMode accessMode, FsrmFileStreamingInterfaceType interfaceType, VARIANT* pStreamInterface);
+    HRESULT GetFileStreamInterface(FsrmFileStreamingMode accessMode, FsrmFileStreamingInterfaceType interfaceType, 
+                                   VARIANT* pStreamInterface);
 }
 
-const GUID IID_IFsrmPropertyBag2 = {0x0E46BDBD, 0x2402, 0x4FED, [0x9C, 0x30, 0x92, 0x66, 0xE6, 0xEB, 0x2C, 0xC9]};
-@GUID(0x0E46BDBD, 0x2402, 0x4FED, [0x9C, 0x30, 0x92, 0x66, 0xE6, 0xEB, 0x2C, 0xC9]);
+@GUID("0E46BDBD-2402-4FED-9C30-9266E6EB2CC9")
 interface IFsrmPropertyBag2 : IFsrmPropertyBag
 {
     HRESULT GetFieldValue(FsrmPropertyBagField field, VARIANT* value);
     HRESULT GetUntrustedInFileProperties(IFsrmCollection* props);
 }
 
-const GUID IID_IFsrmPipelineModuleImplementation = {0xB7907906, 0x2B02, 0x4CB5, [0x84, 0xA9, 0xFD, 0xF5, 0x46, 0x13, 0xD6, 0xCD]};
-@GUID(0xB7907906, 0x2B02, 0x4CB5, [0x84, 0xA9, 0xFD, 0xF5, 0x46, 0x13, 0xD6, 0xCD]);
+@GUID("B7907906-2B02-4CB5-84A9-FDF54613D6CD")
 interface IFsrmPipelineModuleImplementation : IDispatch
 {
     HRESULT OnLoad(IFsrmPipelineModuleDefinition moduleDefinition, IFsrmPipelineModuleConnector* moduleConnector);
     HRESULT OnUnload();
 }
 
-const GUID IID_IFsrmClassifierModuleImplementation = {0x4C968FC6, 0x6EDB, 0x4051, [0x9C, 0x18, 0x73, 0xB7, 0x29, 0x1A, 0xE1, 0x06]};
-@GUID(0x4C968FC6, 0x6EDB, 0x4051, [0x9C, 0x18, 0x73, 0xB7, 0x29, 0x1A, 0xE1, 0x06]);
+@GUID("4C968FC6-6EDB-4051-9C18-73B7291AE106")
 interface IFsrmClassifierModuleImplementation : IFsrmPipelineModuleImplementation
 {
     HRESULT get_LastModified(VARIANT* lastModified);
     HRESULT UseRulesAndDefinitions(IFsrmCollection rules, IFsrmCollection propertyDefinitions);
     HRESULT OnBeginFile(IFsrmPropertyBag propertyBag, SAFEARRAY* arrayRuleIds);
-    HRESULT DoesPropertyValueApply(BSTR property, BSTR value, short* applyValue, Guid idRule, Guid idPropDef);
-    HRESULT GetPropertyValueToApply(BSTR property, BSTR* value, Guid idRule, Guid idPropDef);
+    HRESULT DoesPropertyValueApply(BSTR property, BSTR value, short* applyValue, GUID idRule, GUID idPropDef);
+    HRESULT GetPropertyValueToApply(BSTR property, BSTR* value, GUID idRule, GUID idPropDef);
     HRESULT OnEndFile();
 }
 
-const GUID IID_IFsrmStorageModuleImplementation = {0x0AF4A0DA, 0x895A, 0x4E50, [0x87, 0x12, 0xA9, 0x67, 0x24, 0xBC, 0xEC, 0x64]};
-@GUID(0x0AF4A0DA, 0x895A, 0x4E50, [0x87, 0x12, 0xA9, 0x67, 0x24, 0xBC, 0xEC, 0x64]);
+@GUID("0AF4A0DA-895A-4E50-8712-A96724BCEC64")
 interface IFsrmStorageModuleImplementation : IFsrmPipelineModuleImplementation
 {
     HRESULT UseDefinitions(IFsrmCollection propertyDefinitions);
@@ -1219,20 +1168,99 @@ interface IFsrmStorageModuleImplementation : IFsrmPipelineModuleImplementation
     HRESULT SaveProperties(IFsrmPropertyBag propertyBag);
 }
 
-const GUID IID_IFsrmPipelineModuleConnector = {0xC16014F3, 0x9AA1, 0x46B3, [0xB0, 0xA7, 0xAB, 0x14, 0x6E, 0xB2, 0x05, 0xF2]};
-@GUID(0xC16014F3, 0x9AA1, 0x46B3, [0xB0, 0xA7, 0xAB, 0x14, 0x6E, 0xB2, 0x05, 0xF2]);
+@GUID("C16014F3-9AA1-46B3-B0A7-AB146EB205F2")
 interface IFsrmPipelineModuleConnector : IDispatch
 {
     HRESULT get_ModuleImplementation(IFsrmPipelineModuleImplementation* pipelineModuleImplementation);
     HRESULT get_ModuleName(BSTR* userName);
     HRESULT get_HostingUserAccount(BSTR* userAccount);
     HRESULT get_HostingProcessPid(int* pid);
-    HRESULT Bind(IFsrmPipelineModuleDefinition moduleDefinition, IFsrmPipelineModuleImplementation moduleImplementation);
+    HRESULT Bind(IFsrmPipelineModuleDefinition moduleDefinition, 
+                 IFsrmPipelineModuleImplementation moduleImplementation);
 }
 
-const GUID IID_DIFsrmClassificationEvents = {0x26942DB0, 0xDABF, 0x41D8, [0xBB, 0xDD, 0xB1, 0x29, 0xA9, 0xF7, 0x04, 0x24]};
-@GUID(0x26942DB0, 0xDABF, 0x41D8, [0xBB, 0xDD, 0xB1, 0x29, 0xA9, 0xF7, 0x04, 0x24]);
+@GUID("26942DB0-DABF-41D8-BBDD-B129A9F70424")
 interface DIFsrmClassificationEvents : IDispatch
 {
 }
 
+
+// GUIDs
+
+const GUID CLSID_AdSyncTask                        = GUIDOF!AdSyncTask;
+const GUID CLSID_FsrmAccessDeniedRemediationClient = GUIDOF!FsrmAccessDeniedRemediationClient;
+const GUID CLSID_FsrmClassificationManager         = GUIDOF!FsrmClassificationManager;
+const GUID CLSID_FsrmExportImport                  = GUIDOF!FsrmExportImport;
+const GUID CLSID_FsrmFileGroupManager              = GUIDOF!FsrmFileGroupManager;
+const GUID CLSID_FsrmFileManagementJobManager      = GUIDOF!FsrmFileManagementJobManager;
+const GUID CLSID_FsrmFileScreenManager             = GUIDOF!FsrmFileScreenManager;
+const GUID CLSID_FsrmFileScreenTemplateManager     = GUIDOF!FsrmFileScreenTemplateManager;
+const GUID CLSID_FsrmPathMapper                    = GUIDOF!FsrmPathMapper;
+const GUID CLSID_FsrmPipelineModuleConnector       = GUIDOF!FsrmPipelineModuleConnector;
+const GUID CLSID_FsrmQuotaManager                  = GUIDOF!FsrmQuotaManager;
+const GUID CLSID_FsrmQuotaTemplateManager          = GUIDOF!FsrmQuotaTemplateManager;
+const GUID CLSID_FsrmReportManager                 = GUIDOF!FsrmReportManager;
+const GUID CLSID_FsrmReportScheduler               = GUIDOF!FsrmReportScheduler;
+const GUID CLSID_FsrmSetting                       = GUIDOF!FsrmSetting;
+
+const GUID IID_DIFsrmClassificationEvents          = GUIDOF!DIFsrmClassificationEvents;
+const GUID IID_IFsrmAccessDeniedRemediationClient  = GUIDOF!IFsrmAccessDeniedRemediationClient;
+const GUID IID_IFsrmAction                         = GUIDOF!IFsrmAction;
+const GUID IID_IFsrmActionCommand                  = GUIDOF!IFsrmActionCommand;
+const GUID IID_IFsrmActionEmail                    = GUIDOF!IFsrmActionEmail;
+const GUID IID_IFsrmActionEmail2                   = GUIDOF!IFsrmActionEmail2;
+const GUID IID_IFsrmActionEventLog                 = GUIDOF!IFsrmActionEventLog;
+const GUID IID_IFsrmActionReport                   = GUIDOF!IFsrmActionReport;
+const GUID IID_IFsrmAutoApplyQuota                 = GUIDOF!IFsrmAutoApplyQuota;
+const GUID IID_IFsrmClassificationManager          = GUIDOF!IFsrmClassificationManager;
+const GUID IID_IFsrmClassificationManager2         = GUIDOF!IFsrmClassificationManager2;
+const GUID IID_IFsrmClassificationRule             = GUIDOF!IFsrmClassificationRule;
+const GUID IID_IFsrmClassifierModuleDefinition     = GUIDOF!IFsrmClassifierModuleDefinition;
+const GUID IID_IFsrmClassifierModuleImplementation = GUIDOF!IFsrmClassifierModuleImplementation;
+const GUID IID_IFsrmCollection                     = GUIDOF!IFsrmCollection;
+const GUID IID_IFsrmCommittableCollection          = GUIDOF!IFsrmCommittableCollection;
+const GUID IID_IFsrmDerivedObjectsResult           = GUIDOF!IFsrmDerivedObjectsResult;
+const GUID IID_IFsrmExportImport                   = GUIDOF!IFsrmExportImport;
+const GUID IID_IFsrmFileCondition                  = GUIDOF!IFsrmFileCondition;
+const GUID IID_IFsrmFileConditionProperty          = GUIDOF!IFsrmFileConditionProperty;
+const GUID IID_IFsrmFileGroup                      = GUIDOF!IFsrmFileGroup;
+const GUID IID_IFsrmFileGroupImported              = GUIDOF!IFsrmFileGroupImported;
+const GUID IID_IFsrmFileGroupManager               = GUIDOF!IFsrmFileGroupManager;
+const GUID IID_IFsrmFileManagementJob              = GUIDOF!IFsrmFileManagementJob;
+const GUID IID_IFsrmFileManagementJobManager       = GUIDOF!IFsrmFileManagementJobManager;
+const GUID IID_IFsrmFileScreen                     = GUIDOF!IFsrmFileScreen;
+const GUID IID_IFsrmFileScreenBase                 = GUIDOF!IFsrmFileScreenBase;
+const GUID IID_IFsrmFileScreenException            = GUIDOF!IFsrmFileScreenException;
+const GUID IID_IFsrmFileScreenManager              = GUIDOF!IFsrmFileScreenManager;
+const GUID IID_IFsrmFileScreenTemplate             = GUIDOF!IFsrmFileScreenTemplate;
+const GUID IID_IFsrmFileScreenTemplateImported     = GUIDOF!IFsrmFileScreenTemplateImported;
+const GUID IID_IFsrmFileScreenTemplateManager      = GUIDOF!IFsrmFileScreenTemplateManager;
+const GUID IID_IFsrmMutableCollection              = GUIDOF!IFsrmMutableCollection;
+const GUID IID_IFsrmObject                         = GUIDOF!IFsrmObject;
+const GUID IID_IFsrmPathMapper                     = GUIDOF!IFsrmPathMapper;
+const GUID IID_IFsrmPipelineModuleConnector        = GUIDOF!IFsrmPipelineModuleConnector;
+const GUID IID_IFsrmPipelineModuleDefinition       = GUIDOF!IFsrmPipelineModuleDefinition;
+const GUID IID_IFsrmPipelineModuleImplementation   = GUIDOF!IFsrmPipelineModuleImplementation;
+const GUID IID_IFsrmProperty                       = GUIDOF!IFsrmProperty;
+const GUID IID_IFsrmPropertyBag                    = GUIDOF!IFsrmPropertyBag;
+const GUID IID_IFsrmPropertyBag2                   = GUIDOF!IFsrmPropertyBag2;
+const GUID IID_IFsrmPropertyCondition              = GUIDOF!IFsrmPropertyCondition;
+const GUID IID_IFsrmPropertyDefinition             = GUIDOF!IFsrmPropertyDefinition;
+const GUID IID_IFsrmPropertyDefinition2            = GUIDOF!IFsrmPropertyDefinition2;
+const GUID IID_IFsrmPropertyDefinitionValue        = GUIDOF!IFsrmPropertyDefinitionValue;
+const GUID IID_IFsrmQuota                          = GUIDOF!IFsrmQuota;
+const GUID IID_IFsrmQuotaBase                      = GUIDOF!IFsrmQuotaBase;
+const GUID IID_IFsrmQuotaManager                   = GUIDOF!IFsrmQuotaManager;
+const GUID IID_IFsrmQuotaManagerEx                 = GUIDOF!IFsrmQuotaManagerEx;
+const GUID IID_IFsrmQuotaObject                    = GUIDOF!IFsrmQuotaObject;
+const GUID IID_IFsrmQuotaTemplate                  = GUIDOF!IFsrmQuotaTemplate;
+const GUID IID_IFsrmQuotaTemplateImported          = GUIDOF!IFsrmQuotaTemplateImported;
+const GUID IID_IFsrmQuotaTemplateManager           = GUIDOF!IFsrmQuotaTemplateManager;
+const GUID IID_IFsrmReport                         = GUIDOF!IFsrmReport;
+const GUID IID_IFsrmReportJob                      = GUIDOF!IFsrmReportJob;
+const GUID IID_IFsrmReportManager                  = GUIDOF!IFsrmReportManager;
+const GUID IID_IFsrmReportScheduler                = GUIDOF!IFsrmReportScheduler;
+const GUID IID_IFsrmRule                           = GUIDOF!IFsrmRule;
+const GUID IID_IFsrmSetting                        = GUIDOF!IFsrmSetting;
+const GUID IID_IFsrmStorageModuleDefinition        = GUIDOF!IFsrmStorageModuleDefinition;
+const GUID IID_IFsrmStorageModuleImplementation    = GUIDOF!IFsrmStorageModuleImplementation;
