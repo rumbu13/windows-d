@@ -12,7 +12,7 @@ wind --meta .\meta\Windows.Win32.winmd --core .\cfg\core.d --out out --ignore .\
 
 ## Building
 
-Build and run were tested on Windows, but the generator code is not platform dependent, it should work also on Linux. A dub.json file is provided for convenience, but the application was compiled and tested only in Visual Studio using the corresponding solution file ```wind.sln```. Linux testers are welcome.
+Build and run were tested on Windows, but the generator code is not platform dependent, it should work also on Linux. A ```dub.json``` file is provided for convenience, but the application was compiled and tested only in Visual Studio using the corresponding solution file ```wind.sln```. Linux testers are welcome.
 
 ## Features
 
@@ -41,7 +41,7 @@ interface IServerSecurity : IUnknown
 }
 
 ```
-- Selective imports. Based on the dependency graph, imports between modules are limited to the types which are really used
+- Selective imports. Based on the dependency graph, imports between modules are limited to the types which are really used. All imports are public since there is no implementation of functions, only declarations.
 
 ```
 module windows.componentservices;
@@ -81,8 +81,7 @@ enum : int
 
 ## Design choices
 
-- Strongly typed handles. In the metadata, most of the ```HANDLE``` types are strongly typed as trcuts with a single member, forcing the use of that struct as a parameter for various functions. For backward compatibility reasons, these structs are unfolded and converted to plain ```ptrdiff_t``` values. This is needed beacause corresponding constants are integers, you cannot assign or compare these constants to structs.
-
+- Strongly typed handles. In the metadata, most of the ```HANDLE``` types are strongly typed as a ```struct``` with a single member, forcing the use of that struct as a parameter for various functions. For backward compatibility reasons, these structs are unfolded and converted to plain ```ptrdiff_t``` values. This is needed beacause corresponding constants are integers, you cannot assign or compare these constants to structs.
 ```
 //Original metadata
 struct HBITMAP
@@ -94,8 +93,7 @@ struct HBITMAP
 alias HBITMAP = ptrdiff_t;
 ```
 
-- GUID decorating. Interfaces and several structs are decorated with GUID attributes. The old IID_ constants from Windows headers are missing, therefore the generator will create them based on the name of decorated item. The template doing this mapping (```GUIDOF```) can be found in the file core.d. Conventionally every COM interface has an associated IID_ guid, any other type has an associated CLSID_ guid.
-
+- GUID decorating. Interfaces and several structs are decorated with GUID attributes. The old ```IID_``` constants from Windows headers are missing, therefore the generator will create them based on the name of each decorated item. The template doing this mapping (```GUIDOF```) can be found in the file ```core.d```. Conventionally, every COM interface has an associated ```IID_``` guid, any other type having an associated ```CLSID_``` guid.
 ```
 @GUID("8BA5FB08-5195-40E2-AC58-0D989C3A0102")
 interface ID3DBlob : IUnknown
@@ -109,16 +107,55 @@ struct CTraceRelogger;
 
 const GUID IID_ID3DBlob = GUIDOF!ID3DBlob;
 const GUID CLSID_CTraceRelogger = GUIDOF!CTraceRelogger;
-
 ```
 
-- Library decorating. All functions are decorated with a ```@DllImport``` attribute stating the corresponding library file where the function can be found. This can help later at generating .lib files or at loading dynamic bindings.
-
+- Library decorating. All functions are decorated with a ```@DllImport``` attribute stating the corresponding library file where the function can be found. This can be useful later for generating .lib files or for loading function using dynamic bindings.
 ```
 @DllImport("d3d12")
 HRESULT D3D12EnableExperimentalFeatures(uint NumFeatures, char* pIIDs, char* pConfigurationStructs, 
                                         char* pConfigurationStructSizes);
 ```
+
+- Identifier renaming. Every type, method or field identifier is renamed by adding an underscore at the end if there is a conflict with any of existing D keywords.
+```
+HRESULT GetVersion(ulong* version_);
+```
+
+- Not all attributes found in the metadata have a direct translation in D language. ```Obsolete``` is translated in a corresponding ```deprecated``` attribute. ```Guid``` keeps the same semantics as explained above. ```NativeTypedef``` is used to decide where ```struct``` unfolding is necessary for strongly typed handles. ```UnmanagedFunctionPointer``` is used to decide what calling convention is used for callback functions.  ```Const``` attribute is translated as a ```const``` qualifier for all fields or all parameters. The following attributes are ignored: ```RAIIIFree```, ```ComOutPtr```.
+```
+enum : int
+{
+    OCR_IBEAM    = 0x00007f01,
+    OCR_WAIT     = 0x00007f02,
+    OCR_CROSS    = 0x00007f03,
+    OCR_UP       = 0x00007f04,
+    deprecated("use OCR_SIZEALL") //this was marked as [Obsolete("use OCR_SIZEALL")]
+    OCR_SIZE     = 0x00007f80,
+    deprecated("use OCR_NORMAL")  //this was marked as [Obsolete("use OCR_NORMAL")]
+    OCR_ICON     = 0x00007f81,
+    OCR_SIZENWSE = 0x00007f82,
+    OCR_SIZENESW = 0x00007f83,
+    OCR_SIZEWE   = 0x00007f84,
+    OCR_SIZENS   = 0x00007f85,
+    OCR_SIZEALL  = 0x00007f86,
+}
+
+alias FNAPONOTIFICATIONCALLBACK = extern(Windows) HRESULT function(APO_REG_PROPERTIES* pProperties, void* pvRefData);
+//this was marked as [UnmanagedFunctionPointer(CallingConvention.Winapi)]
+
+struct AudioFXExtensionParams
+{
+    LPARAM         AddPageParam;
+    const(wchar)*  pwstrEndpointID;
+    IPropertyStore pFxProperties;
+}
+//pwstrEndpointID was marked with [Const(true)]
+
+HRESULT GetInterfaceFromGlobal(uint dwCookie, const(GUID)* riid, void** ppv);
+//riid was marked with [Const(true)]
+
+```
+ 
 
 ## Similar projects:
 
