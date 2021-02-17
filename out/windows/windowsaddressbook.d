@@ -1,3 +1,5 @@
+// Written in the D programming language.
+
 module windows.windowsaddressbook;
 
 public import windows.core;
@@ -12,9 +14,12 @@ extern(Windows):
 // Enums
 
 
+///Do not use. The <b>Gender</b> enumeration specifies the possible values for the PR_GENDER property.
 enum Gender : int
 {
+    ///No gender is specified.
     genderUnspecified = 0x00000000,
+    ///Specifies a gender of female.
     genderFemale      = 0x00000001,
     genderMale        = 0x00000002,
 }
@@ -65,8 +70,11 @@ alias LPWABOPENEX = HRESULT function();
 // Structs
 
 
+///Do not use. Contains the entry identifier information for a MAPI object.
 struct ENTRYID
 {
+    ///Type: <b>BYTE[4]</b> Array of variables of type <b>BYTE</b> that specifies the bitmask of flags that provide
+    ///information describing the object.
     ubyte[4] abFlags;
     ubyte[1] ab;
 }
@@ -76,8 +84,11 @@ struct MAPIUID
     ubyte[16] ab;
 }
 
+///Do not use. Contains an array of property tags.
 struct SPropTagArray
 {
+    ///Type: <b>ULONG</b> Variable of type <b>ULONG</b> that specifies the number of property tags in the array
+    ///indicated by the <b>aulPropTag</b> member.
     uint    cValues;
     uint[1] aulPropTag;
 }
@@ -136,8 +147,10 @@ struct SCurrencyArray
     CY*  lpcur;
 }
 
+///Do not use. An array of entry identifiers representing MAPI objects. Uses the same implementation as SBinaryArray.
 struct SBinaryArray
 {
+    ///Type: <b>ULONG</b> Variable of type <b>ULONG</b> that specifies the number of entry identifiers.
     uint     cValues;
     SBinary* lpbin;
 }
@@ -192,22 +205,35 @@ union _PV
     int                x;
 }
 
+///Do not use. Contains the property tag values.
 struct SPropValue
 {
+    ///Type: <b>ULONG</b> Variable of type <b>ULONG</b> that specifies the property tag for the property. Property tags
+    ///are 32-bit unsigned integers consisting of the property's unique identifier in the high-order 16 bits and the
+    ///property's type in the low-order 16 bits.
     uint ulPropTag;
+    ///Type: <b>ULONG</b>
     uint dwAlignPad;
+    ///Union of data values, with the specific value dictated by the property type. The following text provides a list
+    ///for each property type of the member of the union to be used and its associated data type.
     _PV  Value;
 }
 
+///Do not use. Describes an error relating to an operation involving a property.
 struct SPropProblem
 {
+    ///Type: <b>ULONG</b> Variable of type <b>ULONG</b> that specifies the index value in an array of property tags.
     uint ulIndex;
+    ///Type: <b>ULONG</b> Variable of type <b>ULONG</b> that specifies the property tag for the property with the error.
     uint ulPropTag;
     int  scode;
 }
 
+///Do not use. Contains an array of one or more SPropProblem structures.
 struct SPropProblemArray
 {
+    ///Type: <b>ULONG</b> Variable of type <b>ULONG</b> that specifies the count of SPropProblem structures in the array
+    ///indicated by the <b>aProblem</b> member.
     uint            cProblem;
     SPropProblem[1] aProblem;
 }
@@ -238,28 +264,43 @@ struct FLATMTSIDLIST
     ubyte[1] abMTSIDs;
 }
 
+///Do not use. Describes zero or more properties belonging to one or more recipients.
 struct ADRENTRY
 {
+    ///Type: <b>ULONG</b>
     uint        ulReserved1;
+    ///Type: <b>ULONG</b> Variable of type <b>ULONG</b> that specifies the count of properties in the property value
+    ///array to which the <b>rgPropVals</b> member points. The <b>cValues</b> member can be zero.
     uint        cValues;
     SPropValue* rgPropVals;
 }
 
+///Do not use. Describes zero or more properties belonging to one or more recipients.
 struct ADRLIST
 {
+    ///Type: <b>ULONG</b> Variable of type <b>ULONG</b> that specifies the entry count in the array specified by the
+    ///<b>aEntries</b> member.
     uint        cEntries;
     ADRENTRY[1] aEntries;
 }
 
+///Do not use. Describes a row from a table containing selected properties for a specific object.
 struct SRow
 {
+    ///Type: <b>ULONG</b> Variable of type <b>ULONG</b> that specifies the number of padding bytes for aligning properly
+    ///the property values to which the <b>lpProps</b> member points.
     uint        ulAdrEntryPad;
+    ///Type: <b>ULONG</b> Variable of type <b>ULONG</b> that specifies the count of property values to which
+    ///<b>lpProps</b> points.
     uint        cValues;
     SPropValue* lpProps;
 }
 
+///Do not use. Contains an array of SRow structures. Each <b>SRow</b> structure describes a row from a table.
 struct SRowSet
 {
+    ///Type: <b>ULONG</b> Variable of type <b>ULONG</b> that specifies the number of SRow structures in the <b>aRow</b>
+    ///member.
     uint    cRows;
     SRow[1] aRow;
 }
@@ -358,16 +399,31 @@ struct MAPINAMEID
     }
 }
 
+///Do not use. Defines how to sort rows of a table, describing both the column to use as the sort key and the direction
+///of the sort.
 struct SSortOrder
 {
+    ///Type: <b>ULONG</b> Variable of type <b>ULONG</b> that specifies the property tag identifying either the sort key
+    ///or, for a categorized sort, the category column.
     uint ulPropTag;
+    ///Type: <b>ULONG</b> Variable of type <b>ULONG</b> that specifies the order in which the data is to be sorted. The
+    ///possible values are as follows.
     uint ulOrder;
 }
 
+///Do not use. Defines a collection of keys for a table to be used for standard or categorized sorting.
 struct SSortOrderSet
 {
+    ///Type: <b>ULONG</b> Variable of type <b>ULONG</b> that specifes the number of SSortOrder structures that are
+    ///included in the <b>aSort</b> member.
     uint          cSorts;
+    ///Type: <b>ULONG</b> Variable of type <b>ULONG</b> that specifes the number of columns that are designated as
+    ///category columns. Possible values range from zero, which indicates a non-categorized or standard sort, to the
+    ///number indicated by the <b>cSorts</b> member.
     uint          cCategories;
+    ///Type: <b>ULONG</b> Variable of type <b>ULONG</b> that specifies the number of categories that start in an
+    ///expanded state, where all the rows that apply to the category are visible in the table view. Possible values
+    ///range from zero to the number indicated by <b>cCategories</b>.
     uint          cExpanded;
     SSortOrder[1] aSort;
 }
@@ -445,8 +501,11 @@ struct SCommentRestriction
     SPropValue*   lpProp;
 }
 
+///Do not use. Describes a filter for limiting the view of a table to particular rows.
 struct SRestriction
 {
+    ///Type: <b>ULONG</b> Variable of type <b>ULONG</b> that specifies the restriction type. The possible values are as
+    ///follows.
     uint rt;
     union res
     {
@@ -470,24 +529,74 @@ struct _flaglist
     uint[1] ulFlag;
 }
 
+///Do not use. Describes the display and behavior of the common address dialog box.
 struct ADRPARM
 {
+    ///Type: <b>ULONG</b> Variable of type <b>ULONG</b> that specifies the list of entries that can be added to the
+    ///recipient wells.
     uint          cbABContEntryID;
+    ///Type: <b>LPENTRYID</b> Pointer to a variable of type ENTRYID that specifies the container that will supply the
+    ///list of one-off entries that can be added to the recipient wells of the address book's common dialog box. The
+    ///address book container that <b>lpABContEntryID</b> points to determines what is listed in the edit box within the
+    ///dialog box that holds possible recipient names. Usually, <b>lpABContEntryID</b> is <b>NULL</b>, indicating the
+    ///use of a custom recipient provider.
     ENTRYID*      lpABContEntryID;
+    ///Type: <b>ULONG</b> Value of type <b>ULONG</b> that specifies the bitmask of flags associated with various address
+    ///dialog box options. The following flags can be set in the WAB.
     uint          ulFlags;
+    ///Type: <b>LPVOID</b>
     void*         lpReserved;
+    ///Type: <b>ULONG</b> Not supported. Must be set to 0.
     uint          ulHelpContext;
+    ///Type: <b>LPTSTR</b> Not supported. Must be set to <b>NULL</b>.
     byte*         lpszHelpFileName;
+    ///Type: <b>LPFNABSDI</b> Pointer to a WAB function based on the ACCELERATEABSDI prototype (see MAPI documentation),
+    ///or <b>NULL</b>. This member applies only to the modeless version of the dialog box, as indicated by the
+    ///<b>DIALOG_SDI</b> flag being set. Clients building an <b>ADRPARM</b> structure to pass to Address must always set
+    ///the <b>lpfnABSDI</b> member to <b>NULL</b>. If the <b>DIALOG_SDI</b> flag is set, WAB then sets it to a valid
+    ///function before returning. Clients call this function from within their message loop to ensure that accelerators
+    ///in the address book dialog box work. When the dialog box is dismissed and WAB calls the function to which the
+    ///<b>lpfnDismiss</b> member points, clients should unhook the ACCELERATEABSDI function from their message loop.
     LPFNABSDI     lpfnABSDI;
+    ///Type: <b>LPFNDISMISS</b> Pointer to a function based on the DISMISSMODELESS (see MAPI documentation) prototype,
+    ///or <b>NULL</b>. This member applies only to the modeless version of the dialog box, as indicated by the
+    ///<b>DIALOG_SDI</b> flag being set. WAB calls the DISMISSMODELESS function when the user dismisses the modeless
+    ///address dialog box, informing a client calling Address that the dialog box is no longer active.
     LPFNDISMISS   lpfnDismiss;
+    ///Type: <b>LPVOID</b> Pointer to the context information to be passed to the DISMISSMODELESS function to which the
+    ///<b>lpfnDismiss</b> member points. This member applies only to the modeless version of the dialog box, as
+    ///indicated by the <b>DIALOG_SDI</b> flag being set.
     void*         lpvDismissContext;
+    ///Type: <b>LPTSTR</b> Variable of type <b>LPTSTR</b> that specifies the text to be used as a caption for the
+    ///address book dialog box.
     byte*         lpszCaption;
+    ///Type: <b>LPTSTR</b> Variable of type <b>LPTSTR</b> that specifies the text to be used as a new-entry prompt for
+    ///an edit box in an address book dialog box.
     byte*         lpszNewEntryTitle;
+    ///Type: <b>LPTSTR</b> Variable of type <b>LPTSTR</b> that specifies the text to be used as a title for the set of
+    ///recipient-name edit boxes that appears in the dialog box. This member is used only if the address book dialog box
+    ///is modal.
     byte*         lpszDestWellsTitle;
+    ///Type: <b>ULONG</b> Variable of type <b>ULONG</b> that specifies the number of recipient-name edit boxes (that is,
+    ///destination fields) in the address book dialog box. A number from 0 through 3 is typical. If the
+    ///<b>cDestFields</b> member is zero and the ADDRESS_ONE flag is not set in <b>ulFlags</b>, the address book will be
+    ///open for browsing only.
     uint          cDestFields;
+    ///Type: <b>ULONG</b> Variable of type <b>ULONG</b> that specifies the field in the address book dialog box that
+    ///should have the initial focus when the dialog box appears. This value must be between 0 and the value of
+    ///<b>cDestFields</b> minus 1.
     uint          nDestFieldFocus;
+    ///Type: <b>LPTSTR*</b> Pointer to an array of variables of type <b>LPTSTR</b> that specify the text titles to be
+    ///displayed in the recipient-name edit boxes of the address book dialog box. The size of the array is the value of
+    ///<b>cDestFields</b>. If the <b>lppszDestTitles</b> member is <b>NULL</b>, the Address method chooses default
+    ///titles.
     byte**        lppszDestTitles;
+    ///Type: <b>ULONG*</b> Pointer to an array of variables of type <b>ULONG</b> that specify the recipient types—such
+    ///as MAPI_TO, MAPI_CC, and MAPI_BCC—associated with each recipient-name edit box. The size of the array is the
+    ///value of <b>cDestFields</b>. If the <b>lpulDestComps</b> member is <b>NULL</b>, the Address method chooses
+    ///default recipient types.
     uint*         lpulDestComps;
+    ///Type: <b>LPSRestriction</b> Not supported. Must be set to <b>NULL</b>.
     SRestriction* lpContRestriction;
     SRestriction* lpHierRestriction;
 }
@@ -583,33 +692,87 @@ struct _WABACTIONITEM
 {
 }
 
+///Do not use. Contains the input information to pass to WABOpen.
 struct WAB_PARAM
 {
+    ///Type: <b>ULONG</b> Value of type <b>ULONG</b> that specifies the size of the <b>WAB_PARAM</b> structure in bytes.
     uint         cbSize;
+    ///Type: <b>HWND</b> Value of type <b>HWND</b> that specifies the window handle of the calling client application.
+    ///Can be <b>NULL</b>.
     HWND         hwnd;
+    ///Type: <b>LPTSTR</b> Value of type <b>LPTSTR</b> that specifies the WAB file name to open. If this parameter is
+    ///<b>NULL</b>, the default Address Book file is opened.
     const(char)* szFileName;
+    ///Type: <b>ULONG</b> Value of type <b>ULONG</b> that specifies flags that control the behavior of WAB
+    ///functionality. Available only on Internet Explorer 4.0 or later.
     uint         ulFlags;
     GUID         guidPSExt;
 }
 
+///Do not use. Structure passed to Import that gives information about importing .wab files.
 struct WABIMPORTPARAM
 {
+    ///Type: <b>ULONG</b> Value of type <b>ULONG</b> that specifies the size of the structure in bytes.
     uint         cbSize;
+    ///Type: <b>IAddrBook*</b> Pointer to an IAddrBook interface that specifies the address book object to import to.
     IAddrBook    lpAdrBook;
     HWND         hWnd;
+    ///Type: <b>ULONG</b> Value of type <b>ULONG</b> that specifies flags affecting behavior.
     uint         ulFlags;
+    ///Type: <b>LPSTR</b> Value of type <b>LPSTR</b> that specifies the filename to import, or <b>NULL</b> to cause a
+    ///FileOpen dialog box to open.
     const(char)* lpszFileName;
 }
 
+///Do not use. Used by the Windows Address Book (WAB) to initialize user's IContextMenu Interface and IShellPropSheetExt
+///Interface implementations.
 struct WABEXTDISPLAY
 {
+    ///Type: <b>ULONG</b> Not used.
     uint       cbSize;
+    ///Type: <b>LPWABOBJECT</b> Pointer to an IWABObject interface that specifies the object to use for calling the
+    ///<b>IWABObject</b> memory allocation methods. These methods allocate any memory that you pass back to the WAB and
+    ///that you expect the WAB to free or use. You can also use this pointer to call any of the other <b>IWABObject</b>
+    ///methods.
     IWABObject lpWABObject;
+    ///Type: <b>LPADRBOOK</b> Pointer to an IAddrBook interface that specifies the object to use for calling any of the
+    ///standard WAB <b>IAddrBook</b> methods.
     IAddrBook  lpAdrBook;
+    ///Type: <b>LPMAPIPROP</b> Pointer to an IMailUser : IMAPIProp object. This interface is relevant for both
+    ///IShellPropSheetExt Interface and IContextMenu Interface implementations. For IShellPropSheetExt Interface
+    ///implementations, <b>lpPropObj</b> contains the actual object being displayed. It can be either an IMailUser :
+    ///IMAPIProp or IDistList : IMAPIContainer object. To determine which object <b>lpPropObj</b> is, query for its
+    ///PR_OBJECT_TYPE property. You can retrieve properties from this object to populate your extension property sheets.
+    ///For IContextMenu Interface implementations, <b>lpPropObj</b> contains a valid object; however, this object does
+    ///not have any properties associated with it. You can call the AddRef on this object to ensure that the object and
+    ///any other data of interest in this <b>WABEXTDISPLAY</b> structure survives as long as you need it. If you call
+    ///AddRef, you must call Release on <b>lpPropObj</b> when you no longer need it. If your application uses named
+    ///properties, and you want to get the named properties relevant to you from the WAB, you can call the
+    ///GetIDsfromNames method on this <b>lpPropObj</b> object to retrieve any such named properties. If you want to
+    ///access properties that are associated with messaging users, cast this object to an LPMAILUSER before calling
+    ///GetIDsfromNames on it.
     IMAPIProp  lpPropObj;
+    ///Type: <b>BOOL</b> Variable of type <b>BOOL</b> that specifies the read-only property on certain kinds of objects,
+    ///such as the VCARD_NAME attribute, LDAP search results, and one-off MailUser. This member is relevant only for
+    ///IShellPropSheetExt Interface. If this flag is set to true, one's property sheet must set all its controls to a
+    ///read-only or disabled mode, typically in response to the WM_INITDIALOG message. Setting controls to a read-only
+    ///state makes the user experience more consistent.
     BOOL       fReadOnly;
+    ///Type: <b>BOOL</b> Variable of type <b>BOOL</b> that specifies the flag indicating that a change has been made to
+    ///your property sheet. This member is relevant for IShellPropSheetExt Interface only. Any time the user makes a
+    ///change such as adding, editing or deleting data on your property sheet, you must set this flag to true to signal
+    ///to the WAB that the data on your property sheet has changed. If this flag is not set, the WAB may not persist the
+    ///changes the user made to your property sheet.
     BOOL       fDataChanged;
+    ///Type: <b>ULONG</b> Variable of type <b>ULONG</b> that specifies flags that control behavior. The following flags
+    ///are valid.
     uint       ulFlags;
+    ///Type: <b>LPVOID</b> Pointer that specifies miscellaneous information that is passed to your application. The
+    ///current flags identify the information being represented. If <b>ulFlags</b> is set to <b>WAB_CONTEXT_ADRLIST</b>,
+    ///<b>lpv</b> contains a pointer to an ADRLIST. Cast <b>lpv</b> to an <b>ADRLIST</b> to access the contents of the
+    ///<b>ADRLIST</b>. The <b>lpAdrList-&gt;cEntries</b> member contains the number of selected items. The ADRENTRY
+    ///structures in <b>lpAdrList-&gt;aEntries</b> contain SPropValue arrays with all of the properties pertaining to
+    ///each selected item.
     void*      lpv;
     byte*      lpsz;
 }
@@ -649,6 +812,8 @@ interface IMAPIProp : IUnknown
     HRESULT GetIDsFromNames(uint cPropNames, MAPINAMEID** lppPropNames, uint ulFlags, SPropTagArray** lppPropTags);
 }
 
+///Do not use. This interface is used for content tables of Windows Address Book (WAB) containers and distribution
+///lists.
 interface IMAPITable : IUnknown
 {
     HRESULT GetLastError(HRESULT hResult, uint ulFlags, MAPIERROR** lppMAPIError);
@@ -701,6 +866,8 @@ interface IMAPIContainer : IMAPIProp
                               uint* lpulSearchState);
 }
 
+///Do not use. This interface provides access to address book containers. Applications call the methods of the interface
+///to perform name resolution and to create, copy, and delete recipients.
 interface IABContainer : IMAPIContainer
 {
     HRESULT CreateEntry(uint cbEntryID, char* lpEntryID, uint ulCreateFlags, IMAPIProp* lppMAPIPropEntry);
@@ -709,10 +876,13 @@ interface IABContainer : IMAPIContainer
     HRESULT ResolveNames(SPropTagArray* lpPropTagArray, uint ulFlags, ADRLIST* lpAdrList, _flaglist* lpFlagList);
 }
 
+///Do not use. This interface provides access to a mail user object.
 interface IMailUser : IMAPIProp
 {
 }
 
+///Do not use. This interface is used to provide access to distribution lists in modifiable address book containers. The
+///interface provides methods to create, copy, and delete distribution lists, in addition to performing name resolution.
 interface IDistList : IMAPIContainer
 {
     HRESULT CreateEntry(uint cbEntryID, char* lpEntryID, uint ulCreateFlags, IMAPIProp* lppMAPIPropEntry);
@@ -794,6 +964,9 @@ interface IProviderAdmin : IUnknown
     HRESULT OpenProfileSection(MAPIUID* lpUID, GUID* lpInterface, uint ulFlags, IProfSect* lppProfSect);
 }
 
+///Do not use. This interface supports access to the Windows Address Book (WAB) and includes operations such as
+///displaying common dialog boxes, opening containers, messaging users (contacts) and distribution lists (groups) in the
+///address book, and performing name resolution.
 interface IAddrBook : IMAPIProp
 {
     HRESULT OpenEntry(uint cbEntryID, ENTRYID* lpEntryID, GUID* lpInterface, uint ulFlags, uint* lpulObjType, 
@@ -824,20 +997,136 @@ interface IAddrBook : IMAPIProp
     HRESULT PrepareRecips(uint ulFlags, SPropTagArray* lpPropTagArray, ADRLIST* lpRecipList);
 }
 
+///Do not use. This interface provides access to the Windows Address Book (WAB) object which contains function pointers
+///to memory allocation functions and database maintenance functions.
 interface IWABObject : IUnknown
 {
+    ///This method is not implemented.
+    ///Params:
+    ///    hResult = TBD
+    ///    ulFlags = TBD
+    ///    lppMAPIError = TBD
     HRESULT GetLastError(HRESULT hResult, uint ulFlags, MAPIERROR** lppMAPIError);
+    ///Allocates memory for buffers that are passed to Windows Address Book (WAB) methods. The buffer must be freed with
+    ///IWABObject::FreeBuffer, and may be reallocated with IWABObject::AllocateMore.
+    ///Params:
+    ///    cbSize = Type: <b>ULONG</b> Value of type <b>ULONG</b> that specifies the size in bytes of the buffer to be allocated.
+    ///    lppBuffer = Type: <b>LPVOID*</b> Address of a pointer to the returned buffer.
     HRESULT AllocateBuffer(uint cbSize, void** lppBuffer);
+    ///Allocates a memory buffer that is linked to another buffer previously allocated with the
+    ///IWABObject::AllocateBuffer method.
+    ///Params:
+    ///    cbSize = Type: <b>ULONG</b> Value of type <b>ULONG</b> that specifies the size in bytes of the buffer to be allocated.
+    ///    lpObject = Type: <b>LPVOID</b> Pointer to the existing buffer object allocated using IWABObject::AllocateBuffer.
+    ///    lppBuffer = Type: <b>LPVOID*</b> Address of a pointer to the returned buffer. This buffer is linked to <i>lpObject</i>.
+    ///Returns:
+    ///    Type: <b>HRESULT</b> Returns S_OK if successful.
+    ///    
     HRESULT AllocateMore(uint cbSize, void* lpObject, void** lppBuffer);
+    ///Frees memory allocated with IWABObject::AllocateBuffer or any of the other Windows Address Book (WAB) methods.
+    ///Params:
+    ///    lpBuffer = Type: <b>LPVOID</b> Pointer to the buffer to be freed.
     HRESULT FreeBuffer(void* lpBuffer);
+    ///This method is not implemented.
+    ///Params:
+    ///    lpFileName = TBD
     HRESULT Backup(const(char)* lpFileName);
+    ///Imports a .wab file into the user's Address Book.
+    ///Params:
+    ///    lpWIP = Type: <b>LPSTR</b> Pointer to a WABIMPORTPARAM structure.
+    ///Returns:
+    ///    Type: <b>HRESULT</b> Returns S_OK if successful, or an error value otherwise.
+    ///    
     HRESULT Import(const(char)* lpWIP);
+    ///Launches the Windows Address Book (WAB) Find dialog box.
+    ///Params:
+    ///    lpIAB = Type: <b>IAddrBook*</b> Pointer to an IAddrBook interface that specifies the address book to search.
+    ///    hWnd = Type: <b>HWND</b> Value of type <b>HWND</b> that specifies the handle to the parent window for the Find
+    ///           dialog box. The value can be <b>NULL</b>.
     HRESULT Find(IAddrBook lpIAB, HWND hWnd);
+    ///Displays properties on a vCard file.
+    ///Params:
+    ///    lpIAB = Type: <b>IAddrBook*</b> Pointer to an IAddrBook interface that specifies the address book object.
+    ///    hWnd = Type: <b>HWND</b> Value of type <b>HWND</b> that specifies the parent window handle for displayed dialog
+    ///           boxes.
+    ///    lpszFileName = Type: <b>LPSTR</b> Value of type <b>LPSTR</b> that specifies the full path of the vCard file to display.
     HRESULT VCardDisplay(IAddrBook lpIAB, HWND hWnd, const(char)* lpszFileName);
+    ///Processes an Lightweight Directory Access Protocol (LDAP) URL and displays the results obtained from the URL. If
+    ///the URL only contains a server name, the Windows Address Book (WAB) launches the Find window with the server name
+    ///filled in. If the URL contains an LDAP query, the query is processed. If the query has a single result, the WAB
+    ///shows details about the result; if the query has multiple results, the WAB shows the Find dialog box with
+    ///multiple search results filled in.
+    ///Params:
+    ///    lpIAB = Type: <b>IAddrBook*</b> Pointer to an IAddrBook interface that specifies the address book to use.
+    ///    hWnd = Type: <b>HWND</b> Value of type <b>HWND</b> that specifies the handle to the parent window for displayed
+    ///           dialog boxes.
+    ///    ulFlags = Type: <b>ULONG</b> Value of type <b>ULONG</b> that specifies flags that affect functionality.
+    ///    lpszURL = Type: <b>LPSTR</b> Value of type <b>LPSTR</b> that specifies the LDAP URL string. This string must begin with
+    ///              "ldap://".
+    ///    lppMailUser = Type: <b>IMailUser**</b> Address of a pointer to an IMailUser interface that receives the returned Mailuser
+    ///                  object, if requested. Otherwise, it is <b>NULL</b>.
+    ///Returns:
+    ///    Type: <b>HRESULT</b> If this method succeeds, it returns <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
+    ///    
     HRESULT LDAPUrl(IAddrBook lpIAB, HWND hWnd, uint ulFlags, const(char)* lpszURL, IMailUser* lppMailUser);
+    ///Translates the properties of a given MailUser object into a vCard file.
+    ///Params:
+    ///    lpIAB = Type: <b>IAddrBook*</b> Pointer to an IAddrBookinterface that specifies the address book.
+    ///    ulFlags = Type: <b>ULONG</b> No flags.
+    ///    lpszVCard = Type: <b>LPSTR</b> Value of type <b>LPSTR</b> that specifies the string containing the complete path name of
+    ///                the file to create.
+    ///    lpMailUser = Type: <b>IMailUser*</b> Pointer to an IMailUser interface that specifies the object whose properties are to
+    ///                 be written into the file.
+    ///Returns:
+    ///    Type: <b>HRESULT</b> If this method succeeds, it returns <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
+    ///    
     HRESULT VCardCreate(IAddrBook lpIAB, uint ulFlags, const(char)* lpszVCard, IMailUser lpMailUser);
+    ///Reads a vCard file and creates a MailUser object containing the vCard properties.
+    ///Params:
+    ///    lpIAB = Type: <b>IAddrBook*</b> Pointer to an IAddrBook interface that specifies the address book object.
+    ///    ulFlags = Type: <b>ULONG</b> Value of type <b>ULONG</b> that specifies flags affecting behavior.
+    ///    lpszVCard = Type: <b>LPSTR</b> Pointer to a string containing either the complete path name of the file to be read or the
+    ///                vCard buffer.
+    ///    lppMailUser = Type: <b>IMailUser**</b> Address of a pointer to an IMailUser interface that receives the MailUser object
+    ///                  created containing the properties in the vCard file.
+    ///Returns:
+    ///    Type: <b>HRESULT</b> If this method succeeds, it returns <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
+    ///    
     HRESULT VCardRetrieve(IAddrBook lpIAB, uint ulFlags, const(char)* lpszVCard, IMailUser* lppMailUser);
+    ///Retrieves the entry identifier of the object that has been designated as "ME."
+    ///Params:
+    ///    lpIAB = Type: <b>IAddrBook*</b> Pointer to an IAddrBook interface that specifies the address book object.
+    ///    ulFlags = Type: <b>ULONG</b> Value of type <b>ULONG</b> that specifies flags affecting functionality.
+    ///    lpdwAction = Type: <b>DWORD*</b> Pointer to a variable of type <b>DWORD</b> that receives the flag WABOBJECT_ME_NEW on
+    ///                 return, if a new ME entry is created. The variable is used to signal creation, as opposed to selection, of a
+    ///                 new ME entry. The variable can be <b>NULL</b>.
+    ///    lpsbEID = Type: <b>SBinary*</b> Pointer to a variable of type SBinary that specifies the entry identifier of the ME
+    ///              object on return.
+    ///    hwnd = Type: <b>ULONG</b> Value of type <b>ULONG</b> that specifies the handle of the parent window for displayed
+    ///           dialog boxes. You must cast the parent <b>HWND</b> to a <b>ULONG</b>.
+    ///Returns:
+    ///    Type: <b>HRESULT</b> If this method succeeds, it returns <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
+    ///    
     HRESULT GetMe(IAddrBook lpIAB, uint ulFlags, uint* lpdwAction, SBinary* lpsbEID, HWND hwnd);
+    ///Designates a particular contact as the ME object.
+    ///Params:
+    ///    lpIAB = Type: <b>IAddrBook*</b> Pointer to an IAddrBook interface that specifies the address book.
+    ///    ulFlags = Type: <b>ULONG</b> Value of type <b>ULONG</b> that specifies flags affecting behavior.
+    ///    sbEID = Type: <b>SBinary</b> Value of type SBinary that specifies the entry identifier of the contact that should be
+    ///            tagged as ME.
+    ///    hwnd = Type: <b>ULONG</b> Value of type <b>ULONG</b> that specifies the parent window handle for displaying dialog
+    ///           boxes. Cast the parent <b>HWND</b> to a <b>ULONG</b> before passing.
+    ///Returns:
+    ///    Type: <b>HRESULT</b> Returns S_OK if successful, or an error code otherwise.
+    ///    
     HRESULT SetMe(IAddrBook lpIAB, uint ulFlags, SBinary sbEID, HWND hwnd);
 }
 
@@ -861,6 +1150,8 @@ interface IWABOBJECT_
     HRESULT SetMe(IAddrBook lpIAB, uint ulFlags, SBinary sbEID, HWND hwnd);
 }
 
+///Do not use. This interface ndicates which Windows Address Book (WAB) object is being displayed (for example, a
+///property sheet or context menu).
 interface IWABExtInit : IUnknown
 {
     HRESULT Initialize(WABEXTDISPLAY* lpWABExtDisplay);

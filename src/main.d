@@ -16,6 +16,7 @@ import std.conv;
 import std.path: buildPath;
 import std.getopt;
 import std.math;
+import std.regex;
 
 
 
@@ -161,7 +162,7 @@ void dumpSectionHeader(std.stdio.File f, string name)
     f.writeln;
 }
 
-void dumpInterfaces(std.stdio.File f, const ref Metadata db, string namespace)
+void dumpInterfaces(std.stdio.File f, const ref Metadata db, string namespace, bool docs = false)
 {
     size_t maxLength, maxStructLength;
     RedBlackTree!string interfaceSet = new RedBlackTree!string;
@@ -176,9 +177,16 @@ void dumpInterfaces(std.stdio.File f, const ref Metadata db, string namespace)
 
     foreach(intf; getEmptyInterfaces(db, namespace))
     {
+
+        auto doc = docs ? findDoc(intf.name) : null;
+        if (doc)
+            dumpDocumentation(f, doc.description, 0);
         auto attr = intf.attributes.find!(a => a.name == "GuidAttribute").front;
         dumpGUIDAttr(f, attr.value); 
         auto intfName = intf.name;
+
+        
+        
         f.writefln("struct %s;", intfName);
         f.writeln;
         structSet.insert(intfName);
@@ -192,6 +200,11 @@ void dumpInterfaces(std.stdio.File f, const ref Metadata db, string namespace)
         if (intf.name in skipInterfaces)
             continue;
         bool hasGuid;
+
+        auto doc = docs ? findDoc(intf.name) : null;
+        if (doc)
+            dumpDocumentation(f, doc.description, 0);
+
         foreach(ca; intf.attributes)
         {
             auto attrName = ca.name;
@@ -203,6 +216,8 @@ void dumpInterfaces(std.stdio.File f, const ref Metadata db, string namespace)
             else
                 f.writefln("//INTERFACEF ATTR: %s : %s", ca.name, ca.value);
         }
+
+
         auto name = intf.name;
         if (hasGuid)
         {
@@ -211,6 +226,7 @@ void dumpInterfaces(std.stdio.File f, const ref Metadata db, string namespace)
                 maxLength = name.length;
         }
 
+        
         f.writef("interface %s", name);
         bool atLeastOne;    
 
@@ -235,7 +251,7 @@ void dumpInterfaces(std.stdio.File f, const ref Metadata db, string namespace)
         }
 
         foreach(meth; intf.methods)
-            dumpMethod(f, meth, 1, maxReturnTypeLength);
+            dumpMethod(f, meth, 1, maxReturnTypeLength, docs, intf.name);
 
         f.writeln("}");
         f.writeln;
@@ -261,7 +277,7 @@ void dumpInterfaces(std.stdio.File f, const ref Metadata db, string namespace)
     }
 }
 
-void dumpApis(std.stdio.File f, const ref Metadata db, string namespace)
+void dumpApis(std.stdio.File f, const ref Metadata db, string namespace, bool docs = false)
 {
     auto apis = getApisClasses(db, namespace);
     if (!apis.empty && !apis.front.methods.empty)
@@ -271,7 +287,7 @@ void dumpApis(std.stdio.File f, const ref Metadata db, string namespace)
         {
             if (meth.name in skipMethods)
                 continue;
-            dumpMethod(f, meth, 0, 0);
+            dumpMethod(f, meth, 0, 0, docs);
         }
     }
 }
@@ -310,18 +326,18 @@ string getEnumTypeText(const ref TypeDef e)
     }
 }
 
-void dumpEnums(std.stdio.File f, const ref Metadata db, string namespace)
+void dumpEnums(std.stdio.File f, const ref Metadata db, string namespace, bool docs = false)
 {
     auto enums = getEnums(db, namespace);
     if (!enums.empty)
     {
         dumpSectionHeader(f, "Enums");
         foreach(e; enums)
-            dumpEnum(f, e);
+            dumpEnum(f, e, docs);
     }
 }
 
-void dumpEnum(std.stdio.File f, const ref TypeDef e)
+void dumpEnum(std.stdio.File f, const ref TypeDef e, bool docs = false)
 {
     foreach(ca; e.attributes)
         f.writefln("//ENUM ATTR: %s : %s", ca.name, ca.value);
@@ -339,17 +355,30 @@ void dumpEnum(std.stdio.File f, const ref TypeDef e)
 
     if (e.fields.any!(a => !a.fieldAttributes.hasRuntimeSpecialName))
     {
+        MDMatcher* doc = docs ? findDoc(e.name) : null;
         f.writeln;
-        if (trueEnum)
-            f.writefln("enum %s : %s", e.name, typeText);
-        else
+        if (doc)
+            dumpDocumentation(f, doc.description, 0);
+        
+        if (!trueEnum)
+        {
+            f.writefln("alias %s = %s;", e.name, typeText);
             f.writefln("enum : %s", typeText);
+        }
+        else
+            f.writefln("enum %s : %s", e.name, typeText);            
         f.writeln("{");
         foreach(fx; e.fields)
         {            
             auto name = safeWords.get(fx.name, fx.name);
             if (!fx.fieldAttributes.hasRuntimeSpecialName)
             {
+                if (doc)
+                {
+                    auto fdoc = doc.fields.find!(a => a.name == name);
+                    if (!fdoc.empty)
+                        dumpDocumentation(f, fdoc.front.description, 1);
+                }
                 f.write("".padLeft(' ', 4));
                 f.write(name);
 
@@ -369,8 +398,7 @@ void dumpEnum(std.stdio.File f, const ref TypeDef e)
         }   
         f.writeln("}");
     }
-    if (!trueEnum)
-        f.writefln("alias %s = %s;", e.name, typeText);
+    
 }
 
 void dumpConstant(std.stdio.File f, Constant.ConstantValue v)
@@ -526,16 +554,31 @@ void dumpConstant(std.stdio.File f, Field fld, int level)
     f.writeln;
 }
 
-void dumpMethod(std.stdio.File f, MethodDef meth, int level, size_t maxReturnTypeLength)
+void dumpMethod(std.stdio.File f, MethodDef meth, int level, size_t maxReturnTypeLength, bool docs = false, string prefix = null)
 {
     size_t w, v;
-    f.write("".padLeft(' ', level * 4));
-    w = level * 4;
+    
 
     foreach(ca; meth.attributes)
     {
         f.writefln("//METH ATTR: %s : %s", ca.name, ca.value);
     }
+
+    
+
+   
+    auto doc = docs ? findDoc(prefix.length ? prefix ~ '.' ~ meth.name: meth.name) : null;
+
+    if (doc)
+    {
+        dumpDocumentation(f, doc.description, level);
+        dumpDocumentationParams(f, *doc, level);     
+        dumpDocumentationReturn(f, doc.returns, level);
+    }
+
+
+    f.write("".padLeft(' ', level * 4));
+    w = level * 4;
 
 
     auto impl = meth.implementation;
@@ -614,11 +657,21 @@ void dumpMethod(std.stdio.File f, MethodDef meth, int level, size_t maxReturnTyp
 
 }
 
-void dumpStruct(std.stdio.File f, const ref TypeDef struc, int level = 0, string nameOverride = "")
+void dumpStruct(std.stdio.File f, const ref TypeDef struc, int level = 0, string nameOverride = "", bool docs = false)
 {
     if (!level)
         f.writeln;
     f.write("".padLeft(' ', level * 4));
+
+    if (struc.name == "CQFORM")
+    {
+        auto s = "";
+    }
+
+    MDMatcher* doc = level == 0 && docs ? findDoc(struc.name) : null;
+    if (doc)
+        dumpDocumentation(f, doc.description, 0); 
+
     foreach(ca; struc.attributes)
     {
         if (ca.name == "NativeTypedefAttribute")
@@ -706,7 +759,7 @@ void dumpStruct(std.stdio.File f, const ref TypeDef struc, int level = 0, string
             {                
                 if (td.get in *nestedClasses)
                 {
-                    dumpStruct(f, td.get, level + 1, safeWords.get(fx.name, fx.name));
+                    dumpStruct(f, td.get, level + 1, safeWords.get(fx.name, fx.name), false);
                     continue;                
                 }
             }
@@ -716,6 +769,14 @@ void dumpStruct(std.stdio.File f, const ref TypeDef struc, int level = 0, string
         auto type = types[name];
         if (name == "_bitfield" || name == type)
             name = getUnique(name);
+
+        if (doc)
+        {
+            auto fdoc = doc.fields.find!(a => a.name == fx.name);
+            if (!fdoc.empty)            
+                dumpDocumentation(f, fdoc.front.description, level + 1);            
+        }
+        
         f.write("".padLeft(' ', level * 4));
         f.write("".padLeft(' ' , 4));
         f.write(type);
@@ -737,18 +798,18 @@ void dumpStruct(std.stdio.File f, const ref TypeDef struc, int level = 0, string
     f.writeln("}");
 }
 
-void dumpStructs(std.stdio.File f, const ref Metadata db, string namespace)
+void dumpStructs(std.stdio.File f, const ref Metadata db, string namespace, bool docs = false)
 {
     auto structs = getStructs(db, namespace);
     if (!structs.empty)
     {
         dumpSectionHeader(f, "Structs");
         foreach(s; structs)
-            dumpStruct(f, s);
+            dumpStruct(f, s, 0, null, docs);
     }
 }
 
-void dumpDelegate(std.stdio.File f, TypeDef type)
+void dumpDelegate(std.stdio.File f, TypeDef type, bool docs = false)
 {
 
     string conv;
@@ -775,6 +836,13 @@ void dumpDelegate(std.stdio.File f, TypeDef type)
     {        
         if (meth.name == "Invoke")
         {   
+            auto doc = docs ? findDoc(type.name) : null;
+            if (doc)
+            {
+                dumpDocumentation(f, doc.description, 0);
+                dumpDocumentationParams(f, *doc, 0);
+                dumpDocumentationReturn(f, doc.returns, 0);
+            }
             auto name = safeWords.get(type.name, type.name);
             size_t w, v;
             f.write("alias ");
@@ -838,15 +906,89 @@ void dumpDelegate(std.stdio.File f, TypeDef type)
     }
 }
 
-void dumpDelegates(std.stdio.File f, const ref Metadata db, string namespace)
+void dumpDelegates(std.stdio.File f, const ref Metadata db, string namespace, bool docs = false)
 {
     auto delegates = getDelegates(db, namespace);
     if (!delegates.empty)
     {
         dumpSectionHeader(f, "Callbacks");
         foreach(d; delegates)
-            dumpDelegate(f, d);
+            dumpDelegate(f, d, docs);
     }
+}
+
+void dumpDocumentation(std.stdio.File f, string doc, int level)
+{    
+    auto len = maxLineWidth - 3 - level * 4;    
+
+    foreach(line; doc.wrap(len).splitter('\n'))
+    {
+        if (line.length)
+        {
+            f.write("".padLeft(' ', level * 4));
+            f.write("///");
+            f.writeln(line);        
+        }
+    }
+
+}
+
+void dumpDocumentationReturn(std.stdio.File f, string ret, int level)
+{    
+    auto len = maxLineWidth - 3 - level * 4;     
+
+    if (ret.length)
+    {
+        f.write("".padLeft(' ', level * 4));
+        f.write("///");
+        f.writeln("Returns:");
+        len -= 4;
+    
+        foreach(line; ret.wrap(len).splitter('\n'))
+        {
+            f.write("".padLeft(' ', level * 4));
+            f.write("///");
+            f.write("".padLeft(' ', 4));
+            f.writeln(line);
+        }
+    }
+}
+
+void dumpDocumentationParams(std.stdio.File f, MDMatcher doc, int level)
+{    
+    auto len = maxLineWidth - 3 - level * 4; 
+    if (!doc.params.empty)
+    {
+        dumpDocumentation(f, "Params:", level);
+        len -= 4;
+        foreach(p; doc.params)
+        {
+            f.write("".padLeft(' ', level * 4));
+            f.write("///");
+            f.write("".padLeft(' ', 4));
+            f.write(p.name);
+            f.write(" = ");            
+            auto wrp = p.description.wrap(len).splitter('\n');
+            if (!wrp.empty)
+            {
+                f.writeln(wrp.front);
+                wrp.popFront();
+                foreach(line; wrp)
+                {
+                    if (line.length)
+                    {
+                        f.write("".padLeft(' ', level * 4));
+                        f.write("///");
+                        f.write("".padLeft(' ', 4));
+                        f.write("".padLeft(' ', p.name.length + 3));
+                        f.writeln(line);
+                    }
+                }
+            }         
+        }
+    }
+    
+
 }
 
 string getTypeText(const ref TypeSig sig, bool isConst = false, int nativeReplacement = 0)
@@ -1085,6 +1227,222 @@ void buildDependencies(TypeDef type, string namespace, StringSet rb)
     }            
 }
 
+
+
+
+
+enum linkCleanup = ctRegex!(`<a .*?href="(.*?)">(.*?)<\/a>`, "g");
+enum spaceCleanup = ctRegex!(r"(\r\n)+|\r+|\n+|\t+|\s\s+", "g");
+
+string cleanText( string s)
+{
+    return replaceAll(replaceAll(s, linkCleanup, "$2"), spaceCleanup, " ");
+}
+
+struct MDMatcher
+{
+    private enum returnsPattern = ctRegex!(r"## -returns(.*?)(?=##)", "gs");
+    private enum uidPattern = ctRegex!(r"UID: (.*)", "g");
+    private enum descriptionPatternSmall = ctRegex!(r"description: (.*)", "g");
+    private enum descriptionPatternBig = ctRegex!(r"## -description(.*?)(?=##)", "gs");
+    private enum titlePattern = ctRegex!(r"title: (.*)", "g");
+    private enum paramPattern = ctRegex!(r"### -param(.*?)(?=#)", "gs");
+    private enum fieldPattern = ctRegex!(r"### -field(.*?)(?=#)", "gs");
+    private enum keywordsPattern = ctRegex!(r"keywords: (.*)", "g");
+    private string content;
+
+    public this(string s)
+    {
+        content = s;
+    }
+
+    public bool isEnum()
+    {
+        return uid.startsWith("NE:");
+    }
+
+    public bool isFunction()
+    {
+        return uid.startsWith("NF:");
+    }
+
+    public bool isStruct()
+    {
+        return uid.startsWith("NS:");
+    }
+
+    public bool isInterface()
+    {
+        return uid.startsWith("NN:");
+    }
+
+    public bool isCallback()
+    {
+        return uid.startsWith("NC:");
+    }
+
+    public bool isClass()
+    {
+        return uid.startsWith("NL:");
+    }
+
+    public bool isIOCTL()
+    {
+        return uid.startsWith("NI:");
+    }
+
+    public string returns()
+    {
+        auto match = matchFirst(content, returnsPattern);
+        return match.empty ? null : cleanText(match[0][12 .. $]); 
+    }
+
+    public string uid()
+    {
+        auto match = matchFirst(content, uidPattern);
+        return match.empty ? null : match[0][5 .. $]; 
+    }
+
+    public string title()
+    {
+        auto match = matchFirst(content, titlePattern);
+        return match.empty ? null : match[0][7 .. $]; 
+    }
+
+    public string keyFromUID()
+    {
+        auto s = uid;
+
+        if (s.length > 3 && s[2] == ':')
+            s = s[3 .. $];
+        auto p = s.indexOf('.');
+        if (p > 0)
+            s = s[p + 1 .. $];
+        
+        while (s.startsWith('_'))        
+            s = s[1 .. $];
+
+        return s;
+    }
+
+    public string keyFromTitle()
+    {
+        auto s = title();
+        auto q = s.indexOf(' ');
+        s = s.replace("::", ".");
+        return q > 0 ? s[0 .. q] : s;
+    }
+
+
+    public string description()
+    {
+        auto match = matchFirst(content, descriptionPatternBig);
+        if (!match.empty) 
+            return match.empty ? null : cleanText(match[0][16 .. $]);
+        match = matchFirst(content, descriptionPatternSmall);
+        return match.empty ? null : cleanText(match[0][13 .. $]);
+    }
+
+    public auto keywords()
+    {
+
+        return matchAll(content, keywordsPattern)
+            .map!(a => a.hit.stripLeft("[").strip("]"))
+            .fold!((a, b) => a ~ "," ~ b)("")
+            .splitter(',')
+            .map!(a => a.stripLeft("\" '").strip("\" '"))
+            .filter!(a => a.length && !a.any!(b => b == ' ' || b == '\\' || b == '/' || b == ':'))
+            .array
+            .sort
+            .uniq;
+    }
+
+    public bool match(string id)
+    {
+        return keywords.any!(a => a == id);
+    }
+
+    public auto params()
+    {
+        return matchAll(content, paramPattern)            
+            .map!(a => MDParam(a.hit));    
+
+    }
+
+    public auto fields()
+    {
+        return matchAll(content, fieldPattern)
+            .map!(a => MDField(a.hit));            
+    }
+}
+
+struct MDParam
+{
+
+    private enum namePattern = ctRegex!(r"(?<=^### -param )([A-Za-z0-9_]*)", "g");
+    private enum descriptionPattern = ctRegex!(r"(?<=\n).*", "gs");
+
+    private string content;
+
+    this(string s)
+    {
+        this.content = s;
+    }
+
+    public string name()
+    {
+        auto match = matchFirst(content, namePattern);
+        return match.empty ? null : match[0];
+    }
+
+    public string description()
+    {
+        auto match = matchFirst(content, descriptionPattern);
+        return match.empty ? null : cleanText(match[0]);
+    }
+}
+
+struct MDField
+{
+
+    private enum namePattern = ctRegex!(r"(?<=^### -field )([A-Za-z0-9_]*)", "g");
+    private enum descriptionPattern = ctRegex!(r"(?<=\n).*", "gs");
+    private string content;
+
+    this(string s)
+    {
+        this.content = s;
+    }
+
+    public string name()
+    {
+        auto match = matchFirst(content, namePattern);
+        return match.empty ? null : match[0];
+    }
+
+    public string description()
+    {
+        auto match = matchFirst(content, descriptionPattern);
+        return match.empty ? null : cleanText(match[0]);
+    }
+}
+
+MDMatcher[string] docMatcher;
+
+MDMatcher* findDoc(string name)
+{
+    auto matcher = name in docMatcher;
+    //takes tooooooooooo long
+    //if (matcher)
+    //    return matcher;
+    //foreach(m; docMatcher.byKeyValue)
+    //{
+    //    if(m.value.match(name))
+    //        return m.key in docMatcher;
+    //}
+    return matcher;
+}
+
 int main(string[] args)
 {
     string[string] configNamespace;
@@ -1099,6 +1457,7 @@ int main(string[] args)
     string cfgIgnoreFileName;
     string cfgReplaceFileName;
     string cfgCoreFileName;
+    string docsDirectory;
 
 
     GetoptResult info;
@@ -1111,11 +1470,12 @@ int main(string[] args)
     try
     {
         info = getopt(args,
-            config.required, "meta|m",  "winmd file to process",                    &mdFileName, 
-                             "out|o",    "output directory (defaults to 'out')",    &outDirectory,
-                             "ignore|i",    "namespaces to ignore",                 &cfgIgnoreFileName,
-                             "replace|r",   "namespaces to replace",                &cfgReplaceFileName,
-            config.required, "core|c",      "core.d file to be copied",             &cfgCoreFileName,
+            config.required, "meta|m",     "winmd file to process",                &mdFileName, 
+                             "out|o",      "output directory (defaults to 'out')", &outDirectory,
+                             "ignore|i",   "namespaces to ignore",                 &cfgIgnoreFileName,
+                             "replace|r",  "namespaces to replace",                &cfgReplaceFileName,
+                             "docs|d",     "generate documentation",               &docsDirectory,
+            config.required, "core|c",     "core.d file to be copied",             &cfgCoreFileName,
         );
     }
     catch(GetOptException e)
@@ -1137,6 +1497,12 @@ int main(string[] args)
   
     if (outDirectory.length == 0)
         outDirectory = "out";
+
+    if (docsDirectory.length && !exists(docsDirectory))
+    {
+        writefln("Mising sdk docs (%s)", buildNormalizedPath(absolutePath(docsDirectory)));
+        return -1;
+    }
    
     if (!exists(cfgCoreFileName))
     {
@@ -1254,8 +1620,27 @@ int main(string[] args)
         "CreateDispatcherQueueController" : true,
     ];
 
+    if (docsDirectory.length)
+    {
+        writeln("Parsing SDK documentation...");
+        foreach(md; dirEntries(docsDirectory, "??-*-*.md", SpanMode.depth, false))
+        {
+            auto matcher = MDMatcher(readText(md.name));
+            auto k1 = matcher.keyFromUID;
+            auto k2 = matcher.keyFromTitle;
+            docMatcher[k1] = matcher;
+            if (k2 != k1)
+                docMatcher[k2] = matcher;
+        }
+        docMatcher.rehash();
+    }
+
+    
+
     auto metadata = Metadata(mdFileName);
     auto namespaces = getNamespaces(metadata, cfgIgnoredNamespaces);
+
+
 
     writeln("Building dependency graph...");
 
@@ -1304,6 +1689,8 @@ int main(string[] args)
             mustCopyCore = false;
         }
         auto f = std.stdio.File(path, "w");
+        f.writeln("// Written in the D programming language.");
+        f.writeln();
         f.writefln("module %s;", modName);
         f.writeln;
         writefln("Processing %s", namespace);
@@ -1342,6 +1729,7 @@ int main(string[] args)
                     f.write(", ");
                 f.write(importName);
                 w += importName.length + 2;
+                w += importName.length + 2;
             }
         }
         if (atLeastOne)
@@ -1351,12 +1739,12 @@ int main(string[] args)
         f.writeln("extern(Windows):");
         f.writeln;
                 
-        dumpEnums(f, metadata, namespace);    
+        dumpEnums(f, metadata, namespace, docsDirectory.length > 0);    
         dumpApisConstants(f, metadata, namespace);
-        dumpDelegates(f, metadata, namespace);
-        dumpStructs(f, metadata, namespace);
-        dumpApis(f, metadata, namespace);
-        dumpInterfaces(f, metadata, namespace);
+        dumpDelegates(f, metadata, namespace,docsDirectory.length > 0);
+        dumpStructs(f, metadata, namespace,docsDirectory.length > 0);
+        dumpApis(f, metadata, namespace,docsDirectory.length > 0);
+        dumpInterfaces(f, metadata, namespace,docsDirectory.length > 0);
     }
 
 

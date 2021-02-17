@@ -1,3 +1,5 @@
+// Written in the D programming language.
+
 module windows.kernel;
 
 public import windows.core;
@@ -9,6 +11,7 @@ extern(Windows):
 // Enums
 
 
+alias EXCEPTION_DISPOSITION = int;
 enum : int
 {
     ExceptionContinueExecution = 0x00000000,
@@ -16,29 +19,31 @@ enum : int
     ExceptionNestedException   = 0x00000002,
     ExceptionCollidedUnwind    = 0x00000003,
 }
-alias EXCEPTION_DISPOSITION = int;
 
+///The <b>COMPARTMENT_ID</b> enumeration indicates the network routing compartment identifier.
+alias COMPARTMENT_ID = int;
 enum : int
 {
+    ///Indicates that the routing compartment is undefined.
     UNSPECIFIED_COMPARTMENT_ID = 0x00000000,
     DEFAULT_COMPARTMENT_ID     = 0x00000001,
 }
-alias COMPARTMENT_ID = int;
 
+alias EVENT_TYPE = int;
 enum : int
 {
     NotificationEvent    = 0x00000000,
     SynchronizationEvent = 0x00000001,
 }
-alias EVENT_TYPE = int;
 
+alias TIMER_TYPE = int;
 enum : int
 {
     NotificationTimer    = 0x00000000,
     SynchronizationTimer = 0x00000001,
 }
-alias TIMER_TYPE = int;
 
+alias WAIT_TYPE = int;
 enum : int
 {
     WaitAll          = 0x00000000,
@@ -46,16 +51,16 @@ enum : int
     WaitNotification = 0x00000002,
     WaitDequeue      = 0x00000003,
 }
-alias WAIT_TYPE = int;
 
+alias NT_PRODUCT_TYPE = int;
 enum : int
 {
     NtProductWinNt    = 0x00000001,
     NtProductLanManNt = 0x00000002,
     NtProductServer   = 0x00000003,
 }
-alias NT_PRODUCT_TYPE = int;
 
+alias SUITE_TYPE = int;
 enum : int
 {
     SmallBusiness           = 0x00000000,
@@ -78,7 +83,6 @@ enum : int
     MultiUserTS             = 0x00000011,
     MaxSuiteType            = 0x00000012,
 }
-alias SUITE_TYPE = int;
 
 // Callbacks
 
@@ -88,9 +92,12 @@ alias EXCEPTION_ROUTINE = EXCEPTION_DISPOSITION function(EXCEPTION_RECORD* Excep
 // Structs
 
 
+///Describes a local identifier for an adapter.
 struct LUID
 {
+    ///Specifies a DWORD that contains the unsigned lower numbers of the id.
     uint LowPart;
+    ///Specifies a LONG that contains the signed high numbers of the id.
     int  HighPart;
 }
 
@@ -110,14 +117,25 @@ struct CSTRING
     const(byte)* Buffer;
 }
 
+///A <b>LIST_ENTRY</b> structure describes an entry in a doubly linked list or serves as the header for such a list.
 struct LIST_ENTRY
 {
+    ///For a <b>LIST_ENTRY</b> structure that serves as a list entry, the <b>Flink</b> member points to the next entry
+    ///in the list or to the list header if there is no next entry in the list. For a <b>LIST_ENTRY</b> structure that
+    ///serves as the list header, the <b>Flink</b> member points to the first entry in the list or to the LIST_ENTRY
+    ///structure itself if the list is empty.
     LIST_ENTRY* Flink;
+    ///For a <b>LIST_ENTRY</b> structure that serves as a list entry, the <b>Blink</b> member points to the previous
+    ///entry in the list or to the list header if there is no previous entry in the list. For a <b>LIST_ENTRY</b>
+    ///structure that serves as the list header, the <b>Blink</b> member points to the last entry in the list or to the
+    ///<b>LIST_ENTRY</b> structure itself if the list is empty.
     LIST_ENTRY* Blink;
 }
 
+///Represents an item in a singly linked list.
 struct SINGLE_LIST_ENTRY
 {
+    ///A pointer to an <b>SLIST_ENTRY</b> structure that represents the next item in a singly linked list.
     SINGLE_LIST_ENTRY* Next;
 }
 

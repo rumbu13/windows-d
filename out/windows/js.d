@@ -1,10 +1,12 @@
+// Written in the D programming language.
+
 module windows.js;
 
 public import windows.core;
 public import windows.automation : VARIANT;
 public import windows.com : HRESULT;
-public import windows.dbg : IActiveScriptProfilerCallback, IActiveScriptProfilerHeapEnum, IDebugApplication32,
-                            __MIDL___MIDL_itf_activprof_0000_0000_0002;
+public import windows.dbg : IActiveScriptProfilerCallback, IActiveScriptProfilerHeapEnum,
+                            IDebugApplication32, __MIDL___MIDL_itf_activprof_0000_0000_0002;
 
 extern(Windows):
 

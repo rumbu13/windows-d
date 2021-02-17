@@ -1,7 +1,10 @@
+// Written in the D programming language.
+
 module windows.dbg;
 
 public import windows.core;
-public import windows.automation : BSTR, DISPPARAMS, EXCEPINFO, IDispatch, IDispatchEx, ITypeInfo, SAFEARRAY, TYPEDESC,
+public import windows.automation : BSTR, DISPPARAMS, EXCEPINFO, IDispatch,
+                                   IDispatchEx, ITypeInfo, SAFEARRAY, TYPEDESC,
                                    VARIANT;
 public import windows.com : CADWORD, CALPOLESTR, HRESULT, IEnumUnknown, IUnknown;
 public import windows.displaydevices : POINT, RECT, SIZE;
@@ -10,8 +13,10 @@ public import windows.gdi : HDC, HRGN;
 public import windows.menusandresources : VS_FIXEDFILEINFO;
 public import windows.shell : IActiveIMMApp, LOGFONTW;
 public import windows.structuredstorage : ILockBytes;
-public import windows.systemservices : BOOL, FLOATING_SAVE_AREA, HANDLE, IMAGE_LOAD_CONFIG_CODE_INTEGRITY,
-                                       IServiceProvider, LARGE_INTEGER, LPTHREAD_START_ROUTINE, NTSTATUS,
+public import windows.systemservices : BOOL, FLOATING_SAVE_AREA, HANDLE,
+                                       IMAGE_LOAD_CONFIG_CODE_INTEGRITY,
+                                       IServiceProvider, LARGE_INTEGER,
+                                       LPTHREAD_START_ROUTINE, NTSTATUS,
                                        XSTATE_FEATURE;
 public import windows.windowsandmessaging : HWND;
 public import windows.windowsprogramming : TIME_ZONE_INFORMATION;
@@ -22,6 +27,7 @@ extern(Windows):
 // Enums
 
 
+alias WCT_OBJECT_TYPE = int;
 enum : int
 {
     WctCriticalSectionType = 0x00000001,
@@ -38,8 +44,8 @@ enum : int
     WctSmbIoType           = 0x0000000c,
     WctMaxType             = 0x0000000d,
 }
-alias WCT_OBJECT_TYPE = int;
 
+alias WCT_OBJECT_STATUS = int;
 enum : int
 {
     WctStatusNoAccess     = 0x00000001,
@@ -54,28 +60,55 @@ enum : int
     WctStatusError        = 0x0000000a,
     WctStatusMax          = 0x0000000b,
 }
-alias WCT_OBJECT_STATUS = int;
 
+///Represents the type of a minidump data stream.
+alias MINIDUMP_STREAM_TYPE = int;
 enum : int
 {
+    ///Reserved. Do not use this enumeration value.
     UnusedStream                = 0x00000000,
+    ///Reserved. Do not use this enumeration value.
     ReservedStream0             = 0x00000001,
+    ///Reserved. Do not use this enumeration value.
     ReservedStream1             = 0x00000002,
+    ///The stream contains thread information. For more information, see MINIDUMP_THREAD_LIST.
     ThreadListStream            = 0x00000003,
+    ///The stream contains module information. For more information, see MINIDUMP_MODULE_LIST.
     ModuleListStream            = 0x00000004,
+    ///The stream contains memory allocation information. For more information, see MINIDUMP_MEMORY_LIST.
     MemoryListStream            = 0x00000005,
+    ///The stream contains exception information. For more information, see MINIDUMP_EXCEPTION_STREAM.
     ExceptionStream             = 0x00000006,
+    ///The stream contains general system information. For more information, see MINIDUMP_SYSTEM_INFO.
     SystemInfoStream            = 0x00000007,
+    ///The stream contains extended thread information. For more information, see MINIDUMP_THREAD_EX_LIST.
     ThreadExListStream          = 0x00000008,
+    ///The stream contains memory allocation information. For more information, see MINIDUMP_MEMORY64_LIST.
     Memory64ListStream          = 0x00000009,
+    ///The stream contains an ANSI string used for documentation purposes.
     CommentStreamA              = 0x0000000a,
+    ///The stream contains a Unicode string used for documentation purposes.
     CommentStreamW              = 0x0000000b,
+    ///The stream contains high-level information about the active operating system handles. For more information, see
+    ///MINIDUMP_HANDLE_DATA_STREAM.
     HandleDataStream            = 0x0000000c,
+    ///The stream contains function table information. For more information, see MINIDUMP_FUNCTION_TABLE_STREAM.
     FunctionTableStream         = 0x0000000d,
+    ///The stream contains module information for the unloaded modules. For more information, see
+    ///MINIDUMP_UNLOADED_MODULE_LIST. <b>DbgHelp 5.1: </b>This value is not supported.
     UnloadedModuleListStream    = 0x0000000e,
+    ///The stream contains miscellaneous information. For more information, see MINIDUMP_MISC_INFO or
+    ///MINIDUMP_MISC_INFO_2. <b>DbgHelp 5.1: </b>This value is not supported.
     MiscInfoStream              = 0x0000000f,
+    ///The stream contains memory region description information. It corresponds to the information that would be
+    ///returned for the process from the VirtualQuery function. For more information, see MINIDUMP_MEMORY_INFO_LIST.
+    ///<b>DbgHelp 6.1 and earlier: </b>This value is not supported.
     MemoryInfoListStream        = 0x00000010,
+    ///The stream contains thread state information. For more information, see MINIDUMP_THREAD_INFO_LIST. <b>DbgHelp 6.1
+    ///and earlier: </b>This value is not supported.
     ThreadInfoListStream        = 0x00000011,
+    ///This stream contains operation list information. For more information, see MINIDUMP_HANDLE_OPERATION_LIST.
+    ///<b>DbgHelp 6.4 and earlier: </b>This value is not supported.
     HandleOperationListStream   = 0x00000012,
     TokenStream                 = 0x00000013,
     JavaScriptDataStream        = 0x00000014,
@@ -96,113 +129,295 @@ enum : int
     ceStreamBucketParameters    = 0x0000800a,
     ceStreamProcessModuleMap    = 0x0000800b,
     ceStreamDiagnosisList       = 0x0000800c,
+    ///Any value greater than this value will not be used by the system and can be used to represent application-defined
+    ///data streams. For more information, see MINIDUMP_USER_STREAM.
     LastReservedStream          = 0x0000ffff,
 }
-alias MINIDUMP_STREAM_TYPE = int;
 
+///Identifies the type of object-specific information.
+alias MINIDUMP_HANDLE_OBJECT_INFORMATION_TYPE = int;
 enum : int
 {
+    ///There is no object-specific information for this handle type.
     MiniHandleObjectInformationNone    = 0x00000000,
+    ///The information is specific to thread objects.
     MiniThreadInformation1             = 0x00000001,
+    ///The information is specific to mutant objects.
     MiniMutantInformation1             = 0x00000002,
+    ///The information is specific to mutant objects.
     MiniMutantInformation2             = 0x00000003,
+    ///The information is specific to process objects.
     MiniProcessInformation1            = 0x00000004,
+    ///The information is specific to process objects.
     MiniProcessInformation2            = 0x00000005,
     MiniEventInformation1              = 0x00000006,
     MiniSectionInformation1            = 0x00000007,
     MiniSemaphoreInformation1          = 0x00000008,
     MiniHandleObjectInformationTypeMax = 0x00000009,
 }
-alias MINIDUMP_HANDLE_OBJECT_INFORMATION_TYPE = int;
 
+///Identifies the type of information returned by the MiniDumpCallback function. Not all memory failures will cause a
+///callback; for example if the failure is within a stack then the failure is considered to be unrecoverable and the
+///minidump will fail.
+alias MINIDUMP_CALLBACK_TYPE = int;
 enum : int
 {
+    ///The callback function returns module information.
     ModuleCallback               = 0x00000000,
+    ///The callback function returns thread information.
     ThreadCallback               = 0x00000001,
+    ///The callback function returns extended thread information.
     ThreadExCallback             = 0x00000002,
+    ///The callback function indicates which threads are to be included. It is called as the minidump library is
+    ///enumerating the threads in a process, rather than after the information gathered, as it is with
+    ///<b>ThreadCallback</b> or <b>ThreadExCallback</b>. It is called for each thread. If the callback function returns
+    ///<b>FALSE</b>, the current thread is excluded. This allows the caller to obtain information for a subset of the
+    ///threads in a process, without suspending threads that are not of interest. Alternately, you can modify the
+    ///<b>ThreadWriteFlags</b> member of the MINIDUMP_CALLBACK_OUTPUT structure and return <b>TRUE</b> to avoid
+    ///gathering unnecessary information for the thread.
     IncludeThreadCallback        = 0x00000003,
+    ///The callback function indicates which modules are to be included. The callback function is called as the minidump
+    ///library is enumerating the modules in a process, rather than after the information is gathered, as it is with
+    ///<b>ModuleCallback</b>. It is called for each module. If the callback function returns <b>FALSE</b>, the current
+    ///module is excluded. Alternatively, you can modify the <b>ModuleWriteFlags</b> member of the
+    ///MINIDUMP_CALLBACK_OUTPUT structure and return <b>TRUE</b> to avoid gathering unnecessary information for the
+    ///module.
     IncludeModuleCallback        = 0x00000004,
+    ///The callback function returns a region of memory to be included in the dump. The callback is called only for
+    ///dumps generated without the MiniDumpWithFullMemory flag. If the callback function returns <b>FALSE</b> or a
+    ///region of size 0, the callback will not be called again. <b>DbgHelp 6.1 and earlier: </b>This value is not
+    ///supported.
     MemoryCallback               = 0x00000005,
+    ///The callback function returns cancellation information. <b>DbgHelp 6.1 and earlier: </b>This value is not
+    ///supported.
     CancelCallback               = 0x00000006,
+    ///The user-mode minidump has been successfully completed. To initiate a kernel-mode minidump, the callback should
+    ///return <b>TRUE</b> and set the <b>Handle</b> member of the MINIDUMP_CALLBACK_OUTPUT structure. <b>DbgHelp 6.1 and
+    ///earlier: </b>This value is not supported.
     WriteKernelMinidumpCallback  = 0x00000007,
+    ///The callback function returns status information for the kernel minidump. <b>DbgHelp 6.1 and earlier: </b>This
+    ///value is not supported.
     KernelMinidumpStatusCallback = 0x00000008,
+    ///The callback function returns a region of memory to be excluded from the dump. The callback is called only for
+    ///dumps generated without the <b>MiniDumpWithFullMemory</b> flag. If the callback function returns <b>FALSE</b> or
+    ///a region of size 0, the callback will not be called again. <b>DbgHelp 6.3 and earlier: </b>This value is not
+    ///supported.
     RemoveMemoryCallback         = 0x00000009,
+    ///The callback function returns information about the virtual memory region. It is called twice for each region
+    ///during the full-memory writing pass. The <b>VmRegion</b> member of the MINIDUMP_CALLBACK_OUTPUT structure
+    ///contains the current memory region. You can modify the base address and size of the region, as long as the new
+    ///region remains a subset of the original region; changes to other members are ignored. If the callback returns
+    ///<b>TRUE</b> and sets the <b>Continue</b> member of <b>MINIDUMP_CALLBACK_OUTPUT</b> to <b>TRUE</b>, the minidump
+    ///library will use the region specified by <b>VmRegion</b> as the region to be written. If the callback returns
+    ///<b>FALSE</b> or if <b>Continue</b> is <b>FALSE</b>, the callback will not be called for additional memory
+    ///regions. <b>DbgHelp 6.4 and earlier: </b>This value is not supported.
     IncludeVmRegionCallback      = 0x0000000a,
+    ///The callback function indicates that the caller will be providing an alternate I/O routine. If the callback
+    ///returns <b>TRUE</b> and sets the <b>Status</b> member of MINIDUMP_CALLBACK_OUTPUT to <b>S_FALSE</b>, the minidump
+    ///library will send all I/O through callbacks. The caller will receive an <b>IoWriteAllCallback</b> callback for
+    ///each piece of data. <b>DbgHelp 6.4 and earlier: </b>This value is not supported.
     IoStartCallback              = 0x0000000b,
+    ///The callback must write all requested bytes or fail. The <b>Io</b> member of the MINIDUMP_CALLBACK_INPUT
+    ///structure contains the request. If the write operation fails, the callback should return <b>FALSE</b>. If the
+    ///write operation succeeds, the callback should return <b>TRUE</b> and set the <b>Status</b> member of
+    ///MINIDUMP_CALLBACK_OUTPUT to <b>S_OK</b>. The caller will receive an <b>IoFinishCallback</b> callback when the I/O
+    ///has completed. <b>DbgHelp 6.4 and earlier: </b>This value is not supported.
     IoWriteAllCallback           = 0x0000000c,
+    ///The callback returns I/O completion information. If the callback returns <b>FALSE</b> or does not set the
+    ///<b>Status</b> member of MINIDUMP_CALLBACK_OUTPUT to <b>S_OK</b>, the minidump library assumes the minidump write
+    ///operation has failed. <b>DbgHelp 6.4 and earlier: </b>This value is not supported.
     IoFinishCallback             = 0x0000000d,
+    ///There has been a failure to read memory. If the callback returns <b>TRUE</b> and sets the <b>Status</b> member of
+    ///MINIDUMP_CALLBACK_OUTPUT to <b>S_OK</b>, the memory failure is ignored and the block is omitted from the
+    ///minidump. Otherwise, this failure results in a failure to write to the minidump. <b>DbgHelp 6.4 and earlier:
+    ///</b>This value is not supported.
     ReadMemoryFailureCallback    = 0x0000000e,
+    ///The callback returns secondary information. <b>DbgHelp 6.5 and earlier: </b>This value is not supported.
     SecondaryFlagsCallback       = 0x0000000f,
+    ///The callback function indicates whether the target is a process or a snapshot. <b>DbgHelp 6.2 and earlier:
+    ///</b>This value is not supported.
     IsProcessSnapshotCallback    = 0x00000010,
+    ///The callback function indicates whether the callee supports and accepts virtual memory callbacks, such as
+    ///<b>VmQueryCallback</b>, <b>VmPreReadCallback</b>, and <b>VmPostReadCallback</b>. A return value of S_FALSE means
+    ///that virtual memory callbacks are supported. A value of S_OK means that virtual memory callbacks are not
+    ///supported. <b>DbgHelp 6.2 and earlier: </b>This value is not supported.
     VmStartCallback              = 0x00000011,
+    ///The callback function is invoked for snapshot targets to collect virtual address memory information from the
+    ///target. The callback is only called if <b>VmStartCallback</b> returned a value of S_FALSE. <b>DbgHelp 6.2 and
+    ///earlier: </b>This value is not supported.
     VmQueryCallback              = 0x00000012,
+    ///The callback function is sent for every ReadVirtual operation. These reads are not limited to the memory blocks
+    ///that are added to the dump. The engine also accesses the Process Environment Block (PEB), the Thread Environment
+    ///Block (TEB), the loader data, the unloaded module traces, and other blocks. Even if those blocks do not end up in
+    ///the dump, they are read from the target, and virtual memory callbacks are initiated for each. The callback is
+    ///only called if <b>VmStartCallback</b> returned S_FALSE. <b>DbgHelp 6.2 and earlier: </b>This value is not
+    ///supported.
     VmPreReadCallback            = 0x00000013,
+    ///The callback function allows the callee to alter the buffer contents with data from other sources, such as a
+    ///cache, or perform obfuscation. The buffer at this point is fully or partially filled by <b>VmPreReadCallback</b>
+    ///and by <b>ReadProcessMemory</b>. The callback is only called if <b>VmStartCallback</b> returned S_FALSE.
+    ///<b>DbgHelp 6.2 and earlier: </b>This value is not supported.
     VmPostReadCallback           = 0x00000014,
 }
-alias MINIDUMP_CALLBACK_TYPE = int;
 
+///Identifies the type of thread information that will be written to the minidump file by the MiniDumpWriteDump
+///function.
+alias THREAD_WRITE_FLAGS = int;
 enum : int
 {
+    ///Only basic thread information will be written to the minidump file.
     ThreadWriteThread            = 0x00000001,
+    ///Basic thread and thread stack information will be written to the minidump file.
     ThreadWriteStack             = 0x00000002,
+    ///The entire thread context will be written to the minidump file.
     ThreadWriteContext           = 0x00000004,
+    ///<b>Intel Itanium: </b>The backing store memory of every thread will be written to the minidump file.
     ThreadWriteBackingStore      = 0x00000008,
+    ///A small amount of memory surrounding each thread's instruction pointer will be written to the minidump file. This
+    ///allows instructions near a thread's instruction pointer to be disassembled even if an executable image matching
+    ///the module cannot be found.
     ThreadWriteInstructionWindow = 0x00000010,
+    ///When the minidump type includes <b>MiniDumpWithProcessThreadData</b>, this flag is set. The callback function can
+    ///clear this flag to control which threads provide complete thread data in the minidump file. <b>DbgHelp 5.1:
+    ///</b>This value is not supported.
     ThreadWriteThreadData        = 0x00000020,
+    ///When the minidump type includes <b>MiniDumpWithThreadInfo</b>, this flag is set. The callback function can clear
+    ///this flag to control which threads provide thread state information in the minidump file. For more information,
+    ///see MINIDUMP_THREAD_INFO. <b>DbgHelp 6.1 and earlier: </b>This value is not supported.
     ThreadWriteThreadInfo        = 0x00000040,
 }
-alias THREAD_WRITE_FLAGS = int;
 
+///Identifies the type of module information that will be written to the minidump file by the MiniDumpWriteDump
+///function.
+alias MODULE_WRITE_FLAGS = int;
 enum : int
 {
+    ///Only module information will be written to the minidump file.
     ModuleWriteModule        = 0x00000001,
+    ///Module and data segment information will be written to the minidump file. This value will only be set if the
+    ///<b>MiniDumpWithDataSegs</b> enumeration value from MINIDUMP_TYPE is set.
     ModuleWriteDataSeg       = 0x00000002,
+    ///Module, data segment, and miscellaneous record information will be written to the minidump file.
     ModuleWriteMiscRecord    = 0x00000004,
+    ///CodeView information will be written to the minidump file. Some debuggers need the CodeView information to
+    ///properly locate symbols.
     ModuleWriteCvRecord      = 0x00000008,
+    ///Indicates that a module was referenced by a pointer on the stack or backing store of a thread in the minidump.
+    ///This value is valid only if the <i>DumpType</i> parameter of the MiniDumpWriteDump function includes
+    ///<b>MiniDumpScanMemory</b>.
     ModuleReferencedByMemory = 0x00000010,
+    ///Per-module automatic TLS data is written to the minidump file. (Note that automatic TLS data is created using
+    ///<b>__declspec(thread)</b> while TlsAlloc creates dynamic TLS data). This value is valid only if the
+    ///<i>DumpType</i> parameter of the MiniDumpWriteDump function includes <b>MiniDumpWithProcessThreadData</b>.
+    ///<b>DbgHelp 6.1 and earlier: </b>This value is not supported.
     ModuleWriteTlsData       = 0x00000020,
+    ///Code segment information will be written to the minidump file. This value will only be set if the
+    ///<b>MiniDumpWithCodeSegs</b> enumeration value from MINIDUMP_TYPE is set. <b>DbgHelp 6.1 and earlier: </b>This
+    ///value is not supported.
     ModuleWriteCodeSegs      = 0x00000040,
 }
-alias MODULE_WRITE_FLAGS = int;
 
+///Identifies the type of information that will be written to the minidump file by the MiniDumpWriteDump function.<div
+///class="alert"><b>Important</b> <p class="note">The minidump code has evolved greatly over the years since its
+///inception. Many of the constants listed on this page were added later and are not available in all versions of
+///DbgHelp.dll. Those that did not exist in the original code are labeled accordingly along with the version of
+///DbgHelp.dll that they first were implemented in. The listed version numbers corresponds to the Debugging Tools For
+///Windows releases and do not apply to copies of DbgHelp.dll that are integrated into Windows. See DbgHelp Versions for
+///more details. </div> <div> </div>
+alias MINIDUMP_TYPE = int;
 enum : int
 {
+    ///Include just the information necessary to capture stack traces for all existing threads in a process.
     MiniDumpNormal                         = 0x00000000,
+    ///Include the data sections from all loaded modules. This results in the inclusion of global variables, which can
+    ///make the minidump file significantly larger. For per-module control, use the <b>ModuleWriteDataSeg</b>
+    ///enumeration value from MODULE_WRITE_FLAGS.
     MiniDumpWithDataSegs                   = 0x00000001,
+    ///Include all accessible memory in the process. The raw memory data is included at the end, so that the initial
+    ///structures can be mapped directly without the raw memory information. This option can result in a very large
+    ///file.
     MiniDumpWithFullMemory                 = 0x00000002,
+    ///Include high-level information about the operating system handles that are active when the minidump is made.
     MiniDumpWithHandleData                 = 0x00000004,
+    ///Stack and backing store memory written to the minidump file should be filtered to remove all but the pointer
+    ///values necessary to reconstruct a stack trace.
     MiniDumpFilterMemory                   = 0x00000008,
+    ///Stack and backing store memory should be scanned for pointer references to modules in the module list. If a
+    ///module is referenced by stack or backing store memory, the <b>ModuleWriteFlags</b> member of the
+    ///MINIDUMP_CALLBACK_OUTPUT structure is set to <b>ModuleReferencedByMemory</b>.
     MiniDumpScanMemory                     = 0x00000010,
+    ///Include information from the list of modules that were recently unloaded, if this information is maintained by
+    ///the operating system. <b>Windows Server 2003 and Windows XP: </b>The operating system does not maintain
+    ///information for unloaded modules until Windows Server 2003 with SP1 and Windows XP with SP2. <b>DbgHelp 5.1:
+    ///</b>This value is not supported.
     MiniDumpWithUnloadedModules            = 0x00000020,
+    ///Include pages with data referenced by locals or other stack memory. This option can increase the size of the
+    ///minidump file significantly. <b>DbgHelp 5.1: </b>This value is not supported.
     MiniDumpWithIndirectlyReferencedMemory = 0x00000040,
+    ///Filter module paths for information such as user names or important directories. This option may prevent the
+    ///system from locating the image file and should be used only in special situations. <b>DbgHelp 5.1: </b>This value
+    ///is not supported.
     MiniDumpFilterModulePaths              = 0x00000080,
+    ///Include complete per-process and per-thread information from the operating system. <b>DbgHelp 5.1: </b>This value
+    ///is not supported.
     MiniDumpWithProcessThreadData          = 0x00000100,
+    ///Scan the virtual address space for <b>PAGE_READWRITE</b> memory to be included. <b>DbgHelp 5.1: </b>This value is
+    ///not supported.
     MiniDumpWithPrivateReadWriteMemory     = 0x00000200,
+    ///Reduce the data that is dumped by eliminating memory regions that are not essential to meet criteria specified
+    ///for the dump. This can avoid dumping memory that may contain data that is private to the user. However, it is not
+    ///a guarantee that no private information will be present. <b>DbgHelp 6.1 and earlier: </b>This value is not
+    ///supported.
     MiniDumpWithoutOptionalData            = 0x00000400,
+    ///Include memory region information. For more information, see MINIDUMP_MEMORY_INFO_LIST. <b>DbgHelp 6.1 and
+    ///earlier: </b>This value is not supported.
     MiniDumpWithFullMemoryInfo             = 0x00000800,
+    ///Include thread state information. For more information, see MINIDUMP_THREAD_INFO_LIST. <b>DbgHelp 6.1 and
+    ///earlier: </b>This value is not supported.
     MiniDumpWithThreadInfo                 = 0x00001000,
+    ///Include all code and code-related sections from loaded modules to capture executable content. For per-module
+    ///control, use the <b>ModuleWriteCodeSegs</b> enumeration value from MODULE_WRITE_FLAGS. <b>DbgHelp 6.1 and
+    ///earlier: </b>This value is not supported.
     MiniDumpWithCodeSegs                   = 0x00002000,
+    ///Turns off secondary auxiliary-supported memory gathering.
     MiniDumpWithoutAuxiliaryState          = 0x00004000,
+    ///Requests that auxiliary data providers include their state in the dump image; the state data that is included is
+    ///provider dependent. This option can result in a large dump image.
     MiniDumpWithFullAuxiliaryState         = 0x00008000,
+    ///Scans the virtual address space for <b>PAGE_WRITECOPY</b> memory to be included. <b>Prior to DbgHelp 6.1:
+    ///</b>This value is not supported.
     MiniDumpWithPrivateWriteCopyMemory     = 0x00010000,
+    ///If you specify <b>MiniDumpWithFullMemory</b>, the MiniDumpWriteDump function will fail if the function cannot
+    ///read the memory regions; however, if you include <b>MiniDumpIgnoreInaccessibleMemory</b>, the
+    ///<b>MiniDumpWriteDump</b> function will ignore the memory read failures and continue to generate the dump. Note
+    ///that the inaccessible memory regions are not included in the dump. <b>Prior to DbgHelp 6.1: </b>This value is not
+    ///supported.
     MiniDumpIgnoreInaccessibleMemory       = 0x00020000,
+    ///Adds security token related data. This will make the "!token" extension work when processing a user-mode dump.
+    ///<b>Prior to DbgHelp 6.1: </b>This value is not supported.
     MiniDumpWithTokenInformation           = 0x00040000,
+    ///Adds module header related data. <b>Prior to DbgHelp 6.1: </b>This value is not supported.
     MiniDumpWithModuleHeaders              = 0x00080000,
+    ///Adds filter triage related data. <b>Prior to DbgHelp 6.1: </b>This value is not supported.
     MiniDumpFilterTriage                   = 0x00100000,
     MiniDumpWithAvxXStateContext           = 0x00200000,
     MiniDumpWithIptTrace                   = 0x00400000,
     MiniDumpScanInaccessiblePartialPages   = 0x00800000,
+    ///Indicates which flags are valid.
     MiniDumpValidTypeFlags                 = 0x00ffffff,
 }
-alias MINIDUMP_TYPE = int;
 
+///Specifies the secondary flags for the minidump.
+alias MINIDUMP_SECONDARY_FLAGS = int;
 enum : int
 {
+    ///The minidump information does not retrieve the processor power information contained in the MINIDUMP_MISC_INFO_2
+    ///structure.
     MiniSecondaryWithoutPowerInfo = 0x00000001,
     MiniSecondaryValidFlags       = 0x00000001,
 }
-alias MINIDUMP_SECONDARY_FLAGS = int;
 
+alias SCRIPTLANGUAGEVERSION = int;
 enum : int
 {
     SCRIPTLANGUAGEVERSION_DEFAULT = 0x00000000,
@@ -210,8 +425,8 @@ enum : int
     SCRIPTLANGUAGEVERSION_5_8     = 0x00000002,
     SCRIPTLANGUAGEVERSION_MAX     = 0x000000ff,
 }
-alias SCRIPTLANGUAGEVERSION = int;
 
+alias SCRIPTSTATE = int;
 enum : int
 {
     SCRIPTSTATE_UNINITIALIZED = 0x00000000,
@@ -221,8 +436,8 @@ enum : int
     SCRIPTSTATE_DISCONNECTED  = 0x00000003,
     SCRIPTSTATE_CLOSED        = 0x00000004,
 }
-alias SCRIPTSTATE = int;
 
+alias SCRIPTTRACEINFO = int;
 enum : int
 {
     SCRIPTTRACEINFO_SCRIPTSTART    = 0x00000000,
@@ -234,37 +449,37 @@ enum : int
     SCRIPTTRACEINFO_GETOBJSTART    = 0x00000006,
     SCRIPTTRACEINFO_GETOBJEND      = 0x00000007,
 }
-alias SCRIPTTRACEINFO = int;
 
+alias SCRIPTTHREADSTATE = int;
 enum : int
 {
     SCRIPTTHREADSTATE_NOTINSCRIPT = 0x00000000,
     SCRIPTTHREADSTATE_RUNNING     = 0x00000001,
 }
-alias SCRIPTTHREADSTATE = int;
 
+alias SCRIPTGCTYPE = int;
 enum : int
 {
     SCRIPTGCTYPE_NORMAL     = 0x00000000,
     SCRIPTGCTYPE_EXHAUSTIVE = 0x00000001,
 }
-alias SCRIPTGCTYPE = int;
 
+alias SCRIPTUICITEM = int;
 enum : int
 {
     SCRIPTUICITEM_INPUTBOX = 0x00000001,
     SCRIPTUICITEM_MSGBOX   = 0x00000002,
 }
-alias SCRIPTUICITEM = int;
 
+alias SCRIPTUICHANDLING = int;
 enum : int
 {
     SCRIPTUICHANDLING_ALLOW       = 0x00000000,
     SCRIPTUICHANDLING_NOUIERROR   = 0x00000001,
     SCRIPTUICHANDLING_NOUIDEFAULT = 0x00000002,
 }
-alias SCRIPTUICHANDLING = int;
 
+alias __MIDL___MIDL_itf_dbgprop_0000_0000_0001 = int;
 enum : int
 {
     DBGPROP_ATTRIB_NO_ATTRIB              = 0x00000000,
@@ -293,8 +508,8 @@ enum : int
     DBGPROP_ATTRIB_VALUE_IS_RETURN_VALUE  = 0x08000000,
     DBGPROP_ATTRIB_VALUE_PENDING_MUTATION = 0x10000000,
 }
-alias __MIDL___MIDL_itf_dbgprop_0000_0000_0001 = int;
 
+alias __MIDL___MIDL_itf_dbgprop_0000_0000_0002 = int;
 enum : int
 {
     DBGPROP_INFO_NAME         = 0x00000001,
@@ -307,8 +522,8 @@ enum : int
     DBGPROP_INFO_CALLTOSTRING = 0x04000000,
     DBGPROP_INFO_AUTOEXPAND   = 0x08000000,
 }
-alias __MIDL___MIDL_itf_dbgprop_0000_0000_0002 = int;
 
+alias tagOBJECT_ATTRIB_FLAG = int;
 enum : int
 {
     OBJECT_ATTRIB_NO_ATTRIB            = 0x00000000,
@@ -347,8 +562,8 @@ enum : int
     OBJECT_ATTRIB_IS_INHERITED         = 0x40000000,
     OBJECT_ATTRIB_IS_INTERFACE         = 0x80000000,
 }
-alias tagOBJECT_ATTRIB_FLAG = int;
 
+alias PROP_INFO_FLAGS = int;
 enum : int
 {
     PROP_INFO_NAME       = 0x00000001,
@@ -359,8 +574,8 @@ enum : int
     PROP_INFO_DEBUGPROP  = 0x00000010,
     PROP_INFO_AUTOEXPAND = 0x08000000,
 }
-alias PROP_INFO_FLAGS = int;
 
+alias EX_PROP_INFO_FLAGS = int;
 enum : int
 {
     EX_PROP_INFO_ID           = 0x00000100,
@@ -369,16 +584,16 @@ enum : int
     EX_PROP_INFO_LOCKBYTES    = 0x00000800,
     EX_PROP_INFO_DEBUGEXTPROP = 0x00001000,
 }
-alias EX_PROP_INFO_FLAGS = int;
 
+alias BREAKPOINT_STATE = int;
 enum : int
 {
     BREAKPOINT_DELETED  = 0x00000000,
     BREAKPOINT_DISABLED = 0x00000001,
     BREAKPOINT_ENABLED  = 0x00000002,
 }
-alias BREAKPOINT_STATE = int;
 
+alias BREAKREASON = int;
 enum : int
 {
     BREAKREASON_STEP                = 0x00000000,
@@ -391,8 +606,8 @@ enum : int
     BREAKREASON_JIT                 = 0x00000007,
     BREAKREASON_MUTATION_BREAKPOINT = 0x00000008,
 }
-alias BREAKREASON = int;
 
+alias tagBREAKRESUME_ACTION = int;
 enum : int
 {
     BREAKRESUMEACTION_ABORT         = 0x00000000,
@@ -403,16 +618,16 @@ enum : int
     BREAKRESUMEACTION_IGNORE        = 0x00000005,
     BREAKRESUMEACTION_STEP_DOCUMENT = 0x00000006,
 }
-alias tagBREAKRESUME_ACTION = int;
 
+alias ERRORRESUMEACTION = int;
 enum : int
 {
     ERRORRESUMEACTION_ReexecuteErrorStatement         = 0x00000000,
     ERRORRESUMEACTION_AbortCallAndReturnErrorToCaller = 0x00000001,
     ERRORRESUMEACTION_SkipErrorStatement              = 0x00000002,
 }
-alias ERRORRESUMEACTION = int;
 
+alias DOCUMENTNAMETYPE = int;
 enum : int
 {
     DOCUMENTNAMETYPE_APPNODE        = 0x00000000,
@@ -422,8 +637,8 @@ enum : int
     DOCUMENTNAMETYPE_UNIQUE_TITLE   = 0x00000004,
     DOCUMENTNAMETYPE_SOURCE_MAP_URL = 0x00000005,
 }
-alias DOCUMENTNAMETYPE = int;
 
+alias __MIDL___MIDL_itf_activprof_0000_0000_0001 = int;
 enum : int
 {
     PROFILER_SCRIPT_TYPE_USER    = 0x00000000,
@@ -431,8 +646,8 @@ enum : int
     PROFILER_SCRIPT_TYPE_NATIVE  = 0x00000002,
     PROFILER_SCRIPT_TYPE_DOM     = 0x00000003,
 }
-alias __MIDL___MIDL_itf_activprof_0000_0000_0001 = int;
 
+alias __MIDL___MIDL_itf_activprof_0000_0000_0002 = int;
 enum : int
 {
     PROFILER_EVENT_MASK_TRACE_SCRIPT_FUNCTION_CALL = 0x00000001,
@@ -441,8 +656,8 @@ enum : int
     PROFILER_EVENT_MASK_TRACE_ALL                  = 0x00000003,
     PROFILER_EVENT_MASK_TRACE_ALL_WITH_DOM         = 0x00000007,
 }
-alias __MIDL___MIDL_itf_activprof_0000_0000_0002 = int;
 
+alias __MIDL___MIDL_itf_activprof_0000_0002_0001 = int;
 enum : int
 {
     PROFILER_HEAP_OBJECT_FLAGS_NEW_OBJECT            = 0x00000001,
@@ -459,8 +674,8 @@ enum : int
     PROFILER_HEAP_OBJECT_FLAGS_WINRT_DELEGATE        = 0x00000800,
     PROFILER_HEAP_OBJECT_FLAGS_WINRT_NAMESPACE       = 0x00001000,
 }
-alias __MIDL___MIDL_itf_activprof_0000_0002_0001 = int;
 
+alias __MIDL___MIDL_itf_activprof_0000_0002_0002 = int;
 enum : int
 {
     PROFILER_HEAP_OBJECT_OPTIONAL_INFO_PROTOTYPE                  = 0x00000001,
@@ -478,8 +693,8 @@ enum : int
     PROFILER_HEAP_OBJECT_OPTIONAL_INFO_SET_COLLECTION_LIST        = 0x0000000d,
     PROFILER_HEAP_OBJECT_OPTIONAL_INFO_MAX_VALUE                  = 0x0000000d,
 }
-alias __MIDL___MIDL_itf_activprof_0000_0002_0002 = int;
 
+alias __MIDL___MIDL_itf_activprof_0000_0002_0003 = int;
 enum : int
 {
     PROFILER_HEAP_OBJECT_RELATIONSHIP_FLAGS_NONE            = 0x00000000,
@@ -488,8 +703,8 @@ enum : int
     PROFILER_HEAP_OBJECT_RELATIONSHIP_FLAGS_LET_VARIABLE    = 0x00040000,
     PROFILER_HEAP_OBJECT_RELATIONSHIP_FLAGS_CONST_VARIABLE  = 0x00080000,
 }
-alias __MIDL___MIDL_itf_activprof_0000_0002_0003 = int;
 
+alias __MIDL___MIDL_itf_activprof_0000_0002_0004 = int;
 enum : int
 {
     PROFILER_HEAP_ENUM_FLAGS_NONE                     = 0x00000000,
@@ -497,8 +712,8 @@ enum : int
     PROFILER_HEAP_ENUM_FLAGS_SUBSTRINGS               = 0x00000002,
     PROFILER_HEAP_ENUM_FLAGS_RELATIONSHIP_SUBSTRINGS  = 0x00000003,
 }
-alias __MIDL___MIDL_itf_activprof_0000_0002_0004 = int;
 
+alias __MIDL___MIDL_itf_activprof_0000_0002_0005 = int;
 enum : int
 {
     PROFILER_PROPERTY_TYPE_NUMBER          = 0x00000001,
@@ -508,14 +723,14 @@ enum : int
     PROFILER_PROPERTY_TYPE_BSTR            = 0x00000005,
     PROFILER_PROPERTY_TYPE_SUBSTRING       = 0x00000006,
 }
-alias __MIDL___MIDL_itf_activprof_0000_0002_0005 = int;
 
+alias __MIDL___MIDL_itf_activprof_0000_0004_0001 = int;
 enum : int
 {
     PROFILER_HEAP_SUMMARY_VERSION_1 = 0x00000001,
 }
-alias __MIDL___MIDL_itf_activprof_0000_0004_0001 = int;
 
+alias htmlDesignMode = int;
 enum : int
 {
     htmlDesignModeInherit = 0xfffffffe,
@@ -523,16 +738,16 @@ enum : int
     htmlDesignModeOff     = 0x00000000,
     htmlDesignMode_Max    = 0x7fffffff,
 }
-alias htmlDesignMode = int;
 
+alias htmlZOrder = int;
 enum : int
 {
     htmlZOrderFront = 0x00000000,
     htmlZOrderBack  = 0x00000001,
     htmlZOrder_Max  = 0x7fffffff,
 }
-alias htmlZOrder = int;
 
+alias htmlClear = int;
 enum : int
 {
     htmlClearNotSet = 0x00000000,
@@ -543,8 +758,8 @@ enum : int
     htmlClearNone   = 0x00000005,
     htmlClear_Max   = 0x7fffffff,
 }
-alias htmlClear = int;
 
+alias htmlControlAlign = int;
 enum : int
 {
     htmlControlAlignNotSet    = 0x00000000,
@@ -560,8 +775,8 @@ enum : int
     htmlControlAlignTop       = 0x0000000a,
     htmlControlAlign_Max      = 0x7fffffff,
 }
-alias htmlControlAlign = int;
 
+alias htmlBlockAlign = int;
 enum : int
 {
     htmlBlockAlignNotSet  = 0x00000000,
@@ -571,8 +786,8 @@ enum : int
     htmlBlockAlignJustify = 0x00000004,
     htmlBlockAlign_Max    = 0x7fffffff,
 }
-alias htmlBlockAlign = int;
 
+alias htmlReadyState = int;
 enum : int
 {
     htmlReadyStateuninitialized = 0x00000000,
@@ -582,15 +797,15 @@ enum : int
     htmlReadyStatecomplete      = 0x00000004,
     htmlReadyState_Max          = 0x7fffffff,
 }
-alias htmlReadyState = int;
 
+alias htmlLoop = int;
 enum : int
 {
     htmlLoopLoopInfinite = 0xffffffff,
     htmlLoop_Max         = 0x7fffffff,
 }
-alias htmlLoop = int;
 
+alias mediaType = int;
 enum : int
 {
     mediaTypeNotSet     = 0x00000000,
@@ -606,7 +821,6 @@ enum : int
     mediaTypeTv         = 0x00000100,
     mediaType_Max       = 0x7fffffff,
 }
-alias mediaType = int;
 
 enum DomConstructor : int
 {
@@ -721,6 +935,7 @@ enum DomConstructor : int
     DomConstructor_Max                        = 0x7fffffff,
 }
 
+alias styleTextTransform = int;
 enum : int
 {
     styleTextTransformNotSet     = 0x00000000,
@@ -730,16 +945,16 @@ enum : int
     styleTextTransformNone       = 0x00000004,
     styleTextTransform_Max       = 0x7fffffff,
 }
-alias styleTextTransform = int;
 
+alias styleDataRepeat = int;
 enum : int
 {
     styleDataRepeatNone  = 0x00000000,
     styleDataRepeatInner = 0x00000001,
     styleDataRepeat_Max  = 0x7fffffff,
 }
-alias styleDataRepeat = int;
 
+alias styleOverflow = int;
 enum : int
 {
     styleOverflowNotSet  = 0x00000000,
@@ -749,8 +964,8 @@ enum : int
     styleOverflowScroll  = 0x00000004,
     styleOverflow_Max    = 0x7fffffff,
 }
-alias styleOverflow = int;
 
+alias styleMsOverflowStyle = int;
 enum : int
 {
     styleMsOverflowStyleNotSet                = 0x00000000,
@@ -760,8 +975,8 @@ enum : int
     styleMsOverflowStyleMsAutoHidingScrollbar = 0x00000004,
     styleMsOverflowStyle_Max                  = 0x7fffffff,
 }
-alias styleMsOverflowStyle = int;
 
+alias styleTableLayout = int;
 enum : int
 {
     styleTableLayoutNotSet = 0x00000000,
@@ -769,8 +984,8 @@ enum : int
     styleTableLayoutFixed  = 0x00000002,
     styleTableLayout_Max   = 0x7fffffff,
 }
-alias styleTableLayout = int;
 
+alias styleBorderCollapse = int;
 enum : int
 {
     styleBorderCollapseNotSet   = 0x00000000,
@@ -778,8 +993,8 @@ enum : int
     styleBorderCollapseCollapse = 0x00000002,
     styleBorderCollapse_Max     = 0x7fffffff,
 }
-alias styleBorderCollapse = int;
 
+alias styleCaptionSide = int;
 enum : int
 {
     styleCaptionSideNotSet = 0x00000000,
@@ -789,8 +1004,8 @@ enum : int
     styleCaptionSideRight  = 0x00000004,
     styleCaptionSide_Max   = 0x7fffffff,
 }
-alias styleCaptionSide = int;
 
+alias styleEmptyCells = int;
 enum : int
 {
     styleEmptyCellsNotSet = 0x00000000,
@@ -798,8 +1013,8 @@ enum : int
     styleEmptyCellsHide   = 0x00000002,
     styleEmptyCells_Max   = 0x7fffffff,
 }
-alias styleEmptyCells = int;
 
+alias styleFontStyle = int;
 enum : int
 {
     styleFontStyleNotSet  = 0x00000000,
@@ -808,8 +1023,8 @@ enum : int
     styleFontStyleNormal  = 0x00000003,
     styleFontStyle_Max    = 0x7fffffff,
 }
-alias styleFontStyle = int;
 
+alias styleFontVariant = int;
 enum : int
 {
     styleFontVariantNotSet    = 0x00000000,
@@ -817,8 +1032,8 @@ enum : int
     styleFontVariantNormal    = 0x00000002,
     styleFontVariant_Max      = 0x7fffffff,
 }
-alias styleFontVariant = int;
 
+alias styleBackgroundRepeat = int;
 enum : int
 {
     styleBackgroundRepeatRepeat   = 0x00000000,
@@ -828,8 +1043,8 @@ enum : int
     styleBackgroundRepeatNotSet   = 0x00000004,
     styleBackgroundRepeat_Max     = 0x7fffffff,
 }
-alias styleBackgroundRepeat = int;
 
+alias styleBackgroundAttachment = int;
 enum : int
 {
     styleBackgroundAttachmentFixed  = 0x00000000,
@@ -837,8 +1052,8 @@ enum : int
     styleBackgroundAttachmentNotSet = 0x00000002,
     styleBackgroundAttachment_Max   = 0x7fffffff,
 }
-alias styleBackgroundAttachment = int;
 
+alias styleBackgroundAttachment3 = int;
 enum : int
 {
     styleBackgroundAttachment3Fixed  = 0x00000000,
@@ -847,8 +1062,8 @@ enum : int
     styleBackgroundAttachment3NotSet = 0x00000003,
     styleBackgroundAttachment3_Max   = 0x7fffffff,
 }
-alias styleBackgroundAttachment3 = int;
 
+alias styleBackgroundClip = int;
 enum : int
 {
     styleBackgroundClipBorderBox  = 0x00000000,
@@ -857,8 +1072,8 @@ enum : int
     styleBackgroundClipNotSet     = 0x00000003,
     styleBackgroundClip_Max       = 0x7fffffff,
 }
-alias styleBackgroundClip = int;
 
+alias styleBackgroundOrigin = int;
 enum : int
 {
     styleBackgroundOriginBorderBox  = 0x00000000,
@@ -867,8 +1082,8 @@ enum : int
     styleBackgroundOriginNotSet     = 0x00000003,
     styleBackgroundOrigin_Max       = 0x7fffffff,
 }
-alias styleBackgroundOrigin = int;
 
+alias styleVerticalAlign = int;
 enum : int
 {
     styleVerticalAlignAuto       = 0x00000000,
@@ -884,8 +1099,8 @@ enum : int
     styleVerticalAlignNotSet     = 0x0000000a,
     styleVerticalAlign_Max       = 0x7fffffff,
 }
-alias styleVerticalAlign = int;
 
+alias styleFontWeight = int;
 enum : int
 {
     styleFontWeightNotSet  = 0x00000000,
@@ -904,8 +1119,8 @@ enum : int
     styleFontWeightLighter = 0x0000000d,
     styleFontWeight_Max    = 0x7fffffff,
 }
-alias styleFontWeight = int;
 
+alias styleFontSize = int;
 enum : int
 {
     styleFontSizeXXSmall = 0x00000000,
@@ -919,43 +1134,43 @@ enum : int
     styleFontSizeLarger  = 0x00000008,
     styleFontSize_Max    = 0x7fffffff,
 }
-alias styleFontSize = int;
 
+alias styleZIndex = int;
 enum : int
 {
     styleZIndexAuto = 0x80000001,
     styleZIndex_Max = 0x7fffffff,
 }
-alias styleZIndex = int;
 
+alias styleWidowsOrphans = int;
 enum : int
 {
     styleWidowsOrphansNotSet = 0x80000001,
     styleWidowsOrphans_Max   = 0x7fffffff,
 }
-alias styleWidowsOrphans = int;
 
+alias styleAuto = int;
 enum : int
 {
     styleAutoAuto = 0x00000000,
     styleAuto_Max = 0x7fffffff,
 }
-alias styleAuto = int;
 
+alias styleNone = int;
 enum : int
 {
     styleNoneNone = 0x00000000,
     styleNone_Max = 0x7fffffff,
 }
-alias styleNone = int;
 
+alias styleNormal = int;
 enum : int
 {
     styleNormalNormal = 0x00000000,
     styleNormal_Max   = 0x7fffffff,
 }
-alias styleNormal = int;
 
+alias styleBorderWidth = int;
 enum : int
 {
     styleBorderWidthThin   = 0x00000000,
@@ -963,8 +1178,8 @@ enum : int
     styleBorderWidthThick  = 0x00000002,
     styleBorderWidth_Max   = 0x7fffffff,
 }
-alias styleBorderWidth = int;
 
+alias stylePosition = int;
 enum : int
 {
     stylePositionNotSet        = 0x00000000,
@@ -976,8 +1191,8 @@ enum : int
     stylePositionMsDeviceFixed = 0x00000006,
     stylePosition_Max          = 0x7fffffff,
 }
-alias stylePosition = int;
 
+alias styleBorderStyle = int;
 enum : int
 {
     styleBorderStyleNotSet      = 0x00000000,
@@ -994,8 +1209,8 @@ enum : int
     styleBorderStyleHidden      = 0x0000000b,
     styleBorderStyle_Max        = 0x7fffffff,
 }
-alias styleBorderStyle = int;
 
+alias styleOutlineStyle = int;
 enum : int
 {
     styleOutlineStyleNotSet      = 0x00000000,
@@ -1011,8 +1226,8 @@ enum : int
     styleOutlineStyleNone        = 0x0000000a,
     styleOutlineStyle_Max        = 0x7fffffff,
 }
-alias styleOutlineStyle = int;
 
+alias styleStyleFloat = int;
 enum : int
 {
     styleStyleFloatNotSet = 0x00000000,
@@ -1021,8 +1236,8 @@ enum : int
     styleStyleFloatNone   = 0x00000003,
     styleStyleFloat_Max   = 0x7fffffff,
 }
-alias styleStyleFloat = int;
 
+alias styleDisplay = int;
 enum : int
 {
     styleDisplayNotSet            = 0x00000000,
@@ -1057,8 +1272,8 @@ enum : int
     styleDisplayWebkitInlineBox   = 0x0000001d,
     styleDisplay_Max              = 0x7fffffff,
 }
-alias styleDisplay = int;
 
+alias styleVisibility = int;
 enum : int
 {
     styleVisibilityNotSet   = 0x00000000,
@@ -1068,8 +1283,8 @@ enum : int
     styleVisibilityCollapse = 0x00000004,
     styleVisibility_Max     = 0x7fffffff,
 }
-alias styleVisibility = int;
 
+alias styleListStyleType = int;
 enum : int
 {
     styleListStyleTypeNotSet             = 0x00000000,
@@ -1091,8 +1306,8 @@ enum : int
     styleListStyleTypeLowerGreek         = 0x00000010,
     styleListStyleType_Max               = 0x7fffffff,
 }
-alias styleListStyleType = int;
 
+alias styleListStylePosition = int;
 enum : int
 {
     styleListStylePositionNotSet  = 0x00000000,
@@ -1100,8 +1315,8 @@ enum : int
     styleListStylePositionOutSide = 0x00000002,
     styleListStylePosition_Max    = 0x7fffffff,
 }
-alias styleListStylePosition = int;
 
+alias styleWhiteSpace = int;
 enum : int
 {
     styleWhiteSpaceNotSet  = 0x00000000,
@@ -1112,8 +1327,8 @@ enum : int
     styleWhiteSpacePrewrap = 0x00000005,
     styleWhiteSpace_Max    = 0x7fffffff,
 }
-alias styleWhiteSpace = int;
 
+alias stylePageBreak = int;
 enum : int
 {
     stylePageBreakNotSet = 0x00000000,
@@ -1124,8 +1339,8 @@ enum : int
     stylePageBreakAvoid  = 0x00000005,
     stylePageBreak_Max   = 0x7fffffff,
 }
-alias stylePageBreak = int;
 
+alias stylePageBreakInside = int;
 enum : int
 {
     stylePageBreakInsideNotSet = 0x00000000,
@@ -1133,8 +1348,8 @@ enum : int
     stylePageBreakInsideAvoid  = 0x00000002,
     stylePageBreakInside_Max   = 0x7fffffff,
 }
-alias stylePageBreakInside = int;
 
+alias styleCursor = int;
 enum : int
 {
     styleCursorAuto          = 0x00000000,
@@ -1174,8 +1389,8 @@ enum : int
     styleCursorNotSet        = 0x00000022,
     styleCursor_Max          = 0x7fffffff,
 }
-alias styleCursor = int;
 
+alias styleDir = int;
 enum : int
 {
     styleDirNotSet      = 0x00000000,
@@ -1184,8 +1399,8 @@ enum : int
     styleDirInherit     = 0x00000003,
     styleDir_Max        = 0x7fffffff,
 }
-alias styleDir = int;
 
+alias styleBidi = int;
 enum : int
 {
     styleBidiNotSet   = 0x00000000,
@@ -1195,8 +1410,8 @@ enum : int
     styleBidiInherit  = 0x00000004,
     styleBidi_Max     = 0x7fffffff,
 }
-alias styleBidi = int;
 
+alias styleImeMode = int;
 enum : int
 {
     styleImeModeAuto     = 0x00000000,
@@ -1206,8 +1421,8 @@ enum : int
     styleImeModeNotSet   = 0x00000004,
     styleImeMode_Max     = 0x7fffffff,
 }
-alias styleImeMode = int;
 
+alias styleRubyAlign = int;
 enum : int
 {
     styleRubyAlignNotSet           = 0x00000000,
@@ -1220,8 +1435,8 @@ enum : int
     styleRubyAlignLineEdge         = 0x00000007,
     styleRubyAlign_Max             = 0x7fffffff,
 }
-alias styleRubyAlign = int;
 
+alias styleRubyPosition = int;
 enum : int
 {
     styleRubyPositionNotSet = 0x00000000,
@@ -1229,8 +1444,8 @@ enum : int
     styleRubyPositionInline = 0x00000002,
     styleRubyPosition_Max   = 0x7fffffff,
 }
-alias styleRubyPosition = int;
 
+alias styleRubyOverhang = int;
 enum : int
 {
     styleRubyOverhangNotSet     = 0x00000000,
@@ -1239,8 +1454,8 @@ enum : int
     styleRubyOverhangNone       = 0x00000003,
     styleRubyOverhang_Max       = 0x7fffffff,
 }
-alias styleRubyOverhang = int;
 
+alias styleLayoutGridChar = int;
 enum : int
 {
     styleLayoutGridCharNotSet = 0x00000000,
@@ -1248,8 +1463,8 @@ enum : int
     styleLayoutGridCharNone   = 0x00000002,
     styleLayoutGridChar_Max   = 0x7fffffff,
 }
-alias styleLayoutGridChar = int;
 
+alias styleLayoutGridLine = int;
 enum : int
 {
     styleLayoutGridLineNotSet = 0x00000000,
@@ -1257,8 +1472,8 @@ enum : int
     styleLayoutGridLineNone   = 0x00000002,
     styleLayoutGridLine_Max   = 0x7fffffff,
 }
-alias styleLayoutGridLine = int;
 
+alias styleLayoutGridMode = int;
 enum : int
 {
     styleLayoutGridModeNotSet = 0x00000000,
@@ -1268,8 +1483,8 @@ enum : int
     styleLayoutGridModeNone   = 0x00000004,
     styleLayoutGridMode_Max   = 0x7fffffff,
 }
-alias styleLayoutGridMode = int;
 
+alias styleLayoutGridType = int;
 enum : int
 {
     styleLayoutGridTypeNotSet = 0x00000000,
@@ -1278,8 +1493,8 @@ enum : int
     styleLayoutGridTypeFixed  = 0x00000003,
     styleLayoutGridType_Max   = 0x7fffffff,
 }
-alias styleLayoutGridType = int;
 
+alias styleLineBreak = int;
 enum : int
 {
     styleLineBreakNotSet = 0x00000000,
@@ -1287,8 +1502,8 @@ enum : int
     styleLineBreakStrict = 0x00000002,
     styleLineBreak_Max   = 0x7fffffff,
 }
-alias styleLineBreak = int;
 
+alias styleWordBreak = int;
 enum : int
 {
     styleWordBreakNotSet   = 0x00000000,
@@ -1297,8 +1512,8 @@ enum : int
     styleWordBreakKeepAll  = 0x00000003,
     styleWordBreak_Max     = 0x7fffffff,
 }
-alias styleWordBreak = int;
 
+alias styleWordWrap = int;
 enum : int
 {
     styleWordWrapNotSet = 0x00000000,
@@ -1306,8 +1521,8 @@ enum : int
     styleWordWrapOn     = 0x00000002,
     styleWordWrap_Max   = 0x7fffffff,
 }
-alias styleWordWrap = int;
 
+alias styleTextJustify = int;
 enum : int
 {
     styleTextJustifyNotSet             = 0x00000000,
@@ -1321,8 +1536,8 @@ enum : int
     styleTextJustifyAuto               = 0x00000008,
     styleTextJustify_Max               = 0x7fffffff,
 }
-alias styleTextJustify = int;
 
+alias styleTextAlignLast = int;
 enum : int
 {
     styleTextAlignLastNotSet  = 0x00000000,
@@ -1333,8 +1548,8 @@ enum : int
     styleTextAlignLastAuto    = 0x00000005,
     styleTextAlignLast_Max    = 0x7fffffff,
 }
-alias styleTextAlignLast = int;
 
+alias styleTextJustifyTrim = int;
 enum : int
 {
     styleTextJustifyTrimNotSet       = 0x00000000,
@@ -1343,16 +1558,16 @@ enum : int
     styleTextJustifyTrimPunctAndKana = 0x00000003,
     styleTextJustifyTrim_Max         = 0x7fffffff,
 }
-alias styleTextJustifyTrim = int;
 
+alias styleAccelerator = int;
 enum : int
 {
     styleAcceleratorFalse = 0x00000000,
     styleAcceleratorTrue  = 0x00000001,
     styleAccelerator_Max  = 0x7fffffff,
 }
-alias styleAccelerator = int;
 
+alias styleLayoutFlow = int;
 enum : int
 {
     styleLayoutFlowHorizontal          = 0x00000000,
@@ -1360,8 +1575,8 @@ enum : int
     styleLayoutFlowNotSet              = 0x00000002,
     styleLayoutFlow_Max                = 0x7fffffff,
 }
-alias styleLayoutFlow = int;
 
+alias styleBlockProgression = int;
 enum : int
 {
     styleBlockProgressionTb     = 0x00000000,
@@ -1371,8 +1586,8 @@ enum : int
     styleBlockProgressionNotSet = 0x00000004,
     styleBlockProgression_Max   = 0x7fffffff,
 }
-alias styleBlockProgression = int;
 
+alias styleWritingMode = int;
 enum : int
 {
     styleWritingModeLrtb   = 0x00000000,
@@ -1389,16 +1604,16 @@ enum : int
     styleWritingModeTb     = 0x0000000b,
     styleWritingMode_Max   = 0x7fffffff,
 }
-alias styleWritingMode = int;
 
+alias styleBool = int;
 enum : int
 {
     styleBoolFalse = 0x00000000,
     styleBoolTrue  = 0x00000001,
     styleBool_Max  = 0x7fffffff,
 }
-alias styleBool = int;
 
+alias styleTextUnderlinePosition = int;
 enum : int
 {
     styleTextUnderlinePositionBelow  = 0x00000000,
@@ -1407,8 +1622,8 @@ enum : int
     styleTextUnderlinePositionNotSet = 0x00000003,
     styleTextUnderlinePosition_Max   = 0x7fffffff,
 }
-alias styleTextUnderlinePosition = int;
 
+alias styleTextOverflow = int;
 enum : int
 {
     styleTextOverflowClip     = 0x00000000,
@@ -1416,8 +1631,8 @@ enum : int
     styleTextOverflowNotSet   = 0x00000002,
     styleTextOverflow_Max     = 0x7fffffff,
 }
-alias styleTextOverflow = int;
 
+alias styleInterpolation = int;
 enum : int
 {
     styleInterpolationNotSet = 0x00000000,
@@ -1425,8 +1640,8 @@ enum : int
     styleInterpolationBCH    = 0x00000002,
     styleInterpolation_Max   = 0x7fffffff,
 }
-alias styleInterpolation = int;
 
+alias styleBoxSizing = int;
 enum : int
 {
     styleBoxSizingNotSet     = 0x00000000,
@@ -1434,24 +1649,24 @@ enum : int
     styleBoxSizingBorderBox  = 0x00000002,
     styleBoxSizing_Max       = 0x7fffffff,
 }
-alias styleBoxSizing = int;
 
+alias styleFlex = int;
 enum : int
 {
     styleFlexNone   = 0x00000000,
     styleFlexNotSet = 0x00000001,
     styleFlex_Max   = 0x7fffffff,
 }
-alias styleFlex = int;
 
+alias styleFlexBasis = int;
 enum : int
 {
     styleFlexBasisAuto   = 0x00000000,
     styleFlexBasisNotSet = 0x00000001,
     styleFlexBasis_Max   = 0x7fffffff,
 }
-alias styleFlexBasis = int;
 
+alias styleFlexDirection = int;
 enum : int
 {
     styleFlexDirectionRow           = 0x00000000,
@@ -1461,8 +1676,8 @@ enum : int
     styleFlexDirectionNotSet        = 0x00000004,
     styleFlexDirection_Max          = 0x7fffffff,
 }
-alias styleFlexDirection = int;
 
+alias styleWebkitBoxOrient = int;
 enum : int
 {
     styleWebkitBoxOrientHorizontal = 0x00000000,
@@ -1472,8 +1687,8 @@ enum : int
     styleWebkitBoxOrientNotSet     = 0x00000004,
     styleWebkitBoxOrient_Max       = 0x7fffffff,
 }
-alias styleWebkitBoxOrient = int;
 
+alias styleWebkitBoxDirection = int;
 enum : int
 {
     styleWebkitBoxDirectionNormal  = 0x00000000,
@@ -1481,8 +1696,8 @@ enum : int
     styleWebkitBoxDirectionNotSet  = 0x00000002,
     styleWebkitBoxDirection_Max    = 0x7fffffff,
 }
-alias styleWebkitBoxDirection = int;
 
+alias styleFlexWrap = int;
 enum : int
 {
     styleFlexWrapNowrap      = 0x00000000,
@@ -1491,8 +1706,8 @@ enum : int
     styleFlexWrapNotSet      = 0x00000003,
     styleFlexWrap_Max        = 0x7fffffff,
 }
-alias styleFlexWrap = int;
 
+alias styleAlignItems = int;
 enum : int
 {
     styleAlignItemsFlexStart = 0x00000000,
@@ -1503,8 +1718,8 @@ enum : int
     styleAlignItemsNotSet    = 0x00000005,
     styleAlignItems_Max      = 0x7fffffff,
 }
-alias styleAlignItems = int;
 
+alias styleMsFlexAlign = int;
 enum : int
 {
     styleMsFlexAlignStart    = 0x00000000,
@@ -1515,8 +1730,8 @@ enum : int
     styleMsFlexAlignNotSet   = 0x00000005,
     styleMsFlexAlign_Max     = 0x7fffffff,
 }
-alias styleMsFlexAlign = int;
 
+alias styleMsFlexItemAlign = int;
 enum : int
 {
     styleMsFlexItemAlignStart    = 0x00000000,
@@ -1528,8 +1743,8 @@ enum : int
     styleMsFlexItemAlignNotSet   = 0x00000006,
     styleMsFlexItemAlign_Max     = 0x7fffffff,
 }
-alias styleMsFlexItemAlign = int;
 
+alias styleAlignSelf = int;
 enum : int
 {
     styleAlignSelfFlexStart = 0x00000000,
@@ -1541,8 +1756,8 @@ enum : int
     styleAlignSelfNotSet    = 0x00000006,
     styleAlignSelf_Max      = 0x7fffffff,
 }
-alias styleAlignSelf = int;
 
+alias styleJustifyContent = int;
 enum : int
 {
     styleJustifyContentFlexStart    = 0x00000000,
@@ -1553,8 +1768,8 @@ enum : int
     styleJustifyContentNotSet       = 0x00000005,
     styleJustifyContent_Max         = 0x7fffffff,
 }
-alias styleJustifyContent = int;
 
+alias styleMsFlexPack = int;
 enum : int
 {
     styleMsFlexPackStart      = 0x00000000,
@@ -1565,8 +1780,8 @@ enum : int
     styleMsFlexPackNotSet     = 0x00000005,
     styleMsFlexPack_Max       = 0x7fffffff,
 }
-alias styleMsFlexPack = int;
 
+alias styleWebkitBoxPack = int;
 enum : int
 {
     styleWebkitBoxPackStart   = 0x00000000,
@@ -1576,8 +1791,8 @@ enum : int
     styleWebkitBoxPackNotSet  = 0x00000005,
     styleWebkitBoxPack_Max    = 0x7fffffff,
 }
-alias styleWebkitBoxPack = int;
 
+alias styleMsFlexLinePack = int;
 enum : int
 {
     styleMsFlexLinePackStart      = 0x00000000,
@@ -1589,8 +1804,8 @@ enum : int
     styleMsFlexLinePackNotSet     = 0x00000006,
     styleMsFlexLinePack_Max       = 0x7fffffff,
 }
-alias styleMsFlexLinePack = int;
 
+alias styleAlignContent = int;
 enum : int
 {
     styleAlignContentFlexStart    = 0x00000000,
@@ -1602,8 +1817,8 @@ enum : int
     styleAlignContentNotSet       = 0x00000006,
     styleAlignContent_Max         = 0x7fffffff,
 }
-alias styleAlignContent = int;
 
+alias styleColumnFill = int;
 enum : int
 {
     styleColumnFillAuto    = 0x00000000,
@@ -1611,8 +1826,8 @@ enum : int
     styleColumnFillNotSet  = 0x00000002,
     styleColumnFill_Max    = 0x7fffffff,
 }
-alias styleColumnFill = int;
 
+alias styleColumnSpan = int;
 enum : int
 {
     styleColumnSpanNone   = 0x00000000,
@@ -1621,8 +1836,8 @@ enum : int
     styleColumnSpanNotSet = 0x00000003,
     styleColumnSpan_Max   = 0x7fffffff,
 }
-alias styleColumnSpan = int;
 
+alias styleBreak = int;
 enum : int
 {
     styleBreakNotSet      = 0x00000000,
@@ -1637,8 +1852,8 @@ enum : int
     styleBreakAvoidColumn = 0x00000009,
     styleBreak_Max        = 0x7fffffff,
 }
-alias styleBreak = int;
 
+alias styleBreakInside = int;
 enum : int
 {
     styleBreakInsideNotSet      = 0x00000000,
@@ -1648,8 +1863,8 @@ enum : int
     styleBreakInsideAvoidColumn = 0x00000004,
     styleBreakInside_Max        = 0x7fffffff,
 }
-alias styleBreakInside = int;
 
+alias styleMsScrollChaining = int;
 enum : int
 {
     styleMsScrollChainingNotSet  = 0x00000000,
@@ -1657,8 +1872,8 @@ enum : int
     styleMsScrollChainingChained = 0x00000002,
     styleMsScrollChaining_Max    = 0x7fffffff,
 }
-alias styleMsScrollChaining = int;
 
+alias styleMsContentZooming = int;
 enum : int
 {
     styleMsContentZoomingNotSet = 0x00000000,
@@ -1666,8 +1881,8 @@ enum : int
     styleMsContentZoomingZoom   = 0x00000002,
     styleMsContentZooming_Max   = 0x7fffffff,
 }
-alias styleMsContentZooming = int;
 
+alias styleMsContentZoomSnapType = int;
 enum : int
 {
     styleMsContentZoomSnapTypeNotSet    = 0x00000000,
@@ -1676,8 +1891,8 @@ enum : int
     styleMsContentZoomSnapTypeProximity = 0x00000003,
     styleMsContentZoomSnapType_Max      = 0x7fffffff,
 }
-alias styleMsContentZoomSnapType = int;
 
+alias styleMsScrollRails = int;
 enum : int
 {
     styleMsScrollRailsNotSet = 0x00000000,
@@ -1685,8 +1900,8 @@ enum : int
     styleMsScrollRailsRailed = 0x00000002,
     styleMsScrollRails_Max   = 0x7fffffff,
 }
-alias styleMsScrollRails = int;
 
+alias styleMsContentZoomChaining = int;
 enum : int
 {
     styleMsContentZoomChainingNotSet  = 0x00000000,
@@ -1694,8 +1909,8 @@ enum : int
     styleMsContentZoomChainingChained = 0x00000002,
     styleMsContentZoomChaining_Max    = 0x7fffffff,
 }
-alias styleMsContentZoomChaining = int;
 
+alias styleMsScrollSnapType = int;
 enum : int
 {
     styleMsScrollSnapTypeNotSet    = 0x00000000,
@@ -1704,15 +1919,15 @@ enum : int
     styleMsScrollSnapTypeProximity = 0x00000003,
     styleMsScrollSnapType_Max      = 0x7fffffff,
 }
-alias styleMsScrollSnapType = int;
 
+alias styleGridColumn = int;
 enum : int
 {
     styleGridColumnNotSet = 0x00000000,
     styleGridColumn_Max   = 0x7fffffff,
 }
-alias styleGridColumn = int;
 
+alias styleGridColumnAlign = int;
 enum : int
 {
     styleGridColumnAlignCenter  = 0x00000000,
@@ -1722,22 +1937,22 @@ enum : int
     styleGridColumnAlignNotSet  = 0x00000004,
     styleGridColumnAlign_Max    = 0x7fffffff,
 }
-alias styleGridColumnAlign = int;
 
+alias styleGridColumnSpan = int;
 enum : int
 {
     styleGridColumnSpanNotSet = 0x00000000,
     styleGridColumnSpan_Max   = 0x7fffffff,
 }
-alias styleGridColumnSpan = int;
 
+alias styleGridRow = int;
 enum : int
 {
     styleGridRowNotSet = 0x00000000,
     styleGridRow_Max   = 0x7fffffff,
 }
-alias styleGridRow = int;
 
+alias styleGridRowAlign = int;
 enum : int
 {
     styleGridRowAlignCenter  = 0x00000000,
@@ -1747,15 +1962,15 @@ enum : int
     styleGridRowAlignNotSet  = 0x00000004,
     styleGridRowAlign_Max    = 0x7fffffff,
 }
-alias styleGridRowAlign = int;
 
+alias styleGridRowSpan = int;
 enum : int
 {
     styleGridRowSpanNotSet = 0x00000000,
     styleGridRowSpan_Max   = 0x7fffffff,
 }
-alias styleGridRowSpan = int;
 
+alias styleWrapThrough = int;
 enum : int
 {
     styleWrapThroughNotSet = 0x00000000,
@@ -1763,8 +1978,8 @@ enum : int
     styleWrapThroughNone   = 0x00000002,
     styleWrapThrough_Max   = 0x7fffffff,
 }
-alias styleWrapThrough = int;
 
+alias styleWrapFlow = int;
 enum : int
 {
     styleWrapFlowNotSet  = 0x00000000,
@@ -1777,8 +1992,8 @@ enum : int
     styleWrapFlowMaximum = 0x00000007,
     styleWrapFlow_Max    = 0x7fffffff,
 }
-alias styleWrapFlow = int;
 
+alias styleAlignmentBaseline = int;
 enum : int
 {
     styleAlignmentBaselineNotSet         = 0x00000000,
@@ -1796,8 +2011,8 @@ enum : int
     styleAlignmentBaselineIdeographic    = 0x0000000c,
     styleAlignmentBaseline_Max           = 0x7fffffff,
 }
-alias styleAlignmentBaseline = int;
 
+alias styleBaselineShift = int;
 enum : int
 {
     styleBaselineShiftBaseline = 0x00000000,
@@ -1805,8 +2020,8 @@ enum : int
     styleBaselineShiftSuper    = 0x00000002,
     styleBaselineShift_Max     = 0x7fffffff,
 }
-alias styleBaselineShift = int;
 
+alias styleClipRule = int;
 enum : int
 {
     styleClipRuleNotSet  = 0x00000000,
@@ -1814,8 +2029,8 @@ enum : int
     styleClipRuleEvenOdd = 0x00000002,
     styleClipRule_Max    = 0x7fffffff,
 }
-alias styleClipRule = int;
 
+alias styleDominantBaseline = int;
 enum : int
 {
     styleDominantBaselineNotSet         = 0x00000000,
@@ -1833,8 +2048,8 @@ enum : int
     styleDominantBaselineUseScript      = 0x0000000c,
     styleDominantBaseline_Max           = 0x7fffffff,
 }
-alias styleDominantBaseline = int;
 
+alias styleFillRule = int;
 enum : int
 {
     styleFillRuleNotSet  = 0x00000000,
@@ -1842,8 +2057,8 @@ enum : int
     styleFillRuleEvenOdd = 0x00000002,
     styleFillRule_Max    = 0x7fffffff,
 }
-alias styleFillRule = int;
 
+alias styleFontStretch = int;
 enum : int
 {
     styleFontStretchNotSet         = 0x00000000,
@@ -1860,8 +2075,8 @@ enum : int
     styleFontStretchUltraExpanded  = 0x0000000b,
     styleFontStretch_Max           = 0x7fffffff,
 }
-alias styleFontStretch = int;
 
+alias stylePointerEvents = int;
 enum : int
 {
     stylePointerEventsNotSet         = 0x00000000,
@@ -1878,8 +2093,8 @@ enum : int
     stylePointerEventsAuto           = 0x0000000b,
     stylePointerEvents_Max           = 0x7fffffff,
 }
-alias stylePointerEvents = int;
 
+alias styleEnableBackground = int;
 enum : int
 {
     styleEnableBackgroundNotSet     = 0x00000000,
@@ -1888,8 +2103,8 @@ enum : int
     styleEnableBackgroundInherit    = 0x00000003,
     styleEnableBackground_Max       = 0x7fffffff,
 }
-alias styleEnableBackground = int;
 
+alias styleStrokeLinecap = int;
 enum : int
 {
     styleStrokeLinecapNotSet = 0x00000000,
@@ -1898,8 +2113,8 @@ enum : int
     styleStrokeLinecapSquare = 0x00000003,
     styleStrokeLinecap_Max   = 0x7fffffff,
 }
-alias styleStrokeLinecap = int;
 
+alias styleStrokeLinejoin = int;
 enum : int
 {
     styleStrokeLinejoinNotSet = 0x00000000,
@@ -1908,8 +2123,8 @@ enum : int
     styleStrokeLinejoinBevel  = 0x00000003,
     styleStrokeLinejoin_Max   = 0x7fffffff,
 }
-alias styleStrokeLinejoin = int;
 
+alias styleTextAnchor = int;
 enum : int
 {
     styleTextAnchorNotSet = 0x00000000,
@@ -1918,8 +2133,8 @@ enum : int
     styleTextAnchorEnd    = 0x00000003,
     styleTextAnchor_Max   = 0x7fffffff,
 }
-alias styleTextAnchor = int;
 
+alias styleAttrType = int;
 enum : int
 {
     styleAttrTypeString     = 0x00000000,
@@ -1951,8 +2166,8 @@ enum : int
     styleAttrTypeMs         = 0x0000001a,
     styleAttrType_Max       = 0x7fffffff,
 }
-alias styleAttrType = int;
 
+alias styleInitialColor = int;
 enum : int
 {
     styleInitialColorNoInitial     = 0x00000000,
@@ -1961,8 +2176,8 @@ enum : int
     styleInitialColorInvert        = 0x00000003,
     styleInitialColor_Max          = 0x7fffffff,
 }
-alias styleInitialColor = int;
 
+alias styleInitialString = int;
 enum : int
 {
     styleInitialStringNoInitial = 0x00000000,
@@ -1971,8 +2186,8 @@ enum : int
     styleInitialStringNormal    = 0x00000003,
     styleInitialString_Max      = 0x7fffffff,
 }
-alias styleInitialString = int;
 
+alias styleTransformOriginX = int;
 enum : int
 {
     styleTransformOriginXNotSet = 0x00000000,
@@ -1981,8 +2196,8 @@ enum : int
     styleTransformOriginXRight  = 0x00000003,
     styleTransformOriginX_Max   = 0x7fffffff,
 }
-alias styleTransformOriginX = int;
 
+alias styleTransformOriginY = int;
 enum : int
 {
     styleTransformOriginYNotSet = 0x00000000,
@@ -1991,8 +2206,8 @@ enum : int
     styleTransformOriginYBottom = 0x00000003,
     styleTransformOriginY_Max   = 0x7fffffff,
 }
-alias styleTransformOriginY = int;
 
+alias stylePerspectiveOriginX = int;
 enum : int
 {
     stylePerspectiveOriginXNotSet = 0x00000000,
@@ -2001,8 +2216,8 @@ enum : int
     stylePerspectiveOriginXRight  = 0x00000003,
     stylePerspectiveOriginX_Max   = 0x7fffffff,
 }
-alias stylePerspectiveOriginX = int;
 
+alias stylePerspectiveOriginY = int;
 enum : int
 {
     stylePerspectiveOriginYNotSet = 0x00000000,
@@ -2011,8 +2226,8 @@ enum : int
     stylePerspectiveOriginYBottom = 0x00000003,
     stylePerspectiveOriginY_Max   = 0x7fffffff,
 }
-alias stylePerspectiveOriginY = int;
 
+alias styleTransformStyle = int;
 enum : int
 {
     styleTransformStyleFlat       = 0x00000000,
@@ -2020,8 +2235,8 @@ enum : int
     styleTransformStyleNotSet     = 0x00000002,
     styleTransformStyle_Max       = 0x7fffffff,
 }
-alias styleTransformStyle = int;
 
+alias styleBackfaceVisibility = int;
 enum : int
 {
     styleBackfaceVisibilityVisible = 0x00000000,
@@ -2029,16 +2244,16 @@ enum : int
     styleBackfaceVisibilityNotSet  = 0x00000002,
     styleBackfaceVisibility_Max    = 0x7fffffff,
 }
-alias styleBackfaceVisibility = int;
 
+alias styleTextSizeAdjust = int;
 enum : int
 {
     styleTextSizeAdjustNone = 0x00000000,
     styleTextSizeAdjustAuto = 0x00000001,
     styleTextSizeAdjust_Max = 0x7fffffff,
 }
-alias styleTextSizeAdjust = int;
 
+alias styleColorInterpolationFilters = int;
 enum : int
 {
     styleColorInterpolationFiltersAuto      = 0x00000000,
@@ -2047,8 +2262,8 @@ enum : int
     styleColorInterpolationFiltersNotSet    = 0x00000003,
     styleColorInterpolationFilters_Max      = 0x7fffffff,
 }
-alias styleColorInterpolationFilters = int;
 
+alias styleHyphens = int;
 enum : int
 {
     styleHyphensNone   = 0x00000000,
@@ -2057,15 +2272,15 @@ enum : int
     styleHyphensNotSet = 0x00000003,
     styleHyphens_Max   = 0x7fffffff,
 }
-alias styleHyphens = int;
 
+alias styleHyphenateLimitLines = int;
 enum : int
 {
     styleHyphenateLimitLinesNoLimit = 0x00000000,
     styleHyphenateLimitLines_Max    = 0x7fffffff,
 }
-alias styleHyphenateLimitLines = int;
 
+alias styleMsAnimationPlayState = int;
 enum : int
 {
     styleMsAnimationPlayStateRunning = 0x00000000,
@@ -2073,8 +2288,8 @@ enum : int
     styleMsAnimationPlayStateNotSet  = 0x00000002,
     styleMsAnimationPlayState_Max    = 0x7fffffff,
 }
-alias styleMsAnimationPlayState = int;
 
+alias styleMsAnimationDirection = int;
 enum : int
 {
     styleMsAnimationDirectionNormal           = 0x00000000,
@@ -2084,8 +2299,8 @@ enum : int
     styleMsAnimationDirectionNotSet           = 0x00000004,
     styleMsAnimationDirection_Max             = 0x7fffffff,
 }
-alias styleMsAnimationDirection = int;
 
+alias styleMsAnimationFillMode = int;
 enum : int
 {
     styleMsAnimationFillModeNone      = 0x00000000,
@@ -2095,8 +2310,8 @@ enum : int
     styleMsAnimationFillModeNotSet    = 0x00000004,
     styleMsAnimationFillMode_Max      = 0x7fffffff,
 }
-alias styleMsAnimationFillMode = int;
 
+alias styleMsHighContrastAdjust = int;
 enum : int
 {
     styleMsHighContrastAdjustNotSet = 0x00000000,
@@ -2104,8 +2319,8 @@ enum : int
     styleMsHighContrastAdjustNone   = 0x00000002,
     styleMsHighContrastAdjust_Max   = 0x7fffffff,
 }
-alias styleMsHighContrastAdjust = int;
 
+alias styleMsUserSelect = int;
 enum : int
 {
     styleMsUserSelectAuto    = 0x00000000,
@@ -2115,8 +2330,8 @@ enum : int
     styleMsUserSelectNotSet  = 0x00000004,
     styleMsUserSelect_Max    = 0x7fffffff,
 }
-alias styleMsUserSelect = int;
 
+alias styleMsTouchAction = int;
 enum : int
 {
     styleMsTouchActionNotSet        = 0xffffffff,
@@ -2131,8 +2346,8 @@ enum : int
     styleMsTouchActionCrossSlideY   = 0x00000080,
     styleMsTouchAction_Max          = 0x7fffffff,
 }
-alias styleMsTouchAction = int;
 
+alias styleMsTouchSelect = int;
 enum : int
 {
     styleMsTouchSelectGrippers = 0x00000000,
@@ -2140,8 +2355,8 @@ enum : int
     styleMsTouchSelectNotSet   = 0x00000002,
     styleMsTouchSelect_Max     = 0x7fffffff,
 }
-alias styleMsTouchSelect = int;
 
+alias styleMsScrollTranslation = int;
 enum : int
 {
     styleMsScrollTranslationNotSet = 0x00000000,
@@ -2149,8 +2364,8 @@ enum : int
     styleMsScrollTranslationVtoH   = 0x00000002,
     styleMsScrollTranslation_Max   = 0x7fffffff,
 }
-alias styleMsScrollTranslation = int;
 
+alias styleBorderImageRepeat = int;
 enum : int
 {
     styleBorderImageRepeatStretch = 0x00000000,
@@ -2160,16 +2375,16 @@ enum : int
     styleBorderImageRepeatNotSet  = 0x00000004,
     styleBorderImageRepeat_Max    = 0x7fffffff,
 }
-alias styleBorderImageRepeat = int;
 
+alias styleBorderImageSliceFill = int;
 enum : int
 {
     styleBorderImageSliceFillNotSet = 0x00000000,
     styleBorderImageSliceFillFill   = 0x00000001,
     styleBorderImageSliceFill_Max   = 0x7fffffff,
 }
-alias styleBorderImageSliceFill = int;
 
+alias styleMsImeAlign = int;
 enum : int
 {
     styleMsImeAlignAuto   = 0x00000000,
@@ -2177,8 +2392,8 @@ enum : int
     styleMsImeAlignNotSet = 0x00000002,
     styleMsImeAlign_Max   = 0x7fffffff,
 }
-alias styleMsImeAlign = int;
 
+alias styleMsTextCombineHorizontal = int;
 enum : int
 {
     styleMsTextCombineHorizontalNone   = 0x00000000,
@@ -2187,8 +2402,8 @@ enum : int
     styleMsTextCombineHorizontalNotSet = 0x00000003,
     styleMsTextCombineHorizontal_Max   = 0x7fffffff,
 }
-alias styleMsTextCombineHorizontal = int;
 
+alias styleWebkitAppearance = int;
 enum : int
 {
     styleWebkitAppearanceNone                         = 0x00000000,
@@ -2228,8 +2443,8 @@ enum : int
     styleWebkitAppearanceNotSet                       = 0x00000022,
     styleWebkitAppearance_Max                         = 0x7fffffff,
 }
-alias styleWebkitAppearance = int;
 
+alias styleViewportSize = int;
 enum : int
 {
     styleViewportSizeAuto         = 0x00000000,
@@ -2237,8 +2452,8 @@ enum : int
     styleViewportSizeDeviceHeight = 0x00000002,
     styleViewportSize_Max         = 0x7fffffff,
 }
-alias styleViewportSize = int;
 
+alias styleUserZoom = int;
 enum : int
 {
     styleUserZoomNotSet = 0x00000000,
@@ -2246,8 +2461,8 @@ enum : int
     styleUserZoomFixed  = 0x00000002,
     styleUserZoom_Max   = 0x7fffffff,
 }
-alias styleUserZoom = int;
 
+alias styleTextLineThroughStyle = int;
 enum : int
 {
     styleTextLineThroughStyleUndefined = 0x00000000,
@@ -2255,8 +2470,8 @@ enum : int
     styleTextLineThroughStyleDouble    = 0x00000002,
     styleTextLineThroughStyle_Max      = 0x7fffffff,
 }
-alias styleTextLineThroughStyle = int;
 
+alias styleTextUnderlineStyle = int;
 enum : int
 {
     styleTextUnderlineStyleUndefined        = 0x00000000,
@@ -2274,8 +2489,8 @@ enum : int
     styleTextUnderlineStyleThickDash        = 0x0000000c,
     styleTextUnderlineStyle_Max             = 0x7fffffff,
 }
-alias styleTextUnderlineStyle = int;
 
+alias styleTextEffect = int;
 enum : int
 {
     styleTextEffectNone    = 0x00000000,
@@ -2284,16 +2499,16 @@ enum : int
     styleTextEffectOutline = 0x00000003,
     styleTextEffect_Max    = 0x7fffffff,
 }
-alias styleTextEffect = int;
 
+alias styleDefaultTextSelection = int;
 enum : int
 {
     styleDefaultTextSelectionFalse = 0x00000000,
     styleDefaultTextSelectionTrue  = 0x00000001,
     styleDefaultTextSelection_Max  = 0x7fffffff,
 }
-alias styleDefaultTextSelection = int;
 
+alias styleTextDecoration = int;
 enum : int
 {
     styleTextDecorationNone        = 0x00000000,
@@ -2303,8 +2518,8 @@ enum : int
     styleTextDecorationBlink       = 0x00000004,
     styleTextDecoration_Max        = 0x7fffffff,
 }
-alias styleTextDecoration = int;
 
+alias textDecoration = int;
 enum : int
 {
     textDecorationNone        = 0x00000000,
@@ -2314,8 +2529,8 @@ enum : int
     textDecorationBlink       = 0x00000004,
     textDecoration_Max        = 0x7fffffff,
 }
-alias textDecoration = int;
 
+alias htmlListType = int;
 enum : int
 {
     htmlListTypeNotSet     = 0x00000000,
@@ -2329,8 +2544,8 @@ enum : int
     htmlListTypeSquare     = 0x00000008,
     htmlListType_Max       = 0x7fffffff,
 }
-alias htmlListType = int;
 
+alias htmlMethod = int;
 enum : int
 {
     htmlMethodNotSet = 0x00000000,
@@ -2338,8 +2553,8 @@ enum : int
     htmlMethodPost   = 0x00000002,
     htmlMethod_Max   = 0x7fffffff,
 }
-alias htmlMethod = int;
 
+alias htmlWrap = int;
 enum : int
 {
     htmlWrapOff  = 0x00000001,
@@ -2347,8 +2562,8 @@ enum : int
     htmlWrapHard = 0x00000003,
     htmlWrap_Max = 0x7fffffff,
 }
-alias htmlWrap = int;
 
+alias htmlDir = int;
 enum : int
 {
     htmlDirNotSet      = 0x00000000,
@@ -2356,8 +2571,8 @@ enum : int
     htmlDirRightToLeft = 0x00000002,
     htmlDir_Max        = 0x7fffffff,
 }
-alias htmlDir = int;
 
+alias htmlEditable = int;
 enum : int
 {
     htmlEditableInherit = 0x00000000,
@@ -2365,8 +2580,8 @@ enum : int
     htmlEditableFalse   = 0x00000002,
     htmlEditable_Max    = 0x7fffffff,
 }
-alias htmlEditable = int;
 
+alias htmlInput = int;
 enum : int
 {
     htmlInputNotSet         = 0x00000000,
@@ -2392,8 +2607,8 @@ enum : int
     htmlInputSearch         = 0x00000014,
     htmlInput_Max           = 0x7fffffff,
 }
-alias htmlInput = int;
 
+alias htmlSpellCheck = int;
 enum : int
 {
     htmlSpellCheckNotSet  = 0x00000000,
@@ -2402,8 +2617,8 @@ enum : int
     htmlSpellCheckDefault = 0x00000003,
     htmlSpellCheck_Max    = 0x7fffffff,
 }
-alias htmlSpellCheck = int;
 
+alias htmlEncoding = int;
 enum : int
 {
     htmlEncodingURL       = 0x00000000,
@@ -2411,8 +2626,8 @@ enum : int
     htmlEncodingText      = 0x00000002,
     htmlEncoding_Max      = 0x7fffffff,
 }
-alias htmlEncoding = int;
 
+alias htmlAdjacency = int;
 enum : int
 {
     htmlAdjacencyBeforeBegin = 0x00000001,
@@ -2421,15 +2636,15 @@ enum : int
     htmlAdjacencyAfterEnd    = 0x00000004,
     htmlAdjacency_Max        = 0x7fffffff,
 }
-alias htmlAdjacency = int;
 
+alias htmlTabIndex = int;
 enum : int
 {
     htmlTabIndexNotSet = 0xffff8000,
     htmlTabIndex_Max   = 0x7fffffff,
 }
-alias htmlTabIndex = int;
 
+alias htmlComponent = int;
 enum : int
 {
     htmlComponentClient        = 0x00000000,
@@ -2464,16 +2679,16 @@ enum : int
     htmlComponentGHBottomRight = 0x0000001d,
     htmlComponent_Max          = 0x7fffffff,
 }
-alias htmlComponent = int;
 
+alias htmlApplyLocation = int;
 enum : int
 {
     htmlApplyLocationInside  = 0x00000000,
     htmlApplyLocationOutside = 0x00000001,
     htmlApplyLocation_Max    = 0x7fffffff,
 }
-alias htmlApplyLocation = int;
 
+alias htmlGlyphMode = int;
 enum : int
 {
     htmlGlyphModeNone  = 0x00000000,
@@ -2482,8 +2697,8 @@ enum : int
     htmlGlyphModeBoth  = 0x00000003,
     htmlGlyphMode_Max  = 0x7fffffff,
 }
-alias htmlGlyphMode = int;
 
+alias htmlDraggable = int;
 enum : int
 {
     htmlDraggableAuto  = 0x00000000,
@@ -2491,8 +2706,8 @@ enum : int
     htmlDraggableFalse = 0x00000002,
     htmlDraggable_Max  = 0x7fffffff,
 }
-alias htmlDraggable = int;
 
+alias htmlUnit = int;
 enum : int
 {
     htmlUnitCharacter = 0x00000001,
@@ -2501,8 +2716,8 @@ enum : int
     htmlUnitTextEdit  = 0x00000006,
     htmlUnit_Max      = 0x7fffffff,
 }
-alias htmlUnit = int;
 
+alias htmlEndPoints = int;
 enum : int
 {
     htmlEndPointsStartToStart = 0x00000001,
@@ -2511,24 +2726,24 @@ enum : int
     htmlEndPointsEndToEnd     = 0x00000004,
     htmlEndPoints_Max         = 0x7fffffff,
 }
-alias htmlEndPoints = int;
 
+alias htmlDirection = int;
 enum : int
 {
     htmlDirectionForward  = 0x0001869f,
     htmlDirectionBackward = 0xfffe7961,
     htmlDirection_Max     = 0x7fffffff,
 }
-alias htmlDirection = int;
 
+alias htmlStart = int;
 enum : int
 {
     htmlStartfileopen  = 0x00000000,
     htmlStartmouseover = 0x00000001,
     htmlStart_Max      = 0x7fffffff,
 }
-alias htmlStart = int;
 
+alias bodyScroll = int;
 enum : int
 {
     bodyScrollyes     = 0x00000001,
@@ -2537,24 +2752,24 @@ enum : int
     bodyScrolldefault = 0x00000003,
     bodyScroll_Max    = 0x7fffffff,
 }
-alias bodyScroll = int;
 
+alias htmlSelectType = int;
 enum : int
 {
     htmlSelectTypeSelectOne      = 0x00000001,
     htmlSelectTypeSelectMultiple = 0x00000002,
     htmlSelectType_Max           = 0x7fffffff,
 }
-alias htmlSelectType = int;
 
+alias htmlSelectExFlag = int;
 enum : int
 {
     htmlSelectExFlagNone                  = 0x00000000,
     htmlSelectExFlagHideSelectionInDesign = 0x00000001,
     htmlSelectExFlag_Max                  = 0x7fffffff,
 }
-alias htmlSelectExFlag = int;
 
+alias htmlSelection = int;
 enum : int
 {
     htmlSelectionNone    = 0x00000000,
@@ -2563,8 +2778,8 @@ enum : int
     htmlSelectionTable   = 0x00000003,
     htmlSelection_Max    = 0x7fffffff,
 }
-alias htmlSelection = int;
 
+alias htmlMarqueeBehavior = int;
 enum : int
 {
     htmlMarqueeBehaviorscroll    = 0x00000001,
@@ -2572,8 +2787,8 @@ enum : int
     htmlMarqueeBehavioralternate = 0x00000003,
     htmlMarqueeBehavior_Max      = 0x7fffffff,
 }
-alias htmlMarqueeBehavior = int;
 
+alias htmlMarqueeDirection = int;
 enum : int
 {
     htmlMarqueeDirectionleft  = 0x00000001,
@@ -2582,8 +2797,8 @@ enum : int
     htmlMarqueeDirectiondown  = 0x00000007,
     htmlMarqueeDirection_Max  = 0x7fffffff,
 }
-alias htmlMarqueeDirection = int;
 
+alias htmlPersistState = int;
 enum : int
 {
     htmlPersistStateNormal   = 0x00000000,
@@ -2593,8 +2808,8 @@ enum : int
     htmlPersistStateUserData = 0x00000004,
     htmlPersistState_Max     = 0x7fffffff,
 }
-alias htmlPersistState = int;
 
+alias htmlDropEffect = int;
 enum : int
 {
     htmlDropEffectCopy = 0x00000000,
@@ -2603,8 +2818,8 @@ enum : int
     htmlDropEffectNone = 0x00000003,
     htmlDropEffect_Max = 0x7fffffff,
 }
-alias htmlDropEffect = int;
 
+alias htmlEffectAllowed = int;
 enum : int
 {
     htmlEffectAllowedCopy          = 0x00000000,
@@ -2618,15 +2833,14 @@ enum : int
     htmlEffectAllowedUninitialized = 0x00000008,
     htmlEffectAllowed_Max          = 0x7fffffff,
 }
-alias htmlEffectAllowed = int;
 
+alias htmlCompatMode = int;
 enum : int
 {
     htmlCompatModeBackCompat = 0x00000000,
     htmlCompatModeCSS1Compat = 0x00000001,
     htmlCompatMode_Max       = 0x7fffffff,
 }
-alias htmlCompatMode = int;
 
 enum BoolValue : int
 {
@@ -2635,6 +2849,7 @@ enum BoolValue : int
     BoolValue_Max = 0x7fffffff,
 }
 
+alias htmlCaptionAlign = int;
 enum : int
 {
     htmlCaptionAlignNotSet  = 0x00000000,
@@ -2646,8 +2861,8 @@ enum : int
     htmlCaptionAlignBottom  = 0x00000006,
     htmlCaptionAlign_Max    = 0x7fffffff,
 }
-alias htmlCaptionAlign = int;
 
+alias htmlCaptionVAlign = int;
 enum : int
 {
     htmlCaptionVAlignNotSet = 0x00000000,
@@ -2655,8 +2870,8 @@ enum : int
     htmlCaptionVAlignBottom = 0x00000002,
     htmlCaptionVAlign_Max   = 0x7fffffff,
 }
-alias htmlCaptionVAlign = int;
 
+alias htmlFrame = int;
 enum : int
 {
     htmlFrameNotSet = 0x00000000,
@@ -2671,8 +2886,8 @@ enum : int
     htmlFrameborder = 0x00000009,
     htmlFrame_Max   = 0x7fffffff,
 }
-alias htmlFrame = int;
 
+alias htmlRules = int;
 enum : int
 {
     htmlRulesNotSet = 0x00000000,
@@ -2683,8 +2898,8 @@ enum : int
     htmlRulesall    = 0x00000005,
     htmlRules_Max   = 0x7fffffff,
 }
-alias htmlRules = int;
 
+alias htmlCellAlign = int;
 enum : int
 {
     htmlCellAlignNotSet = 0x00000000,
@@ -2694,8 +2909,8 @@ enum : int
     htmlCellAlignMiddle = 0x00000002,
     htmlCellAlign_Max   = 0x7fffffff,
 }
-alias htmlCellAlign = int;
 
+alias htmlCellVAlign = int;
 enum : int
 {
     htmlCellVAlignNotSet   = 0x00000000,
@@ -2706,8 +2921,8 @@ enum : int
     htmlCellVAlignCenter   = 0x00000002,
     htmlCellVAlign_Max     = 0x7fffffff,
 }
-alias htmlCellVAlign = int;
 
+alias frameScrolling = int;
 enum : int
 {
     frameScrollingyes  = 0x00000001,
@@ -2715,8 +2930,8 @@ enum : int
     frameScrollingauto = 0x00000004,
     frameScrolling_Max = 0x7fffffff,
 }
-alias frameScrolling = int;
 
+alias sandboxAllow = int;
 enum : int
 {
     sandboxAllowScripts       = 0x00000000,
@@ -2726,8 +2941,8 @@ enum : int
     sandboxAllowPopups        = 0x00000004,
     sandboxAllow_Max          = 0x7fffffff,
 }
-alias sandboxAllow = int;
 
+alias svgAngleType = int;
 enum : int
 {
     SVG_ANGLETYPE_UNKNOWN     = 0x00000000,
@@ -2737,16 +2952,16 @@ enum : int
     SVG_ANGLETYPE_GRAD        = 0x00000004,
     svgAngleType_Max          = 0x7fffffff,
 }
-alias svgAngleType = int;
 
+alias svgExternalResourcesRequired = int;
 enum : int
 {
     svgExternalResourcesRequiredFalse = 0x00000000,
     svgExternalResourcesRequiredTrue  = 0x00000001,
     svgExternalResourcesRequired_Max  = 0x7fffffff,
 }
-alias svgExternalResourcesRequired = int;
 
+alias svgFocusable = int;
 enum : int
 {
     svgFocusableNotSet = 0x00000000,
@@ -2755,8 +2970,8 @@ enum : int
     svgFocusableFalse  = 0x00000003,
     svgFocusable_Max   = 0x7fffffff,
 }
-alias svgFocusable = int;
 
+alias svgLengthType = int;
 enum : int
 {
     SVG_LENGTHTYPE_UNKNOWN    = 0x00000000,
@@ -2772,8 +2987,8 @@ enum : int
     SVG_LENGTHTYPE_PC         = 0x0000000a,
     svgLengthType_Max         = 0x7fffffff,
 }
-alias svgLengthType = int;
 
+alias svgPathSegType = int;
 enum : int
 {
     PATHSEG_UNKNOWN                      = 0x00000000,
@@ -2798,8 +3013,8 @@ enum : int
     PATHSEG_CURVETO_QUADRATIC_SMOOTH_REL = 0x00000013,
     svgPathSegType_Max                   = 0x7fffffff,
 }
-alias svgPathSegType = int;
 
+alias svgTransformType = int;
 enum : int
 {
     SVG_TRANSFORM_UNKNOWN   = 0x00000000,
@@ -2811,8 +3026,8 @@ enum : int
     SVG_TRANSFORM_SKEWY     = 0x00000006,
     svgTransformType_Max    = 0x7fffffff,
 }
-alias svgTransformType = int;
 
+alias svgPreserveAspectRatioAlignType = int;
 enum : int
 {
     SVG_PRESERVEASPECTRATIO_UNKNOWN     = 0x00000000,
@@ -2828,8 +3043,8 @@ enum : int
     SVG_PRESERVEASPECTRATIO_XMAXYMAX    = 0x0000000a,
     svgPreserveAspectRatioAlignType_Max = 0x7fffffff,
 }
-alias svgPreserveAspectRatioAlignType = int;
 
+alias svgPreserveAspectMeetOrSliceType = int;
 enum : int
 {
     SVG_MEETORSLICE_UNKNOWN              = 0x00000000,
@@ -2837,8 +3052,8 @@ enum : int
     SVG_MEETORSLICE_SLICE                = 0x00000002,
     svgPreserveAspectMeetOrSliceType_Max = 0x7fffffff,
 }
-alias svgPreserveAspectMeetOrSliceType = int;
 
+alias svgUnitTypes = int;
 enum : int
 {
     SVG_UNITTYPE_UNKNOWN           = 0x00000000,
@@ -2846,8 +3061,8 @@ enum : int
     SVG_UNITTYPE_OBJECTBOUNDINGBOX = 0x00000002,
     svgUnitTypes_Max               = 0x7fffffff,
 }
-alias svgUnitTypes = int;
 
+alias svgSpreadMethod = int;
 enum : int
 {
     SVG_SPREADMETHOD_UNKNOWN = 0x00000000,
@@ -2856,8 +3071,8 @@ enum : int
     SVG_SPREADMETHOD_REPEAT  = 0x00000003,
     svgSpreadMethod_Max      = 0x7fffffff,
 }
-alias svgSpreadMethod = int;
 
+alias svgFeblendMode = int;
 enum : int
 {
     SVG_FEBLEND_MODE_UNKNOWN  = 0x00000000,
@@ -2868,8 +3083,8 @@ enum : int
     SVG_FEBLEND_MODE_LIGHTEN  = 0x00000005,
     svgFeblendMode_Max        = 0x7fffffff,
 }
-alias svgFeblendMode = int;
 
+alias svgFecolormatrixType = int;
 enum : int
 {
     SVG_FECOLORMATRIX_TYPE_UNKNOWN          = 0x00000000,
@@ -2879,8 +3094,8 @@ enum : int
     SVG_FECOLORMATRIX_TYPE_LUMINANCETOALPHA = 0x00000004,
     svgFecolormatrixType_Max                = 0x7fffffff,
 }
-alias svgFecolormatrixType = int;
 
+alias svgFecomponenttransferType = int;
 enum : int
 {
     SVG_FECOMPONENTTRANSFER_TYPE_UNKNOWN  = 0x00000000,
@@ -2891,8 +3106,8 @@ enum : int
     SVG_FECOMPONENTTRANSFER_TYPE_GAMMA    = 0x00000005,
     svgFecomponenttransferType_Max        = 0x7fffffff,
 }
-alias svgFecomponenttransferType = int;
 
+alias svgFecompositeOperator = int;
 enum : int
 {
     SVG_FECOMPOSITE_OPERATOR_UNKNOWN    = 0x00000000,
@@ -2904,8 +3119,8 @@ enum : int
     SVG_FECOMPOSITE_OPERATOR_ARITHMETIC = 0x00000006,
     svgFecompositeOperator_Max          = 0x7fffffff,
 }
-alias svgFecompositeOperator = int;
 
+alias svgEdgemode = int;
 enum : int
 {
     SVG_EDGEMODE_UNKNOWN   = 0x00000000,
@@ -2914,16 +3129,16 @@ enum : int
     SVG_EDGEMODE_NONE      = 0x00000003,
     svgEdgemode_Max        = 0x7fffffff,
 }
-alias svgEdgemode = int;
 
+alias svgPreserveAlpha = int;
 enum : int
 {
     SVG_PRESERVEALPHA_FALSE = 0x00000000,
     SVG_PRESERVEALPHA_TRUE  = 0x00000001,
     svgPreserveAlpha_Max    = 0x7fffffff,
 }
-alias svgPreserveAlpha = int;
 
+alias svgChannel = int;
 enum : int
 {
     SVG_CHANNEL_UNKNOWN = 0x00000000,
@@ -2933,8 +3148,8 @@ enum : int
     SVG_CHANNEL_A       = 0x00000004,
     svgChannel_Max      = 0x7fffffff,
 }
-alias svgChannel = int;
 
+alias svgMorphologyOperator = int;
 enum : int
 {
     SVG_MORPHOLOGY_OPERATOR_UNKNOWN = 0x00000000,
@@ -2942,8 +3157,8 @@ enum : int
     SVG_MORPHOLOGY_OPERATOR_DILATE  = 0x00000002,
     svgMorphologyOperator_Max       = 0x7fffffff,
 }
-alias svgMorphologyOperator = int;
 
+alias svgTurbulenceType = int;
 enum : int
 {
     SVG_TURBULENCE_TYPE_UNKNOWN     = 0x00000000,
@@ -2951,8 +3166,8 @@ enum : int
     SVG_TURBULENCE_TYPE_TURBULENCE  = 0x00000002,
     svgTurbulenceType_Max           = 0x7fffffff,
 }
-alias svgTurbulenceType = int;
 
+alias svgStitchtype = int;
 enum : int
 {
     SVG_STITCHTYPE_UNKNOWN  = 0x00000000,
@@ -2960,8 +3175,8 @@ enum : int
     SVG_STITCHTYPE_NOSTITCH = 0x00000002,
     svgStitchtype_Max       = 0x7fffffff,
 }
-alias svgStitchtype = int;
 
+alias svgMarkerUnits = int;
 enum : int
 {
     SVG_MARKERUNITS_UNKNOWN        = 0x00000000,
@@ -2969,8 +3184,8 @@ enum : int
     SVG_MARKERUNITS_STROKEWIDTH    = 0x00000002,
     svgMarkerUnits_Max             = 0x7fffffff,
 }
-alias svgMarkerUnits = int;
 
+alias svgMarkerOrient = int;
 enum : int
 {
     SVG_MARKER_ORIENT_UNKNOWN = 0x00000000,
@@ -2978,15 +3193,15 @@ enum : int
     SVG_MARKER_ORIENT_ANGLE   = 0x00000002,
     svgMarkerOrient_Max       = 0x7fffffff,
 }
-alias svgMarkerOrient = int;
 
+alias svgMarkerOrientAttribute = int;
 enum : int
 {
     svgMarkerOrientAttributeAuto = 0x00000000,
     svgMarkerOrientAttribute_Max = 0x7fffffff,
 }
-alias svgMarkerOrientAttribute = int;
 
+alias htmlMediaNetworkState = int;
 enum : int
 {
     htmlMediaNetworkStateEmpty    = 0x00000000,
@@ -2995,8 +3210,8 @@ enum : int
     htmlMediaNetworkStateNoSource = 0x00000003,
     htmlMediaNetworkState_Max     = 0x7fffffff,
 }
-alias htmlMediaNetworkState = int;
 
+alias htmlMediaReadyState = int;
 enum : int
 {
     htmlMediaReadyStateHaveNothing     = 0x00000000,
@@ -3006,8 +3221,8 @@ enum : int
     htmlMediaReadyStateHaveEnoughData  = 0x00000004,
     htmlMediaReadyState_Max            = 0x7fffffff,
 }
-alias htmlMediaReadyState = int;
 
+alias htmlMediaErr = int;
 enum : int
 {
     htmlMediaErrAborted         = 0x00000000,
@@ -3016,8 +3231,8 @@ enum : int
     htmlMediaErrSrcNotSupported = 0x00000003,
     htmlMediaErr_Max            = 0x7fffffff,
 }
-alias htmlMediaErr = int;
 
+alias lengthAdjust = int;
 enum : int
 {
     LENGTHADJUST_UNKNOWN          = 0x00000000,
@@ -3025,8 +3240,8 @@ enum : int
     LENGTHADJUST_SPACINGANDGLYPHS = 0x00000002,
     lengthAdjust_Max              = 0x7fffffff,
 }
-alias lengthAdjust = int;
 
+alias textpathMethodtype = int;
 enum : int
 {
     TEXTPATH_METHODTYPE_UNKNOWN = 0x00000000,
@@ -3034,8 +3249,8 @@ enum : int
     TEXTPATH_METHODTYPE_STRETCH = 0x00000002,
     textpathMethodtype_Max      = 0x7fffffff,
 }
-alias textpathMethodtype = int;
 
+alias textpathSpacingtype = int;
 enum : int
 {
     TEXTPATH_SPACINGTYPE_UNKNOWN = 0x00000000,
@@ -3043,8 +3258,8 @@ enum : int
     TEXTPATH_SPACINGTYPE_EXACT   = 0x00000002,
     textpathSpacingtype_Max      = 0x7fffffff,
 }
-alias textpathSpacingtype = int;
 
+alias ELEMENT_CORNER = int;
 enum : int
 {
     ELEMENT_CORNER_NONE        = 0x00000000,
@@ -3058,8 +3273,8 @@ enum : int
     ELEMENT_CORNER_BOTTOMRIGHT = 0x00000008,
     ELEMENT_CORNER_Max         = 0x7fffffff,
 }
-alias ELEMENT_CORNER = int;
 
+alias SECUREURLHOSTVALIDATE_FLAGS = int;
 enum : int
 {
     SUHV_PROMPTBEFORENO             = 0x00000001,
@@ -3067,16 +3282,16 @@ enum : int
     SUHV_UNSECURESOURCE             = 0x00000004,
     SECUREURLHOSTVALIDATE_FLAGS_Max = 0x7fffffff,
 }
-alias SECUREURLHOSTVALIDATE_FLAGS = int;
 
+alias POINTER_GRAVITY = int;
 enum : int
 {
     POINTER_GRAVITY_Left  = 0x00000000,
     POINTER_GRAVITY_Right = 0x00000001,
     POINTER_GRAVITY_Max   = 0x7fffffff,
 }
-alias POINTER_GRAVITY = int;
 
+alias ELEMENT_ADJACENCY = int;
 enum : int
 {
     ELEM_ADJ_BeforeBegin  = 0x00000000,
@@ -3085,8 +3300,8 @@ enum : int
     ELEM_ADJ_AfterEnd     = 0x00000003,
     ELEMENT_ADJACENCY_Max = 0x7fffffff,
 }
-alias ELEMENT_ADJACENCY = int;
 
+alias MARKUP_CONTEXT_TYPE = int;
 enum : int
 {
     CONTEXT_TYPE_None       = 0x00000000,
@@ -3096,8 +3311,8 @@ enum : int
     CONTEXT_TYPE_NoScope    = 0x00000004,
     MARKUP_CONTEXT_TYPE_Max = 0x7fffffff,
 }
-alias MARKUP_CONTEXT_TYPE = int;
 
+alias FINDTEXT_FLAGS = int;
 enum : int
 {
     FINDTEXT_BACKWARDS               = 0x00000001,
@@ -3110,8 +3325,8 @@ enum : int
     FINDTEXT_MATCHALEFHAMZA          = 0x80000000,
     FINDTEXT_FLAGS_Max               = 0x7fffffff,
 }
-alias FINDTEXT_FLAGS = int;
 
+alias MOVEUNIT_ACTION = int;
 enum : int
 {
     MOVEUNIT_PREVCHAR         = 0x00000000,
@@ -3136,16 +3351,16 @@ enum : int
     MOVEUNIT_NEXTBLOCK        = 0x00000013,
     MOVEUNIT_ACTION_Max       = 0x7fffffff,
 }
-alias MOVEUNIT_ACTION = int;
 
+alias PARSE_FLAGS = int;
 enum : int
 {
     PARSE_ABSOLUTIFYIE40URLS = 0x00000001,
     PARSE_DISABLEVML         = 0x00000002,
     PARSE_FLAGS_Max          = 0x7fffffff,
 }
-alias PARSE_FLAGS = int;
 
+alias ELEMENT_TAG_ID = int;
 enum : int
 {
     TAGID_NULL                    = 0x00000000,
@@ -3376,8 +3591,8 @@ enum : int
     TAGID_LAST_PREDEFINED         = 0x00002710,
     ELEMENT_TAG_ID_Max            = 0x7fffffff,
 }
-alias ELEMENT_TAG_ID = int;
 
+alias SELECTION_TYPE = int;
 enum : int
 {
     SELECTION_TYPE_None    = 0x00000000,
@@ -3386,15 +3601,15 @@ enum : int
     SELECTION_TYPE_Control = 0x00000003,
     SELECTION_TYPE_Max     = 0x7fffffff,
 }
-alias SELECTION_TYPE = int;
 
+alias SAVE_SEGMENTS_FLAGS = int;
 enum : int
 {
     SAVE_SEGMENTS_NoIE4SelectionCompat = 0x00000001,
     SAVE_SEGMENTS_FLAGS_Max            = 0x7fffffff,
 }
-alias SAVE_SEGMENTS_FLAGS = int;
 
+alias CARET_DIRECTION = int;
 enum : int
 {
     CARET_DIRECTION_INDETERMINATE = 0x00000000,
@@ -3403,30 +3618,30 @@ enum : int
     CARET_DIRECTION_FORWARD       = 0x00000003,
     CARET_DIRECTION_Max           = 0x7fffffff,
 }
-alias CARET_DIRECTION = int;
 
+alias LINE_DIRECTION = int;
 enum : int
 {
     LINE_DIRECTION_RightToLeft = 0x00000001,
     LINE_DIRECTION_LeftToRight = 0x00000002,
     LINE_DIRECTION_Max         = 0x7fffffff,
 }
-alias LINE_DIRECTION = int;
 
+alias HT_OPTIONS = int;
 enum : int
 {
     HT_OPT_AllowAfterEOL = 0x00000001,
     HT_OPTIONS_Max       = 0x7fffffff,
 }
-alias HT_OPTIONS = int;
 
+alias HT_RESULTS = int;
 enum : int
 {
     HT_RESULTS_Glyph = 0x00000001,
     HT_RESULTS_Max   = 0x7fffffff,
 }
-alias HT_RESULTS = int;
 
+alias DISPLAY_MOVEUNIT = int;
 enum : int
 {
     DISPLAY_MOVEUNIT_PreviousLine     = 0x00000001,
@@ -3437,16 +3652,16 @@ enum : int
     DISPLAY_MOVEUNIT_BottomOfWindow   = 0x00000006,
     DISPLAY_MOVEUNIT_Max              = 0x7fffffff,
 }
-alias DISPLAY_MOVEUNIT = int;
 
+alias DISPLAY_GRAVITY = int;
 enum : int
 {
     DISPLAY_GRAVITY_PreviousLine = 0x00000001,
     DISPLAY_GRAVITY_NextLine     = 0x00000002,
     DISPLAY_GRAVITY_Max          = 0x7fffffff,
 }
-alias DISPLAY_GRAVITY = int;
 
+alias DISPLAY_BREAK = int;
 enum : int
 {
     DISPLAY_BREAK_None  = 0x00000000,
@@ -3454,8 +3669,8 @@ enum : int
     DISPLAY_BREAK_Break = 0x00000002,
     DISPLAY_BREAK_Max   = 0x7fffffff,
 }
-alias DISPLAY_BREAK = int;
 
+alias COORD_SYSTEM = int;
 enum : int
 {
     COORD_SYSTEM_GLOBAL    = 0x00000000,
@@ -3466,8 +3681,8 @@ enum : int
     COORD_SYSTEM_CLIENT    = 0x00000005,
     COORD_SYSTEM_Max       = 0x7fffffff,
 }
-alias COORD_SYSTEM = int;
 
+alias DEV_CONSOLE_MESSAGE_LEVEL = int;
 enum : int
 {
     DCML_INFORMATIONAL            = 0x00000000,
@@ -3475,8 +3690,8 @@ enum : int
     DCML_ERROR                    = 0x00000002,
     DEV_CONSOLE_MESSAGE_LEVEL_Max = 0x7fffffff,
 }
-alias DEV_CONSOLE_MESSAGE_LEVEL = int;
 
+alias DOM_EVENT_PHASE = int;
 enum : int
 {
     DEP_CAPTURING_PHASE = 0x00000001,
@@ -3484,8 +3699,8 @@ enum : int
     DEP_BUBBLING_PHASE  = 0x00000003,
     DOM_EVENT_PHASE_Max = 0x7fffffff,
 }
-alias DOM_EVENT_PHASE = int;
 
+alias SCRIPT_TIMER_TYPE = int;
 enum : int
 {
     STT_TIMEOUT           = 0x00000000,
@@ -3494,8 +3709,8 @@ enum : int
     STT_ANIMATION_FRAME   = 0x00000003,
     SCRIPT_TIMER_TYPE_Max = 0x7fffffff,
 }
-alias SCRIPT_TIMER_TYPE = int;
 
+alias HTML_PAINTER = int;
 enum : int
 {
     HTMLPAINTER_OPAQUE         = 0x00000001,
@@ -3515,8 +3730,8 @@ enum : int
     HTMLPAINTER_NOSCROLLBITS   = 0x00020000,
     HTML_PAINTER_Max           = 0x7fffffff,
 }
-alias HTML_PAINTER = int;
 
+alias HTML_PAINT_ZORDER = int;
 enum : int
 {
     HTMLPAINT_ZORDER_NONE               = 0x00000000,
@@ -3530,24 +3745,24 @@ enum : int
     HTMLPAINT_ZORDER_WINDOW_TOP         = 0x00000008,
     HTML_PAINT_ZORDER_Max               = 0x7fffffff,
 }
-alias HTML_PAINT_ZORDER = int;
 
+alias HTML_PAINT_DRAW_FLAGS = int;
 enum : int
 {
     HTMLPAINT_DRAW_UPDATEREGION = 0x00000001,
     HTMLPAINT_DRAW_USE_XFORM    = 0x00000002,
     HTML_PAINT_DRAW_FLAGS_Max   = 0x7fffffff,
 }
-alias HTML_PAINT_DRAW_FLAGS = int;
 
+alias HTML_PAINT_EVENT_FLAGS = int;
 enum : int
 {
     HTMLPAINT_EVENT_TARGET     = 0x00000001,
     HTMLPAINT_EVENT_SETCURSOR  = 0x00000002,
     HTML_PAINT_EVENT_FLAGS_Max = 0x7fffffff,
 }
-alias HTML_PAINT_EVENT_FLAGS = int;
 
+alias HTML_PAINT_DRAW_INFO_FLAGS = int;
 enum : int
 {
     HTMLPAINT_DRAWINFO_VIEWPORT     = 0x00000001,
@@ -3555,8 +3770,8 @@ enum : int
     HTMLPAINT_DRAWINFO_XFORM        = 0x00000004,
     HTML_PAINT_DRAW_INFO_FLAGS_Max  = 0x7fffffff,
 }
-alias HTML_PAINT_DRAW_INFO_FLAGS = int;
 
+alias HTMLDlgFlag = int;
 enum : int
 {
     HTMLDlgFlagNo     = 0x00000000,
@@ -3568,7 +3783,6 @@ enum : int
     HTMLDlgFlagNotSet = 0xffffffff,
     HTMLDlgFlag_Max   = 0x7fffffff,
 }
-alias HTMLDlgFlag = int;
 
 enum HTMLDlgBorder : int
 {
@@ -3577,13 +3791,13 @@ enum HTMLDlgBorder : int
     HTMLDlgBorder_Max  = 0x7fffffff,
 }
 
+alias HTMLDlgEdge = int;
 enum : int
 {
     HTMLDlgEdgeSunken = 0x00000000,
     HTMLDlgEdgeRaised = 0x00000010,
     HTMLDlgEdge_Max   = 0x7fffffff,
 }
-alias HTMLDlgEdge = int;
 
 enum HTMLDlgCenter : int
 {
@@ -3598,6 +3812,7 @@ enum HTMLDlgCenter : int
     HTMLDlgCenter_Max    = 0x7fffffff,
 }
 
+alias HTMLAppFlag = int;
 enum : int
 {
     HTMLAppFlagNo   = 0x00000000,
@@ -3608,7 +3823,6 @@ enum : int
     HTMLAppFlag1    = 0x00000001,
     HTMLAppFlag_Max = 0x7fffffff,
 }
-alias HTMLAppFlag = int;
 
 enum HTMLMinimizeFlag : int
 {
@@ -3638,6 +3852,7 @@ enum HTMLSysMenuFlag : int
     HTMLSysMenuFlag_Max = 0x7fffffff,
 }
 
+alias HTMLBorder = int;
 enum : int
 {
     HTMLBorderNone   = 0x00000000,
@@ -3646,7 +3861,6 @@ enum : int
     HTMLBorderThin   = 0x00800000,
     HTMLBorder_Max   = 0x7fffffff,
 }
-alias HTMLBorder = int;
 
 enum HTMLBorderStyle : int
 {
@@ -3666,6 +3880,7 @@ enum HTMLWindowState : int
     HTMLWindowState_Max     = 0x7fffffff,
 }
 
+alias BEHAVIOR_EVENT = int;
 enum : int
 {
     BEHAVIOREVENT_FIRST                 = 0x00000000,
@@ -3677,16 +3892,16 @@ enum : int
     BEHAVIOREVENT_LAST                  = 0x00000004,
     BEHAVIOR_EVENT_Max                  = 0x7fffffff,
 }
-alias BEHAVIOR_EVENT = int;
 
+alias BEHAVIOR_EVENT_FLAGS = int;
 enum : int
 {
     BEHAVIOREVENTFLAGS_BUBBLE           = 0x00000001,
     BEHAVIOREVENTFLAGS_STANDARDADDITIVE = 0x00000002,
     BEHAVIOR_EVENT_FLAGS_Max            = 0x7fffffff,
 }
-alias BEHAVIOR_EVENT_FLAGS = int;
 
+alias BEHAVIOR_RENDER_INFO = int;
 enum : int
 {
     BEHAVIORRENDERINFO_BEFOREBACKGROUND  = 0x00000001,
@@ -3706,8 +3921,8 @@ enum : int
     BEHAVIORRENDERINFO_3DSURFACE         = 0x00200000,
     BEHAVIOR_RENDER_INFO_Max             = 0x7fffffff,
 }
-alias BEHAVIOR_RENDER_INFO = int;
 
+alias BEHAVIOR_RELATION = int;
 enum : int
 {
     BEHAVIOR_FIRSTRELATION = 0x00000000,
@@ -3718,8 +3933,8 @@ enum : int
     BEHAVIOR_LASTRELATION  = 0x00000003,
     BEHAVIOR_RELATION_Max  = 0x7fffffff,
 }
-alias BEHAVIOR_RELATION = int;
 
+alias BEHAVIOR_LAYOUT_INFO = int;
 enum : int
 {
     BEHAVIORLAYOUTINFO_FULLDELEGATION = 0x00000001,
@@ -3727,8 +3942,8 @@ enum : int
     BEHAVIORLAYOUTINFO_MAPSIZE        = 0x00000004,
     BEHAVIOR_LAYOUT_INFO_Max          = 0x7fffffff,
 }
-alias BEHAVIOR_LAYOUT_INFO = int;
 
+alias BEHAVIOR_LAYOUT_MODE = int;
 enum : int
 {
     BEHAVIORLAYOUTMODE_NATURAL          = 0x00000001,
@@ -3738,39 +3953,38 @@ enum : int
     BEHAVIORLAYOUTMODE_FINAL_PERCENT    = 0x00008000,
     BEHAVIOR_LAYOUT_MODE_Max            = 0x7fffffff,
 }
-alias BEHAVIOR_LAYOUT_MODE = int;
 
+alias ELEMENTDESCRIPTOR_FLAGS = int;
 enum : int
 {
     ELEMENTDESCRIPTORFLAGS_LITERAL        = 0x00000001,
     ELEMENTDESCRIPTORFLAGS_NESTED_LITERAL = 0x00000002,
     ELEMENTDESCRIPTOR_FLAGS_Max           = 0x7fffffff,
 }
-alias ELEMENTDESCRIPTOR_FLAGS = int;
 
+alias ELEMENTNAMESPACE_FLAGS = int;
 enum : int
 {
     ELEMENTNAMESPACEFLAGS_ALLOWANYTAG         = 0x00000001,
     ELEMENTNAMESPACEFLAGS_QUERYFORUNKNOWNTAGS = 0x00000002,
     ELEMENTNAMESPACE_FLAGS_Max                = 0x7fffffff,
 }
-alias ELEMENTNAMESPACE_FLAGS = int;
 
+alias VIEW_OBJECT_ALPHA_MODE = int;
 enum : int
 {
     VIEW_OBJECT_ALPHA_MODE_IGNORE        = 0x00000000,
     VIEW_OBJECT_ALPHA_MODE_PREMULTIPLIED = 0x00000001,
     VIEW_OBJECT_ALPHA_MODE_Max           = 0x7fffffff,
 }
-alias VIEW_OBJECT_ALPHA_MODE = int;
 
+alias VIEW_OBJECT_COMPOSITION_MODE = int;
 enum : int
 {
     VIEW_OBJECT_COMPOSITION_MODE_LEGACY           = 0x00000000,
     VIEW_OBJECT_COMPOSITION_MODE_SURFACEPRESENTER = 0x00000001,
     VIEW_OBJECT_COMPOSITION_MODE_Max              = 0x7fffffff,
 }
-alias VIEW_OBJECT_COMPOSITION_MODE = int;
 
 // Constants
 
@@ -3784,22 +3998,89 @@ enum : int
 
 // Callbacks
 
+///An application-defined function that serves as a vectored exception handler. Specify this address when calling the
+///AddVectoredExceptionHandler function. The <b>PVECTORED_EXCEPTION_HANDLER</b> type defines a pointer to this callback
+///function. <b>VectoredHandler</b> is a placeholder for the application-defined name.
+///Params:
+///    ExceptionInfo = A pointer to an EXCEPTION_POINTERS structure that receives the exception record.
+///Returns:
+///    To return control to the point at which the exception occurred, return EXCEPTION_CONTINUE_EXECUTION (0xffffffff).
+///    To continue the handler search, return EXCEPTION_CONTINUE_SEARCH (0x0).
+///    
 alias PVECTORED_EXCEPTION_HANDLER = int function(EXCEPTION_POINTERS* ExceptionInfo);
 alias PTOP_LEVEL_EXCEPTION_FILTER = int function(EXCEPTION_POINTERS* ExceptionInfo);
 alias LPTOP_LEVEL_EXCEPTION_FILTER = int function();
+///An application-defined callback function that receives a wait chain. Specify this address when calling the
+///OpenThreadWaitChainSession function. The <b>PWAITCHAINCALLBACK</b> type defines a pointer to this callback function.
+///<i>WaitChainCallback</i> is a placeholder for the application-defined function name.
+///Params:
+///    WctHandle = A handle to the WCT session created by the OpenThreadWaitChainSession function.
+///    Context = A optional pointer to an application-defined context structure specified by the GetThreadWaitChain function.
+///    CallbackStatus = The callback status. This parameter can be one of the following values, or one of the other system error codes.
+///                     <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="ERROR_ACCESS_DENIED"></a><a
+///                     id="error_access_denied"></a><dl> <dt><b>ERROR_ACCESS_DENIED</b></dt> </dl> </td> <td width="60%"> The caller did
+///                     not have sufficient privilege to open a target thread. </td> </tr> <tr> <td width="40%"><a
+///                     id="ERROR_CANCELLED"></a><a id="error_cancelled"></a><dl> <dt><b>ERROR_CANCELLED</b></dt> </dl> </td> <td
+///                     width="60%"> The asynchronous session was canceled by a call to the CloseThreadWaitChainSession function. </td>
+///                     </tr> <tr> <td width="40%"><a id="ERROR_MORE_DATA"></a><a id="error_more_data"></a><dl>
+///                     <dt><b>ERROR_MORE_DATA</b></dt> </dl> </td> <td width="60%"> The <i>NodeInfoArray</i> buffer is not large enough
+///                     to contain all the nodes in the wait chain. The <i>NodeCount</i> parameter contains the number of nodes in the
+///                     chain. The wait chain returned is still valid. </td> </tr> <tr> <td width="40%"><a
+///                     id="ERROR_OBJECT_NOT_FOUND"></a><a id="error_object_not_found"></a><dl> <dt><b>ERROR_OBJECT_NOT_FOUND</b></dt>
+///                     </dl> </td> <td width="60%"> The specified thread could not be located. </td> </tr> <tr> <td width="40%"><a
+///                     id="ERROR_SUCCESS"></a><a id="error_success"></a><dl> <dt><b>ERROR_SUCCESS</b></dt> </dl> </td> <td width="60%">
+///                     The operation completed successfully. </td> </tr> <tr> <td width="40%"><a id="ERROR_TOO_MANY_THREADS"></a><a
+///                     id="error_too_many_threads"></a><dl> <dt><b>ERROR_TOO_MANY_THREADS</b></dt> </dl> </td> <td width="60%"> The
+///                     number of nodes exceeds WCT_MAX_NODE_COUNT. The wait chain returned is still valid. </td> </tr> </table>
+///    NodeCount = The number of nodes retrieved, up to WCT_MAX_NODE_COUNT. If the array cannot contain all the nodes of the wait
+///                chain, the function fails, <i>CallbackStatus</i> is ERROR_MORE_DATA, and this parameter receives the number of
+///                array elements required to contain all the nodes.
+///    NodeInfoArray = An array of WAITCHAIN_NODE_INFO structures that receives the wait chain.
+///    IsCycle = If the function detects a deadlock, this variable is set to <b>TRUE</b>; otherwise, it is set to <b>FALSE</b>.
 alias PWAITCHAINCALLBACK = void function(void* WctHandle, size_t Context, uint CallbackStatus, uint* NodeCount, 
                                          WAITCHAIN_NODE_INFO* NodeInfoArray, int* IsCycle);
 alias PCOGETCALLSTATE = HRESULT function(int param0, uint* param1);
 alias PCOGETACTIVATIONSTATE = HRESULT function(GUID param0, uint param1, uint* param2);
+///An application-defined callback function used with MiniDumpWriteDump. It receives extended minidump information. The
+///<b>MINIDUMP_CALLBACK_ROUTINE</b> type defines a pointer to this callback function. <b>MiniDumpCallback</b> is a
+///placeholder for the application-defined function name.
+///Params:
+///    CallbackParam = An application-defined parameter value.
+///    CallbackInput = A pointer to a MINIDUMP_CALLBACK_INPUT structure that specifies extended minidump information.
+///    CallbackOutput = A pointer to a MINIDUMP_CALLBACK_OUTPUT structure that receives application-defined information from the callback
+///                     function.
+///Returns:
+///    If the function succeeds, return <b>TRUE</b>; otherwise, return <b>FALSE</b>.
+///    
 alias MINIDUMP_CALLBACK_ROUTINE = BOOL function(void* CallbackParam, MINIDUMP_CALLBACK_INPUT* CallbackInput, 
                                                 MINIDUMP_CALLBACK_OUTPUT* CallbackOutput);
+///Defines a pointer to an application-defined function in a dynamic-link library (DLL) that will be used as the
+///authoring binary. When the app host starts in authoring mode, this function is called to initialize the authoring
+///binary.
+///Params:
+///    authoringModeObject = Type: <b>IWebApplicationAuthoringMode*</b> An object that provides a path to the authoring binary.
+///    host = Type: <b>IWebApplicationHost*</b> The WWAHost.
+///Returns:
+///    Type: <b>HRESULT</b> If this callback function succeeds, it returns <b
+///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
+///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
+///    
 alias RegisterAuthoringClientFunctionType = HRESULT function(IWebApplicationAuthoringMode authoringModeObject, 
                                                              IWebApplicationHost host);
+///Unregisters the application-defined function that was registered with the RegisterAuthoringClientFunctionType
+///function. This function is called when the app host terminates.
+///Params:
+///    host = Type: <b>IWebApplicationHost*</b> An object that provides a path to the authoring binary.
+///Returns:
+///    Type: <b>HRESULT</b> The WWAHost.
+///    
 alias UnregisterAuthoringClientFunctionType = HRESULT function(IWebApplicationHost host);
 
 // Structs
 
 
+///Contains processor-specific register data. The system uses <b>CONTEXT</b> structures to perform various internal
+///operations. Refer to the header file WinNT.h for definitions of this structure for each processor architecture.
 struct CONTEXT
 {
     uint               ContextFlags;
@@ -3829,9 +4110,12 @@ struct CONTEXT
     ubyte[512]         ExtendedRegisters;
 }
 
+///Describes an entry in the descriptor table. This structure is valid only on x86-based systems.
 struct LDT_ENTRY
 {
+    ///The low-order part of the address of the last byte in the segment.
     ushort LimitLow;
+    ///The low-order part of the base address of the segment.
     ushort BaseLow;
     union HighWord
     {
@@ -3849,6 +4133,7 @@ struct LDT_ENTRY
     }
 }
 
+///Represents the 80387 save area on WOW64. Refer to the header file WinNT.h for the definition of this structure.
 struct WOW64_FLOATING_SAVE_AREA
 {
     uint      ControlWord;
@@ -3862,6 +4147,7 @@ struct WOW64_FLOATING_SAVE_AREA
     uint      Cr0NpxState;
 }
 
+///Represents a context frame on WOW64. Refer to the header file WinNT.h for the definition of this structure.
 struct WOW64_CONTEXT
 {
     uint       ContextFlags;
@@ -3891,9 +4177,13 @@ struct WOW64_CONTEXT
     ubyte[512] ExtendedRegisters;
 }
 
+///Describes an entry in the descriptor table for a 32-bit thread on a 64-bit system. This structure is valid only on
+///64-bit systems.
 struct WOW64_LDT_ENTRY
 {
+    ///The low-order part of the address of the last byte in the segment.
     ushort LimitLow;
+    ///The low-order part of the base address of the segment.
     ushort BaseLow;
     union HighWord
     {
@@ -3911,131 +4201,652 @@ struct WOW64_LDT_ENTRY
     }
 }
 
+///Describes an exception.
 struct EXCEPTION_RECORD
 {
+    ///The reason the exception occurred. This is the code generated by a hardware exception, or the code specified in
+    ///the RaiseException function for a software-generated exception. The following tables describes the exception
+    ///codes that are likely to occur due to common programming errors. <table> <tr> <th>Value</th> <th>Meaning</th>
+    ///</tr> <tr> <td width="40%"><a id="EXCEPTION_ACCESS_VIOLATION"></a><a id="exception_access_violation"></a><dl>
+    ///<dt><b>EXCEPTION_ACCESS_VIOLATION</b></dt> </dl> </td> <td width="60%"> The thread tried to read from or write to
+    ///a virtual address for which it does not have the appropriate access. </td> </tr> <tr> <td width="40%"><a
+    ///id="EXCEPTION_ARRAY_BOUNDS_EXCEEDED"></a><a id="exception_array_bounds_exceeded"></a><dl>
+    ///<dt><b>EXCEPTION_ARRAY_BOUNDS_EXCEEDED</b></dt> </dl> </td> <td width="60%"> The thread tried to access an array
+    ///element that is out of bounds and the underlying hardware supports bounds checking. </td> </tr> <tr> <td
+    ///width="40%"><a id="EXCEPTION_BREAKPOINT"></a><a id="exception_breakpoint"></a><dl>
+    ///<dt><b>EXCEPTION_BREAKPOINT</b></dt> </dl> </td> <td width="60%"> A breakpoint was encountered. </td> </tr> <tr>
+    ///<td width="40%"><a id="EXCEPTION_DATATYPE_MISALIGNMENT"></a><a id="exception_datatype_misalignment"></a><dl>
+    ///<dt><b>EXCEPTION_DATATYPE_MISALIGNMENT</b></dt> </dl> </td> <td width="60%"> The thread tried to read or write
+    ///data that is misaligned on hardware that does not provide alignment. For example, 16-bit values must be aligned
+    ///on 2-byte boundaries; 32-bit values on 4-byte boundaries, and so on. </td> </tr> <tr> <td width="40%"><a
+    ///id="EXCEPTION_FLT_DENORMAL_OPERAND"></a><a id="exception_flt_denormal_operand"></a><dl>
+    ///<dt><b>EXCEPTION_FLT_DENORMAL_OPERAND</b></dt> </dl> </td> <td width="60%"> One of the operands in a
+    ///floating-point operation is denormal. A denormal value is one that is too small to represent as a standard
+    ///floating-point value. </td> </tr> <tr> <td width="40%"><a id="EXCEPTION_FLT_DIVIDE_BY_ZERO"></a><a
+    ///id="exception_flt_divide_by_zero"></a><dl> <dt><b>EXCEPTION_FLT_DIVIDE_BY_ZERO</b></dt> </dl> </td> <td
+    ///width="60%"> The thread tried to divide a floating-point value by a floating-point divisor of zero. </td> </tr>
+    ///<tr> <td width="40%"><a id="EXCEPTION_FLT_INEXACT_RESULT"></a><a id="exception_flt_inexact_result"></a><dl>
+    ///<dt><b>EXCEPTION_FLT_INEXACT_RESULT</b></dt> </dl> </td> <td width="60%"> The result of a floating-point
+    ///operation cannot be represented exactly as a decimal fraction. </td> </tr> <tr> <td width="40%"><a
+    ///id="EXCEPTION_FLT_INVALID_OPERATION"></a><a id="exception_flt_invalid_operation"></a><dl>
+    ///<dt><b>EXCEPTION_FLT_INVALID_OPERATION</b></dt> </dl> </td> <td width="60%"> This exception represents any
+    ///floating-point exception not included in this list. </td> </tr> <tr> <td width="40%"><a
+    ///id="EXCEPTION_FLT_OVERFLOW"></a><a id="exception_flt_overflow"></a><dl> <dt><b>EXCEPTION_FLT_OVERFLOW</b></dt>
+    ///</dl> </td> <td width="60%"> The exponent of a floating-point operation is greater than the magnitude allowed by
+    ///the corresponding type. </td> </tr> <tr> <td width="40%"><a id="EXCEPTION_FLT_STACK_CHECK"></a><a
+    ///id="exception_flt_stack_check"></a><dl> <dt><b>EXCEPTION_FLT_STACK_CHECK</b></dt> </dl> </td> <td width="60%">
+    ///The stack overflowed or underflowed as the result of a floating-point operation. </td> </tr> <tr> <td
+    ///width="40%"><a id="EXCEPTION_FLT_UNDERFLOW"></a><a id="exception_flt_underflow"></a><dl>
+    ///<dt><b>EXCEPTION_FLT_UNDERFLOW</b></dt> </dl> </td> <td width="60%"> The exponent of a floating-point operation
+    ///is less than the magnitude allowed by the corresponding type. </td> </tr> <tr> <td width="40%"><a
+    ///id="EXCEPTION_ILLEGAL_INSTRUCTION"></a><a id="exception_illegal_instruction"></a><dl>
+    ///<dt><b>EXCEPTION_ILLEGAL_INSTRUCTION</b></dt> </dl> </td> <td width="60%"> The thread tried to execute an invalid
+    ///instruction. </td> </tr> <tr> <td width="40%"><a id="EXCEPTION_IN_PAGE_ERROR"></a><a
+    ///id="exception_in_page_error"></a><dl> <dt><b>EXCEPTION_IN_PAGE_ERROR</b></dt> </dl> </td> <td width="60%"> The
+    ///thread tried to access a page that was not present, and the system was unable to load the page. For example, this
+    ///exception might occur if a network connection is lost while running a program over the network. </td> </tr> <tr>
+    ///<td width="40%"><a id="EXCEPTION_INT_DIVIDE_BY_ZERO"></a><a id="exception_int_divide_by_zero"></a><dl>
+    ///<dt><b>EXCEPTION_INT_DIVIDE_BY_ZERO</b></dt> </dl> </td> <td width="60%"> The thread tried to divide an integer
+    ///value by an integer divisor of zero. </td> </tr> <tr> <td width="40%"><a id="EXCEPTION_INT_OVERFLOW"></a><a
+    ///id="exception_int_overflow"></a><dl> <dt><b>EXCEPTION_INT_OVERFLOW</b></dt> </dl> </td> <td width="60%"> The
+    ///result of an integer operation caused a carry out of the most significant bit of the result. </td> </tr> <tr> <td
+    ///width="40%"><a id="EXCEPTION_INVALID_DISPOSITION"></a><a id="exception_invalid_disposition"></a><dl>
+    ///<dt><b>EXCEPTION_INVALID_DISPOSITION</b></dt> </dl> </td> <td width="60%"> An exception handler returned an
+    ///invalid disposition to the exception dispatcher. Programmers using a high-level language such as C should never
+    ///encounter this exception. </td> </tr> <tr> <td width="40%"><a id="EXCEPTION_NONCONTINUABLE_EXCEPTION"></a><a
+    ///id="exception_noncontinuable_exception"></a><dl> <dt><b>EXCEPTION_NONCONTINUABLE_EXCEPTION</b></dt> </dl> </td>
+    ///<td width="60%"> The thread tried to continue execution after a noncontinuable exception occurred. </td> </tr>
+    ///<tr> <td width="40%"><a id="EXCEPTION_PRIV_INSTRUCTION"></a><a id="exception_priv_instruction"></a><dl>
+    ///<dt><b>EXCEPTION_PRIV_INSTRUCTION</b></dt> </dl> </td> <td width="60%"> The thread tried to execute an
+    ///instruction whose operation is not allowed in the current machine mode. </td> </tr> <tr> <td width="40%"><a
+    ///id="EXCEPTION_SINGLE_STEP"></a><a id="exception_single_step"></a><dl> <dt><b>EXCEPTION_SINGLE_STEP</b></dt> </dl>
+    ///</td> <td width="60%"> A trace trap or other single-instruction mechanism signaled that one instruction has been
+    ///executed. </td> </tr> <tr> <td width="40%"><a id="EXCEPTION_STACK_OVERFLOW"></a><a
+    ///id="exception_stack_overflow"></a><dl> <dt><b>EXCEPTION_STACK_OVERFLOW</b></dt> </dl> </td> <td width="60%"> The
+    ///thread used up its stack. </td> </tr> </table> Another exception code is likely to occur when debugging console
+    ///processes. It does not arise because of a programming error. The <b>DBG_CONTROL_C</b> exception code occurs when
+    ///CTRL+C is input to a console process that handles CTRL+C signals and is being debugged. This exception code is
+    ///not meant to be handled by applications. It is raised only for the benefit of the debugger, and is raised only
+    ///when a debugger is attached to the console process.
     uint              ExceptionCode;
+    ///The exception flags. This member can be either zero, indicating a continuable exception, or
+    ///<b>EXCEPTION_NONCONTINUABLE</b> indicating a noncontinuable exception. Any attempt to continue execution after a
+    ///noncontinuable exception causes the <b>EXCEPTION_NONCONTINUABLE_EXCEPTION</b> exception.
     uint              ExceptionFlags;
+    ///A pointer to an associated <b>EXCEPTION_RECORD</b> structure. Exception records can be chained together to
+    ///provide additional information when nested exceptions occur.
     EXCEPTION_RECORD* ExceptionRecord;
+    ///The address where the exception occurred.
     void*             ExceptionAddress;
+    ///The number of parameters associated with the exception. This is the number of defined elements in the
+    ///<b>ExceptionInformation</b> array.
     uint              NumberParameters;
+    ///An array of additional arguments that describe the exception. The RaiseException function can specify this array
+    ///of arguments. For most exception codes, the array elements are undefined. The following table describes the
+    ///exception codes whose array elements are defined. <table> <tr> <th>Exception code</th> <th>Meaning</th> </tr>
+    ///<tr> <td width="40%"><a id="EXCEPTION_ACCESS_VIOLATION"></a><a id="exception_access_violation"></a><dl>
+    ///<dt><b>EXCEPTION_ACCESS_VIOLATION</b></dt> </dl> </td> <td width="60%"> The first element of the array contains a
+    ///read-write flag that indicates the type of operation that caused the access violation. If this value is zero, the
+    ///thread attempted to read the inaccessible data. If this value is 1, the thread attempted to write to an
+    ///inaccessible address. If this value is 8, the thread causes a user-mode data execution prevention (DEP)
+    ///violation. The second array element specifies the virtual address of the inaccessible data. </td> </tr> <tr> <td
+    ///width="40%"><a id="EXCEPTION_IN_PAGE_ERROR"></a><a id="exception_in_page_error"></a><dl>
+    ///<dt><b>EXCEPTION_IN_PAGE_ERROR</b></dt> </dl> </td> <td width="60%"> The first element of the array contains a
+    ///read-write flag that indicates the type of operation that caused the access violation. If this value is zero, the
+    ///thread attempted to read the inaccessible data. If this value is 1, the thread attempted to write to an
+    ///inaccessible address. If this value is 8, the thread causes a user-mode data execution prevention (DEP)
+    ///violation. The second array element specifies the virtual address of the inaccessible data. The third array
+    ///element specifies the underlying <b>NTSTATUS</b> code that resulted in the exception. </td> </tr> </table>
     size_t[15]        ExceptionInformation;
 }
 
+///Describes an exception.
 struct EXCEPTION_RECORD64
 {
+    ///The reason the exception occurred. This is the code generated by a hardware exception, or the code specified in
+    ///the RaiseException function for a software-generated exception. The following tables describes the exception
+    ///codes that are likely to occur due to common programming errors. <table> <tr> <th>Value</th> <th>Meaning</th>
+    ///</tr> <tr> <td width="40%"><a id="EXCEPTION_ACCESS_VIOLATION"></a><a id="exception_access_violation"></a><dl>
+    ///<dt><b>EXCEPTION_ACCESS_VIOLATION</b></dt> </dl> </td> <td width="60%"> The thread tried to read from or write to
+    ///a virtual address for which it does not have the appropriate access. </td> </tr> <tr> <td width="40%"><a
+    ///id="EXCEPTION_ARRAY_BOUNDS_EXCEEDED"></a><a id="exception_array_bounds_exceeded"></a><dl>
+    ///<dt><b>EXCEPTION_ARRAY_BOUNDS_EXCEEDED</b></dt> </dl> </td> <td width="60%"> The thread tried to access an array
+    ///element that is out of bounds and the underlying hardware supports bounds checking. </td> </tr> <tr> <td
+    ///width="40%"><a id="EXCEPTION_BREAKPOINT"></a><a id="exception_breakpoint"></a><dl>
+    ///<dt><b>EXCEPTION_BREAKPOINT</b></dt> </dl> </td> <td width="60%"> A breakpoint was encountered. </td> </tr> <tr>
+    ///<td width="40%"><a id="EXCEPTION_DATATYPE_MISALIGNMENT"></a><a id="exception_datatype_misalignment"></a><dl>
+    ///<dt><b>EXCEPTION_DATATYPE_MISALIGNMENT</b></dt> </dl> </td> <td width="60%"> The thread tried to read or write
+    ///data that is misaligned on hardware that does not provide alignment. For example, 16-bit values must be aligned
+    ///on 2-byte boundaries; 32-bit values on 4-byte boundaries, and so on. </td> </tr> <tr> <td width="40%"><a
+    ///id="EXCEPTION_FLT_DENORMAL_OPERAND"></a><a id="exception_flt_denormal_operand"></a><dl>
+    ///<dt><b>EXCEPTION_FLT_DENORMAL_OPERAND</b></dt> </dl> </td> <td width="60%"> One of the operands in a
+    ///floating-point operation is denormal. A denormal value is one that is too small to represent as a standard
+    ///floating-point value. </td> </tr> <tr> <td width="40%"><a id="EXCEPTION_FLT_DIVIDE_BY_ZERO"></a><a
+    ///id="exception_flt_divide_by_zero"></a><dl> <dt><b>EXCEPTION_FLT_DIVIDE_BY_ZERO</b></dt> </dl> </td> <td
+    ///width="60%"> The thread tried to divide a floating-point value by a floating-point divisor of zero. </td> </tr>
+    ///<tr> <td width="40%"><a id="EXCEPTION_FLT_INEXACT_RESULT"></a><a id="exception_flt_inexact_result"></a><dl>
+    ///<dt><b>EXCEPTION_FLT_INEXACT_RESULT</b></dt> </dl> </td> <td width="60%"> The result of a floating-point
+    ///operation cannot be represented exactly as a decimal fraction. </td> </tr> <tr> <td width="40%"><a
+    ///id="EXCEPTION_FLT_INVALID_OPERATION"></a><a id="exception_flt_invalid_operation"></a><dl>
+    ///<dt><b>EXCEPTION_FLT_INVALID_OPERATION</b></dt> </dl> </td> <td width="60%"> This exception represents any
+    ///floating-point exception not included in this list. </td> </tr> <tr> <td width="40%"><a
+    ///id="EXCEPTION_FLT_OVERFLOW"></a><a id="exception_flt_overflow"></a><dl> <dt><b>EXCEPTION_FLT_OVERFLOW</b></dt>
+    ///</dl> </td> <td width="60%"> The exponent of a floating-point operation is greater than the magnitude allowed by
+    ///the corresponding type. </td> </tr> <tr> <td width="40%"><a id="EXCEPTION_FLT_STACK_CHECK"></a><a
+    ///id="exception_flt_stack_check"></a><dl> <dt><b>EXCEPTION_FLT_STACK_CHECK</b></dt> </dl> </td> <td width="60%">
+    ///The stack overflowed or underflowed as the result of a floating-point operation. </td> </tr> <tr> <td
+    ///width="40%"><a id="EXCEPTION_FLT_UNDERFLOW"></a><a id="exception_flt_underflow"></a><dl>
+    ///<dt><b>EXCEPTION_FLT_UNDERFLOW</b></dt> </dl> </td> <td width="60%"> The exponent of a floating-point operation
+    ///is less than the magnitude allowed by the corresponding type. </td> </tr> <tr> <td width="40%"><a
+    ///id="EXCEPTION_ILLEGAL_INSTRUCTION"></a><a id="exception_illegal_instruction"></a><dl>
+    ///<dt><b>EXCEPTION_ILLEGAL_INSTRUCTION</b></dt> </dl> </td> <td width="60%"> The thread tried to execute an invalid
+    ///instruction. </td> </tr> <tr> <td width="40%"><a id="EXCEPTION_IN_PAGE_ERROR"></a><a
+    ///id="exception_in_page_error"></a><dl> <dt><b>EXCEPTION_IN_PAGE_ERROR</b></dt> </dl> </td> <td width="60%"> The
+    ///thread tried to access a page that was not present, and the system was unable to load the page. For example, this
+    ///exception might occur if a network connection is lost while running a program over the network. </td> </tr> <tr>
+    ///<td width="40%"><a id="EXCEPTION_INT_DIVIDE_BY_ZERO"></a><a id="exception_int_divide_by_zero"></a><dl>
+    ///<dt><b>EXCEPTION_INT_DIVIDE_BY_ZERO</b></dt> </dl> </td> <td width="60%"> The thread tried to divide an integer
+    ///value by an integer divisor of zero. </td> </tr> <tr> <td width="40%"><a id="EXCEPTION_INT_OVERFLOW"></a><a
+    ///id="exception_int_overflow"></a><dl> <dt><b>EXCEPTION_INT_OVERFLOW</b></dt> </dl> </td> <td width="60%"> The
+    ///result of an integer operation caused a carry out of the most significant bit of the result. </td> </tr> <tr> <td
+    ///width="40%"><a id="EXCEPTION_INVALID_DISPOSITION"></a><a id="exception_invalid_disposition"></a><dl>
+    ///<dt><b>EXCEPTION_INVALID_DISPOSITION</b></dt> </dl> </td> <td width="60%"> An exception handler returned an
+    ///invalid disposition to the exception dispatcher. Programmers using a high-level language such as C should never
+    ///encounter this exception. </td> </tr> <tr> <td width="40%"><a id="EXCEPTION_NONCONTINUABLE_EXCEPTION"></a><a
+    ///id="exception_noncontinuable_exception"></a><dl> <dt><b>EXCEPTION_NONCONTINUABLE_EXCEPTION</b></dt> </dl> </td>
+    ///<td width="60%"> The thread tried to continue execution after a noncontinuable exception occurred. </td> </tr>
+    ///<tr> <td width="40%"><a id="EXCEPTION_PRIV_INSTRUCTION"></a><a id="exception_priv_instruction"></a><dl>
+    ///<dt><b>EXCEPTION_PRIV_INSTRUCTION</b></dt> </dl> </td> <td width="60%"> The thread tried to execute an
+    ///instruction whose operation is not allowed in the current machine mode. </td> </tr> <tr> <td width="40%"><a
+    ///id="EXCEPTION_SINGLE_STEP"></a><a id="exception_single_step"></a><dl> <dt><b>EXCEPTION_SINGLE_STEP</b></dt> </dl>
+    ///</td> <td width="60%"> A trace trap or other single-instruction mechanism signaled that one instruction has been
+    ///executed. </td> </tr> <tr> <td width="40%"><a id="EXCEPTION_STACK_OVERFLOW"></a><a
+    ///id="exception_stack_overflow"></a><dl> <dt><b>EXCEPTION_STACK_OVERFLOW</b></dt> </dl> </td> <td width="60%"> The
+    ///thread used up its stack. </td> </tr> </table> Another exception code is likely to occur when debugging console
+    ///processes. It does not arise because of a programming error. The <b>DBG_CONTROL_C</b> exception code occurs when
+    ///CTRL+C is input to a console process that handles CTRL+C signals and is being debugged. This exception code is
+    ///not meant to be handled by applications. It is raised only for the benefit of the debugger, and is raised only
+    ///when a debugger is attached to the console process.
     uint      ExceptionCode;
+    ///The exception flags. This member can be either zero, indicating a continuable exception, or
+    ///<b>EXCEPTION_NONCONTINUABLE</b> indicating a noncontinuable exception. Any attempt to continue execution after a
+    ///noncontinuable exception causes the <b>EXCEPTION_NONCONTINUABLE_EXCEPTION</b> exception.
     uint      ExceptionFlags;
+    ///A pointer to an associated <b>EXCEPTION_RECORD</b> structure. Exception records can be chained together to
+    ///provide additional information when nested exceptions occur.
     ulong     ExceptionRecord;
+    ///The address where the exception occurred.
     ulong     ExceptionAddress;
+    ///The number of parameters associated with the exception. This is the number of defined elements in the
+    ///<b>ExceptionInformation</b> array.
     uint      NumberParameters;
     uint      __unusedAlignment;
+    ///An array of additional arguments that describe the exception. The RaiseException function can specify this array
+    ///of arguments. For most exception codes, the array elements are undefined. The following table describes the
+    ///exception codes whose array elements are defined. <table> <tr> <th>Exception code</th> <th>Meaning</th> </tr>
+    ///<tr> <td width="40%"><a id="EXCEPTION_ACCESS_VIOLATION"></a><a id="exception_access_violation"></a><dl>
+    ///<dt><b>EXCEPTION_ACCESS_VIOLATION</b></dt> </dl> </td> <td width="60%"> The first element of the array contains a
+    ///read-write flag that indicates the type of operation that caused the access violation. If this value is zero, the
+    ///thread attempted to read the inaccessible data. If this value is 1, the thread attempted to write to an
+    ///inaccessible address. If this value is 8, the thread causes a user-mode data execution prevention (DEP)
+    ///violation. The second array element specifies the virtual address of the inaccessible data. </td> </tr> <tr> <td
+    ///width="40%"><a id="EXCEPTION_IN_PAGE_ERROR"></a><a id="exception_in_page_error"></a><dl>
+    ///<dt><b>EXCEPTION_IN_PAGE_ERROR</b></dt> </dl> </td> <td width="60%"> The first element of the array contains a
+    ///read-write flag that indicates the type of operation that caused the access violation. If this value is zero, the
+    ///thread attempted to read the inaccessible data. If this value is 1, the thread attempted to write to an
+    ///inaccessible address. If this value is 8, the thread causes a user-mode data execution prevention (DEP)
+    ///violation. The second array element specifies the virtual address of the inaccessible data. The third array
+    ///element specifies the underlying <b>NTSTATUS</b> code that resulted in the exception. </td> </tr> </table>
     ulong[15] ExceptionInformation;
 }
 
+///Contains an exception record with a machine-independent description of an exception and a context record with a
+///machine-dependent description of the processor context at the time of the exception.
 struct EXCEPTION_POINTERS
 {
+    ///A pointer to an EXCEPTION_RECORD structure that contains a machine-independent description of the exception.
     EXCEPTION_RECORD* ExceptionRecord;
+    ///A pointer to a CONTEXT structure that contains a processor-specific description of the state of the processor at
+    ///the time of the exception.
     CONTEXT*          ContextRecord;
 }
 
+///Represents the COFF header format.
 struct IMAGE_FILE_HEADER
 {
+    ///The architecture type of the computer. An image file can only be run on the specified computer or a system that
+    ///emulates the specified computer. This member can be one of the following values. <table> <tr> <th>Value</th>
+    ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="IMAGE_FILE_MACHINE_I386"></a><a
+    ///id="image_file_machine_i386"></a><dl> <dt><b>IMAGE_FILE_MACHINE_I386</b></dt> <dt>0x014c</dt> </dl> </td> <td
+    ///width="60%"> x86 </td> </tr> <tr> <td width="40%"><a id="IMAGE_FILE_MACHINE_IA64"></a><a
+    ///id="image_file_machine_ia64"></a><dl> <dt><b>IMAGE_FILE_MACHINE_IA64</b></dt> <dt>0x0200</dt> </dl> </td> <td
+    ///width="60%"> Intel Itanium </td> </tr> <tr> <td width="40%"><a id="IMAGE_FILE_MACHINE_AMD64"></a><a
+    ///id="image_file_machine_amd64"></a><dl> <dt><b>IMAGE_FILE_MACHINE_AMD64</b></dt> <dt>0x8664</dt> </dl> </td> <td
+    ///width="60%"> x64 </td> </tr> </table>
     ushort Machine;
+    ///The number of sections. This indicates the size of the section table, which immediately follows the headers. Note
+    ///that the Windows loader limits the number of sections to 96.
     ushort NumberOfSections;
+    ///The low 32 bits of the time stamp of the image. This represents the date and time the image was created by the
+    ///linker. The value is represented in the number of seconds elapsed since midnight (00:00:00), January 1, 1970,
+    ///Universal Coordinated Time, according to the system clock.
     uint   TimeDateStamp;
+    ///The offset of the symbol table, in bytes, or zero if no COFF symbol table exists.
     uint   PointerToSymbolTable;
+    ///The number of symbols in the symbol table.
     uint   NumberOfSymbols;
+    ///The size of the optional header, in bytes. This value should be 0 for object files.
     ushort SizeOfOptionalHeader;
+    ///The characteristics of the image. This member can be one or more of the following values. <table> <tr>
+    ///<th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="IMAGE_FILE_RELOCS_STRIPPED"></a><a
+    ///id="image_file_relocs_stripped"></a><dl> <dt><b>IMAGE_FILE_RELOCS_STRIPPED</b></dt> <dt>0x0001</dt> </dl> </td>
+    ///<td width="60%"> Relocation information was stripped from the file. The file must be loaded at its preferred base
+    ///address. If the base address is not available, the loader reports an error. </td> </tr> <tr> <td width="40%"><a
+    ///id="IMAGE_FILE_EXECUTABLE_IMAGE"></a><a id="image_file_executable_image"></a><dl>
+    ///<dt><b>IMAGE_FILE_EXECUTABLE_IMAGE</b></dt> <dt>0x0002</dt> </dl> </td> <td width="60%"> The file is executable
+    ///(there are no unresolved external references). </td> </tr> <tr> <td width="40%"><a
+    ///id="IMAGE_FILE_LINE_NUMS_STRIPPED"></a><a id="image_file_line_nums_stripped"></a><dl>
+    ///<dt><b>IMAGE_FILE_LINE_NUMS_STRIPPED</b></dt> <dt>0x0004</dt> </dl> </td> <td width="60%"> COFF line numbers were
+    ///stripped from the file. </td> </tr> <tr> <td width="40%"><a id="IMAGE_FILE_LOCAL_SYMS_STRIPPED"></a><a
+    ///id="image_file_local_syms_stripped"></a><dl> <dt><b>IMAGE_FILE_LOCAL_SYMS_STRIPPED</b></dt> <dt>0x0008</dt> </dl>
+    ///</td> <td width="60%"> COFF symbol table entries were stripped from file. </td> </tr> <tr> <td width="40%"><a
+    ///id="IMAGE_FILE_AGGRESIVE_WS_TRIM"></a><a id="image_file_aggresive_ws_trim"></a><dl>
+    ///<dt><b>IMAGE_FILE_AGGRESIVE_WS_TRIM</b></dt> <dt>0x0010</dt> </dl> </td> <td width="60%"> Aggressively trim the
+    ///working set. This value is obsolete. </td> </tr> <tr> <td width="40%"><a
+    ///id="IMAGE_FILE_LARGE_ADDRESS_AWARE"></a><a id="image_file_large_address_aware"></a><dl>
+    ///<dt><b>IMAGE_FILE_LARGE_ADDRESS_AWARE</b></dt> <dt>0x0020</dt> </dl> </td> <td width="60%"> The application can
+    ///handle addresses larger than 2 GB. </td> </tr> <tr> <td width="40%"><a id="IMAGE_FILE_BYTES_REVERSED_LO"></a><a
+    ///id="image_file_bytes_reversed_lo"></a><dl> <dt><b>IMAGE_FILE_BYTES_REVERSED_LO</b></dt> <dt>0x0080</dt> </dl>
+    ///</td> <td width="60%"> The bytes of the word are reversed. This flag is obsolete. </td> </tr> <tr> <td
+    ///width="40%"><a id="IMAGE_FILE_32BIT_MACHINE"></a><a id="image_file_32bit_machine"></a><dl>
+    ///<dt><b>IMAGE_FILE_32BIT_MACHINE</b></dt> <dt>0x0100</dt> </dl> </td> <td width="60%"> The computer supports
+    ///32-bit words. </td> </tr> <tr> <td width="40%"><a id="IMAGE_FILE_DEBUG_STRIPPED"></a><a
+    ///id="image_file_debug_stripped"></a><dl> <dt><b>IMAGE_FILE_DEBUG_STRIPPED</b></dt> <dt>0x0200</dt> </dl> </td> <td
+    ///width="60%"> Debugging information was removed and stored separately in another file. </td> </tr> <tr> <td
+    ///width="40%"><a id="IMAGE_FILE_REMOVABLE_RUN_FROM_SWAP"></a><a id="image_file_removable_run_from_swap"></a><dl>
+    ///<dt><b>IMAGE_FILE_REMOVABLE_RUN_FROM_SWAP</b></dt> <dt>0x0400</dt> </dl> </td> <td width="60%"> If the image is
+    ///on removable media, copy it to and run it from the swap file. </td> </tr> <tr> <td width="40%"><a
+    ///id="IMAGE_FILE_NET_RUN_FROM_SWAP"></a><a id="image_file_net_run_from_swap"></a><dl>
+    ///<dt><b>IMAGE_FILE_NET_RUN_FROM_SWAP</b></dt> <dt>0x0800</dt> </dl> </td> <td width="60%"> If the image is on the
+    ///network, copy it to and run it from the swap file. </td> </tr> <tr> <td width="40%"><a
+    ///id="IMAGE_FILE_SYSTEM"></a><a id="image_file_system"></a><dl> <dt><b>IMAGE_FILE_SYSTEM</b></dt> <dt>0x1000</dt>
+    ///</dl> </td> <td width="60%"> The image is a system file. </td> </tr> <tr> <td width="40%"><a
+    ///id="IMAGE_FILE_DLL"></a><a id="image_file_dll"></a><dl> <dt><b>IMAGE_FILE_DLL</b></dt> <dt>0x2000</dt> </dl>
+    ///</td> <td width="60%"> The image is a DLL file. While it is an executable file, it cannot be run directly. </td>
+    ///</tr> <tr> <td width="40%"><a id="IMAGE_FILE_UP_SYSTEM_ONLY"></a><a id="image_file_up_system_only"></a><dl>
+    ///<dt><b>IMAGE_FILE_UP_SYSTEM_ONLY</b></dt> <dt>0x4000</dt> </dl> </td> <td width="60%"> The file should be run
+    ///only on a uniprocessor computer. </td> </tr> <tr> <td width="40%"><a id="IMAGE_FILE_BYTES_REVERSED_HI"></a><a
+    ///id="image_file_bytes_reversed_hi"></a><dl> <dt><b>IMAGE_FILE_BYTES_REVERSED_HI</b></dt> <dt>0x8000</dt> </dl>
+    ///</td> <td width="60%"> The bytes of the word are reversed. This flag is obsolete. </td> </tr> </table>
     ushort Characteristics;
 }
 
+///Represents the data directory.
 struct IMAGE_DATA_DIRECTORY
 {
+    ///The relative virtual address of the table.
     uint VirtualAddress;
+    ///The size of the table, in bytes.
     uint Size;
 }
 
+///Represents the optional header format.
 struct IMAGE_OPTIONAL_HEADER64
 {
 align (4):
+    ///The state of the image file. This member can be one of the following values. <table> <tr> <th>Value</th>
+    ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="IMAGE_NT_OPTIONAL_HDR_MAGIC"></a><a
+    ///id="image_nt_optional_hdr_magic"></a><dl> <dt><b>IMAGE_NT_OPTIONAL_HDR_MAGIC</b></dt> </dl> </td> <td
+    ///width="60%"> The file is an executable image. This value is defined as <b>IMAGE_NT_OPTIONAL_HDR32_MAGIC</b> in a
+    ///32-bit application and as <b>IMAGE_NT_OPTIONAL_HDR64_MAGIC</b> in a 64-bit application. </td> </tr> <tr> <td
+    ///width="40%"><a id="IMAGE_NT_OPTIONAL_HDR32_MAGIC"></a><a id="image_nt_optional_hdr32_magic"></a><dl>
+    ///<dt><b>IMAGE_NT_OPTIONAL_HDR32_MAGIC</b></dt> <dt>0x10b</dt> </dl> </td> <td width="60%"> The file is an
+    ///executable image. </td> </tr> <tr> <td width="40%"><a id="IMAGE_NT_OPTIONAL_HDR64_MAGIC"></a><a
+    ///id="image_nt_optional_hdr64_magic"></a><dl> <dt><b>IMAGE_NT_OPTIONAL_HDR64_MAGIC</b></dt> <dt>0x20b</dt> </dl>
+    ///</td> <td width="60%"> The file is an executable image. </td> </tr> <tr> <td width="40%"><a
+    ///id="IMAGE_ROM_OPTIONAL_HDR_MAGIC"></a><a id="image_rom_optional_hdr_magic"></a><dl>
+    ///<dt><b>IMAGE_ROM_OPTIONAL_HDR_MAGIC</b></dt> <dt>0x107</dt> </dl> </td> <td width="60%"> The file is a ROM image.
+    ///</td> </tr> </table>
     ushort Magic;
+    ///The major version number of the linker.
     ubyte  MajorLinkerVersion;
+    ///The minor version number of the linker.
     ubyte  MinorLinkerVersion;
+    ///The size of the code section, in bytes, or the sum of all such sections if there are multiple code sections.
     uint   SizeOfCode;
+    ///The size of the initialized data section, in bytes, or the sum of all such sections if there are multiple
+    ///initialized data sections.
     uint   SizeOfInitializedData;
+    ///The size of the uninitialized data section, in bytes, or the sum of all such sections if there are multiple
+    ///uninitialized data sections.
     uint   SizeOfUninitializedData;
+    ///A pointer to the entry point function, relative to the image base address. For executable files, this is the
+    ///starting address. For device drivers, this is the address of the initialization function. The entry point
+    ///function is optional for DLLs. When no entry point is present, this member is zero.
     uint   AddressOfEntryPoint;
+    ///A pointer to the beginning of the code section, relative to the image base.
     uint   BaseOfCode;
+    ///The preferred address of the first byte of the image when it is loaded in memory. This value is a multiple of 64K
+    ///bytes. The default value for DLLs is 0x10000000. The default value for applications is 0x00400000, except on
+    ///Windows CE where it is 0x00010000.
     ulong  ImageBase;
+    ///The alignment of sections loaded in memory, in bytes. This value must be greater than or equal to the
+    ///<b>FileAlignment</b> member. The default value is the page size for the system.
     uint   SectionAlignment;
+    ///The alignment of the raw data of sections in the image file, in bytes. The value should be a power of 2 between
+    ///512 and 64K (inclusive). The default is 512. If the <b>SectionAlignment</b> member is less than the system page
+    ///size, this member must be the same as <b>SectionAlignment</b>.
     uint   FileAlignment;
+    ///The major version number of the required operating system.
     ushort MajorOperatingSystemVersion;
+    ///The minor version number of the required operating system.
     ushort MinorOperatingSystemVersion;
+    ///The major version number of the image.
     ushort MajorImageVersion;
+    ///The minor version number of the image.
     ushort MinorImageVersion;
+    ///The major version number of the subsystem.
     ushort MajorSubsystemVersion;
+    ///The minor version number of the subsystem.
     ushort MinorSubsystemVersion;
+    ///This member is reserved and must be 0.
     uint   Win32VersionValue;
+    ///The size of the image, in bytes, including all headers. Must be a multiple of <b>SectionAlignment</b>.
     uint   SizeOfImage;
+    ///The combined size of the following items, rounded to a multiple of the value specified in the
+    ///<b>FileAlignment</b> member. <ul> <li><b>e_lfanew</b> member of <b>IMAGE_DOS_HEADER</b></li> <li>4 byte
+    ///signature</li> <li>size of IMAGE_FILE_HEADER </li> <li>size of optional header</li> <li>size of all section
+    ///headers</li> </ul>
     uint   SizeOfHeaders;
+    ///The image file checksum. The following files are validated at load time: all drivers, any DLL loaded at boot
+    ///time, and any DLL loaded into a critical system process.
     uint   CheckSum;
+    ///The subsystem required to run this image. The following values are defined. <table> <tr> <th>Value</th>
+    ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="IMAGE_SUBSYSTEM_UNKNOWN"></a><a
+    ///id="image_subsystem_unknown"></a><dl> <dt><b>IMAGE_SUBSYSTEM_UNKNOWN</b></dt> <dt>0</dt> </dl> </td> <td
+    ///width="60%"> Unknown subsystem. </td> </tr> <tr> <td width="40%"><a id="IMAGE_SUBSYSTEM_NATIVE"></a><a
+    ///id="image_subsystem_native"></a><dl> <dt><b>IMAGE_SUBSYSTEM_NATIVE</b></dt> <dt>1</dt> </dl> </td> <td
+    ///width="60%"> No subsystem required (device drivers and native system processes). </td> </tr> <tr> <td
+    ///width="40%"><a id="IMAGE_SUBSYSTEM_WINDOWS_GUI"></a><a id="image_subsystem_windows_gui"></a><dl>
+    ///<dt><b>IMAGE_SUBSYSTEM_WINDOWS_GUI</b></dt> <dt>2</dt> </dl> </td> <td width="60%"> Windows graphical user
+    ///interface (GUI) subsystem. </td> </tr> <tr> <td width="40%"><a id="IMAGE_SUBSYSTEM_WINDOWS_CUI"></a><a
+    ///id="image_subsystem_windows_cui"></a><dl> <dt><b>IMAGE_SUBSYSTEM_WINDOWS_CUI</b></dt> <dt>3</dt> </dl> </td> <td
+    ///width="60%"> Windows character-mode user interface (CUI) subsystem. </td> </tr> <tr> <td width="40%"><a
+    ///id="IMAGE_SUBSYSTEM_OS2_CUI"></a><a id="image_subsystem_os2_cui"></a><dl> <dt><b>IMAGE_SUBSYSTEM_OS2_CUI</b></dt>
+    ///<dt>5</dt> </dl> </td> <td width="60%"> OS/2 CUI subsystem. </td> </tr> <tr> <td width="40%"><a
+    ///id="IMAGE_SUBSYSTEM_POSIX_CUI"></a><a id="image_subsystem_posix_cui"></a><dl>
+    ///<dt><b>IMAGE_SUBSYSTEM_POSIX_CUI</b></dt> <dt>7</dt> </dl> </td> <td width="60%"> POSIX CUI subsystem. </td>
+    ///</tr> <tr> <td width="40%"><a id="IMAGE_SUBSYSTEM_WINDOWS_CE_GUI"></a><a
+    ///id="image_subsystem_windows_ce_gui"></a><dl> <dt><b>IMAGE_SUBSYSTEM_WINDOWS_CE_GUI</b></dt> <dt>9</dt> </dl>
+    ///</td> <td width="60%"> Windows CE system. </td> </tr> <tr> <td width="40%"><a
+    ///id="IMAGE_SUBSYSTEM_EFI_APPLICATION"></a><a id="image_subsystem_efi_application"></a><dl>
+    ///<dt><b>IMAGE_SUBSYSTEM_EFI_APPLICATION</b></dt> <dt>10</dt> </dl> </td> <td width="60%"> Extensible Firmware
+    ///Interface (EFI) application. </td> </tr> <tr> <td width="40%"><a
+    ///id="IMAGE_SUBSYSTEM_EFI_BOOT_SERVICE_DRIVER"></a><a id="image_subsystem_efi_boot_service_driver"></a><dl>
+    ///<dt><b>IMAGE_SUBSYSTEM_EFI_BOOT_SERVICE_DRIVER</b></dt> <dt>11</dt> </dl> </td> <td width="60%"> EFI driver with
+    ///boot services. </td> </tr> <tr> <td width="40%"><a id="IMAGE_SUBSYSTEM_EFI_RUNTIME_DRIVER"></a><a
+    ///id="image_subsystem_efi_runtime_driver"></a><dl> <dt><b>IMAGE_SUBSYSTEM_EFI_RUNTIME_DRIVER</b></dt> <dt>12</dt>
+    ///</dl> </td> <td width="60%"> EFI driver with run-time services. </td> </tr> <tr> <td width="40%"><a
+    ///id="IMAGE_SUBSYSTEM_EFI_ROM"></a><a id="image_subsystem_efi_rom"></a><dl> <dt><b>IMAGE_SUBSYSTEM_EFI_ROM</b></dt>
+    ///<dt>13</dt> </dl> </td> <td width="60%"> EFI ROM image. </td> </tr> <tr> <td width="40%"><a
+    ///id="IMAGE_SUBSYSTEM_XBOX"></a><a id="image_subsystem_xbox"></a><dl> <dt><b>IMAGE_SUBSYSTEM_XBOX</b></dt>
+    ///<dt>14</dt> </dl> </td> <td width="60%"> Xbox system. </td> </tr> <tr> <td width="40%"><a
+    ///id="IMAGE_SUBSYSTEM_WINDOWS_BOOT_APPLICATION"></a><a id="image_subsystem_windows_boot_application"></a><dl>
+    ///<dt><b>IMAGE_SUBSYSTEM_WINDOWS_BOOT_APPLICATION</b></dt> <dt>16</dt> </dl> </td> <td width="60%"> Boot
+    ///application. </td> </tr> </table>
     ushort Subsystem;
+    ///The DLL characteristics of the image. The following values are defined. <table> <tr> <th>Value</th>
+    ///<th>Meaning</th> </tr> <tr> <td width="40%"> <dl> <dt>0x0001</dt> </dl> </td> <td width="60%"> Reserved. </td>
+    ///</tr> <tr> <td width="40%"> <dl> <dt>0x0002</dt> </dl> </td> <td width="60%"> Reserved. </td> </tr> <tr> <td
+    ///width="40%"> <dl> <dt>0x0004</dt> </dl> </td> <td width="60%"> Reserved. </td> </tr> <tr> <td width="40%"> <dl>
+    ///<dt>0x0008</dt> </dl> </td> <td width="60%"> Reserved. </td> </tr> <tr> <td width="40%"><a
+    ///id="IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE"></a><a id="image_dllcharacteristics_dynamic_base"></a><dl>
+    ///<dt><b>IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE</b></dt> <dt>0x0040</dt> </dl> </td> <td width="60%"> The DLL can be
+    ///relocated at load time. </td> </tr> <tr> <td width="40%"><a id="IMAGE_DLLCHARACTERISTICS_FORCE_INTEGRITY"></a><a
+    ///id="image_dllcharacteristics_force_integrity"></a><dl> <dt><b>IMAGE_DLLCHARACTERISTICS_FORCE_INTEGRITY</b></dt>
+    ///<dt>0x0080</dt> </dl> </td> <td width="60%"> Code integrity checks are forced. If you set this flag and a section
+    ///contains only uninitialized data, set the <b>PointerToRawData</b> member of IMAGE_SECTION_HEADER for that section
+    ///to zero; otherwise, the image will fail to load because the digital signature cannot be verified. </td> </tr>
+    ///<tr> <td width="40%"><a id="IMAGE_DLLCHARACTERISTICS_NX_COMPAT"></a><a
+    ///id="image_dllcharacteristics_nx_compat"></a><dl> <dt><b>IMAGE_DLLCHARACTERISTICS_NX_COMPAT</b></dt>
+    ///<dt>0x0100</dt> </dl> </td> <td width="60%"> The image is compatible with data execution prevention (DEP). </td>
+    ///</tr> <tr> <td width="40%"><a id="IMAGE_DLLCHARACTERISTICS_NO_ISOLATION"></a><a
+    ///id="image_dllcharacteristics_no_isolation"></a><dl> <dt><b>IMAGE_DLLCHARACTERISTICS_NO_ISOLATION</b></dt>
+    ///<dt>0x0200</dt> </dl> </td> <td width="60%"> The image is isolation aware, but should not be isolated. </td>
+    ///</tr> <tr> <td width="40%"><a id="IMAGE_DLLCHARACTERISTICS_NO_SEH"></a><a
+    ///id="image_dllcharacteristics_no_seh"></a><dl> <dt><b>IMAGE_DLLCHARACTERISTICS_NO_SEH</b></dt> <dt>0x0400</dt>
+    ///</dl> </td> <td width="60%"> The image does not use structured exception handling (SEH). No handlers can be
+    ///called in this image. </td> </tr> <tr> <td width="40%"><a id="IMAGE_DLLCHARACTERISTICS_NO_BIND"></a><a
+    ///id="image_dllcharacteristics_no_bind"></a><dl> <dt><b>IMAGE_DLLCHARACTERISTICS_NO_BIND</b></dt> <dt>0x0800</dt>
+    ///</dl> </td> <td width="60%"> Do not bind the image. </td> </tr> <tr> <td width="40%"> <dl> <dt>0x1000</dt> </dl>
+    ///</td> <td width="60%"> Reserved. </td> </tr> <tr> <td width="40%"><a
+    ///id="IMAGE_DLLCHARACTERISTICS_WDM_DRIVER"></a><a id="image_dllcharacteristics_wdm_driver"></a><dl>
+    ///<dt><b>IMAGE_DLLCHARACTERISTICS_WDM_DRIVER</b></dt> <dt>0x2000</dt> </dl> </td> <td width="60%"> A WDM driver.
+    ///</td> </tr> <tr> <td width="40%"> <dl> <dt>0x4000</dt> </dl> </td> <td width="60%"> Reserved. </td> </tr> <tr>
+    ///<td width="40%"><a id="IMAGE_DLLCHARACTERISTICS_TERMINAL_SERVER_AWARE"></a><a
+    ///id="image_dllcharacteristics_terminal_server_aware"></a><dl>
+    ///<dt><b>IMAGE_DLLCHARACTERISTICS_TERMINAL_SERVER_AWARE</b></dt> <dt>0x8000</dt> </dl> </td> <td width="60%"> The
+    ///image is terminal server aware. </td> </tr> </table>
     ushort DllCharacteristics;
+    ///The number of bytes to reserve for the stack. Only the memory specified by the <b>SizeOfStackCommit</b> member is
+    ///committed at load time; the rest is made available one page at a time until this reserve size is reached.
     ulong  SizeOfStackReserve;
+    ///The number of bytes to commit for the stack.
     ulong  SizeOfStackCommit;
+    ///The number of bytes to reserve for the local heap. Only the memory specified by the <b>SizeOfHeapCommit</b>
+    ///member is committed at load time; the rest is made available one page at a time until this reserve size is
+    ///reached.
     ulong  SizeOfHeapReserve;
+    ///The number of bytes to commit for the local heap.
     ulong  SizeOfHeapCommit;
+    ///This member is obsolete.
     uint   LoaderFlags;
+    ///The number of directory entries in the remainder of the optional header. Each entry describes a location and
+    ///size.
     uint   NumberOfRvaAndSizes;
+    ///A pointer to the first IMAGE_DATA_DIRECTORY structure in the data directory.
     IMAGE_DATA_DIRECTORY[16] DataDirectory;
 }
 
+///Represents the PE header format.
 struct IMAGE_NT_HEADERS64
 {
+    ///A 4-byte signature identifying the file as a PE image. The bytes are "PE\0\0".
     uint              Signature;
+    ///An IMAGE_FILE_HEADER structure that specifies the file header.
     IMAGE_FILE_HEADER FileHeader;
+    ///An IMAGE_OPTIONAL_HEADER structure that specifies the optional file header.
     IMAGE_OPTIONAL_HEADER64 OptionalHeader;
 }
 
+///Represents the image section header format.
 struct IMAGE_SECTION_HEADER
 {
+    ///An 8-byte, null-padded UTF-8 string. There is no terminating null character if the string is exactly eight
+    ///characters long. For longer names, this member contains a forward slash (/) followed by an ASCII representation
+    ///of a decimal number that is an offset into the string table. Executable images do not use a string table and do
+    ///not support section names longer than eight characters.
     ubyte[8] Name;
     union Misc
     {
         uint PhysicalAddress;
         uint VirtualSize;
     }
+    ///The address of the first byte of the section when loaded into memory, relative to the image base. For object
+    ///files, this is the address of the first byte before relocation is applied.
     uint     VirtualAddress;
+    ///The size of the initialized data on disk, in bytes. This value must be a multiple of the <b>FileAlignment</b>
+    ///member of the IMAGE_OPTIONAL_HEADER structure. If this value is less than the <b>VirtualSize</b> member, the
+    ///remainder of the section is filled with zeroes. If the section contains only uninitialized data, the member is
+    ///zero.
     uint     SizeOfRawData;
+    ///A file pointer to the first page within the COFF file. This value must be a multiple of the <b>FileAlignment</b>
+    ///member of the IMAGE_OPTIONAL_HEADER structure. If a section contains only uninitialized data, set this member is
+    ///zero.
     uint     PointerToRawData;
+    ///A file pointer to the beginning of the relocation entries for the section. If there are no relocations, this
+    ///value is zero.
     uint     PointerToRelocations;
+    ///A file pointer to the beginning of the line-number entries for the section. If there are no COFF line numbers,
+    ///this value is zero.
     uint     PointerToLinenumbers;
+    ///The number of relocation entries for the section. This value is zero for executable images.
     ushort   NumberOfRelocations;
+    ///The number of line-number entries for the section.
     ushort   NumberOfLinenumbers;
+    ///The characteristics of the image. The following values are defined. <table> <tr> <th>Flag</th> <th>Meaning</th>
+    ///</tr> <tr> <td width="40%"> <dl> <dt>0x00000000</dt> </dl> </td> <td width="60%"> Reserved. </td> </tr> <tr> <td
+    ///width="40%"> <dl> <dt>0x00000001</dt> </dl> </td> <td width="60%"> Reserved. </td> </tr> <tr> <td width="40%">
+    ///<dl> <dt>0x00000002</dt> </dl> </td> <td width="60%"> Reserved. </td> </tr> <tr> <td width="40%"> <dl>
+    ///<dt>0x00000004</dt> </dl> </td> <td width="60%"> Reserved. </td> </tr> <tr> <td width="40%"><a
+    ///id="IMAGE_SCN_TYPE_NO_PAD"></a><a id="image_scn_type_no_pad"></a><dl> <dt><b>IMAGE_SCN_TYPE_NO_PAD</b></dt>
+    ///<dt>0x00000008</dt> </dl> </td> <td width="60%"> The section should not be padded to the next boundary. This flag
+    ///is obsolete and is replaced by IMAGE_SCN_ALIGN_1BYTES. </td> </tr> <tr> <td width="40%"> <dl> <dt>0x00000010</dt>
+    ///</dl> </td> <td width="60%"> Reserved. </td> </tr> <tr> <td width="40%"><a id="IMAGE_SCN_CNT_CODE"></a><a
+    ///id="image_scn_cnt_code"></a><dl> <dt><b>IMAGE_SCN_CNT_CODE</b></dt> <dt>0x00000020</dt> </dl> </td> <td
+    ///width="60%"> The section contains executable code. </td> </tr> <tr> <td width="40%"><a
+    ///id="IMAGE_SCN_CNT_INITIALIZED_DATA"></a><a id="image_scn_cnt_initialized_data"></a><dl>
+    ///<dt><b>IMAGE_SCN_CNT_INITIALIZED_DATA</b></dt> <dt>0x00000040</dt> </dl> </td> <td width="60%"> The section
+    ///contains initialized data. </td> </tr> <tr> <td width="40%"><a id="IMAGE_SCN_CNT_UNINITIALIZED_DATA"></a><a
+    ///id="image_scn_cnt_uninitialized_data"></a><dl> <dt><b>IMAGE_SCN_CNT_UNINITIALIZED_DATA</b></dt>
+    ///<dt>0x00000080</dt> </dl> </td> <td width="60%"> The section contains uninitialized data. </td> </tr> <tr> <td
+    ///width="40%"><a id="IMAGE_SCN_LNK_OTHER"></a><a id="image_scn_lnk_other"></a><dl>
+    ///<dt><b>IMAGE_SCN_LNK_OTHER</b></dt> <dt>0x00000100</dt> </dl> </td> <td width="60%"> Reserved. </td> </tr> <tr>
+    ///<td width="40%"><a id="IMAGE_SCN_LNK_INFO"></a><a id="image_scn_lnk_info"></a><dl>
+    ///<dt><b>IMAGE_SCN_LNK_INFO</b></dt> <dt>0x00000200</dt> </dl> </td> <td width="60%"> The section contains comments
+    ///or other information. This is valid only for object files. </td> </tr> <tr> <td width="40%"> <dl>
+    ///<dt>0x00000400</dt> </dl> </td> <td width="60%"> Reserved. </td> </tr> <tr> <td width="40%"><a
+    ///id="IMAGE_SCN_LNK_REMOVE"></a><a id="image_scn_lnk_remove"></a><dl> <dt><b>IMAGE_SCN_LNK_REMOVE</b></dt>
+    ///<dt>0x00000800</dt> </dl> </td> <td width="60%"> The section will not become part of the image. This is valid
+    ///only for object files. </td> </tr> <tr> <td width="40%"><a id="IMAGE_SCN_LNK_COMDAT"></a><a
+    ///id="image_scn_lnk_comdat"></a><dl> <dt><b>IMAGE_SCN_LNK_COMDAT</b></dt> <dt>0x00001000</dt> </dl> </td> <td
+    ///width="60%"> The section contains COMDAT data. This is valid only for object files. </td> </tr> <tr> <td
+    ///width="40%"> <dl> <dt>0x00002000</dt> </dl> </td> <td width="60%"> Reserved. </td> </tr> <tr> <td width="40%"><a
+    ///id="IMAGE_SCN_NO_DEFER_SPEC_EXC"></a><a id="image_scn_no_defer_spec_exc"></a><dl>
+    ///<dt><b>IMAGE_SCN_NO_DEFER_SPEC_EXC</b></dt> <dt>0x00004000</dt> </dl> </td> <td width="60%"> Reset speculative
+    ///exceptions handling bits in the TLB entries for this section. </td> </tr> <tr> <td width="40%"><a
+    ///id="IMAGE_SCN_GPREL"></a><a id="image_scn_gprel"></a><dl> <dt><b>IMAGE_SCN_GPREL</b></dt> <dt>0x00008000</dt>
+    ///</dl> </td> <td width="60%"> The section contains data referenced through the global pointer. </td> </tr> <tr>
+    ///<td width="40%"> <dl> <dt>0x00010000</dt> </dl> </td> <td width="60%"> Reserved. </td> </tr> <tr> <td
+    ///width="40%"><a id="IMAGE_SCN_MEM_PURGEABLE"></a><a id="image_scn_mem_purgeable"></a><dl>
+    ///<dt><b>IMAGE_SCN_MEM_PURGEABLE</b></dt> <dt>0x00020000</dt> </dl> </td> <td width="60%"> Reserved. </td> </tr>
+    ///<tr> <td width="40%"><a id="IMAGE_SCN_MEM_LOCKED"></a><a id="image_scn_mem_locked"></a><dl>
+    ///<dt><b>IMAGE_SCN_MEM_LOCKED</b></dt> <dt>0x00040000</dt> </dl> </td> <td width="60%"> Reserved. </td> </tr> <tr>
+    ///<td width="40%"><a id="IMAGE_SCN_MEM_PRELOAD"></a><a id="image_scn_mem_preload"></a><dl>
+    ///<dt><b>IMAGE_SCN_MEM_PRELOAD</b></dt> <dt>0x00080000</dt> </dl> </td> <td width="60%"> Reserved. </td> </tr> <tr>
+    ///<td width="40%"><a id="IMAGE_SCN_ALIGN_1BYTES"></a><a id="image_scn_align_1bytes"></a><dl>
+    ///<dt><b>IMAGE_SCN_ALIGN_1BYTES</b></dt> <dt>0x00100000</dt> </dl> </td> <td width="60%"> Align data on a 1-byte
+    ///boundary. This is valid only for object files. </td> </tr> <tr> <td width="40%"><a
+    ///id="IMAGE_SCN_ALIGN_2BYTES"></a><a id="image_scn_align_2bytes"></a><dl> <dt><b>IMAGE_SCN_ALIGN_2BYTES</b></dt>
+    ///<dt>0x00200000</dt> </dl> </td> <td width="60%"> Align data on a 2-byte boundary. This is valid only for object
+    ///files. </td> </tr> <tr> <td width="40%"><a id="IMAGE_SCN_ALIGN_4BYTES"></a><a
+    ///id="image_scn_align_4bytes"></a><dl> <dt><b>IMAGE_SCN_ALIGN_4BYTES</b></dt> <dt>0x00300000</dt> </dl> </td> <td
+    ///width="60%"> Align data on a 4-byte boundary. This is valid only for object files. </td> </tr> <tr> <td
+    ///width="40%"><a id="IMAGE_SCN_ALIGN_8BYTES"></a><a id="image_scn_align_8bytes"></a><dl>
+    ///<dt><b>IMAGE_SCN_ALIGN_8BYTES</b></dt> <dt>0x00400000</dt> </dl> </td> <td width="60%"> Align data on a 8-byte
+    ///boundary. This is valid only for object files. </td> </tr> <tr> <td width="40%"><a
+    ///id="IMAGE_SCN_ALIGN_16BYTES"></a><a id="image_scn_align_16bytes"></a><dl> <dt><b>IMAGE_SCN_ALIGN_16BYTES</b></dt>
+    ///<dt>0x00500000</dt> </dl> </td> <td width="60%"> Align data on a 16-byte boundary. This is valid only for object
+    ///files. </td> </tr> <tr> <td width="40%"><a id="IMAGE_SCN_ALIGN_32BYTES"></a><a
+    ///id="image_scn_align_32bytes"></a><dl> <dt><b>IMAGE_SCN_ALIGN_32BYTES</b></dt> <dt>0x00600000</dt> </dl> </td> <td
+    ///width="60%"> Align data on a 32-byte boundary. This is valid only for object files. </td> </tr> <tr> <td
+    ///width="40%"><a id="IMAGE_SCN_ALIGN_64BYTES"></a><a id="image_scn_align_64bytes"></a><dl>
+    ///<dt><b>IMAGE_SCN_ALIGN_64BYTES</b></dt> <dt>0x00700000</dt> </dl> </td> <td width="60%"> Align data on a 64-byte
+    ///boundary. This is valid only for object files. </td> </tr> <tr> <td width="40%"><a
+    ///id="IMAGE_SCN_ALIGN_128BYTES"></a><a id="image_scn_align_128bytes"></a><dl>
+    ///<dt><b>IMAGE_SCN_ALIGN_128BYTES</b></dt> <dt>0x00800000</dt> </dl> </td> <td width="60%"> Align data on a
+    ///128-byte boundary. This is valid only for object files. </td> </tr> <tr> <td width="40%"><a
+    ///id="IMAGE_SCN_ALIGN_256BYTES"></a><a id="image_scn_align_256bytes"></a><dl>
+    ///<dt><b>IMAGE_SCN_ALIGN_256BYTES</b></dt> <dt>0x00900000</dt> </dl> </td> <td width="60%"> Align data on a
+    ///256-byte boundary. This is valid only for object files. </td> </tr> <tr> <td width="40%"><a
+    ///id="IMAGE_SCN_ALIGN_512BYTES"></a><a id="image_scn_align_512bytes"></a><dl>
+    ///<dt><b>IMAGE_SCN_ALIGN_512BYTES</b></dt> <dt>0x00A00000</dt> </dl> </td> <td width="60%"> Align data on a
+    ///512-byte boundary. This is valid only for object files. </td> </tr> <tr> <td width="40%"><a
+    ///id="IMAGE_SCN_ALIGN_1024BYTES"></a><a id="image_scn_align_1024bytes"></a><dl>
+    ///<dt><b>IMAGE_SCN_ALIGN_1024BYTES</b></dt> <dt>0x00B00000</dt> </dl> </td> <td width="60%"> Align data on a
+    ///1024-byte boundary. This is valid only for object files. </td> </tr> <tr> <td width="40%"><a
+    ///id="IMAGE_SCN_ALIGN_2048BYTES"></a><a id="image_scn_align_2048bytes"></a><dl>
+    ///<dt><b>IMAGE_SCN_ALIGN_2048BYTES</b></dt> <dt>0x00C00000</dt> </dl> </td> <td width="60%"> Align data on a
+    ///2048-byte boundary. This is valid only for object files. </td> </tr> <tr> <td width="40%"><a
+    ///id="IMAGE_SCN_ALIGN_4096BYTES"></a><a id="image_scn_align_4096bytes"></a><dl>
+    ///<dt><b>IMAGE_SCN_ALIGN_4096BYTES</b></dt> <dt>0x00D00000</dt> </dl> </td> <td width="60%"> Align data on a
+    ///4096-byte boundary. This is valid only for object files. </td> </tr> <tr> <td width="40%"><a
+    ///id="IMAGE_SCN_ALIGN_8192BYTES"></a><a id="image_scn_align_8192bytes"></a><dl>
+    ///<dt><b>IMAGE_SCN_ALIGN_8192BYTES</b></dt> <dt>0x00E00000</dt> </dl> </td> <td width="60%"> Align data on a
+    ///8192-byte boundary. This is valid only for object files. </td> </tr> <tr> <td width="40%"><a
+    ///id="IMAGE_SCN_LNK_NRELOC_OVFL"></a><a id="image_scn_lnk_nreloc_ovfl"></a><dl>
+    ///<dt><b>IMAGE_SCN_LNK_NRELOC_OVFL</b></dt> <dt>0x01000000</dt> </dl> </td> <td width="60%"> The section contains
+    ///extended relocations. The count of relocations for the section exceeds the 16 bits that is reserved for it in the
+    ///section header. If the <b>NumberOfRelocations</b> field in the section header is 0xffff, the actual relocation
+    ///count is stored in the <b>VirtualAddress</b> field of the first relocation. It is an error if
+    ///IMAGE_SCN_LNK_NRELOC_OVFL is set and there are fewer than 0xffff relocations in the section. </td> </tr> <tr> <td
+    ///width="40%"><a id="IMAGE_SCN_MEM_DISCARDABLE"></a><a id="image_scn_mem_discardable"></a><dl>
+    ///<dt><b>IMAGE_SCN_MEM_DISCARDABLE</b></dt> <dt>0x02000000</dt> </dl> </td> <td width="60%"> The section can be
+    ///discarded as needed. </td> </tr> <tr> <td width="40%"><a id="IMAGE_SCN_MEM_NOT_CACHED"></a><a
+    ///id="image_scn_mem_not_cached"></a><dl> <dt><b>IMAGE_SCN_MEM_NOT_CACHED</b></dt> <dt>0x04000000</dt> </dl> </td>
+    ///<td width="60%"> The section cannot be cached. </td> </tr> <tr> <td width="40%"><a
+    ///id="IMAGE_SCN_MEM_NOT_PAGED"></a><a id="image_scn_mem_not_paged"></a><dl> <dt><b>IMAGE_SCN_MEM_NOT_PAGED</b></dt>
+    ///<dt>0x08000000</dt> </dl> </td> <td width="60%"> The section cannot be paged. </td> </tr> <tr> <td width="40%"><a
+    ///id="IMAGE_SCN_MEM_SHARED"></a><a id="image_scn_mem_shared"></a><dl> <dt><b>IMAGE_SCN_MEM_SHARED</b></dt>
+    ///<dt>0x10000000</dt> </dl> </td> <td width="60%"> The section can be shared in memory. </td> </tr> <tr> <td
+    ///width="40%"><a id="IMAGE_SCN_MEM_EXECUTE"></a><a id="image_scn_mem_execute"></a><dl>
+    ///<dt><b>IMAGE_SCN_MEM_EXECUTE</b></dt> <dt>0x20000000</dt> </dl> </td> <td width="60%"> The section can be
+    ///executed as code. </td> </tr> <tr> <td width="40%"><a id="IMAGE_SCN_MEM_READ"></a><a
+    ///id="image_scn_mem_read"></a><dl> <dt><b>IMAGE_SCN_MEM_READ</b></dt> <dt>0x40000000</dt> </dl> </td> <td
+    ///width="60%"> The section can be read. </td> </tr> <tr> <td width="40%"><a id="IMAGE_SCN_MEM_WRITE"></a><a
+    ///id="image_scn_mem_write"></a><dl> <dt><b>IMAGE_SCN_MEM_WRITE</b></dt> <dt>0x80000000</dt> </dl> </td> <td
+    ///width="60%"> The section can be written to. </td> </tr> </table>
     uint     Characteristics;
 }
 
+///Contains the load configuration data of an image.
 struct IMAGE_LOAD_CONFIG_DIRECTORY32
 {
+    ///The size of the structure. For Windows XP, the size must be specified as 64 for x86 images.
     uint   Size;
+    ///The date and time stamp value. The value is represented in the number of seconds elapsed since midnight
+    ///(00:00:00), January 1, 1970, Universal Coordinated Time, according to the system clock. The time stamp can be
+    ///printed using the C run-time (CRT) function <b>ctime</b>.
     uint   TimeDateStamp;
+    ///The major version number.
     ushort MajorVersion;
+    ///The minor version number.
     ushort MinorVersion;
+    ///The global flags that control system behavior. For more information, see Gflags.exe.
     uint   GlobalFlagsClear;
+    ///The global flags that control system behavior. For more information, see Gflags.exe.
     uint   GlobalFlagsSet;
+    ///The critical section default time-out value.
     uint   CriticalSectionDefaultTimeout;
+    ///The size of the minimum block that must be freed before it is freed (de-committed), in bytes. This value is
+    ///advisory.
     uint   DeCommitFreeBlockThreshold;
+    ///The size of the minimum total memory that must be freed in the process heap before it is freed (de-committed), in
+    ///bytes. This value is advisory.
     uint   DeCommitTotalFreeThreshold;
+    ///The VA of a list of addresses where the LOCK prefix is used. These will be replaced by NOP on single-processor
+    ///systems. This member is available only for x86.
     uint   LockPrefixTable;
+    ///The maximum allocation size, in bytes. This member is obsolete and is used only for debugging purposes.
     uint   MaximumAllocationSize;
+    ///The maximum block size that can be allocated from heap segments, in bytes.
     uint   VirtualMemoryThreshold;
+    ///The process heap flags. For more information, see HeapCreate.
     uint   ProcessHeapFlags;
+    ///The process affinity mask. For more information, see GetProcessAffinityMask. This member is available only for
+    ///.exe files.
     uint   ProcessAffinityMask;
+    ///The service pack version.
     ushort CSDVersion;
     ushort DependentLoadFlags;
+    ///Reserved for use by the system.
     uint   EditList;
+    ///A pointer to a cookie that is used by Visual C++ or GS implementation.
     uint   SecurityCookie;
+    ///The VA of the sorted table of RVAs of each valid, unique handler in the image. This member is available only for
+    ///x86.
     uint   SEHandlerTable;
+    ///The count of unique handlers in the table. This member is available only for x86.
     uint   SEHandlerCount;
     uint   GuardCFCheckFunctionPointer;
     uint   GuardCFDispatchFunctionPointer;
@@ -4063,28 +4874,55 @@ struct IMAGE_LOAD_CONFIG_DIRECTORY32
     uint   GuardEHContinuationCount;
 }
 
+///Contains the load configuration data of an image.
 struct IMAGE_LOAD_CONFIG_DIRECTORY64
 {
 align (4):
+    ///The size of the structure. For Windows XP, the size must be specified as 64 for x86 images.
     uint   Size;
+    ///The date and time stamp value. The value is represented in the number of seconds elapsed since midnight
+    ///(00:00:00), January 1, 1970, Universal Coordinated Time, according to the system clock. The time stamp can be
+    ///printed using the C run-time (CRT) function <b>ctime</b>.
     uint   TimeDateStamp;
+    ///The major version number.
     ushort MajorVersion;
+    ///The minor version number.
     ushort MinorVersion;
+    ///The global flags that control system behavior. For more information, see Gflags.exe.
     uint   GlobalFlagsClear;
+    ///The global flags that control system behavior. For more information, see Gflags.exe.
     uint   GlobalFlagsSet;
+    ///The critical section default time-out value.
     uint   CriticalSectionDefaultTimeout;
+    ///The size of the minimum block that must be freed before it is freed (de-committed), in bytes. This value is
+    ///advisory.
     ulong  DeCommitFreeBlockThreshold;
+    ///The size of the minimum total memory that must be freed in the process heap before it is freed (de-committed), in
+    ///bytes. This value is advisory.
     ulong  DeCommitTotalFreeThreshold;
+    ///The VA of a list of addresses where the LOCK prefix is used. These will be replaced by NOP on single-processor
+    ///systems. This member is available only for x86.
     ulong  LockPrefixTable;
+    ///The maximum allocation size, in bytes. This member is obsolete and is used only for debugging purposes.
     ulong  MaximumAllocationSize;
+    ///The maximum block size that can be allocated from heap segments, in bytes.
     ulong  VirtualMemoryThreshold;
+    ///The process affinity mask. For more information, see GetProcessAffinityMask. This member is available only for
+    ///.exe files.
     ulong  ProcessAffinityMask;
+    ///The process heap flags. For more information, see HeapCreate.
     uint   ProcessHeapFlags;
+    ///The service pack version.
     ushort CSDVersion;
     ushort DependentLoadFlags;
+    ///Reserved for use by the system.
     ulong  EditList;
+    ///A pointer to a cookie that is used by Visual C++ or GS implementation.
     ulong  SecurityCookie;
+    ///The VA of the sorted table of RVAs of each valid, unique handler in the image. This member is available only for
+    ///x86.
     ulong  SEHandlerTable;
+    ///The count of unique handlers in the table. This member is available only for x86.
     ulong  SEHandlerCount;
     ulong  GuardCFCheckFunctionPointer;
     ulong  GuardCFDispatchFunctionPointer;
@@ -4112,50 +4950,102 @@ align (4):
     ulong  GuardEHContinuationCount;
 }
 
+///Represents the debug directory format.
 struct IMAGE_DEBUG_DIRECTORY
 {
+    ///Reserved.
     uint   Characteristics;
+    ///The ime and date the debugging information was created.
     uint   TimeDateStamp;
+    ///The major version number of the debugging information format.
     ushort MajorVersion;
+    ///The minor version number of the debugging information format.
     ushort MinorVersion;
+    ///The format of the debugging information. This member can be one of the following values. <table> <tr>
+    ///<th>Constant</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="IMAGE_DEBUG_TYPE_UNKNOWN"></a><a
+    ///id="image_debug_type_unknown"></a><dl> <dt><b>IMAGE_DEBUG_TYPE_UNKNOWN</b></dt> <dt>0</dt> </dl> </td> <td
+    ///width="60%"> Unknown value, ignored by all tools. </td> </tr> <tr> <td width="40%"><a
+    ///id="IMAGE_DEBUG_TYPE_COFF"></a><a id="image_debug_type_coff"></a><dl> <dt><b>IMAGE_DEBUG_TYPE_COFF</b></dt>
+    ///<dt>1</dt> </dl> </td> <td width="60%"> COFF debugging information (line numbers, symbol table, and string
+    ///table). This type of debugging information is also pointed to by fields in the file headers. </td> </tr> <tr> <td
+    ///width="40%"><a id="IMAGE_DEBUG_TYPE_CODEVIEW"></a><a id="image_debug_type_codeview"></a><dl>
+    ///<dt><b>IMAGE_DEBUG_TYPE_CODEVIEW</b></dt> <dt>2</dt> </dl> </td> <td width="60%"> CodeView debugging information.
+    ///The format of the data block is described by the CodeView 4.0 specification. </td> </tr> <tr> <td width="40%"><a
+    ///id="IMAGE_DEBUG_TYPE_FPO"></a><a id="image_debug_type_fpo"></a><dl> <dt><b>IMAGE_DEBUG_TYPE_FPO</b></dt>
+    ///<dt>3</dt> </dl> </td> <td width="60%"> Frame pointer omission (FPO) information. This information tells the
+    ///debugger how to interpret nonstandard stack frames, which use the EBP register for a purpose other than as a
+    ///frame pointer. </td> </tr> <tr> <td width="40%"><a id="IMAGE_DEBUG_TYPE_MISC"></a><a
+    ///id="image_debug_type_misc"></a><dl> <dt><b>IMAGE_DEBUG_TYPE_MISC</b></dt> <dt>4</dt> </dl> </td> <td width="60%">
+    ///Miscellaneous information. </td> </tr> <tr> <td width="40%"><a id="IMAGE_DEBUG_TYPE_EXCEPTION"></a><a
+    ///id="image_debug_type_exception"></a><dl> <dt><b>IMAGE_DEBUG_TYPE_EXCEPTION</b></dt> <dt>5</dt> </dl> </td> <td
+    ///width="60%"> Exception information. </td> </tr> <tr> <td width="40%"><a id="IMAGE_DEBUG_TYPE_FIXUP"></a><a
+    ///id="image_debug_type_fixup"></a><dl> <dt><b>IMAGE_DEBUG_TYPE_FIXUP</b></dt> <dt>6</dt> </dl> </td> <td
+    ///width="60%"> Fixup information. </td> </tr> <tr> <td width="40%"><a id="IMAGE_DEBUG_TYPE_BORLAND"></a><a
+    ///id="image_debug_type_borland"></a><dl> <dt><b>IMAGE_DEBUG_TYPE_BORLAND</b></dt> <dt>9</dt> </dl> </td> <td
+    ///width="60%"> Borland debugging information. </td> </tr> </table>
     uint   Type;
+    ///The size of the debugging information, in bytes. This value does not include the debug directory itself.
     uint   SizeOfData;
+    ///The address of the debugging information when the image is loaded, relative to the image base.
     uint   AddressOfRawData;
+    ///A file pointer to the debugging information.
     uint   PointerToRawData;
 }
 
+///Represents the COFF symbols header.
 struct IMAGE_COFF_SYMBOLS_HEADER
 {
+    ///The number of symbols.
     uint NumberOfSymbols;
+    ///The virtual address of the first symbol.
     uint LvaToFirstSymbol;
+    ///The number of line-number entries.
     uint NumberOfLinenumbers;
+    ///The virtual address of the first line-number entry.
     uint LvaToFirstLinenumber;
+    ///The relative virtual address of the first byte of code.
     uint RvaToFirstByteOfCode;
+    ///The relative virtual address of the last byte of code.
     uint RvaToLastByteOfCode;
+    ///The relative virtual address of the first byte of data.
     uint RvaToFirstByteOfData;
+    ///The relative virtual address of the last byte of data.
     uint RvaToLastByteOfData;
 }
 
+///Represents the stack frame layout for a function on an x86 computer when frame pointer omission (FPO) optimization is
+///used. The structure is used to locate the base of the call frame.
 struct FPO_DATA
 {
+    ///The offset of the first byte of the function code.
     uint   ulOffStart;
+    ///The number of bytes in the function.
     uint   cbProcSize;
+    ///The number of local variables.
     uint   cdwLocals;
+    ///The size of the parameters, in <b>DWORD</b>s.
     ushort cdwParams;
     ushort _bitfield11;
 }
 
+///Represents an entry in the function table.
 struct IMAGE_FUNCTION_ENTRY
 {
+    ///The image address of the start of the function.
     uint StartingAddress;
+    ///The image address of the end of the function.
     uint EndingAddress;
+    ///The image address of the end of the prologue code.
     uint EndOfPrologue;
 }
 
+///Represents an entry in the function table.
 struct IMAGE_FUNCTION_ENTRY64
 {
 align (4):
+    ///The image address of the start of the function.
     ulong StartingAddress;
+    ///The image address of the end of the function.
     ulong EndingAddress;
     union
     {
@@ -4165,75 +5055,210 @@ align (4):
     }
 }
 
+///Contains exception information that can be used by a debugger.
 struct EXCEPTION_DEBUG_INFO
 {
+    ///An EXCEPTION_RECORD structure with information specific to the exception. This includes the exception code,
+    ///flags, address, a pointer to a related exception, extra parameters, and so on.
     EXCEPTION_RECORD ExceptionRecord;
+    ///A value that indicates whether the debugger has previously encountered the exception specified by the
+    ///<b>ExceptionRecord</b> member. If the <b>dwFirstChance</b> member is nonzero, this is the first time the debugger
+    ///has encountered the exception. Debuggers typically handle breakpoint and single-step exceptions when they are
+    ///first encountered. If this member is zero, the debugger has previously encountered the exception. This occurs
+    ///only if, during the search for structured exception handlers, either no handler was found or the exception was
+    ///continued.
     uint             dwFirstChance;
 }
 
+///Contains thread-creation information that can be used by a debugger.
 struct CREATE_THREAD_DEBUG_INFO
 {
+    ///A handle to the thread whose creation caused the debugging event. If this member is <b>NULL</b>, the handle is
+    ///not valid. Otherwise, the debugger has THREAD_GET_CONTEXT, THREAD_SET_CONTEXT, and THREAD_SUSPEND_RESUME access
+    ///to the thread, allowing the debugger to read from and write to the registers of the thread and control execution
+    ///of the thread.
     HANDLE hThread;
+    ///A pointer to a block of data. At offset 0x2C into this block is another pointer, called
+    ///ThreadLocalStoragePointer, that points to an array of per-module thread local storage blocks. This gives a
+    ///debugger access to per-thread data in the threads of the process being debugged using the same algorithms that a
+    ///compiler would use.
     void*  lpThreadLocalBase;
+    ///A pointer to the starting address of the thread. This value may only be an approximation of the thread's starting
+    ///address, because any application with appropriate access to the thread can change the thread's context by using
+    ///the SetThreadContext function.
     LPTHREAD_START_ROUTINE lpStartAddress;
 }
 
+///Contains process creation information that can be used by a debugger.
 struct CREATE_PROCESS_DEBUG_INFO
 {
+    ///A handle to the process's image file. If this member is <b>NULL</b>, the handle is not valid. Otherwise, the
+    ///debugger can use the member to read from and write to the image file. When the debugger is finished with this
+    ///file, it should close the handle using the CloseHandle function.
     HANDLE hFile;
+    ///A handle to the process. If this member is <b>NULL</b>, the handle is not valid. Otherwise, the debugger can use
+    ///the member to read from and write to the process's memory.
     HANDLE hProcess;
+    ///A handle to the initial thread of the process identified by the <b>hProcess</b> member. If <b>hThread</b> param
+    ///is <b>NULL</b>, the handle is not valid. Otherwise, the debugger has <b>THREAD_GET_CONTEXT</b>,
+    ///<b>THREAD_SET_CONTEXT</b>, and <b>THREAD_SUSPEND_RESUME</b> access to the thread, allowing the debugger to read
+    ///from and write to the registers of the thread and to control execution of the thread.
     HANDLE hThread;
+    ///The base address of the executable image that the process is running.
     void*  lpBaseOfImage;
+    ///The offset to the debugging information in the file identified by the <b>hFile</b> member.
     uint   dwDebugInfoFileOffset;
+    ///The size of the debugging information in the file, in bytes. If this value is zero, there is no debugging
+    ///information.
     uint   nDebugInfoSize;
+    ///A pointer to a block of data. At offset 0x2C into this block is another pointer, called
+    ///<code>ThreadLocalStoragePointer</code>, that points to an array of per-module thread local storage blocks. This
+    ///gives a debugger access to per-thread data in the threads of the process being debugged using the same algorithms
+    ///that a compiler would use.
     void*  lpThreadLocalBase;
+    ///A pointer to the starting address of the thread. This value may only be an approximation of the thread's starting
+    ///address, because any application with appropriate access to the thread can change the thread's context by using
+    ///the SetThreadContext function.
     LPTHREAD_START_ROUTINE lpStartAddress;
+    ///A pointer to the file name associated with the <b>hFile</b> member. This parameter may be <b>NULL</b>, or it may
+    ///contain the address of a string pointer in the address space of the process being debugged. That address may, in
+    ///turn, either be <b>NULL</b> or point to the actual filename. If <b>fUnicode</b> is a nonzero value, the name
+    ///string is Unicode; otherwise, it is ANSI. This member is strictly optional. Debuggers must be prepared to handle
+    ///the case where <b>lpImageName</b> is <b>NULL</b> or *<b>lpImageName</b> (in the address space of the process
+    ///being debugged) is <b>NULL</b>. Specifically, the system does not provide an image name for a create process
+    ///event, and will not likely pass an image name for the first DLL event. The system also does not provide this
+    ///information in the case of debug events that originate from a call to the DebugActiveProcess function.
     void*  lpImageName;
+    ///A value that indicates whether a file name specified by the <b>lpImageName</b> member is Unicode or ANSI. A
+    ///nonzero value indicates Unicode; zero indicates ANSI.
     ushort fUnicode;
 }
 
+///Contains the exit code for a terminating thread.
 struct EXIT_THREAD_DEBUG_INFO
 {
+    ///The exit code for the thread.
     uint dwExitCode;
 }
 
+///Contains the exit code for a terminating process.
 struct EXIT_PROCESS_DEBUG_INFO
 {
+    ///The exit code for the process.
     uint dwExitCode;
 }
 
+///Contains information about a dynamic-link library (DLL) that has just been loaded.
 struct LOAD_DLL_DEBUG_INFO
 {
+    ///A handle to the loaded DLL. If this member is <b>NULL</b>, the handle is not valid. Otherwise, the member is
+    ///opened for reading and read-sharing in the context of the debugger. When the debugger is finished with this file,
+    ///it should close the handle using the CloseHandle function.
     HANDLE hFile;
+    ///A pointer to the base address of the DLL in the address space of the process loading the DLL.
     void*  lpBaseOfDll;
+    ///The offset to the debugging information in the file identified by the <b>hFile</b> member, in bytes. The system
+    ///expects the debugging information to be in CodeView 4.0 format. This format is currently a derivative of Common
+    ///Object File Format (COFF).
     uint   dwDebugInfoFileOffset;
+    ///The size of the debugging information in the file, in bytes. If this member is zero, there is no debugging
+    ///information.
     uint   nDebugInfoSize;
+    ///A pointer to the file name associated with <b>hFile</b>. This member may be <b>NULL</b>, or it may contain the
+    ///address of a string pointer in the address space of the process being debugged. That address may, in turn, either
+    ///be <b>NULL</b> or point to the actual filename. If <b>fUnicode</b> is a nonzero value, the name string is
+    ///Unicode; otherwise, it is ANSI. This member is strictly optional. Debuggers must be prepared to handle the case
+    ///where <b>lpImageName</b> is <b>NULL</b> or *<b>lpImageName</b> (in the address space of the process being
+    ///debugged) is <b>NULL</b>. Specifically, the system will never provide an image name for a create process event,
+    ///and it will not likely pass an image name for the first DLL event. The system will also never provide this
+    ///information in the case of debugging events that originate from a call to the DebugActiveProcess function.
     void*  lpImageName;
+    ///A value that indicates whether a filename specified by <b>lpImageName</b> is Unicode or ANSI. A nonzero value for
+    ///this member indicates Unicode; zero indicates ANSI.
     ushort fUnicode;
 }
 
+///Contains information about a dynamic-link library (DLL) that has just been unloaded.
 struct UNLOAD_DLL_DEBUG_INFO
 {
+    ///A pointer to the base address of the DLL in the address space of the process unloading the DLL.
     void* lpBaseOfDll;
 }
 
+///Contains the address, format, and length, in bytes, of a debugging string.
 struct OUTPUT_DEBUG_STRING_INFO
 {
+    ///The debugging string in the calling process's address space. The debugger can use the ReadProcessMemory function
+    ///to retrieve the value of the string.
     const(char)* lpDebugStringData;
+    ///The format of the debugging string. If this member is zero, the debugging string is ANSI; if it is nonzero, the
+    ///string is Unicode.
     ushort       fUnicode;
+    ///The lower 16 bits of the length of the string in bytes. As nDebugStringLength is of type WORD, this does not
+    ///always contain the full length of the string in bytes. For example, if the original output string is longer than
+    ///65536 bytes, this field will contain a value that is less than the actual string length in bytes.
     ushort       nDebugStringLength;
 }
 
+///Contains the error that caused the RIP debug event.
 struct RIP_INFO
 {
+    ///The error that caused the RIP debug event. For more information, see Error Handling.
     uint dwError;
+    ///Any additional information about the type of error that caused the RIP debug event. This member can be one of the
+    ///following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
+    ///id="SLE_ERROR"></a><a id="sle_error"></a><dl> <dt><b>SLE_ERROR</b></dt> <dt>0x00000001</dt> </dl> </td> <td
+    ///width="60%"> Indicates that invalid data was passed to the function that failed. This caused the application to
+    ///fail. </td> </tr> <tr> <td width="40%"><a id="SLE_MINORERROR"></a><a id="sle_minorerror"></a><dl>
+    ///<dt><b>SLE_MINORERROR</b></dt> <dt>0x00000002</dt> </dl> </td> <td width="60%"> Indicates that invalid data was
+    ///passed to the function, but the error probably will not cause the application to fail. </td> </tr> <tr> <td
+    ///width="40%"><a id="SLE_WARNING"></a><a id="sle_warning"></a><dl> <dt><b>SLE_WARNING</b></dt> <dt>0x00000003</dt>
+    ///</dl> </td> <td width="60%"> Indicates that potentially invalid data was passed to the function, but the function
+    ///completed processing. </td> </tr> <tr> <td width="40%"> <dl> <dt>0</dt> </dl> </td> <td width="60%"> Indicates
+    ///that only <b>dwError</b> was set. </td> </tr> </table>
     uint dwType;
 }
 
+///Describes a debugging event.
 struct DEBUG_EVENT
 {
+    ///Type: <b>DWORD</b> The code that identifies the type of debugging event. This member can be one of the following
+    ///values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
+    ///id="CREATE_PROCESS_DEBUG_EVENT"></a><a id="create_process_debug_event"></a><dl>
+    ///<dt><b>CREATE_PROCESS_DEBUG_EVENT</b></dt> <dt>3</dt> </dl> </td> <td width="60%"> Reports a create-process
+    ///debugging event. The value of <b>u.CreateProcessInfo</b> specifies a CREATE_PROCESS_DEBUG_INFO structure. </td>
+    ///</tr> <tr> <td width="40%"><a id="CREATE_THREAD_DEBUG_EVENT"></a><a id="create_thread_debug_event"></a><dl>
+    ///<dt><b>CREATE_THREAD_DEBUG_EVENT</b></dt> <dt>2</dt> </dl> </td> <td width="60%"> Reports a create-thread
+    ///debugging event. The value of <b>u.CreateThread</b> specifies a CREATE_THREAD_DEBUG_INFO structure. </td> </tr>
+    ///<tr> <td width="40%"><a id="EXCEPTION_DEBUG_EVENT"></a><a id="exception_debug_event"></a><dl>
+    ///<dt><b>EXCEPTION_DEBUG_EVENT</b></dt> <dt>1</dt> </dl> </td> <td width="60%"> Reports an exception debugging
+    ///event. The value of <b>u.Exception</b> specifies an EXCEPTION_DEBUG_INFO structure. </td> </tr> <tr> <td
+    ///width="40%"><a id="EXIT_PROCESS_DEBUG_EVENT"></a><a id="exit_process_debug_event"></a><dl>
+    ///<dt><b>EXIT_PROCESS_DEBUG_EVENT</b></dt> <dt>5</dt> </dl> </td> <td width="60%"> Reports an exit-process
+    ///debugging event. The value of <b>u.ExitProcess</b> specifies an EXIT_PROCESS_DEBUG_INFO structure. </td> </tr>
+    ///<tr> <td width="40%"><a id="EXIT_THREAD_DEBUG_EVENT"></a><a id="exit_thread_debug_event"></a><dl>
+    ///<dt><b>EXIT_THREAD_DEBUG_EVENT</b></dt> <dt>4</dt> </dl> </td> <td width="60%"> Reports an exit-thread debugging
+    ///event. The value of <b>u.ExitThread</b> specifies an EXIT_THREAD_DEBUG_INFO structure. </td> </tr> <tr> <td
+    ///width="40%"><a id="LOAD_DLL_DEBUG_EVENT"></a><a id="load_dll_debug_event"></a><dl>
+    ///<dt><b>LOAD_DLL_DEBUG_EVENT</b></dt> <dt>6</dt> </dl> </td> <td width="60%"> Reports a load-dynamic-link-library
+    ///(DLL) debugging event. The value of <b>u.LoadDll</b> specifies a LOAD_DLL_DEBUG_INFO structure. </td> </tr> <tr>
+    ///<td width="40%"><a id="OUTPUT_DEBUG_STRING_EVENT"></a><a id="output_debug_string_event"></a><dl>
+    ///<dt><b>OUTPUT_DEBUG_STRING_EVENT</b></dt> <dt>8</dt> </dl> </td> <td width="60%"> Reports an
+    ///output-debugging-string debugging event. The value of <b>u.DebugString</b> specifies an OUTPUT_DEBUG_STRING_INFO
+    ///structure. </td> </tr> <tr> <td width="40%"><a id="RIP_EVENT"></a><a id="rip_event"></a><dl>
+    ///<dt><b>RIP_EVENT</b></dt> <dt>9</dt> </dl> </td> <td width="60%"> Reports a RIP-debugging event (system debugging
+    ///error). The value of <b>u.RipInfo</b> specifies a RIP_INFO structure. </td> </tr> <tr> <td width="40%"><a
+    ///id="UNLOAD_DLL_DEBUG_EVENT"></a><a id="unload_dll_debug_event"></a><dl> <dt><b>UNLOAD_DLL_DEBUG_EVENT</b></dt>
+    ///<dt>7</dt> </dl> </td> <td width="60%"> Reports an unload-DLL debugging event. The value of <b>u.UnloadDll</b>
+    ///specifies an UNLOAD_DLL_DEBUG_INFO structure. </td> </tr> </table>
     uint dwDebugEventCode;
+    ///Type: <b>DWORD</b> The identifier of the process in which the debugging event occurred. A debugger uses this
+    ///value to locate the debugger's per-process structure. These values are not necessarily small integers that can be
+    ///used as table indices.
     uint dwProcessId;
+    ///Type: <b>DWORD</b> The identifier of the thread in which the debugging event occurred. A debugger uses this value
+    ///to locate the debugger's per-thread structure. These values are not necessarily small integers that can be used
+    ///as table indices.
     uint dwThreadId;
     union u
     {
@@ -4249,18 +5274,44 @@ struct DEBUG_EVENT
     }
 }
 
+///Contains the flash status for a window and the number of times the system should flash the window.
 struct FLASHWINFO
 {
+    ///The size of the structure, in bytes.
     uint cbSize;
+    ///A handle to the window to be flashed. The window can be either opened or minimized.
     HWND hwnd;
+    ///The flash status. This parameter can be one or more of the following values. <table> <tr> <th>Value</th>
+    ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="FLASHW_ALL"></a><a id="flashw_all"></a><dl>
+    ///<dt><b>FLASHW_ALL</b></dt> <dt>0x00000003</dt> </dl> </td> <td width="60%"> Flash both the window caption and
+    ///taskbar button. This is equivalent to setting the FLASHW_CAPTION | FLASHW_TRAY flags. </td> </tr> <tr> <td
+    ///width="40%"><a id="FLASHW_CAPTION"></a><a id="flashw_caption"></a><dl> <dt><b>FLASHW_CAPTION</b></dt>
+    ///<dt>0x00000001</dt> </dl> </td> <td width="60%"> Flash the window caption. </td> </tr> <tr> <td width="40%"><a
+    ///id="FLASHW_STOP"></a><a id="flashw_stop"></a><dl> <dt><b>FLASHW_STOP</b></dt> <dt>0</dt> </dl> </td> <td
+    ///width="60%"> Stop flashing. The system restores the window to its original state. </td> </tr> <tr> <td
+    ///width="40%"><a id="FLASHW_TIMER"></a><a id="flashw_timer"></a><dl> <dt><b>FLASHW_TIMER</b></dt>
+    ///<dt>0x00000004</dt> </dl> </td> <td width="60%"> Flash continuously, until the FLASHW_STOP flag is set. </td>
+    ///</tr> <tr> <td width="40%"><a id="FLASHW_TIMERNOFG"></a><a id="flashw_timernofg"></a><dl>
+    ///<dt><b>FLASHW_TIMERNOFG</b></dt> <dt>0x0000000C</dt> </dl> </td> <td width="60%"> Flash continuously until the
+    ///window comes to the foreground. </td> </tr> <tr> <td width="40%"><a id="FLASHW_TRAY"></a><a
+    ///id="flashw_tray"></a><dl> <dt><b>FLASHW_TRAY</b></dt> <dt>0x00000002</dt> </dl> </td> <td width="60%"> Flash the
+    ///taskbar button. </td> </tr> </table>
     uint dwFlags;
+    ///The number of times to flash the window.
     uint uCount;
+    ///The rate at which the window is to be flashed, in milliseconds. If <b>dwTimeout</b> is zero, the function uses
+    ///the default cursor blink rate.
     uint dwTimeout;
 }
 
+///Represents a node in a wait chain.
 struct WAITCHAIN_NODE_INFO
 {
+    ///The object type. This member is one of the following values from the <b>WCT_OBJECT_TYPE</b> enumeration type. <a
+    ///id="WctCriticalSectionType"></a> <a id="wctcriticalsectiontype"></a> <a id="WCTCRITICALSECTIONTYPE"></a>
     WCT_OBJECT_TYPE   ObjectType;
+    ///The object status. This member is one of the following values from the <b>WCT_OBJECT_STATUS</b> enumeration type.
+    ///<a id="WctStatusNoAccess"></a> <a id="wctstatusnoaccess"></a> <a id="WCTSTATUSNOACCESS"></a>
     WCT_OBJECT_STATUS ObjectStatus;
     union
     {
@@ -4280,58 +5331,87 @@ struct WAITCHAIN_NODE_INFO
     }
 }
 
+///Contains information describing the location of a data stream within a minidump file.
 struct MINIDUMP_LOCATION_DESCRIPTOR
 {
+    ///The size of the data stream, in bytes.
     uint DataSize;
+    ///The relative virtual address (RVA) of the data. This is the byte offset of the data stream from the beginning of
+    ///the minidump file.
     uint Rva;
 }
 
+///Contains information describing the location of a data stream within a minidump file.
 struct MINIDUMP_LOCATION_DESCRIPTOR64
 {
 align (4):
+    ///The size of the data stream, in bytes.
     ulong DataSize;
+    ///The relative virtual address (RVA) of the data. This is the byte offset of the data stream from the beginning of
+    ///the minidump file.
     ulong Rva;
 }
 
+///Describes a range of memory.
 struct MINIDUMP_MEMORY_DESCRIPTOR
 {
 align (4):
+    ///The starting address of the memory range.
     ulong StartOfMemoryRange;
+    ///A MINIDUMP_LOCATION_DESCRIPTOR structure.
     MINIDUMP_LOCATION_DESCRIPTOR Memory;
 }
 
+///Describes a range of memory.
 struct MINIDUMP_MEMORY_DESCRIPTOR64
 {
 align (4):
+    ///The starting address of the memory range.
     ulong StartOfMemoryRange;
+    ///The size of the memory range.
     ulong DataSize;
 }
 
+///Contains header information for the minidump file.
 struct MINIDUMP_HEADER
 {
 align (4):
+    ///The signature. Set this member to MINIDUMP_SIGNATURE.
     uint  Signature;
+    ///The version of the minidump format. The low-order word is MINIDUMP_VERSION. The high-order word is an internal
+    ///value that is implementation specific.
     uint  Version;
+    ///The number of streams in the minidump directory.
     uint  NumberOfStreams;
+    ///The base RVA of the minidump directory. The directory is an array of MINIDUMP_DIRECTORY structures.
     uint  StreamDirectoryRva;
+    ///The checksum for the minidump file. This member can be zero.
     uint  CheckSum;
     union
     {
         uint Reserved;
         uint TimeDateStamp;
     }
+    ///One or more values from the MINIDUMP_TYPE enumeration type.
     ulong Flags;
 }
 
+///Contains the information needed to access a specific data stream in a minidump file.
 struct MINIDUMP_DIRECTORY
 {
+    ///The type of data stream. This member can be one of the values in the MINIDUMP_STREAM_TYPE enumeration.
     uint StreamType;
+    ///A MINIDUMP_LOCATION_DESCRIPTOR structure that specifies the location of the data stream.
     MINIDUMP_LOCATION_DESCRIPTOR Location;
 }
 
+///Describes a string.
 struct MINIDUMP_STRING
 {
+    ///The size of the string in the <b>Buffer</b> member, in bytes. This size does not include the null-terminating
+    ///character.
     uint      Length;
+    ///The null-terminated string.
     ushort[1] Buffer;
 }
 
@@ -4351,10 +5431,37 @@ union CPU_INFORMATION
     }
 }
 
+///Contains processor and operating system information.
 struct MINIDUMP_SYSTEM_INFO
 {
+    ///The system's processor architecture. This member can be one of the following values. <table> <tr> <th>Value</th>
+    ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="PROCESSOR_ARCHITECTURE_AMD64"></a><a
+    ///id="processor_architecture_amd64"></a><dl> <dt><b>PROCESSOR_ARCHITECTURE_AMD64</b></dt> <dt>9</dt> </dl> </td>
+    ///<td width="60%"> x64 (AMD or Intel) </td> </tr> <tr> <td width="40%"><a id="PROCESSOR_ARCHITECTURE_ARM"></a><a
+    ///id="processor_architecture_arm"></a><dl> <dt><b>PROCESSOR_ARCHITECTURE_ARM</b></dt> <dt>5</dt> </dl> </td> <td
+    ///width="60%"> ARM </td> </tr> <tr> <td width="40%"><a id="PROCESSOR_ARCHITECTURE_IA64"></a><a
+    ///id="processor_architecture_ia64"></a><dl> <dt><b>PROCESSOR_ARCHITECTURE_IA64</b></dt> <dt>6</dt> </dl> </td> <td
+    ///width="60%"> Intel Itanium </td> </tr> <tr> <td width="40%"><a id="PROCESSOR_ARCHITECTURE_INTEL"></a><a
+    ///id="processor_architecture_intel"></a><dl> <dt><b>PROCESSOR_ARCHITECTURE_INTEL</b></dt> <dt>0</dt> </dl> </td>
+    ///<td width="60%"> x86 </td> </tr> <tr> <td width="40%"><a id="PROCESSOR_ARCHITECTURE_UNKNOWN"></a><a
+    ///id="processor_architecture_unknown"></a><dl> <dt><b>PROCESSOR_ARCHITECTURE_UNKNOWN</b></dt> <dt>0xffff</dt> </dl>
+    ///</td> <td width="60%"> Unknown processor. </td> </tr> </table>
     ushort          ProcessorArchitecture;
+    ///The system's architecture-dependent processor level. If <b>ProcessorArchitecture</b> is
+    ///<b>PROCESSOR_ARCHITECTURE_INTEL</b>, <b>ProcessorLevel</b> can be one of the following values. <table> <tr>
+    ///<th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"> <dl> <dt>3</dt> </dl> </td> <td width="60%"> Intel
+    ///80386 </td> </tr> <tr> <td width="40%"> <dl> <dt>4</dt> </dl> </td> <td width="60%"> Intel 80486 </td> </tr> <tr>
+    ///<td width="40%"> <dl> <dt>5</dt> </dl> </td> <td width="60%"> Intel Pentium </td> </tr> <tr> <td width="40%">
+    ///<dl> <dt>6</dt> </dl> </td> <td width="60%"> Intel Pentium Pro or Pentium II </td> </tr> </table> If
+    ///<b>ProcessorArchitecture</b> is <b>PROCESSOR_ARCHITECTURE_IA64</b>, <b>ProcessorLevel</b> is set to 1.
     ushort          ProcessorLevel;
+    ///The architecture-dependent processor revision. <table> <tr> <th>Processor</th> <th>Value</th> </tr> <tr>
+    ///<td>Intel 80386 or 80486</td> <td> A value of the form <i>xxyz</i>. If <i>xx</i> is equal to 0xFF, <i>y</i> - 0xA
+    ///is the model number, and <i>z</i> is the stepping identifier. For example, an Intel 80486-D0 system returns
+    ///0xFFD0. If <i>xx</i> is not equal to 0xFF, <i>xx</i> + 'A' is the stepping letter and <i>yz</i> is the minor
+    ///stepping. </td> </tr> <tr> <td>Intel Pentium, Cyrix, or NextGen 586</td> <td> A value of the form <i>xxyy</i>,
+    ///where <i>xx</i> is the model number and <i>yy</i> is the stepping. Display this value of 0x0201 as follows: Model
+    ///<i>xx</i>, Stepping <i>yy</i> </td> </tr> </table>
     ushort          ProcessorRevision;
     union
     {
@@ -4365,10 +5472,23 @@ struct MINIDUMP_SYSTEM_INFO
             ubyte ProductType;
         }
     }
+    ///The major version number of the operating system. This member can be 4, 5, or 6.
     uint            MajorVersion;
+    ///The minor version number of the operating system.
     uint            MinorVersion;
+    ///The build number of the operating system.
     uint            BuildNumber;
+    ///The operating system platform. This member can be one of the following values. <table> <tr> <th>Value</th>
+    ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="VER_PLATFORM_WIN32s"></a><a id="ver_platform_win32s"></a><a
+    ///id="VER_PLATFORM_WIN32S"></a><dl> <dt><b>VER_PLATFORM_WIN32s</b></dt> <dt>0</dt> </dl> </td> <td width="60%"> Not
+    ///supported </td> </tr> <tr> <td width="40%"><a id="VER_PLATFORM_WIN32_WINDOWS"></a><a
+    ///id="ver_platform_win32_windows"></a><dl> <dt><b>VER_PLATFORM_WIN32_WINDOWS</b></dt> <dt>1</dt> </dl> </td> <td
+    ///width="60%"> Not supported. </td> </tr> <tr> <td width="40%"><a id="VER_PLATFORM_WIN32_NT"></a><a
+    ///id="ver_platform_win32_nt"></a><dl> <dt><b>VER_PLATFORM_WIN32_NT</b></dt> <dt>2</dt> </dl> </td> <td width="60%">
+    ///The operating system platform is Windows. </td> </tr> </table>
     uint            PlatformId;
+    ///An RVA (from the beginning of the dump) to a MINIDUMP_STRING that describes the latest Service Pack installed on
+    ///the system. If no Service Pack has been installed, the string is empty.
     uint            CSDVersionRva;
     union
     {
@@ -4382,102 +5502,243 @@ struct MINIDUMP_SYSTEM_INFO
     CPU_INFORMATION Cpu;
 }
 
+///Contains information for a specific thread.
 struct MINIDUMP_THREAD
 {
 align (4):
+    ///The identifier of the thread.
     uint  ThreadId;
+    ///The suspend count for the thread. If the suspend count is greater than zero, the thread is suspended; otherwise,
+    ///the thread is not suspended. The maximum value is MAXIMUM_SUSPEND_COUNT.
     uint  SuspendCount;
+    ///The priority class of the thread. See Scheduling Priorities.
     uint  PriorityClass;
+    ///The priority level of the thread.
     uint  Priority;
+    ///The thread environment block.
     ulong Teb;
+    ///A MINIDUMP_MEMORY_DESCRIPTOR structure.
     MINIDUMP_MEMORY_DESCRIPTOR Stack;
+    ///A MINIDUMP_LOCATION_DESCRIPTOR structure.
     MINIDUMP_LOCATION_DESCRIPTOR ThreadContext;
 }
 
+///Contains a list of threads.
 struct MINIDUMP_THREAD_LIST
 {
+    ///The number of structures in the <b>Threads</b> array.
     uint               NumberOfThreads;
+    ///An array of MINIDUMP_THREAD structures.
     MINIDUMP_THREAD[1] Threads;
 }
 
+///Contains extended information for a specific thread.
 struct MINIDUMP_THREAD_EX
 {
 align (4):
+    ///The identifier of the thread.
     uint  ThreadId;
+    ///The suspend count for the thread. If the suspend count is greater than zero, the thread is suspended; otherwise,
+    ///the thread is not suspended. The maximum value is MAXIMUM_SUSPEND_COUNT.
     uint  SuspendCount;
+    ///The priority class of the thread. See Scheduling Priorities.
     uint  PriorityClass;
+    ///The priority level of the thread.
     uint  Priority;
+    ///The thread environment block.
     ulong Teb;
+    ///A MINIDUMP_MEMORY_DESCRIPTOR structure.
     MINIDUMP_MEMORY_DESCRIPTOR Stack;
+    ///A MINIDUMP_LOCATION_DESCRIPTOR structure.
     MINIDUMP_LOCATION_DESCRIPTOR ThreadContext;
+    ///<b>Intel Itanium: </b>The backing store for the thread.
     MINIDUMP_MEMORY_DESCRIPTOR BackingStore;
 }
 
+///Contains a list of threads.
 struct MINIDUMP_THREAD_EX_LIST
 {
+    ///The number of structures in the <b>Threads</b> array.
     uint NumberOfThreads;
+    ///An array of MINIDUMP_THREAD_EX structures.
     MINIDUMP_THREAD_EX[1] Threads;
 }
 
+///Contains exception information.
 struct MINIDUMP_EXCEPTION
 {
 align (4):
+    ///The reason the exception occurred. This is the code generated by a hardware exception, or the code specified in
+    ///the RaiseException function for a software-generated exception. Following are the exception codes likely to occur
+    ///due to common programming errors. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
+    ///id="EXCEPTION_ACCESS_VIOLATION"></a><a id="exception_access_violation"></a><dl>
+    ///<dt><b>EXCEPTION_ACCESS_VIOLATION</b></dt> </dl> </td> <td width="60%"> The thread tried to read from or write to
+    ///a virtual address for which it does not have the appropriate access. </td> </tr> <tr> <td width="40%"><a
+    ///id="EXCEPTION_ARRAY_BOUNDS_EXCEEDED"></a><a id="exception_array_bounds_exceeded"></a><dl>
+    ///<dt><b>EXCEPTION_ARRAY_BOUNDS_EXCEEDED</b></dt> </dl> </td> <td width="60%"> The thread tried to access an array
+    ///element that is out of bounds and the underlying hardware supports bounds checking. </td> </tr> <tr> <td
+    ///width="40%"><a id="EXCEPTION_BREAKPOINT"></a><a id="exception_breakpoint"></a><dl>
+    ///<dt><b>EXCEPTION_BREAKPOINT</b></dt> </dl> </td> <td width="60%"> A breakpoint was encountered. </td> </tr> <tr>
+    ///<td width="40%"><a id="EXCEPTION_DATATYPE_MISALIGNMENT"></a><a id="exception_datatype_misalignment"></a><dl>
+    ///<dt><b>EXCEPTION_DATATYPE_MISALIGNMENT</b></dt> </dl> </td> <td width="60%"> The thread tried to read or write
+    ///data that is misaligned on hardware that does not provide alignment. For example, 16-bit values must be aligned
+    ///on 2-byte boundaries; 32-bit values on 4-byte boundaries, and so on. </td> </tr> <tr> <td width="40%"><a
+    ///id="EXCEPTION_FLT_DENORMAL_OPERAND"></a><a id="exception_flt_denormal_operand"></a><dl>
+    ///<dt><b>EXCEPTION_FLT_DENORMAL_OPERAND</b></dt> </dl> </td> <td width="60%"> One of the operands in a
+    ///floating-point operation is denormal. A denormal value is one that is too small to represent as a standard
+    ///floating-point value. </td> </tr> <tr> <td width="40%"><a id="EXCEPTION_FLT_DIVIDE_BY_ZERO"></a><a
+    ///id="exception_flt_divide_by_zero"></a><dl> <dt><b>EXCEPTION_FLT_DIVIDE_BY_ZERO</b></dt> </dl> </td> <td
+    ///width="60%"> The thread tried to divide a floating-point value by a floating-point divisor of zero. </td> </tr>
+    ///<tr> <td width="40%"><a id="EXCEPTION_FLT_INEXACT_RESULT"></a><a id="exception_flt_inexact_result"></a><dl>
+    ///<dt><b>EXCEPTION_FLT_INEXACT_RESULT</b></dt> </dl> </td> <td width="60%"> The result of a floating-point
+    ///operation cannot be represented exactly as a decimal fraction. </td> </tr> <tr> <td width="40%"><a
+    ///id="EXCEPTION_FLT_INVALID_OPERATION"></a><a id="exception_flt_invalid_operation"></a><dl>
+    ///<dt><b>EXCEPTION_FLT_INVALID_OPERATION</b></dt> </dl> </td> <td width="60%"> This exception represents any
+    ///floating-point exception not included in this list. </td> </tr> <tr> <td width="40%"><a
+    ///id="EXCEPTION_FLT_OVERFLOW"></a><a id="exception_flt_overflow"></a><dl> <dt><b>EXCEPTION_FLT_OVERFLOW</b></dt>
+    ///</dl> </td> <td width="60%"> The exponent of a floating-point operation is greater than the magnitude allowed by
+    ///the corresponding type. </td> </tr> <tr> <td width="40%"><a id="EXCEPTION_FLT_STACK_CHECK"></a><a
+    ///id="exception_flt_stack_check"></a><dl> <dt><b>EXCEPTION_FLT_STACK_CHECK</b></dt> </dl> </td> <td width="60%">
+    ///The stack overflowed or underflowed as the result of a floating-point operation. </td> </tr> <tr> <td
+    ///width="40%"><a id="EXCEPTION_FLT_UNDERFLOW"></a><a id="exception_flt_underflow"></a><dl>
+    ///<dt><b>EXCEPTION_FLT_UNDERFLOW</b></dt> </dl> </td> <td width="60%"> The exponent of a floating-point operation
+    ///is less than the magnitude allowed by the corresponding type. </td> </tr> <tr> <td width="40%"><a
+    ///id="EXCEPTION_ILLEGAL_INSTRUCTION"></a><a id="exception_illegal_instruction"></a><dl>
+    ///<dt><b>EXCEPTION_ILLEGAL_INSTRUCTION</b></dt> </dl> </td> <td width="60%"> The thread tried to execute an invalid
+    ///instruction. </td> </tr> <tr> <td width="40%"><a id="EXCEPTION_IN_PAGE_ERROR"></a><a
+    ///id="exception_in_page_error"></a><dl> <dt><b>EXCEPTION_IN_PAGE_ERROR</b></dt> </dl> </td> <td width="60%"> The
+    ///thread tried to access a page that was not present, and the system was unable to load the page. For example, this
+    ///exception might occur if a network connection is lost while running a program over the network. </td> </tr> <tr>
+    ///<td width="40%"><a id="EXCEPTION_INT_DIVIDE_BY_ZERO"></a><a id="exception_int_divide_by_zero"></a><dl>
+    ///<dt><b>EXCEPTION_INT_DIVIDE_BY_ZERO</b></dt> </dl> </td> <td width="60%"> The thread tried to divide an integer
+    ///value by an integer divisor of zero. </td> </tr> <tr> <td width="40%"><a id="EXCEPTION_INT_OVERFLOW"></a><a
+    ///id="exception_int_overflow"></a><dl> <dt><b>EXCEPTION_INT_OVERFLOW</b></dt> </dl> </td> <td width="60%"> The
+    ///result of an integer operation caused a carry out of the most significant bit of the result. </td> </tr> <tr> <td
+    ///width="40%"><a id="EXCEPTION_INVALID_DISPOSITION"></a><a id="exception_invalid_disposition"></a><dl>
+    ///<dt><b>EXCEPTION_INVALID_DISPOSITION</b></dt> </dl> </td> <td width="60%"> An exception handler returned an
+    ///invalid disposition to the exception dispatcher. Programmers using a high-level language such as C should never
+    ///encounter this exception. </td> </tr> <tr> <td width="40%"><a id="EXCEPTION_NONCONTINUABLE_EXCEPTION"></a><a
+    ///id="exception_noncontinuable_exception"></a><dl> <dt><b>EXCEPTION_NONCONTINUABLE_EXCEPTION</b></dt> </dl> </td>
+    ///<td width="60%"> The thread tried to continue execution after a noncontinuable exception occurred. </td> </tr>
+    ///<tr> <td width="40%"><a id="EXCEPTION_PRIV_INSTRUCTION"></a><a id="exception_priv_instruction"></a><dl>
+    ///<dt><b>EXCEPTION_PRIV_INSTRUCTION</b></dt> </dl> </td> <td width="60%"> The thread tried to execute an
+    ///instruction whose operation is not allowed in the current machine mode. </td> </tr> <tr> <td width="40%"><a
+    ///id="EXCEPTION_SINGLE_STEP"></a><a id="exception_single_step"></a><dl> <dt><b>EXCEPTION_SINGLE_STEP</b></dt> </dl>
+    ///</td> <td width="60%"> A trace trap or other single-instruction mechanism signaled that one instruction has been
+    ///executed. </td> </tr> <tr> <td width="40%"><a id="EXCEPTION_STACK_OVERFLOW"></a><a
+    ///id="exception_stack_overflow"></a><dl> <dt><b>EXCEPTION_STACK_OVERFLOW</b></dt> </dl> </td> <td width="60%"> The
+    ///thread used up its stack. </td> </tr> </table> Another exception code is likely to occur when debugging console
+    ///processes. It does not arise because of a programming error. The DBG_CONTROL_C exception code occurs when CTRL+C
+    ///is input to a console process that handles CTRL+C signals and is being debugged. This exception code is not meant
+    ///to be handled by applications. It is raised only for the benefit of the debugger, and is raised only when a
+    ///debugger is attached to the console process.
     uint      ExceptionCode;
+    ///This member can be either zero, indicating a continuable exception, or EXCEPTION_NONCONTINUABLE, indicating a
+    ///noncontinuable exception. Any attempt to continue execution after a noncontinuable exception causes the
+    ///EXCEPTION_NONCONTINUABLE_EXCEPTION exception.
     uint      ExceptionFlags;
+    ///A pointer to an associated <b>MINIDUMP_EXCEPTION</b> structure. Exception records can be chained together to
+    ///provide additional information when nested exceptions occur.
     ulong     ExceptionRecord;
+    ///The address where the exception occurred.
     ulong     ExceptionAddress;
+    ///The number of parameters associated with the exception. This is the number of defined elements in the
+    ///<b>ExceptionInformation</b> array.
     uint      NumberParameters;
+    ///Reserved for cross-platform structure member alignment. Do not set.
     uint      __unusedAlignment;
+    ///An array of additional arguments that describe the exception. The RaiseException function can specify this array
+    ///of arguments. For most exception codes, the array elements are undefined. For the following exception code, the
+    ///array elements are defined as follows. <table> <tr> <th>Exception code</th> <th>Meaning</th> </tr> <tr> <td
+    ///width="40%"><a id="EXCEPTION_ACCESS_VIOLATION"></a><a id="exception_access_violation"></a><dl>
+    ///<dt><b>EXCEPTION_ACCESS_VIOLATION</b></dt> </dl> </td> <td width="60%"> The first element of the array contains a
+    ///read/write flag that indicates the type of operation that caused the access violation. If this value is zero, the
+    ///thread attempted to read the inaccessible data. If this value is 1, the thread attempted to write to an
+    ///inaccessible address. The second array element specifies the virtual address of the inaccessible data. </td>
+    ///</tr> </table>
     ulong[15] ExceptionInformation;
 }
 
+///Represents an exception information stream.
 struct MINIDUMP_EXCEPTION_STREAM
 {
+    ///The identifier of the thread that caused the exception.
     uint               ThreadId;
+    ///A variable for alignment.
     uint               __alignment;
+    ///A MINIDUMP_EXCEPTION structure.
     MINIDUMP_EXCEPTION ExceptionRecord;
+    ///A MINIDUMP_LOCATION_DESCRIPTOR structure.
     MINIDUMP_LOCATION_DESCRIPTOR ThreadContext;
 }
 
+///Contains information for a specific module.
 struct MINIDUMP_MODULE
 {
 align (4):
+    ///The base address of the module executable image in memory.
     ulong            BaseOfImage;
+    ///The size of the module executable image in memory, in bytes.
     uint             SizeOfImage;
+    ///The checksum value of the module executable image.
     uint             CheckSum;
+    ///The timestamp value of the module executable image, in <b>time_t</b> format.
     uint             TimeDateStamp;
+    ///An RVA to a MINIDUMP_STRING structure that specifies the name of the module.
     uint             ModuleNameRva;
+    ///A VS_FIXEDFILEINFO structure that specifies the version of the module.
     VS_FIXEDFILEINFO VersionInfo;
+    ///A MINIDUMP_LOCATION_DESCRIPTOR structure that specifies the CodeView record of the module.
     MINIDUMP_LOCATION_DESCRIPTOR CvRecord;
+    ///A MINIDUMP_LOCATION_DESCRIPTOR structure that specifies the miscellaneous record of the module.
     MINIDUMP_LOCATION_DESCRIPTOR MiscRecord;
+    ///Reserved for future use.
     ulong            Reserved0;
+    ///Reserved for future use.
     ulong            Reserved1;
 }
 
+///Contains a list of modules.
 struct MINIDUMP_MODULE_LIST
 {
+    ///The number of structures in the <b>Modules</b> array.
     uint               NumberOfModules;
+    ///An array of MINIDUMP_MODULE structures.
     MINIDUMP_MODULE[1] Modules;
 }
 
+///Contains a list of memory ranges.
 struct MINIDUMP_MEMORY_LIST
 {
+    ///The number of structures in the <b>MemoryRanges</b> array.
     uint NumberOfMemoryRanges;
+    ///An array of MINIDUMP_MEMORY_DESCRIPTOR structures.
     MINIDUMP_MEMORY_DESCRIPTOR[1] MemoryRanges;
 }
 
+///Contains a list of memory ranges.
 struct MINIDUMP_MEMORY64_LIST
 {
 align (4):
+    ///The number of structures in the <b>MemoryRanges</b> array.
     ulong NumberOfMemoryRanges;
     ulong BaseRva;
+    ///An array of MINIDUMP_MEMORY_DESCRIPTOR structures.
     MINIDUMP_MEMORY_DESCRIPTOR64[1] MemoryRanges;
 }
 
+///Contains the exception information written to the minidump file by the MiniDumpWriteDump function.
 struct MINIDUMP_EXCEPTION_INFORMATION
 {
+    ///The identifier of the thread throwing the exception.
     uint                ThreadId;
+    ///A pointer to an EXCEPTION_POINTERS structure specifying a computer-independent description of the exception and
+    ///the processor context at the time of the exception.
     EXCEPTION_POINTERS* ExceptionPointers;
+    ///Determines where to get the memory regions pointed to by the <b>ExceptionPointers</b> member. Set to <b>TRUE</b>
+    ///if the memory resides in the process being debugged (the target process of the debugger). Otherwise, set to
+    ///<b>FALSE</b> if the memory resides in the address space of the calling program (the debugger process). If you are
+    ///accessing local memory (in the calling process) you should not set this member to <b>TRUE</b>.
     BOOL                ClientPointers;
 }
 
@@ -4490,89 +5751,163 @@ align (4):
     BOOL  ClientPointers;
 }
 
+///Contains object-specific information for a handle.
 struct MINIDUMP_HANDLE_OBJECT_INFORMATION
 {
+    ///An RVA to a <b>MINIDUMP_HANDLE_OBJECT_INFORMATION</b> structure that specifies additional object-specific
+    ///information. This member is 0 if there are no more elements in the list.
     uint NextInfoRva;
+    ///The object information type. This member is one of the values from the MINIDUMP_HANDLE_OBJECT_INFORMATION_TYPE
+    ///enumeration.
     uint InfoType;
+    ///The size of the information that follows this member, in bytes.
     uint SizeOfInfo;
 }
 
+///Contains the state of an individual system handle at the time the minidump was written.
 struct MINIDUMP_HANDLE_DESCRIPTOR
 {
 align (4):
+    ///The operating system handle value.
     ulong Handle;
+    ///An RVA to a MINIDUMP_STRING structure that specifies the object type of the handle. This member can be zero.
     uint  TypeNameRva;
+    ///An RVA to a MINIDUMP_STRING structure that specifies the object name of the handle. This member can be zero.
     uint  ObjectNameRva;
+    ///The meaning of this member depends on the handle type and the operating system.
     uint  Attributes;
+    ///The meaning of this member depends on the handle type and the operating system.
     uint  GrantedAccess;
+    ///The meaning of this member depends on the handle type and the operating system.
     uint  HandleCount;
+    ///The meaning of this member depends on the handle type and the operating system.
     uint  PointerCount;
 }
 
+///Describes the state of an individual system handle at the time the minidump was written.
 struct MINIDUMP_HANDLE_DESCRIPTOR_2
 {
 align (4):
+    ///The operating system handle value.
     ulong Handle;
+    ///An RVA to a MINIDUMP_STRING structure that specifies the object type of the handle. This member can be zero.
     uint  TypeNameRva;
+    ///An RVA to a MINIDUMP_STRING structure that specifies the object name of the handle. This member can be 0.
     uint  ObjectNameRva;
+    ///The meaning of this member depends on the handle type and the operating system.
     uint  Attributes;
+    ///The meaning of this member depends on the handle type and the operating system.
     uint  GrantedAccess;
+    ///The meaning of this member depends on the handle type and the operating system.
     uint  HandleCount;
+    ///The meaning of this member depends on the handle type and the operating system.
     uint  PointerCount;
+    ///An RVA to a MINIDUMP_HANDLE_OBJECT_INFORMATION structure that specifies object-specific information. This member
+    ///can be 0 if there is no extra information.
     uint  ObjectInfoRva;
+    ///Reserved for future use; must be zero.
     uint  Reserved0;
 }
 
+///Represents the header for a handle data stream.
 struct MINIDUMP_HANDLE_DATA_STREAM
 {
+    ///The size of the header information for the stream, in bytes. This value is
+    ///<code>sizeof(MINIDUMP_HANDLE_DATA_STREAM)</code>.
     uint SizeOfHeader;
+    ///The size of a descriptor in the stream, in bytes. This value is <code>sizeof(MINIDUMP_HANDLE_DESCRIPTOR)</code>
+    ///or <code>sizeof(MINIDUMP_HANDLE_DESCRIPTOR_2)</code>.
     uint SizeOfDescriptor;
+    ///The number of descriptors in the stream.
     uint NumberOfDescriptors;
+    ///Reserved for future use; must be zero.
     uint Reserved;
 }
 
+///Contains a list of handle operations.
 struct MINIDUMP_HANDLE_OPERATION_LIST
 {
+    ///The size of the header data for the stream, in bytes. This is generally
+    ///<code>sizeof(MINIDUMP_HANDLE_OPERATION_LIST)</code>.
     uint SizeOfHeader;
+    ///The size of each entry following the header, in bytes. This is generally
+    ///<code>sizeof(AVRF_HANDLE_OPERATION)</code>.
     uint SizeOfEntry;
+    ///The number of entries in the stream. These are generally <b>AVRF_HANDLE_OPERATION</b> structures. The entries
+    ///follow the header.
     uint NumberOfEntries;
+    ///This member is reserved for future use.
     uint Reserved;
 }
 
+///Represents a function table stream.
 struct MINIDUMP_FUNCTION_TABLE_DESCRIPTOR
 {
 align (4):
+    ///The minimum address of functions described by the table.
     ulong MinimumAddress;
+    ///The maximum address of functions described by the table.
     ulong MaximumAddress;
+    ///The base address to use when computing full virtual addresses from relative virtual addresses in function
+    ///entries.
     ulong BaseAddress;
+    ///The number of entries in the function table.
     uint  EntryCount;
+    ///The size of alignment padding that follows the function entry data, in bytes. The function entry data in the
+    ///stream is guaranteed to be aligned appropriately for access to the data members. If a minidump is directly mapped
+    ///in memory, it is always possible to directly reference structure members in the stream.
     uint  SizeOfAlignPad;
 }
 
+///Represents the header for the function table stream.
 struct MINIDUMP_FUNCTION_TABLE_STREAM
 {
+    ///The size of header information for the stream, in bytes. This value is
+    ///<code>sizeof(MINIDUMP_FUNCTION_TABLE_STREAM)</code>.
     uint SizeOfHeader;
+    ///The size of a descriptor in the stream, in bytes. This value is
+    ///<code>sizeof(MINIDUMP_FUNCTION_TABLE_DESCRIPTOR)</code>.
     uint SizeOfDescriptor;
+    ///The size of a raw system descriptor in the stream, in bytes. This value depends on the particular platform and
+    ///system version on which the minidump was generated.
     uint SizeOfNativeDescriptor;
+    ///The size of a raw system function table entry, in bytes. This value depends on the particular platform and system
+    ///version on which the minidump was generated.
     uint SizeOfFunctionEntry;
+    ///The number of descriptors in the stream.
     uint NumberOfDescriptors;
+    ///The size of alignment padding that follows the header, in bytes.
     uint SizeOfAlignPad;
 }
 
+///Contains information about a module that has been unloaded. This information can help diagnose problems calling code
+///that is no longer loaded.
 struct MINIDUMP_UNLOADED_MODULE
 {
 align (4):
+    ///The base address of the module executable image in memory.
     ulong BaseOfImage;
+    ///The size of the module executable image in memory, in bytes.
     uint  SizeOfImage;
+    ///The checksum value of the module executable image.
     uint  CheckSum;
+    ///The timestamp value of the module executable image, in <b>time_t</b> format.
     uint  TimeDateStamp;
+    ///An RVA to a MINIDUMP_STRING structure that specifies the name of the module.
     uint  ModuleNameRva;
 }
 
+///Contains a list of unloaded modules.
 struct MINIDUMP_UNLOADED_MODULE_LIST
 {
+    ///The size of the header data for the stream, in bytes. This is generally
+    ///<code>sizeof(MINIDUMP_UNLOADED_MODULE_LIST)</code>.
     uint SizeOfHeader;
+    ///The size of each entry following the header, in bytes. This is generally
+    ///<code>sizeof(MINIDUMP_UNLOADED_MODULE)</code>.
     uint SizeOfEntry;
+    ///The number of entries in the stream. These are generally MINIDUMP_UNLOADED_MODULE structures. The entries follow
+    ///the header.
     uint NumberOfEntries;
 }
 
@@ -4585,28 +5920,84 @@ align (4):
     XSTATE_FEATURE[64] Features;
 }
 
+///Contains a variety of information.
 struct MINIDUMP_MISC_INFO
 {
+    ///The size of the structure, in bytes.
     uint SizeOfInfo;
+    ///The flags that indicate the valid members of this structure. This member can be one or more of the following
+    ///values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
+    ///id="MINIDUMP_MISC1_PROCESS_ID"></a><a id="minidump_misc1_process_id"></a><dl>
+    ///<dt><b>MINIDUMP_MISC1_PROCESS_ID</b></dt> <dt>0x00000001</dt> </dl> </td> <td width="60%"> <b>ProcessId</b> is
+    ///used. </td> </tr> <tr> <td width="40%"><a id="MINIDUMP_MISC1_PROCESS_TIMES"></a><a
+    ///id="minidump_misc1_process_times"></a><dl> <dt><b>MINIDUMP_MISC1_PROCESS_TIMES</b></dt> <dt>0x00000002</dt> </dl>
+    ///</td> <td width="60%"> <b>ProcessCreateTime</b>, <b>ProcessKernelTime</b>, and <b>ProcessUserTime</b> are used.
+    ///</td> </tr> </table>
     uint Flags1;
+    ///The identifier of the process. If <b>Flags1</b> does not specify MINIDUMP_MISC1_PROCESS_ID, this member is
+    ///unused.
     uint ProcessId;
+    ///The creation time of the process, in <b>time_t</b> format. If <b>Flags1</b> does not specify
+    ///MINIDUMP_MISC1_PROCESS_TIMES, this member is unused.
     uint ProcessCreateTime;
+    ///The time the process has executed in user mode, in seconds. The time that each of the threads of the process has
+    ///executed in user mode is determined, then all these times are summed to obtain this value. If <b>Flags1</b> does
+    ///not specify MINIDUMP_MISC1_PROCESS_TIMES, this member is unused.
     uint ProcessUserTime;
+    ///The time the process has executed in kernel mode, in seconds. The time that each of the threads of the process
+    ///has executed in kernel mode is determined, then all these times are summed to obtain this value. If <b>Flags1</b>
+    ///does not specify MINIDUMP_MISC1_PROCESS_TIMES, this member is unused.
     uint ProcessKernelTime;
 }
 
+///Represents information in the miscellaneous information stream.
 struct MINIDUMP_MISC_INFO_2
 {
+    ///The size of the structure, in bytes.
     uint SizeOfInfo;
+    ///The flags that indicate the valid members of this structure. This member can be one or more of the following
+    ///values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
+    ///id="MINIDUMP_MISC1_PROCESS_ID"></a><a id="minidump_misc1_process_id"></a><dl>
+    ///<dt><b>MINIDUMP_MISC1_PROCESS_ID</b></dt> <dt>0x00000001</dt> </dl> </td> <td width="60%"> <b>ProcessId</b> is
+    ///used. </td> </tr> <tr> <td width="40%"><a id="MINIDUMP_MISC1_PROCESS_TIMES"></a><a
+    ///id="minidump_misc1_process_times"></a><dl> <dt><b>MINIDUMP_MISC1_PROCESS_TIMES</b></dt> <dt>0x00000002</dt> </dl>
+    ///</td> <td width="60%"> <b>ProcessCreateTime</b>, <b>ProcessKernelTime</b>, and <b>ProcessUserTime</b> are used.
+    ///</td> </tr> <tr> <td width="40%"><a id="MINIDUMP_MISC1_PROCESSOR_POWER_INFO"></a><a
+    ///id="minidump_misc1_processor_power_info"></a><dl> <dt><b>MINIDUMP_MISC1_PROCESSOR_POWER_INFO</b></dt>
+    ///<dt>0x00000004</dt> </dl> </td> <td width="60%"> <b>ProcessorMaxMhz</b>, <b>ProcessorCurrentMhz</b>,
+    ///<b>ProcessorMhzLimit</b>, <b>ProcessorMaxIdleState</b>, and <b>ProcessorCurrentIdleState</b> are used. </td>
+    ///</tr> </table>
     uint Flags1;
+    ///The identifier of the process. If <b>Flags1</b> does not specify <b>MINIDUMP_MISC1_PROCESS_ID</b>, this member is
+    ///unused.
     uint ProcessId;
+    ///The creation time of the process, in <b>time_t</b> format. If <b>Flags1</b> does not specify
+    ///<b>MINIDUMP_MISC1_PROCESS_TIMES</b>, this member is unused.
     uint ProcessCreateTime;
+    ///The time the process has executed in user mode, in seconds. The time that each of the threads of the process has
+    ///executed in user mode is determined, then all these times are summed to obtain this value. If <b>Flags1</b> does
+    ///not specify <b>MINIDUMP_MISC1_PROCESS_TIMES</b>, this member is unused.
     uint ProcessUserTime;
+    ///The time the process has executed in kernel mode, in seconds. The time that each of the threads of the process
+    ///has executed in kernel mode is determined, then all these times are summed to obtain this value. If <b>Flags1</b>
+    ///does not specify <b>MINIDUMP_MISC1_PROCESS_TIMES</b>, this member is unused.
     uint ProcessKernelTime;
+    ///The maximum specified clock frequency of the system processor, in MHz. If <b>Flags1</b> does not specify
+    ///<b>MINIDUMP_MISC1_PROCESSOR_POWER_INFO</b>, this member is unused.
     uint ProcessorMaxMhz;
+    ///The processor clock frequency, in MHz. This number is the maximum specified processor clock frequency multiplied
+    ///by the current processor throttle. If <b>Flags1</b> does not specify <b>MINIDUMP_MISC1_PROCESSOR_POWER_INFO</b>,
+    ///this member is unused.
     uint ProcessorCurrentMhz;
+    ///The limit on the processor clock frequency, in MHz. This number is the maximum specified processor clock
+    ///frequency multiplied by the current processor thermal throttle limit. If <b>Flags1</b> does not specify
+    ///<b>MINIDUMP_MISC1_PROCESSOR_POWER_INFO</b>, this member is unused.
     uint ProcessorMhzLimit;
+    ///The maximum idle state of the processor. If <b>Flags1</b> does not specify
+    ///<b>MINIDUMP_MISC1_PROCESSOR_POWER_INFO</b>, this member is unused.
     uint ProcessorMaxIdleState;
+    ///The current idle state of the processor. If <b>Flags1</b> does not specify
+    ///<b>MINIDUMP_MISC1_PROCESSOR_POWER_INFO</b>, this member is unused.
     uint ProcessorCurrentIdleState;
 }
 
@@ -4676,25 +6067,63 @@ struct MINIDUMP_MISC_INFO_5
     uint        ProcessCookie;
 }
 
+///Describes a region of memory.
 struct MINIDUMP_MEMORY_INFO
 {
 align (4):
+    ///The base address of the region of pages.
     ulong BaseAddress;
+    ///The base address of a range of pages in this region. The page is contained within this memory region.
     ulong AllocationBase;
+    ///The memory protection when the region was initially allocated. This member can be one of the memory protection
+    ///options, along with PAGE_GUARD or PAGE_NOCACHE, as needed.
     uint  AllocationProtect;
+    ///A variable for alignment.
     uint  __alignment1;
+    ///The size of the region beginning at the base address in which all pages have identical attributes, in bytes.
     ulong RegionSize;
+    ///The state of the pages in the region. This member can be one of the following values. <table> <tr> <th>State</th>
+    ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="MEM_COMMIT"></a><a id="mem_commit"></a><dl>
+    ///<dt><b>MEM_COMMIT</b></dt> <dt>0x1000</dt> </dl> </td> <td width="60%"> Indicates committed pages for which
+    ///physical storage has been allocated, either in memory or in the paging file on disk. </td> </tr> <tr> <td
+    ///width="40%"><a id="MEM_FREE"></a><a id="mem_free"></a><dl> <dt><b>MEM_FREE</b></dt> <dt>0x10000</dt> </dl> </td>
+    ///<td width="60%"> Indicates free pages not accessible to the calling process and available to be allocated. For
+    ///free pages, the information in the <b>AllocationBase</b>, <b>AllocationProtect</b>, <b>Protect</b>, and
+    ///<b>Type</b> members is undefined. </td> </tr> <tr> <td width="40%"><a id="MEM_RESERVE"></a><a
+    ///id="mem_reserve"></a><dl> <dt><b>MEM_RESERVE</b></dt> <dt>0x2000</dt> </dl> </td> <td width="60%"> Indicates
+    ///reserved pages where a range of the process's virtual address space is reserved without any physical storage
+    ///being allocated. For reserved pages, the information in the <b>Protect</b> member is undefined. </td> </tr>
+    ///</table>
     uint  State;
+    ///The access protection of the pages in the region. This member is one of the values listed for the
+    ///<b>AllocationProtect</b> member.
     uint  Protect;
+    ///The type of pages in the region. The following types are defined. <table> <tr> <th>Type</th> <th>Meaning</th>
+    ///</tr> <tr> <td width="40%"><a id="MEM_IMAGE"></a><a id="mem_image"></a><dl> <dt><b>MEM_IMAGE</b></dt>
+    ///<dt>0x1000000</dt> </dl> </td> <td width="60%"> Indicates that the memory pages within the region are mapped into
+    ///the view of an image section. </td> </tr> <tr> <td width="40%"><a id="MEM_MAPPED"></a><a id="mem_mapped"></a><dl>
+    ///<dt><b>MEM_MAPPED</b></dt> <dt>0x40000</dt> </dl> </td> <td width="60%"> Indicates that the memory pages within
+    ///the region are mapped into the view of a section. </td> </tr> <tr> <td width="40%"><a id="MEM_PRIVATE"></a><a
+    ///id="mem_private"></a><dl> <dt><b>MEM_PRIVATE</b></dt> <dt>0x20000</dt> </dl> </td> <td width="60%"> Indicates
+    ///that the memory pages within the region are private (that is, not shared by other processes). </td> </tr>
+    ///</table>
     uint  Type;
+    ///A variable for alignment.
     uint  __alignment2;
 }
 
+///Contains a list of memory regions.
 struct MINIDUMP_MEMORY_INFO_LIST
 {
 align (4):
+    ///The size of the header data for the stream, in bytes. This is generally
+    ///<code>sizeof(MINIDUMP_MEMORY_INFO_LIST)</code>.
     uint  SizeOfHeader;
+    ///The size of each entry following the header, in bytes. This is generally
+    ///<code>sizeof(MINIDUMP_MEMORY_INFO)</code>.
     uint  SizeOfEntry;
+    ///The number of entries in the stream. These are generally MINIDUMP_MEMORY_INFO structures. The entries follow the
+    ///header.
     ulong NumberOfEntries;
 }
 
@@ -4711,25 +6140,61 @@ struct MINIDUMP_THREAD_NAME_LIST
     MINIDUMP_THREAD_NAME[1] ThreadNames;
 }
 
+///Contains thread state information.
 struct MINIDUMP_THREAD_INFO
 {
 align (4):
+    ///The identifier of the thread.
     uint  ThreadId;
+    ///The flags that indicate the thread state. This member can be 0 or one of the following values. <table> <tr>
+    ///<th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="MINIDUMP_THREAD_INFO_ERROR_THREAD"></a><a
+    ///id="minidump_thread_info_error_thread"></a><dl> <dt><b>MINIDUMP_THREAD_INFO_ERROR_THREAD</b></dt>
+    ///<dt>0x00000001</dt> </dl> </td> <td width="60%"> A placeholder thread due to an error accessing the thread. No
+    ///thread information exists beyond the thread identifier. </td> </tr> <tr> <td width="40%"><a
+    ///id="MINIDUMP_THREAD_INFO_EXITED_THREAD"></a><a id="minidump_thread_info_exited_thread"></a><dl>
+    ///<dt><b>MINIDUMP_THREAD_INFO_EXITED_THREAD</b></dt> <dt>0x00000004</dt> </dl> </td> <td width="60%"> The thread
+    ///has exited (not running any code) at the time of the dump. </td> </tr> <tr> <td width="40%"><a
+    ///id="MINIDUMP_THREAD_INFO_INVALID_CONTEXT"></a><a id="minidump_thread_info_invalid_context"></a><dl>
+    ///<dt><b>MINIDUMP_THREAD_INFO_INVALID_CONTEXT</b></dt> <dt>0x00000010</dt> </dl> </td> <td width="60%"> Thread
+    ///context could not be retrieved. </td> </tr> <tr> <td width="40%"><a id="MINIDUMP_THREAD_INFO_INVALID_INFO"></a><a
+    ///id="minidump_thread_info_invalid_info"></a><dl> <dt><b>MINIDUMP_THREAD_INFO_INVALID_INFO</b></dt>
+    ///<dt>0x00000008</dt> </dl> </td> <td width="60%"> Thread information could not be retrieved. </td> </tr> <tr> <td
+    ///width="40%"><a id="MINIDUMP_THREAD_INFO_INVALID_TEB"></a><a id="minidump_thread_info_invalid_teb"></a><dl>
+    ///<dt><b>MINIDUMP_THREAD_INFO_INVALID_TEB</b></dt> <dt>0x00000020</dt> </dl> </td> <td width="60%"> TEB information
+    ///could not be retrieved. </td> </tr> <tr> <td width="40%"><a id="MINIDUMP_THREAD_INFO_WRITING_THREAD"></a><a
+    ///id="minidump_thread_info_writing_thread"></a><dl> <dt><b>MINIDUMP_THREAD_INFO_WRITING_THREAD</b></dt>
+    ///<dt>0x00000002</dt> </dl> </td> <td width="60%"> This is the thread that called <b>MiniDumpWriteDump</b>. </td>
+    ///</tr> </table>
     uint  DumpFlags;
+    ///An <b>HRESULT</b> value that indicates the dump status.
     uint  DumpError;
+    ///The thread termination status code.
     uint  ExitStatus;
+    ///The time when the thread was created, in 100-nanosecond intervals since January 1, 1601 (UTC).
     ulong CreateTime;
+    ///The time when the thread exited, in 100-nanosecond intervals since January 1, 1601 (UTC).
     ulong ExitTime;
+    ///The time executed in kernel mode, in 100-nanosecond intervals.
     ulong KernelTime;
+    ///The time executed in user mode, in 100-nanosecond intervals.
     ulong UserTime;
+    ///The starting address of the thread.
     ulong StartAddress;
+    ///The processor affinity mask.
     ulong Affinity;
 }
 
+///Contains a list of threads.
 struct MINIDUMP_THREAD_INFO_LIST
 {
+    ///The size of the header data for the stream, in bytes. This is generally
+    ///<code>sizeof(MINIDUMP_THREAD_INFO_LIST)</code>.
     uint SizeOfHeader;
+    ///The size of each entry following the header, in bytes. This is generally
+    ///<code>sizeof(MINIDUMP_THREAD_INFO)</code>.
     uint SizeOfEntry;
+    ///The number of entries in the stream. These are generally MINIDUMP_THREAD_INFO structures. The entries follow the
+    ///header.
     uint NumberOfEntries;
 }
 
@@ -4928,83 +6393,134 @@ struct MINIDUMP_USER_RECORD
     MINIDUMP_LOCATION_DESCRIPTOR Memory;
 }
 
+///Contains user-defined information stored in a data stream.
 struct MINIDUMP_USER_STREAM
 {
+    ///The type of data stream. For more information, see MINIDUMP_STREAM_TYPE.
     uint  Type;
+    ///The size of the user-defined data stream buffer, in bytes.
     uint  BufferSize;
+    ///A pointer to a buffer that contains the user-defined data stream.
     void* Buffer;
 }
 
+///Contains a list of user data streams used by the MiniDumpWriteDump function.
 struct MINIDUMP_USER_STREAM_INFORMATION
 {
+    ///The number of user streams.
     uint UserStreamCount;
+    ///An array of MINIDUMP_USER_STREAM structures.
     MINIDUMP_USER_STREAM* UserStreamArray;
 }
 
+///Contains thread information for the MiniDumpCallback function when the callback type is ThreadCallback.
 struct MINIDUMP_THREAD_CALLBACK
 {
 align (4):
+    ///The identifier of the thread.
     uint    ThreadId;
+    ///A handle to the thread
     HANDLE  ThreadHandle;
+    ///A CONTEXT structure that contains the processor-specific data.
     CONTEXT Context;
+    ///The size of the returned processor-specific data in the <b>Context</b> member, in bytes.
     uint    SizeOfContext;
+    ///The base address of the thread stack.
     ulong   StackBase;
+    ///The ending address of the thread stack.
     ulong   StackEnd;
 }
 
+///Contains extended thread information for the MiniDumpCallback function when the callback type is ThreadExCallback.
 struct MINIDUMP_THREAD_EX_CALLBACK
 {
 align (4):
+    ///The identifier of the thread.
     uint    ThreadId;
+    ///A handle to the thread
     HANDLE  ThreadHandle;
+    ///A CONTEXT structure that contains the processor-specific data.
     CONTEXT Context;
+    ///The size of the returned processor-specific data in the <b>Context</b> member, in bytes.
     uint    SizeOfContext;
+    ///The base address of the thread stack.
     ulong   StackBase;
+    ///The ending address of the thread stack.
     ulong   StackEnd;
+    ///<b>Intel Itanium: </b>The base address of the thread backing store.
     ulong   BackingStoreBase;
+    ///<b>Intel Itanium: </b>The ending address of the thread backing store.
     ulong   BackingStoreEnd;
 }
 
+///Contains information for the MiniDumpCallback function when the callback type is <b>IncludeThreadCallback</b>.
 struct MINIDUMP_INCLUDE_THREAD_CALLBACK
 {
+    ///The identifier of the thread.
     uint ThreadId;
 }
 
+///Contains module information for the MiniDumpCallback function when the callback type is ModuleCallback.
 struct MINIDUMP_MODULE_CALLBACK
 {
 align (4):
+    ///The fully qualified path of the module executable.
     const(wchar)*    FullPath;
+    ///The base address of the module executable image in memory.
     ulong            BaseOfImage;
+    ///The size of the module executable image in memory, in bytes.
     uint             SizeOfImage;
+    ///The checksum value of the module executable image.
     uint             CheckSum;
+    ///The timestamp value of the module executable image, in <b>time_t</b> format.
     uint             TimeDateStamp;
+    ///A VS_FIXEDFILEINFO structure that specifies the version of the module.
     VS_FIXEDFILEINFO VersionInfo;
+    ///A pointer to a string containing the CodeView record of the module.
     void*            CvRecord;
+    ///The size of the Codeview record of the module in the <b>CvRecord</b> member, in bytes.
     uint             SizeOfCvRecord;
+    ///A pointer to a string that specifies the miscellaneous record of the module.
     void*            MiscRecord;
+    ///The size of the miscellaneous record of the module in the <b>MiscRecord</b> member, in bytes.
     uint             SizeOfMiscRecord;
 }
 
+///Contains information for the MiniDumpCallback function when the callback type is <b>IncludeModuleCallback</b>.
 struct MINIDUMP_INCLUDE_MODULE_CALLBACK
 {
 align (4):
+    ///The base address of the executable image in memory.
     ulong BaseOfImage;
 }
 
+///Contains I/O callback information. This structure is used by the MiniDumpCallbackfunction when the callback type is
+///<b>IoStartCallback</b>, <b>IoWriteAllCallback</b>, or <b>IoFinishCallback</b>.
 struct MINIDUMP_IO_CALLBACK
 {
 align (4):
+    ///The file handle passed to the MiniDumpWriteDump function.
     HANDLE Handle;
+    ///The offset for the write operation from the start of the minidump data. This member is used only with
+    ///<b>IoWriteAllCallback</b>.
     ulong  Offset;
+    ///A pointer to a buffer that contains the data to be written. This member is used only with
+    ///<b>IoWriteAllCallback</b>.
     void*  Buffer;
+    ///The size of the data buffer, in bytes. This member is used only with <b>IoWriteAllCallback</b>.
     uint   BufferBytes;
 }
 
+///Contains information about a failed memory read operation. This structure is used by the MiniDumpCallbackfunction
+///when the callback type is ReadMemoryFailureCallback.
 struct MINIDUMP_READ_MEMORY_FAILURE_CALLBACK
 {
 align (4):
+    ///The offset of the address for the failed memory read operation.
     ulong   Offset;
+    ///The size of the failed memory read operation, in bytes.
     uint    Bytes;
+    ///The resulting error code from the failed memory read operation.
     HRESULT FailureStatus;
 }
 
@@ -5032,10 +6548,16 @@ align (4):
     HRESULT Status;
 }
 
+///Contains information used by the MiniDumpCallback function.
 struct MINIDUMP_CALLBACK_INPUT
 {
+    ///The identifier of the process that contains callback function. This member is not used if <b>CallbackType</b> is
+    ///<b>IoStartCallback</b>.
     uint   ProcessId;
+    ///A handle to the process that contains the callback function. This member is not used if <b>CallbackType</b> is
+    ///<b>IoStartCallback</b>.
     HANDLE ProcessHandle;
+    ///The type of callback function. This member can be one of the values in the MINIDUMP_CALLBACK_TYPE enumeration.
     uint   CallbackType;
     union
     {
@@ -5054,6 +6576,7 @@ struct MINIDUMP_CALLBACK_INPUT
     }
 }
 
+///Contains information returned by the MiniDumpCallback function.
 struct MINIDUMP_CALLBACK_OUTPUT
 {
     union
@@ -5092,9 +6615,12 @@ struct MINIDUMP_CALLBACK_OUTPUT
     }
 }
 
+///Contains a pointer to an optional callback function that can be used by the MiniDumpWriteDump function.
 struct MINIDUMP_CALLBACK_INFORMATION
 {
+    ///A pointer to the MiniDumpCallback callback function.
     MINIDUMP_CALLBACK_ROUTINE CallbackRoutine;
+    ///The application-defined data for <b>CallbackRoutine</b>.
     void* CallbackParam;
 }
 
@@ -5244,121 +6770,716 @@ struct HTML_PAINT_DRAW_INFO
 
 // Functions
 
+///Retrieves a context record in the context of the caller.
+///Params:
+///    ContextRecord = A pointer to a CONTEXT structure.
+///Returns:
+///    This function does not return a value.
+///    
 @DllImport("KERNEL32")
 void RtlCaptureContext(CONTEXT* ContextRecord);
 
+///Initiates an unwind of procedure call frames.
+///Params:
+///    TargetFrame = A pointer to the call frame that is the target of the unwind. If this parameter is <b>NULL</b>, the function
+///                  performs an exit unwind.
+///    TargetIp = The continuation address of the unwind. This parameter is ignored if <i>TargetFrame</i> is <b>NULL</b>.
+///    ExceptionRecord = A pointer to an EXCEPTION_RECORD structure.
+///    ReturnValue = A value to be placed in the integer function return register before continuing execution.
+///Returns:
+///    This function does not return a value.
+///    
 @DllImport("KERNEL32")
 void RtlUnwind(void* TargetFrame, void* TargetIp, EXCEPTION_RECORD* ExceptionRecord, void* ReturnValue);
 
+///Retrieves the base address of the image that contains the specified PC value.
+///Params:
+///    PcValue = The PC value. The function searches all modules mapped into the address space of the calling process for a module
+///              that contains this value.
+///    BaseOfImage = The base address of the image containing the PC value. This value must be added to any relative addresses in the
+///                  headers to locate the image.
+///Returns:
+///    If the PC value is found, the function returns the base address of the image that contains the PC value. If no
+///    image contains the PC value, the function returns <b>NULL</b>.
+///    
 @DllImport("KERNEL32")
 void* RtlPcToFileHeader(void* PcValue, void** BaseOfImage);
 
+///Reads data from an area of memory in a specified process. The entire area to be read must be accessible or the
+///operation fails.
+///Params:
+///    hProcess = A handle to the process with memory that is being read. The handle must have PROCESS_VM_READ access to the
+///               process.
+///    lpBaseAddress = A pointer to the base address in the specified process from which to read. Before any data transfer occurs, the
+///                    system verifies that all data in the base address and memory of the specified size is accessible for read access,
+///                    and if it is not accessible the function fails.
+///    lpBuffer = A pointer to a buffer that receives the contents from the address space of the specified process.
+///    nSize = The number of bytes to be read from the specified process.
+///    lpNumberOfBytesRead = A pointer to a variable that receives the number of bytes transferred into the specified buffer. If
+///                          *lpNumberOfBytesRead* is **NULL**, the parameter is ignored.
+///Returns:
+///    If the function succeeds, the return value is nonzero. If the function fails, the return value is 0 (zero). To
+///    get extended error information, call [GetLastError](../errhandlingapi/nf-errhandlingapi-getlasterror.md). The
+///    function fails if the requested read operation crosses into an area of the process that is inaccessible.
+///    
 @DllImport("KERNEL32")
 BOOL ReadProcessMemory(HANDLE hProcess, void* lpBaseAddress, char* lpBuffer, size_t nSize, 
                        size_t* lpNumberOfBytesRead);
 
+///Writes data to an area of memory in a specified process. The entire area to be written to must be accessible or the
+///operation fails.
+///Params:
+///    hProcess = A handle to the process memory to be modified. The handle must have PROCESS_VM_WRITE and PROCESS_VM_OPERATION
+///               access to the process.
+///    lpBaseAddress = A pointer to the base address in the specified process to which data is written. Before data transfer occurs, the
+///                    system verifies that all data in the base address and memory of the specified size is accessible for write
+///                    access, and if it is not accessible, the function fails.
+///    lpBuffer = A pointer to the buffer that contains data to be written in the address space of the specified process.
+///    nSize = The number of bytes to be written to the specified process.
+///    lpNumberOfBytesWritten = A pointer to a variable that receives the number of bytes transferred into the specified process. This parameter
+///                             is optional. If <i>lpNumberOfBytesWritten</i> is <b>NULL</b>, the parameter is ignored.
+///Returns:
+///    If the function succeeds, the return value is nonzero. If the function fails, the return value is 0 (zero). To
+///    get extended error information, call GetLastError. The function fails if the requested write operation crosses
+///    into an area of the process that is inaccessible.
+///    
 @DllImport("KERNEL32")
 BOOL WriteProcessMemory(HANDLE hProcess, void* lpBaseAddress, char* lpBuffer, size_t nSize, 
                         size_t* lpNumberOfBytesWritten);
 
+///Flashes the specified window one time. It does not change the active state of the window. To flash the window a
+///specified number of times, use the FlashWindowEx function.
+///Params:
+///    hWnd = A handle to the window to be flashed. The window can be either open or minimized.
+///    bInvert = If this parameter is <b>TRUE</b>, the window is flashed from one state to the other. If it is <b>FALSE</b>, the
+///              window is returned to its original state (either active or inactive). When an application is minimized and this
+///              parameter is <b>TRUE</b>, the taskbar window button flashes active/inactive. If it is <b>FALSE</b>, the taskbar
+///              window button flashes inactive, meaning that it does not change colors. It flashes, as if it were being redrawn,
+///              but it does not provide the visual invert clue to the user.
+///Returns:
+///    The return value specifies the window's state before the call to the <b>FlashWindow</b> function. If the window
+///    caption was drawn as active before the call, the return value is nonzero. Otherwise, the return value is zero.
+///    
 @DllImport("USER32")
 BOOL FlashWindow(HWND hWnd, BOOL bInvert);
 
+///Flashes the specified window. It does not change the active state of the window.
+///Params:
+///    pfwi = A pointer to a FLASHWINFO structure.
+///Returns:
+///    The return value specifies the window's state before the call to the <b>FlashWindowEx</b> function. If the window
+///    caption was drawn as active before the call, the return value is nonzero. Otherwise, the return value is zero.
+///    
 @DllImport("USER32")
 BOOL FlashWindowEx(FLASHWINFO* pfwi);
 
+///Plays a waveform sound. The waveform sound for each sound type is identified by an entry in the registry.
+///Params:
+///    uType = The sound to be played. The sounds are set by the user through the Sound control panel application, and then
+///            stored in the registry. This parameter can be one of the following values. <table> <tr> <th>Value</th>
+///            <th>Meaning</th> </tr> <tr> <td> 0xFFFFFFFF </td> <td> A simple beep. If the sound card is not available, the
+///            sound is generated using the speaker. </td> </tr> <tr> <td> <dl> <dt><b>MB_ICONASTERISK</b></dt>
+///            <dt>0x00000040L</dt> </dl> </td> <td> See <b>MB_ICONINFORMATION</b>. </td> </tr> <tr> <td> <dl>
+///            <dt><b>MB_ICONEXCLAMATION</b></dt> <dt>0x00000030L</dt> </dl> </td> <td> See <b>MB_ICONWARNING</b>. </td> </tr>
+///            <tr> <td> <dl> <dt><b>MB_ICONERROR</b></dt> <dt>0x00000010L</dt> </dl> </td> <td> The sound specified as the
+///            Windows Critical Stop sound. </td> </tr> <tr> <td> <dl> <dt><b>MB_ICONHAND</b></dt> <dt>0x00000010L</dt> </dl>
+///            </td> <td> See <b>MB_ICONERROR</b>. </td> </tr> <tr> <td> <dl> <dt><b>MB_ICONINFORMATION</b></dt>
+///            <dt>0x00000040L</dt> </dl> </td> <td> The sound specified as the Windows Asterisk sound. </td> </tr> <tr> <td>
+///            <dl> <dt><b>MB_ICONQUESTION</b></dt> <dt>0x00000020L</dt> </dl> </td> <td> The sound specified as the Windows
+///            Question sound. </td> </tr> <tr> <td> <dl> <dt><b>MB_ICONSTOP</b></dt> <dt>0x00000010L</dt> </dl> </td> <td> See
+///            <b>MB_ICONERROR</b>. </td> </tr> <tr> <td> <dl> <dt><b>MB_ICONWARNING</b></dt> <dt>0x00000030L</dt> </dl> </td>
+///            <td> The sound specified as the Windows Exclamation sound. </td> </tr> <tr> <td> <dl> <dt><b>MB_OK</b></dt>
+///            <dt>0x00000000L</dt> </dl> </td> <td> The sound specified as the Windows Default Beep sound. </td> </tr> </table>
+///Returns:
+///    If the function succeeds, the return value is nonzero. If the function fails, the return value is zero. To get
+///    extended error information, call GetLastError.
+///    
 @DllImport("USER32")
 BOOL MessageBeep(uint uType);
 
+///Sets the last-error code. Currently, this function is identical to the SetLastError function. The second parameter is
+///ignored.
+///Params:
+///    dwErrCode = The last-error code for the thread.
+///    dwType = This parameter is ignored.
 @DllImport("USER32")
 void SetLastErrorEx(uint dwErrCode, uint dwType);
 
+///Retrieves the context of the specified WOW64 thread.
+///Params:
+///    hThread = A handle to the thread whose context is to be retrieved. The handle must have <b>THREAD_GET_CONTEXT</b> access to
+///              the thread. For more information, see Thread Security and Access Rights.
+///    lpContext = A WOW64_CONTEXT structure. The caller must initialize the <b>ContextFlags</b> member of this structure.
+///Returns:
+///    If the function succeeds, the return value is nonzero. If the function fails, the return value is zero. To get
+///    extended error information, call GetLastError.
+///    
 @DllImport("KERNEL32")
 BOOL Wow64GetThreadContext(HANDLE hThread, WOW64_CONTEXT* lpContext);
 
+///Sets the context of the specified WOW64 thread.
+///Params:
+///    hThread = A handle to the thread whose context is to be set.
+///    lpContext = A WOW64_CONTEXT structure. The caller must initialize the <b>ContextFlags</b> member of this structure.
+///Returns:
+///    If the function succeeds, the return value is nonzero. If the function fails, the return value is zero. To get
+///    extended error information, call GetLastError.
+///    
 @DllImport("KERNEL32")
 BOOL Wow64SetThreadContext(HANDLE hThread, const(WOW64_CONTEXT)* lpContext);
 
+///Retrieves the context of the specified thread. A 64-bit application can retrieve the context of a WOW64 thread using
+///the [Wow64GetThreadContext](/windows/desktop/api/winbase/nf-winbase-wow64getthreadcontext).
+///Params:
+///    hThread = A handle to the thread whose context is to be retrieved. The handle must have **THREAD_GET_CONTEXT** access to
+///              the thread. For more information, see [Thread Security and Access
+///              Rights](/windows/desktop/ProcThread/thread-security-and-access-rights). **WOW64:** The handle must also have
+///              **THREAD_QUERY_INFORMATION** access.
+///    lpContext = A pointer to a [CONTEXT](windows/win32/api/winnt/ns-winnt-context) structure (such as
+///                [ARM64_NT_CONTEXT](/windows/win32/api/winnt/ns-winnt-arm64_nt_context)) that receives the appropriate context of
+///                the specified thread. The value of the **ContextFlags** member of this structure specifies which portions of a
+///                thread's context are retrieved. The **CONTEXT** structure is highly processor specific. Refer to the WinNT.h
+///                header file for processor-specific definitions of this structures and any alignment requirements.
+///Returns:
+///    If the function succeeds, the return value is nonzero. If the function fails, the return value is zero. To get
+///    extended error information, call
+///    [GetLastError](/windows/desktop/api/errhandlingapi/nf-errhandlingapi-getlasterror).
+///    
 @DllImport("KERNEL32")
 BOOL GetThreadContext(HANDLE hThread, CONTEXT* lpContext);
 
+///Sets the context for the specified thread. A 64-bit application can set the context of a WOW64 thread using the
+///Wow64SetThreadContext function.
+///Params:
+///    hThread = A handle to the thread whose context is to be set. The handle must have the <b>THREAD_SET_CONTEXT</b> access
+///              right to the thread. For more information, see Thread Security and Access Rights.
+///    lpContext = A pointer to a CONTEXT structure that contains the context to be set in the specified thread. The value of the
+///                <b>ContextFlags</b> member of this structure specifies which portions of a thread's context to set. Some values
+///                in the <b>CONTEXT</b> structure that cannot be specified are silently set to the correct value. This includes
+///                bits in the CPU status register that specify the privileged processor mode, global enabling bits in the debugging
+///                register, and other states that must be controlled by the operating system.
+///Returns:
+///    If the context was set, the return value is nonzero. If the function fails, the return value is zero. To get
+///    extended error information, call GetLastError.
+///    
 @DllImport("KERNEL32")
 BOOL SetThreadContext(HANDLE hThread, const(CONTEXT)* lpContext);
 
+///Flushes the instruction cache for the specified process.
+///Params:
+///    hProcess = A handle to a process whose instruction cache is to be flushed.
+///    lpBaseAddress = A pointer to the base of the region to be flushed. This parameter can be <b>NULL</b>.
+///    dwSize = The size of the region to be flushed if the <i>lpBaseAddress</i> parameter is not <b>NULL</b>, in bytes.
+///Returns:
+///    If the function succeeds, the return value is nonzero. If the function fails, the return value is zero. To get
+///    extended error information, call GetLastError.
+///    
 @DllImport("KERNEL32")
 BOOL FlushInstructionCache(HANDLE hProcess, char* lpBaseAddress, size_t dwSize);
 
+///Transfers execution control to the debugger. The behavior of the debugger thereafter is specific to the type of
+///debugger used.
+///Params:
+///    ExitCode = The error code associated with the exit.
+///Returns:
+///    This function does not return a value.
+///    
 @DllImport("KERNEL32")
 void FatalExit(int ExitCode);
 
+///Retrieves a descriptor table entry for the specified selector and thread.
+///Params:
+///    hThread = A handle to the thread containing the specified selector. The handle must have THREAD_QUERY_INFORMATION access.
+///              For more information, see Thread Security and Access Rights.
+///    dwSelector = The global or local selector value to look up in the thread's descriptor tables.
+///    lpSelectorEntry = A pointer to an LDT_ENTRY structure that receives a copy of the descriptor table entry if the specified selector
+///                      has an entry in the specified thread's descriptor table. This information can be used to convert a
+///                      segment-relative address to a linear virtual address.
+///Returns:
+///    If the function succeeds, the return value is nonzero. In that case, the structure pointed to by the
+///    <i>lpSelectorEntry</i> parameter receives a copy of the specified descriptor table entry. If the function fails,
+///    the return value is zero. To get extended error information, call GetLastError.
+///    
 @DllImport("KERNEL32")
 BOOL GetThreadSelectorEntry(HANDLE hThread, uint dwSelector, LDT_ENTRY* lpSelectorEntry);
 
+///Retrieves a descriptor table entry for the specified selector and WOW64 thread.
+///Params:
+///    hThread = A handle to the thread containing the specified selector. The handle must have been created with
+///              THREAD_QUERY_INFORMATION access to the thread. For more information, see Thread Security and Access Rights.
+///    dwSelector = The global or local selector value to look up in the thread's descriptor tables.
+///    lpSelectorEntry = A pointer to a WOW64_LDT_ENTRY structure that receives a copy of the descriptor table entry if the specified
+///                      selector has an entry in the specified thread's descriptor table. This information can be used to convert a
+///                      segment-relative address to a linear virtual address.
+///Returns:
+///    If the function succeeds, the return value is nonzero. In that case, the structure pointed to by the
+///    <i>lpSelectorEntry</i> parameter receives a copy of the specified descriptor table entry. If the function fails,
+///    the return value is zero. To get extended error information, call GetLastError.
+///    
 @DllImport("KERNEL32")
 BOOL Wow64GetThreadSelectorEntry(HANDLE hThread, uint dwSelector, WOW64_LDT_ENTRY* lpSelectorEntry);
 
+///Sets the action to be performed when the calling thread exits.
+///Params:
+///    KillOnExit = If this parameter is <b>TRUE</b>, the thread terminates all attached processes on exit (note that this is the
+///                 default). Otherwise, the thread detaches from all processes being debugged on exit.
+///Returns:
+///    If the function succeeds, the return value is nonzero. If the function fails, the return value is zero. To get
+///    extended error information, call GetLastError.
+///    
 @DllImport("KERNEL32")
 BOOL DebugSetProcessKillOnExit(BOOL KillOnExit);
 
+///Causes a breakpoint exception to occur in the specified process. This allows the calling thread to signal the
+///debugger to handle the exception.
+///Params:
+///    Process = A handle to the process.
+///Returns:
+///    If the function succeeds, the return value is nonzero. If the function fails, the return value is zero. To get
+///    extended error information, call GetLastError.
+///    
 @DllImport("KERNEL32")
 BOOL DebugBreakProcess(HANDLE Process);
 
+///Formats a message string. The function requires a message definition as input. The message definition can come from a
+///buffer passed into the function. It can come from a message table resource in an already-loaded module. Or the caller
+///can ask the function to search the system's message table resource(s) for the message definition. The function finds
+///the message definition in a message table resource based on a message identifier and a language identifier. The
+///function copies the formatted message text to an output buffer, processing any embedded insert sequences if
+///requested.
+///Params:
+///    dwFlags = The formatting options, and how to interpret the <i>lpSource</i> parameter. The low-order byte of <i>dwFlags</i>
+///              specifies how the function handles line breaks in the output buffer. The low-order byte can also specify the
+///              maximum width of a formatted output line. This parameter can be one or more of the following values. <table> <tr>
+///              <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="FORMAT_MESSAGE_ALLOCATE_BUFFER"></a><a
+///              id="format_message_allocate_buffer"></a><dl> <dt><b>FORMAT_MESSAGE_ALLOCATE_BUFFER</b></dt> <dt>0x00000100</dt>
+///              </dl> </td> <td width="60%"> The function allocates a buffer large enough to hold the formatted message, and
+///              places a pointer to the allocated buffer at the address specified by <i>lpBuffer</i>. The <i>lpBuffer</i>
+///              parameter is a pointer to an <b>LPTSTR</b>; you must cast the pointer to an <b>LPTSTR</b> (for example,
+///              <code>(LPTSTR)&amp;lpBuffer</code>). The <i>nSize</i> parameter specifies the minimum number of <b>TCHARs</b> to
+///              allocate for an output message buffer. The caller should use the LocalFree function to free the buffer when it is
+///              no longer needed. If the length of the formatted message exceeds 128K bytes, then <b>FormatMessage</b> will fail
+///              and a subsequent call to GetLastError will return <b>ERROR_MORE_DATA</b>. In previous versions of Windows, this
+///              value was not available for use when compiling Windows Store apps. As of Windows 10 this value can be used.
+///              <b>Windows Server 2003 and Windows XP: </b><p class="note">If the length of the formatted message exceeds 128K
+///              bytes, then <b>FormatMessage</b> will not automatically fail with an error of <b>ERROR_MORE_DATA</b>. </td> </tr>
+///              <tr> <td width="40%"><a id="FORMAT_MESSAGE_ARGUMENT_ARRAY"></a><a id="format_message_argument_array"></a><dl>
+///              <dt><b>FORMAT_MESSAGE_ARGUMENT_ARRAY</b></dt> <dt>0x00002000</dt> </dl> </td> <td width="60%"> The
+///              <i>Arguments</i> parameter is not a <b>va_list</b> structure, but is a pointer to an array of values that
+///              represent the arguments. This flag cannot be used with 64-bit integer values. If you are using a 64-bit integer,
+///              you must use the <b>va_list</b> structure. </td> </tr> <tr> <td width="40%"><a
+///              id="FORMAT_MESSAGE_FROM_HMODULE"></a><a id="format_message_from_hmodule"></a><dl>
+///              <dt><b>FORMAT_MESSAGE_FROM_HMODULE</b></dt> <dt>0x00000800</dt> </dl> </td> <td width="60%"> The <i>lpSource</i>
+///              parameter is a module handle containing the message-table resource(s) to search. If this <i>lpSource</i> handle
+///              is <b>NULL</b>, the current process's application image file will be searched. This flag cannot be used with
+///              <b>FORMAT_MESSAGE_FROM_STRING</b>. If the module has no message table resource, the function fails with
+///              <b>ERROR_RESOURCE_TYPE_NOT_FOUND</b>. </td> </tr> <tr> <td width="40%"><a id="FORMAT_MESSAGE_FROM_STRING"></a><a
+///              id="format_message_from_string"></a><dl> <dt><b>FORMAT_MESSAGE_FROM_STRING</b></dt> <dt>0x00000400</dt> </dl>
+///              </td> <td width="60%"> The <i>lpSource</i> parameter is a pointer to a null-terminated string that contains a
+///              message definition. The message definition may contain insert sequences, just as the message text in a message
+///              table resource may. This flag cannot be used with <b>FORMAT_MESSAGE_FROM_HMODULE</b> or
+///              <b>FORMAT_MESSAGE_FROM_SYSTEM</b>. </td> </tr> <tr> <td width="40%"><a id="FORMAT_MESSAGE_FROM_SYSTEM"></a><a
+///              id="format_message_from_system"></a><dl> <dt><b>FORMAT_MESSAGE_FROM_SYSTEM</b></dt> <dt>0x00001000</dt> </dl>
+///              </td> <td width="60%"> The function should search the system message-table resource(s) for the requested message.
+///              If this flag is specified with <b>FORMAT_MESSAGE_FROM_HMODULE</b>, the function searches the system message table
+///              if the message is not found in the module specified by <i>lpSource</i>. This flag cannot be used with
+///              <b>FORMAT_MESSAGE_FROM_STRING</b>. If this flag is specified, an application can pass the result of the
+///              GetLastError function to retrieve the message text for a system-defined error. </td> </tr> <tr> <td
+///              width="40%"><a id="FORMAT_MESSAGE_IGNORE_INSERTS"></a><a id="format_message_ignore_inserts"></a><dl>
+///              <dt><b>FORMAT_MESSAGE_IGNORE_INSERTS</b></dt> <dt>0x00000200</dt> </dl> </td> <td width="60%"> Insert sequences
+///              in the message definition such as %1 are to be ignored and passed through to the output buffer unchanged. This
+///              flag is useful for fetching a message for later formatting. If this flag is set, the <i>Arguments</i> parameter
+///              is ignored. </td> </tr> </table> The low-order byte of <i>dwFlags</i> can specify the maximum width of a
+///              formatted output line. The following are possible values of the low-order byte. <table> <tr> <th>Value</th>
+///              <th>Meaning</th> </tr> <tr> <td width="40%"> <dl> <dt>0</dt> </dl> </td> <td width="60%"> There are no output
+///              line width restrictions. The function stores line breaks that are in the message definition text into the output
+///              buffer. </td> </tr> <tr> <td width="40%"><a id="FORMAT_MESSAGE_MAX_WIDTH_MASK"></a><a
+///              id="format_message_max_width_mask"></a><dl> <dt><b>FORMAT_MESSAGE_MAX_WIDTH_MASK</b></dt> <dt>0x000000FF</dt>
+///              </dl> </td> <td width="60%"> The function ignores regular line breaks in the message definition text. The
+///              function stores hard-coded line breaks in the message definition text into the output buffer. The function
+///              generates no new line breaks. </td> </tr> </table> If the low-order byte is a nonzero value other than
+///              <b>FORMAT_MESSAGE_MAX_WIDTH_MASK</b>, it specifies the maximum number of characters in an output line. The
+///              function ignores regular line breaks in the message definition text. The function never splits a string delimited
+///              by white space across a line break. The function stores hard-coded line breaks in the message definition text
+///              into the output buffer. Hard-coded line breaks are coded with the %n escape sequence.
+///    lpSource = The location of the message definition. The type of this parameter depends upon the settings in the
+///               <i>dwFlags</i> parameter. <table> <tr> <th><i>dwFlags</i> Setting</th> <th>Meaning</th> </tr> <tr> <td
+///               width="40%"><a id="FORMAT_MESSAGE_FROM_HMODULE"></a><a id="format_message_from_hmodule"></a><dl>
+///               <dt><b>FORMAT_MESSAGE_FROM_HMODULE</b></dt> <dt>0x00000800</dt> </dl> </td> <td width="60%"> A handle to the
+///               module that contains the message table to search. </td> </tr> <tr> <td width="40%"><a
+///               id="FORMAT_MESSAGE_FROM_STRING"></a><a id="format_message_from_string"></a><dl>
+///               <dt><b>FORMAT_MESSAGE_FROM_STRING</b></dt> <dt>0x00000400</dt> </dl> </td> <td width="60%"> Pointer to a string
+///               that consists of unformatted message text. It will be scanned for inserts and formatted accordingly. </td> </tr>
+///               </table> If neither of these flags is set in <i>dwFlags</i>, then <i>lpSource</i> is ignored.
+///    dwMessageId = The message identifier for the requested message. This parameter is ignored if <i>dwFlags</i> includes
+///                  <b>FORMAT_MESSAGE_FROM_STRING</b>.
+///    dwLanguageId = The language identifier for the requested message. This parameter is ignored if <i>dwFlags</i> includes
+///                   <b>FORMAT_MESSAGE_FROM_STRING</b>. If you pass a specific <b>LANGID</b> in this parameter, <b>FormatMessage</b>
+///                   will return a message for that <b>LANGID</b> only. If the function cannot find a message for that <b>LANGID</b>,
+///                   it sets Last-Error to <b>ERROR_RESOURCE_LANG_NOT_FOUND</b>. If you pass in zero, <b>FormatMessage</b> looks for a
+///                   message for <b>LANGIDs</b> in the following order: <ol> <li>Language neutral</li> <li>Thread <b>LANGID</b>, based
+///                   on the thread's locale value</li> <li>User default <b>LANGID</b>, based on the user's default locale value</li>
+///                   <li>System default <b>LANGID</b>, based on the system default locale value</li> <li>US English</li> </ol> If
+///                   <b>FormatMessage</b> does not locate a message for any of the preceding <b>LANGIDs</b>, it returns any language
+///                   message string that is present. If that fails, it returns <b>ERROR_RESOURCE_LANG_NOT_FOUND</b>.
+///    lpBuffer = A pointer to a buffer that receives the null-terminated string that specifies the formatted message. If
+///               <i>dwFlags</i> includes <b>FORMAT_MESSAGE_ALLOCATE_BUFFER</b>, the function allocates a buffer using the
+///               LocalAlloc function, and places the pointer to the buffer at the address specified in <i>lpBuffer</i>. This
+///               buffer cannot be larger than 64K bytes.
+///    nSize = If the <b>FORMAT_MESSAGE_ALLOCATE_BUFFER</b> flag is not set, this parameter specifies the size of the output
+///            buffer, in <b>TCHARs</b>. If <b>FORMAT_MESSAGE_ALLOCATE_BUFFER</b> is set, this parameter specifies the minimum
+///            number of <b>TCHARs</b> to allocate for an output buffer. The output buffer cannot be larger than 64K bytes.
+///    Arguments = An array of values that are used as insert values in the formatted message. A %1 in the format string indicates
+///                the first value in the <i>Arguments</i> array; a %2 indicates the second argument; and so on. The interpretation
+///                of each value depends on the formatting information associated with the insert in the message definition. The
+///                default is to treat each value as a pointer to a null-terminated string. By default, the <i>Arguments</i>
+///                parameter is of type <b>va_list*</b>, which is a language- and implementation-specific data type for describing a
+///                variable number of arguments. The state of the <b>va_list</b> argument is undefined upon return from the
+///                function. To use the <b>va_list</b> again, destroy the variable argument list pointer using <b>va_end</b> and
+///                reinitialize it with <b>va_start</b>. If you do not have a pointer of type <b>va_list*</b>, then specify the
+///                <b>FORMAT_MESSAGE_ARGUMENT_ARRAY</b> flag and pass a pointer to an array of <b>DWORD_PTR</b> values; those values
+///                are input to the message formatted as the insert values. Each insert must have a corresponding element in the
+///                array.
+///Returns:
+///    If the function succeeds, the return value is the number of <b>TCHARs</b> stored in the output buffer, excluding
+///    the terminating null character. If the function fails, the return value is zero. To get extended error
+///    information, call GetLastError.
+///    
 @DllImport("KERNEL32")
 uint FormatMessageA(uint dwFlags, void* lpSource, uint dwMessageId, uint dwLanguageId, const(char)* lpBuffer, 
                     uint nSize, byte** Arguments);
 
+///Formats a message string. The function requires a message definition as input. The message definition can come from a
+///buffer passed into the function. It can come from a message table resource in an already-loaded module. Or the caller
+///can ask the function to search the system's message table resource(s) for the message definition. The function finds
+///the message definition in a message table resource based on a message identifier and a language identifier. The
+///function copies the formatted message text to an output buffer, processing any embedded insert sequences if
+///requested.
+///Params:
+///    dwFlags = The formatting options, and how to interpret the <i>lpSource</i> parameter. The low-order byte of <i>dwFlags</i>
+///              specifies how the function handles line breaks in the output buffer. The low-order byte can also specify the
+///              maximum width of a formatted output line. This parameter can be one or more of the following values. <table> <tr>
+///              <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="FORMAT_MESSAGE_ALLOCATE_BUFFER"></a><a
+///              id="format_message_allocate_buffer"></a><dl> <dt><b>FORMAT_MESSAGE_ALLOCATE_BUFFER</b></dt> <dt>0x00000100</dt>
+///              </dl> </td> <td width="60%"> The function allocates a buffer large enough to hold the formatted message, and
+///              places a pointer to the allocated buffer at the address specified by <i>lpBuffer</i>. The <i>lpBuffer</i>
+///              parameter is a pointer to an <b>LPTSTR</b>; you must cast the pointer to an <b>LPTSTR</b> (for example,
+///              <code>(LPTSTR)&amp;lpBuffer</code>). The <i>nSize</i> parameter specifies the minimum number of <b>TCHARs</b> to
+///              allocate for an output message buffer. The caller should use the LocalFree function to free the buffer when it is
+///              no longer needed. If the length of the formatted message exceeds 128K bytes, then <b>FormatMessage</b> will fail
+///              and a subsequent call to GetLastError will return <b>ERROR_MORE_DATA</b>. In previous versions of Windows, this
+///              value was not available for use when compiling Windows Store apps. As of Windows 10 this value can be used.
+///              <b>Windows Server 2003 and Windows XP: </b><p class="note">If the length of the formatted message exceeds 128K
+///              bytes, then <b>FormatMessage</b> will not automatically fail with an error of <b>ERROR_MORE_DATA</b>. </td> </tr>
+///              <tr> <td width="40%"><a id="FORMAT_MESSAGE_ARGUMENT_ARRAY"></a><a id="format_message_argument_array"></a><dl>
+///              <dt><b>FORMAT_MESSAGE_ARGUMENT_ARRAY</b></dt> <dt>0x00002000</dt> </dl> </td> <td width="60%"> The
+///              <i>Arguments</i> parameter is not a <b>va_list</b> structure, but is a pointer to an array of values that
+///              represent the arguments. This flag cannot be used with 64-bit integer values. If you are using a 64-bit integer,
+///              you must use the <b>va_list</b> structure. </td> </tr> <tr> <td width="40%"><a
+///              id="FORMAT_MESSAGE_FROM_HMODULE"></a><a id="format_message_from_hmodule"></a><dl>
+///              <dt><b>FORMAT_MESSAGE_FROM_HMODULE</b></dt> <dt>0x00000800</dt> </dl> </td> <td width="60%"> The <i>lpSource</i>
+///              parameter is a module handle containing the message-table resource(s) to search. If this <i>lpSource</i> handle
+///              is <b>NULL</b>, the current process's application image file will be searched. This flag cannot be used with
+///              <b>FORMAT_MESSAGE_FROM_STRING</b>. If the module has no message table resource, the function fails with
+///              <b>ERROR_RESOURCE_TYPE_NOT_FOUND</b>. </td> </tr> <tr> <td width="40%"><a id="FORMAT_MESSAGE_FROM_STRING"></a><a
+///              id="format_message_from_string"></a><dl> <dt><b>FORMAT_MESSAGE_FROM_STRING</b></dt> <dt>0x00000400</dt> </dl>
+///              </td> <td width="60%"> The <i>lpSource</i> parameter is a pointer to a null-terminated string that contains a
+///              message definition. The message definition may contain insert sequences, just as the message text in a message
+///              table resource may. This flag cannot be used with <b>FORMAT_MESSAGE_FROM_HMODULE</b> or
+///              <b>FORMAT_MESSAGE_FROM_SYSTEM</b>. </td> </tr> <tr> <td width="40%"><a id="FORMAT_MESSAGE_FROM_SYSTEM"></a><a
+///              id="format_message_from_system"></a><dl> <dt><b>FORMAT_MESSAGE_FROM_SYSTEM</b></dt> <dt>0x00001000</dt> </dl>
+///              </td> <td width="60%"> The function should search the system message-table resource(s) for the requested message.
+///              If this flag is specified with <b>FORMAT_MESSAGE_FROM_HMODULE</b>, the function searches the system message table
+///              if the message is not found in the module specified by <i>lpSource</i>. This flag cannot be used with
+///              <b>FORMAT_MESSAGE_FROM_STRING</b>. If this flag is specified, an application can pass the result of the
+///              GetLastError function to retrieve the message text for a system-defined error. </td> </tr> <tr> <td
+///              width="40%"><a id="FORMAT_MESSAGE_IGNORE_INSERTS"></a><a id="format_message_ignore_inserts"></a><dl>
+///              <dt><b>FORMAT_MESSAGE_IGNORE_INSERTS</b></dt> <dt>0x00000200</dt> </dl> </td> <td width="60%"> Insert sequences
+///              in the message definition such as %1 are to be ignored and passed through to the output buffer unchanged. This
+///              flag is useful for fetching a message for later formatting. If this flag is set, the <i>Arguments</i> parameter
+///              is ignored. </td> </tr> </table> The low-order byte of <i>dwFlags</i> can specify the maximum width of a
+///              formatted output line. The following are possible values of the low-order byte. <table> <tr> <th>Value</th>
+///              <th>Meaning</th> </tr> <tr> <td width="40%"> <dl> <dt>0</dt> </dl> </td> <td width="60%"> There are no output
+///              line width restrictions. The function stores line breaks that are in the message definition text into the output
+///              buffer. </td> </tr> <tr> <td width="40%"><a id="FORMAT_MESSAGE_MAX_WIDTH_MASK"></a><a
+///              id="format_message_max_width_mask"></a><dl> <dt><b>FORMAT_MESSAGE_MAX_WIDTH_MASK</b></dt> <dt>0x000000FF</dt>
+///              </dl> </td> <td width="60%"> The function ignores regular line breaks in the message definition text. The
+///              function stores hard-coded line breaks in the message definition text into the output buffer. The function
+///              generates no new line breaks. </td> </tr> </table> If the low-order byte is a nonzero value other than
+///              <b>FORMAT_MESSAGE_MAX_WIDTH_MASK</b>, it specifies the maximum number of characters in an output line. The
+///              function ignores regular line breaks in the message definition text. The function never splits a string delimited
+///              by white space across a line break. The function stores hard-coded line breaks in the message definition text
+///              into the output buffer. Hard-coded line breaks are coded with the %n escape sequence.
+///    lpSource = The location of the message definition. The type of this parameter depends upon the settings in the
+///               <i>dwFlags</i> parameter. <table> <tr> <th><i>dwFlags</i> Setting</th> <th>Meaning</th> </tr> <tr> <td
+///               width="40%"><a id="FORMAT_MESSAGE_FROM_HMODULE"></a><a id="format_message_from_hmodule"></a><dl>
+///               <dt><b>FORMAT_MESSAGE_FROM_HMODULE</b></dt> <dt>0x00000800</dt> </dl> </td> <td width="60%"> A handle to the
+///               module that contains the message table to search. </td> </tr> <tr> <td width="40%"><a
+///               id="FORMAT_MESSAGE_FROM_STRING"></a><a id="format_message_from_string"></a><dl>
+///               <dt><b>FORMAT_MESSAGE_FROM_STRING</b></dt> <dt>0x00000400</dt> </dl> </td> <td width="60%"> Pointer to a string
+///               that consists of unformatted message text. It will be scanned for inserts and formatted accordingly. </td> </tr>
+///               </table> If neither of these flags is set in <i>dwFlags</i>, then <i>lpSource</i> is ignored.
+///    dwMessageId = The message identifier for the requested message. This parameter is ignored if <i>dwFlags</i> includes
+///                  <b>FORMAT_MESSAGE_FROM_STRING</b>.
+///    dwLanguageId = The language identifier for the requested message. This parameter is ignored if <i>dwFlags</i> includes
+///                   <b>FORMAT_MESSAGE_FROM_STRING</b>. If you pass a specific <b>LANGID</b> in this parameter, <b>FormatMessage</b>
+///                   will return a message for that <b>LANGID</b> only. If the function cannot find a message for that <b>LANGID</b>,
+///                   it sets Last-Error to <b>ERROR_RESOURCE_LANG_NOT_FOUND</b>. If you pass in zero, <b>FormatMessage</b> looks for a
+///                   message for <b>LANGIDs</b> in the following order: <ol> <li>Language neutral</li> <li>Thread <b>LANGID</b>, based
+///                   on the thread's locale value</li> <li>User default <b>LANGID</b>, based on the user's default locale value</li>
+///                   <li>System default <b>LANGID</b>, based on the system default locale value</li> <li>US English</li> </ol> If
+///                   <b>FormatMessage</b> does not locate a message for any of the preceding <b>LANGIDs</b>, it returns any language
+///                   message string that is present. If that fails, it returns <b>ERROR_RESOURCE_LANG_NOT_FOUND</b>.
+///    lpBuffer = A pointer to a buffer that receives the null-terminated string that specifies the formatted message. If
+///               <i>dwFlags</i> includes <b>FORMAT_MESSAGE_ALLOCATE_BUFFER</b>, the function allocates a buffer using the
+///               LocalAlloc function, and places the pointer to the buffer at the address specified in <i>lpBuffer</i>. This
+///               buffer cannot be larger than 64K bytes.
+///    nSize = If the <b>FORMAT_MESSAGE_ALLOCATE_BUFFER</b> flag is not set, this parameter specifies the size of the output
+///            buffer, in <b>TCHARs</b>. If <b>FORMAT_MESSAGE_ALLOCATE_BUFFER</b> is set, this parameter specifies the minimum
+///            number of <b>TCHARs</b> to allocate for an output buffer. The output buffer cannot be larger than 64K bytes.
+///    Arguments = An array of values that are used as insert values in the formatted message. A %1 in the format string indicates
+///                the first value in the <i>Arguments</i> array; a %2 indicates the second argument; and so on. The interpretation
+///                of each value depends on the formatting information associated with the insert in the message definition. The
+///                default is to treat each value as a pointer to a null-terminated string. By default, the <i>Arguments</i>
+///                parameter is of type <b>va_list*</b>, which is a language- and implementation-specific data type for describing a
+///                variable number of arguments. The state of the <b>va_list</b> argument is undefined upon return from the
+///                function. To use the <b>va_list</b> again, destroy the variable argument list pointer using <b>va_end</b> and
+///                reinitialize it with <b>va_start</b>. If you do not have a pointer of type <b>va_list*</b>, then specify the
+///                <b>FORMAT_MESSAGE_ARGUMENT_ARRAY</b> flag and pass a pointer to an array of <b>DWORD_PTR</b> values; those values
+///                are input to the message formatted as the insert values. Each insert must have a corresponding element in the
+///                array.
+///Returns:
+///    If the function succeeds, the return value is the number of <b>TCHARs</b> stored in the output buffer, excluding
+///    the terminating null character. If the function fails, the return value is zero. To get extended error
+///    information, call GetLastError.
+///    
 @DllImport("KERNEL32")
 uint FormatMessageW(uint dwFlags, void* lpSource, uint dwMessageId, uint dwLanguageId, const(wchar)* lpBuffer, 
                     uint nSize, byte** Arguments);
 
+///Copies a source context structure (including any XState) onto an initialized destination context structure.
+///Params:
+///    Destination = A pointer to a CONTEXT structure that receives the context copied from the <i>Source</i>. The <b>CONTEXT</b>
+///                  structure should be initialized by calling InitializeContext before calling this function.
+///    ContextFlags = Flags specifying the pieces of the <i>Source</i> CONTEXT structure that will be copied into the destination. This
+///                   must be a subset of the <i>ContextFlags</i> specified when calling InitializeContext on the <i>Destination</i>
+///                   <b>CONTEXT</b>.
+///    Source = A pointer to a CONTEXT structure from which to copy processor context data.
+///Returns:
+///    This function returns <b>TRUE</b> if the context was copied successfully, otherwise <b>FALSE</b>. To get extended
+///    error information, call GetLastError.
+///    
 @DllImport("KERNEL32")
 BOOL CopyContext(CONTEXT* Destination, uint ContextFlags, CONTEXT* Source);
 
+///Initializes a CONTEXT structure inside a buffer with the necessary size and alignment.
+///Params:
+///    Buffer = A pointer to a buffer within which to initialize a CONTEXT structure. This parameter can be <b>NULL</b> to
+///             determine the buffer size required to hold a context record with the specified <i>ContextFlags</i>.
+///    ContextFlags = A value indicating which portions of the <i>Context</i> structure should be initialized. This parameter
+///                   influences the size of the initialized <i>Context</i> structure. <div class="alert"><b>Note</b>
+///                   <b>CONTEXT_XSTATE</b> is not part of <b>CONTEXT_FULL</b> or <b>CONTEXT_ALL</b>. It must be specified separately
+///                   if an XState context is desired.</div> <div> </div>
+///    Context = A pointer to a variable which receives the address of the initialized CONTEXT structure within the <i>Buffer</i>.
+///              <div class="alert"><b>Note</b> Due to alignment requirements of CONTEXT structures, the value returned in
+///              <i>Context</i> may not be at the beginning of the supplied buffer.</div> <div> </div>
+///    ContextLength = On input, specifies the length of the buffer pointed to by <i>Buffer</i>, in bytes. If the buffer is not large
+///                    enough to contain the specified portions of the CONTEXT, the function fails, GetLastError returns
+///                    <b>ERROR_INSUFFICIENT_BUFFER</b>, and <i>ContextLength</i> is set to the required size of the buffer. If the
+///                    function fails with an error other than <b>ERROR_INSUFFICIENT_BUFFER</b>, the contents of <i>ContextLength</i>
+///                    are undefined.
+///Returns:
+///    This function returns <b>TRUE</b> if successful, otherwise <b>FALSE</b>. To get extended error information, call
+///    GetLastError.
+///    
 @DllImport("KERNEL32")
 BOOL InitializeContext(char* Buffer, uint ContextFlags, CONTEXT** Context, uint* ContextLength);
 
+///Gets a mask of enabled XState features on x86 or x64 processors. The definition of XState feature bits are processor
+///vendor specific. Please refer to the relevant processor reference manuals for additional information on a particular
+///feature.
+///Returns:
+///    This function returns a bitmask in which each bit represents an XState feature that is enabled on the system.
+///    
 @DllImport("KERNEL32")
 ulong GetEnabledXStateFeatures();
 
+///Returns the mask of XState features set within a CONTEXT structure.
+///Params:
+///    Context = A pointer to a CONTEXT structure that has been initialized with InitializeContext.
+///    FeatureMask = A pointer to a variable that receives the mask of XState features which are present in the specified
+///                  <b>CONTEXT</b> structure.
+///Returns:
+///    This function returns <b>TRUE</b> if successful, otherwise <b>FALSE</b>.
+///    
 @DllImport("KERNEL32")
 BOOL GetXStateFeaturesMask(CONTEXT* Context, ulong* FeatureMask);
 
+///Retrieves a pointer to the processor state for an XState feature within a CONTEXT structure. The definition of XState
+///feature bits are processor vendor specific. Please refer to the relevant processor reference manuals for additional
+///information on a particular feature.
+///Params:
+///    Context = A pointer to a CONTEXT structure containing the state to retrieve or set. This <b>CONTEXT</b> should have been
+///              initialized with InitializeContext with the <b>CONTEXT_XSTATE</b> flag set in the <i>ContextFlags</i> parameter.
+///    FeatureId = The number of the feature to locate within the CONTEXT structure.
+///    Length = A pointer to a variable which receives the length of the feature area in bytes. The contents of this variable are
+///             undefined if this function returns <b>NULL</b>.
+///Returns:
+///    If the specified feature is supported by the system and the specified CONTEXT structure has been initialized with
+///    the <b>CONTEXT_XSTATE</b> flag, this function returns a pointer to the feature area for the specified feature.
+///    The contents and layout of this area is processor-specific. If the <b>CONTEXT_XSTATE</b> flag is not set in the
+///    CONTEXT structure or the <i>FeatureID</i> is not supported by the system, the return value is <b>NULL</b>. No
+///    additional error information is available.
+///    
 @DllImport("KERNEL32")
 void* LocateXStateFeature(CONTEXT* Context, uint FeatureId, uint* Length);
 
+///Sets the mask of XState features set within a CONTEXT structure.
+///Params:
+///    Context = A pointer to a CONTEXT structure that has been initialized with InitializeContext.
+///    FeatureMask = A mask of XState features to set in the specified CONTEXT structure.
+///Returns:
+///    This function returns <b>TRUE</b> if successful, otherwise <b>FALSE</b>.
+///    
 @DllImport("KERNEL32")
 BOOL SetXStateFeaturesMask(CONTEXT* Context, ulong FeatureMask);
 
+///Converts the specified NTSTATUS code to its equivalent system error code.
+///Params:
+///    Status = The NTSTATUS code to be converted.
+///Returns:
+///    The function returns the corresponding system error code.
+///    
 @DllImport("ntdll")
 uint RtlNtStatusToDosError(NTSTATUS Status);
 
+///Determines whether the calling process is being debugged by a user-mode debugger.
+///Returns:
+///    If the current process is running in the context of a debugger, the return value is nonzero. If the current
+///    process is not running in the context of a debugger, the return value is zero.
+///    
 @DllImport("KERNEL32")
 BOOL IsDebuggerPresent();
 
+///Causes a breakpoint exception to occur in the current process. This allows the calling thread to signal the debugger
+///to handle the exception. To cause a breakpoint exception in another process, use the DebugBreakProcess function.
 @DllImport("KERNEL32")
 void DebugBreak();
 
+///Sends a string to the debugger for display. <div class="alert"><b>Important</b> In the past, the operating system did
+///not output Unicode strings via <b>OutputDebugStringW</b> and instead only output ASCII strings. To force
+///<b>OutputDebugStringW</b> to correctly output Unicode strings, debuggers are required to call WaitForDebugEventEx to
+///opt into the new behavior. On calling <b>WaitForDebugEventEx</b>, the operating system will know that the debugger
+///supports Unicode and is specifically opting into receiving Unicode strings. </div><div> </div>
+///Params:
+///    lpOutputString = The null-terminated string to be displayed.
 @DllImport("KERNEL32")
 void OutputDebugStringA(const(char)* lpOutputString);
 
+///Sends a string to the debugger for display. <div class="alert"><b>Important</b> In the past, the operating system did
+///not output Unicode strings via <b>OutputDebugStringW</b> and instead only output ASCII strings. To force
+///<b>OutputDebugStringW</b> to correctly output Unicode strings, debuggers are required to call WaitForDebugEventEx to
+///opt into the new behavior. On calling <b>WaitForDebugEventEx</b>, the operating system will know that the debugger
+///supports Unicode and is specifically opting into receiving Unicode strings. </div><div> </div>
+///Params:
+///    lpOutputString = The null-terminated string to be displayed.
 @DllImport("KERNEL32")
 void OutputDebugStringW(const(wchar)* lpOutputString);
 
+///Enables a debugger to continue a thread that previously reported a debugging event.
+///Params:
+///    dwProcessId = The process identifier of the process to continue.
+///    dwThreadId = The thread identifier of the thread to continue. The combination of process identifier and thread identifier must
+///                 identify a thread that has previously reported a debugging event.
+///    dwContinueStatus = The options to continue the thread that reported the debugging event. <table> <tr> <th>Value</th>
+///                       <th>Meaning</th> </tr> <tr> <td width="40%"><a id="DBG_CONTINUE"></a><a id="dbg_continue"></a><dl>
+///                       <dt><b>DBG_CONTINUE</b></dt> <dt>0x00010002L</dt> </dl> </td> <td width="60%"> If the thread specified by the
+///                       <i>dwThreadId</i> parameter previously reported an EXCEPTION_DEBUG_EVENT debugging event, the function stops all
+///                       exception processing and continues the thread and the exception is marked as handled. For any other debugging
+///                       event, this flag simply continues the thread. </td> </tr> <tr> <td width="40%"><a
+///                       id="DBG_EXCEPTION_NOT_HANDLED"></a><a id="dbg_exception_not_handled"></a><dl>
+///                       <dt><b>DBG_EXCEPTION_NOT_HANDLED</b></dt> <dt>0x80010001L</dt> </dl> </td> <td width="60%"> If the thread
+///                       specified by <i>dwThreadId</i> previously reported an EXCEPTION_DEBUG_EVENT debugging event, the function
+///                       continues exception processing. If this is a first-chance exception event, the search and dispatch logic of the
+///                       structured exception handler is used; otherwise, the process is terminated. For any other debugging event, this
+///                       flag simply continues the thread. </td> </tr> <tr> <td width="40%"><a id="DBG_REPLY_LATER"></a><a
+///                       id="dbg_reply_later"></a><dl> <dt><b>DBG_REPLY_LATER</b></dt> <dt>0x40010001L</dt> </dl> </td> <td width="60%">
+///                       Supported in Windows 10, version 1507 or above, this flag causes <i>dwThreadId</i> to replay the existing
+///                       breaking event after the target continues. By calling the SuspendThread API against <i>dwThreadId</i>, a debugger
+///                       can resume other threads in the process and later return to the breaking. </td> </tr> </table>
+///Returns:
+///    If the function succeeds, the return value is nonzero. If the function fails, the return value is zero. To get
+///    extended error information, call GetLastError.
+///    
 @DllImport("KERNEL32")
 BOOL ContinueDebugEvent(uint dwProcessId, uint dwThreadId, uint dwContinueStatus);
 
+///Waits for a debugging event to occur in a process being debugged. <div class="alert"><b>Important</b> In the past,
+///the operating system did not output Unicode strings via <b>OutputDebugStringW</b> and instead only output ASCII
+///strings. To force <b>OutputDebugStringW</b> to correctly output Unicode strings, debuggers are required to call
+///WaitForDebugEventEx to opt into the new behavior. On calling <b>WaitForDebugEventEx</b>, the operating system will
+///know that the debugger supports Unicode and is specifically opting into receiving Unicode strings. </div><div> </div>
+///Params:
+///    lpDebugEvent = A pointer to a DEBUG_EVENT structure that receives information about the debugging event.
+///    dwMilliseconds = The number of milliseconds to wait for a debugging event. If this parameter is zero, the function tests for a
+///                     debugging event and returns immediately. If the parameter is INFINITE, the function does not return until a
+///                     debugging event has occurred.
+///Returns:
+///    If the function succeeds, the return value is nonzero. If the function fails, the return value is zero. To get
+///    extended error information, call GetLastError.
+///    
 @DllImport("KERNEL32")
 BOOL WaitForDebugEvent(DEBUG_EVENT* lpDebugEvent, uint dwMilliseconds);
 
+///Enables a debugger to attach to an active process and debug it.
+///Params:
+///    dwProcessId = The identifier for the process to be debugged. The debugger is granted debugging access to the process as if it
+///                  created the process with the <b>DEBUG_ONLY_THIS_PROCESS</b> flag. For more information, see the Remarks section
+///                  of this topic.
+///Returns:
+///    If the function succeeds, the return value is nonzero. If the function fails, the return value is 0 (zero). To
+///    get extended error information, call GetLastError.
+///    
 @DllImport("KERNEL32")
 BOOL DebugActiveProcess(uint dwProcessId);
 
+///Stops the debugger from debugging the specified process.
+///Params:
+///    dwProcessId = The identifier of the process to stop debugging.
+///Returns:
+///    If the function succeeds, the return value is nonzero. If the function fails, the return value is zero. To get
+///    extended error information, call GetLastError.
+///    
 @DllImport("KERNEL32")
 BOOL DebugActiveProcessStop(uint dwProcessId);
 
+///Determines whether the specified process is being debugged.
+///Params:
+///    hProcess = A handle to the process.
+///    pbDebuggerPresent = A pointer to a variable that the function sets to <b>TRUE</b> if the specified process is being debugged, or
+///                        <b>FALSE</b> otherwise.
+///Returns:
+///    If the function succeeds, the return value is nonzero. If the function fails, the return value is zero. To get
+///    extended error information, call GetLastError.
+///    
 @DllImport("KERNEL32")
 BOOL CheckRemoteDebuggerPresent(HANDLE hProcess, int* pbDebuggerPresent);
 
+///Waits for a debugging event to occur in a process being debugged. <div class="alert"><b>Important</b> In the past,
+///the operating system did not output Unicode strings via <b>OutputDebugStringW</b> and instead only output ASCII
+///strings. To force <b>OutputDebugStringW</b> to correctly output Unicode strings, debuggers are required to call
+///<b>WaitForDebugEventEx</b> to opt into the new behavior. On calling <b>WaitForDebugEventEx</b>, the operating system
+///will know that the debugger supports Unicode and is specifically opting into receiving Unicode strings. </div><div>
+///</div>
+///Params:
+///    lpDebugEvent = A pointer to a DEBUG_EVENT structure that receives information about the debugging event.
+///    dwMilliseconds = The number of milliseconds to wait for a debugging event. If this parameter is zero, the function tests for a
+///                     debugging event and returns immediately. If the parameter is INFINITE, the function does not return until a
+///                     debugging event has occurred.
+///Returns:
+///    If the function succeeds, the return value is nonzero. If the function fails, the return value is zero. To get
+///    extended error information, call GetLastError.
+///    
 @DllImport("KERNEL32")
 BOOL WaitForDebugEventEx(DEBUG_EVENT* lpDebugEvent, uint dwMilliseconds);
 
@@ -5380,79 +7501,397 @@ HRESULT EncodeRemotePointer(HANDLE ProcessHandle, void* Ptr, void** EncodedPtr);
 @DllImport("api-ms-win-core-util-l1-1-1")
 HRESULT DecodeRemotePointer(HANDLE ProcessHandle, void* Ptr, void** DecodedPtr);
 
+///Generates simple tones on the speaker. The function is synchronous; it performs an alertable wait and does not return
+///control to its caller until the sound finishes.
+///Params:
+///    dwFreq = The frequency of the sound, in hertz. This parameter must be in the range 37 through 32,767 (0x25 through
+///             0x7FFF).
+///    dwDuration = The duration of the sound, in milliseconds.
+///Returns:
+///    If the function succeeds, the return value is nonzero. If the function fails, the return value is zero. To get
+///    extended error information, call GetLastError.
+///    
 @DllImport("KERNEL32")
 BOOL Beep(uint dwFreq, uint dwDuration);
 
+///Raises an exception in the calling thread.
+///Params:
+///    dwExceptionCode = An application-defined exception code of the exception being raised. The filter expression and exception-handler
+///                      block of an exception handler can use the GetExceptionCode function to retrieve this value. Note that the system
+///                      will clear bit 28 of <i>dwExceptionCode</i> before displaying a message This bit is a reserved exception bit,
+///                      used by the system for its own purposes.
+///    dwExceptionFlags = The exception flags. This can be either zero to indicate a continuable exception, or EXCEPTION_NONCONTINUABLE to
+///                       indicate a noncontinuable exception. Any attempt to continue execution after a noncontinuable exception causes
+///                       the EXCEPTION_NONCONTINUABLE_EXCEPTION exception.
+///    nNumberOfArguments = The number of arguments in the <i>lpArguments</i> array. This value must not exceed EXCEPTION_MAXIMUM_PARAMETERS.
+///                         This parameter is ignored if <i>lpArguments</i> is <b>NULL</b>.
+///    lpArguments = An array of arguments. This parameter can be <b>NULL</b>. These arguments can contain any application-defined
+///                  data that needs to be passed to the filter expression of the exception handler.
+///Returns:
+///    This function does not return a value.
+///    
 @DllImport("KERNEL32")
 void RaiseException(uint dwExceptionCode, uint dwExceptionFlags, uint nNumberOfArguments, char* lpArguments);
 
+///An application-defined function that passes unhandled exceptions to the debugger, if the process is being debugged.
+///Otherwise, it optionally displays an <b>Application Error</b> message box and causes the exception handler to be
+///executed. This function can be called only from within the filter expression of an exception handler.
+///Params:
+///    ExceptionInfo = A pointer to an EXCEPTION_POINTERS structure that specifies a description of the exception and the processor
+///                    context at the time of the exception. This pointer is the return value of a call to the GetExceptionInformation
+///                    function.
+///Returns:
+///    The function returns one of the following values. <table> <tr> <th>Return code/value</th> <th>Description</th>
+///    </tr> <tr> <td width="40%"> <dl> <dt><b>EXCEPTION_CONTINUE_SEARCH</b></dt> <dt>0x0</dt> </dl> </td> <td
+///    width="60%"> The process is being debugged, so the exception should be passed (as second chance) to the
+///    application's debugger. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>EXCEPTION_EXECUTE_HANDLER</b></dt>
+///    <dt>0x1</dt> </dl> </td> <td width="60%"> If the SEM_NOGPFAULTERRORBOX flag was specified in a previous call to
+///    SetErrorMode, no Application Error message box is displayed. The function returns control to the exception
+///    handler, which is free to take any appropriate action. </td> </tr> </table>
+///    
 @DllImport("KERNEL32")
 int UnhandledExceptionFilter(EXCEPTION_POINTERS* ExceptionInfo);
 
+///Enables an application to supersede the top-level exception handler of each thread of a process. After calling this
+///function, if an exception occurs in a process that is not being debugged, and the exception makes it to the unhandled
+///exception filter, that filter will call the exception filter function specified by the
+///<i>lpTopLevelExceptionFilter</i> parameter.
+///Params:
+///    lpTopLevelExceptionFilter = A pointer to a top-level exception filter function that will be called whenever the UnhandledExceptionFilter
+///                                function gets control, and the process is not being debugged. A value of <b>NULL</b> for this parameter specifies
+///                                default handling within <b>UnhandledExceptionFilter</b>. The filter function has syntax similar to that of
+///                                UnhandledExceptionFilter: It takes a single parameter of type <b>LPEXCEPTION_POINTERS</b>, has a WINAPI calling
+///                                convention, and returns a value of type <b>LONG</b>. The filter function should return one of the following
+///                                values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
+///                                id="EXCEPTION_EXECUTE_HANDLER"></a><a id="exception_execute_handler"></a><dl>
+///                                <dt><b>EXCEPTION_EXECUTE_HANDLER</b></dt> <dt>0x1</dt> </dl> </td> <td width="60%"> Return from
+///                                UnhandledExceptionFilter and execute the associated exception handler. This usually results in process
+///                                termination. </td> </tr> <tr> <td width="40%"><a id="EXCEPTION_CONTINUE_EXECUTION"></a><a
+///                                id="exception_continue_execution"></a><dl> <dt><b>EXCEPTION_CONTINUE_EXECUTION</b></dt> <dt>0xffffffff</dt> </dl>
+///                                </td> <td width="60%"> Return from UnhandledExceptionFilter and continue execution from the point of the
+///                                exception. Note that the filter function is free to modify the continuation state by modifying the exception
+///                                information supplied through its <b>LPEXCEPTION_POINTERS</b> parameter. </td> </tr> <tr> <td width="40%"><a
+///                                id="EXCEPTION_CONTINUE_SEARCH"></a><a id="exception_continue_search"></a><dl>
+///                                <dt><b>EXCEPTION_CONTINUE_SEARCH</b></dt> <dt>0x0</dt> </dl> </td> <td width="60%"> Proceed with normal execution
+///                                of UnhandledExceptionFilter. That means obeying the SetErrorMode flags, or invoking the Application Error pop-up
+///                                message box. </td> </tr> </table>
+///Returns:
+///    The <b>SetUnhandledExceptionFilter</b> function returns the address of the previous exception filter established
+///    with the function. A <b>NULL</b> return value means that there is no current top-level exception handler.
+///    
 @DllImport("KERNEL32")
 LPTOP_LEVEL_EXCEPTION_FILTER SetUnhandledExceptionFilter(LPTOP_LEVEL_EXCEPTION_FILTER lpTopLevelExceptionFilter);
 
+///Retrieves the calling thread's last-error code value. The last-error code is maintained on a per-thread basis.
+///Multiple threads do not overwrite each other's last-error code. <b>Visual Basic: </b>Applications should call
+///<b>err.LastDllError</b> instead of <b>GetLastError</b>.
+///Returns:
+///    The return value is the calling thread's last-error code. The Return Value section of the documentation for each
+///    function that sets the last-error code notes the conditions under which the function sets the last-error code.
+///    Most functions that set the thread's last-error code set it when they fail. However, some functions also set the
+///    last-error code when they succeed. If the function is not documented to set the last-error code, the value
+///    returned by this function is simply the most recent last-error code to have been set; some functions set the
+///    last-error code to 0 on success and others do not.
+///    
 @DllImport("KERNEL32")
 uint GetLastError();
 
+///Sets the last-error code for the calling thread.
+///Params:
+///    dwErrCode = The last-error code for the thread.
 @DllImport("KERNEL32")
 void SetLastError(uint dwErrCode);
 
+///Retrieves the error mode for the current process.
+///Returns:
+///    The process error mode. This function returns one of the following values. <table> <tr> <th>Return
+///    code/value</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>SEM_FAILCRITICALERRORS</b></dt>
+///    <dt>0x0001</dt> </dl> </td> <td width="60%"> The system does not display the critical-error-handler message box.
+///    Instead, the system sends the error to the calling process. </td> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>SEM_NOALIGNMENTFAULTEXCEPT</b></dt> <dt>0x0004</dt> </dl> </td> <td width="60%"> The system automatically
+///    fixes memory alignment faults and makes them invisible to the application. It does this for the calling process
+///    and any descendant processes. This feature is only supported by certain processor architectures. For more
+///    information, see SetErrorMode. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>SEM_NOGPFAULTERRORBOX</b></dt>
+///    <dt>0x0002</dt> </dl> </td> <td width="60%"> The system does not display the Windows Error Reporting dialog.
+///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>SEM_NOOPENFILEERRORBOX</b></dt> <dt>0x8000</dt> </dl> </td> <td
+///    width="60%"> The system does not display a message box when it fails to find a file. Instead, the error is
+///    returned to the calling process. </td> </tr> </table>
+///    
 @DllImport("KERNEL32")
 uint GetErrorMode();
 
+///Controls whether the system will handle the specified types of serious errors or whether the process will handle
+///them.
+///Params:
+///    uMode = The process error mode. This parameter can be one or more of the following values. <table> <tr> <th>Value</th>
+///            <th>Meaning</th> </tr> <tr> <td width="40%"> <dl> <dt>0</dt> </dl> </td> <td width="60%"> Use the system default,
+///            which is to display all error dialog boxes. </td> </tr> <tr> <td width="40%"><a
+///            id="SEM_FAILCRITICALERRORS"></a><a id="sem_failcriticalerrors"></a><dl> <dt><b>SEM_FAILCRITICALERRORS</b></dt>
+///            <dt>0x0001</dt> </dl> </td> <td width="60%"> The system does not display the critical-error-handler message box.
+///            Instead, the system sends the error to the calling process. Best practice is that all applications call the
+///            process-wide <b>SetErrorMode</b> function with a parameter of <b>SEM_FAILCRITICALERRORS</b> at startup. This is
+///            to prevent error mode dialogs from hanging the application. </td> </tr> <tr> <td width="40%"><a
+///            id="SEM_NOALIGNMENTFAULTEXCEPT"></a><a id="sem_noalignmentfaultexcept"></a><dl>
+///            <dt><b>SEM_NOALIGNMENTFAULTEXCEPT</b></dt> <dt>0x0004</dt> </dl> </td> <td width="60%"> The system automatically
+///            fixes memory alignment faults and makes them invisible to the application. It does this for the calling process
+///            and any descendant processes. This feature is only supported by certain processor architectures. For more
+///            information, see the Remarks section. After this value is set for a process, subsequent attempts to clear the
+///            value are ignored. </td> </tr> <tr> <td width="40%"><a id="SEM_NOGPFAULTERRORBOX"></a><a
+///            id="sem_nogpfaulterrorbox"></a><dl> <dt><b>SEM_NOGPFAULTERRORBOX</b></dt> <dt>0x0002</dt> </dl> </td> <td
+///            width="60%"> The system does not display the Windows Error Reporting dialog. </td> </tr> <tr> <td width="40%"><a
+///            id="SEM_NOOPENFILEERRORBOX"></a><a id="sem_noopenfileerrorbox"></a><dl> <dt><b>SEM_NOOPENFILEERRORBOX</b></dt>
+///            <dt>0x8000</dt> </dl> </td> <td width="60%"> The OpenFile function does not display a message box when it fails
+///            to find a file. Instead, the error is returned to the caller. This error mode overrides the <b>OF_PROMPT</b>
+///            flag. </td> </tr> </table>
+///Returns:
+///    The return value is the previous state of the error-mode bit flags.
+///    
 @DllImport("KERNEL32")
 uint SetErrorMode(uint uMode);
 
+///Registers a vectored exception handler.
+///Params:
+///    First = The order in which the handler should be called. If the parameter is nonzero, the handler is the first handler to
+///            be called. If the parameter is zero, the handler is the last handler to be called.
+///    Handler = A pointer to the handler to be called. For more information, see
+///              [VectoredHandler](/windows/desktop/api/winnt/nc-winnt-pvectored_exception_handler).
+///Returns:
+///    If the function succeeds, the return value is a handle to the exception handler. If the function fails, the
+///    return value is **NULL**.
+///    
 @DllImport("KERNEL32")
 void* AddVectoredExceptionHandler(uint First, PVECTORED_EXCEPTION_HANDLER Handler);
 
+///Unregisters a vectored exception handler.
+///Params:
+///    Handle = A handle to the vectored exception handler previously registered using the [AddVectoredExceptionHandler
+///             function](nf-errhandlingapi-addvectoredexceptionhandler.md).
+///Returns:
+///    If the function succeeds, the return value is nonzero. If the function fails, the return value is zero.
+///    
 @DllImport("KERNEL32")
 uint RemoveVectoredExceptionHandler(void* Handle);
 
+///Registers a vectored continue handler.
+///Params:
+///    First = The order in which the handler should be called. If the parameter is nonzero, the handler is the first handler to
+///            be called. If the parameter is zero, the handler is the last handler to be called.
+///    Handler = A pointer to the handler to be called. For more information, see
+///              [VectoredHandler](/windows/desktop/api/winnt/nc-winnt-pvectored_exception_handler).
+///Returns:
+///    If the function succeeds, the return value is a pointer to the exception handler. If the function fails, the
+///    return value is **NULL**.
+///    
 @DllImport("KERNEL32")
 void* AddVectoredContinueHandler(uint First, PVECTORED_EXCEPTION_HANDLER Handler);
 
+///Unregisters a vectored continue handler.
+///Params:
+///    Handle = A pointer to a vectored exception handler previously registered using the [AddVectoredContinueHandler
+///             function](nf-errhandlingapi-addvectoredcontinuehandler.md).
+///Returns:
+///    If the function succeeds, the return value is nonzero. If the function fails, the return value is zero.
+///    
 @DllImport("KERNEL32")
 uint RemoveVectoredContinueHandler(void* Handle);
 
+///Raises an exception that bypasses all exception handlers (frame or vector based). Raising this exception terminates
+///the application and invokes Windows Error Reporting, if Windows Error Reporting is enabled.
+///Params:
+///    pExceptionRecord = A pointer to an EXCEPTION_RECORD structure that contains the exception information. You must specify the
+///                       <b>ExceptionAddress</b> and <b>ExceptionCode</b> members. If this parameter is <b>NULL</b>, the function creates
+///                       an exception record and sets the <b>ExceptionCode</b> member to STATUS_FAIL_FAST_EXCEPTION. The function will
+///                       also set the <b>ExceptionAddress</b> member if the <i>dwFlags</i> parameter contains the
+///                       FAIL_FAST_GENERATE_EXCEPTION_ADDRESS flag.
+///    pContextRecord = A pointer to a CONTEXT structure that contains the context information. If <b>NULL</b>, this function generates
+///                     the context (however, the context will not exactly match the context of the caller).
+///    dwFlags = You can specify zero or the following flag that control this function's behavior: <table> <tr> <th>Value</th>
+///              <th>Meaning</th> </tr> <tr> <td width="40%"><a id="FAIL_FAST_GENERATE_EXCEPTION_ADDRESS"></a><a
+///              id="fail_fast_generate_exception_address"></a><dl> <dt><b>FAIL_FAST_GENERATE_EXCEPTION_ADDRESS</b></dt>
+///              <dt>0x1</dt> </dl> </td> <td width="60%"> Causes <b>RaiseFailFastException</b> to set the <b>ExceptionAddress</b>
+///              of EXCEPTION_RECORD to the return address of this function (the next instruction in the caller after the call to
+///              <b>RaiseFailFastException</b>). This function will set the exception address only if <b>ExceptionAddress</b> is
+///              not <b>NULL</b>. </td> </tr> </table>
 @DllImport("KERNEL32")
 void RaiseFailFastException(EXCEPTION_RECORD* pExceptionRecord, CONTEXT* pContextRecord, uint dwFlags);
 
+///Displays a message box and terminates the application when the message box is closed. If the system is running with a
+///debug version of Kernel32.dll, the message box gives the user the opportunity to terminate the application or to
+///cancel the message box and return to the application that called <b>FatalAppExit</b>.
+///Params:
+///    uAction = This parameter must be zero.
+///    lpMessageText = The null-terminated string that is displayed in the message box.
 @DllImport("KERNEL32")
 void FatalAppExitA(uint uAction, const(char)* lpMessageText);
 
+///Displays a message box and terminates the application when the message box is closed. If the system is running with a
+///debug version of Kernel32.dll, the message box gives the user the opportunity to terminate the application or to
+///cancel the message box and return to the application that called <b>FatalAppExit</b>.
+///Params:
+///    uAction = This parameter must be zero.
+///    lpMessageText = The null-terminated string that is displayed in the message box.
 @DllImport("KERNEL32")
 void FatalAppExitW(uint uAction, const(wchar)* lpMessageText);
 
+///Retrieves the error mode for the calling thread.
+///Returns:
+///    The process error mode. This function returns one of the following values. <table> <tr> <th>Return
+///    code/value</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>SEM_FAILCRITICALERRORS</b></dt>
+///    <dt>0x0001</dt> </dl> </td> <td width="60%"> The system does not display the critical-error-handler message box.
+///    Instead, the system sends the error to the calling thread. </td> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>SEM_NOGPFAULTERRORBOX</b></dt> <dt>0x0002</dt> </dl> </td> <td width="60%"> The system does not display
+///    the Windows Error Reporting dialog. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>SEM_NOOPENFILEERRORBOX</b></dt>
+///    <dt>0x8000</dt> </dl> </td> <td width="60%"> The system does not display a message box when it fails to find a
+///    file. Instead, the error is returned to the calling thread. </td> </tr> </table>
+///    
 @DllImport("KERNEL32")
 uint GetThreadErrorMode();
 
+///Controls whether the system will handle the specified types of serious errors or whether the calling thread will
+///handle them.
+///Params:
+///    dwNewMode = The thread error mode. This parameter can be one or more of the following values. <table> <tr> <th>Value</th>
+///                <th>Meaning</th> </tr> <tr> <td width="40%"> <dl> <dt>0</dt> </dl> </td> <td width="60%"> Use the system default,
+///                which is to display all error dialog boxes. </td> </tr> <tr> <td width="40%"><a
+///                id="SEM_FAILCRITICALERRORS"></a><a id="sem_failcriticalerrors"></a><dl> <dt><b>SEM_FAILCRITICALERRORS</b></dt>
+///                <dt>0x0001</dt> </dl> </td> <td width="60%"> The system does not display the critical-error-handler message box.
+///                Instead, the system sends the error to the calling thread. Best practice is that all applications call the
+///                process-wide SetErrorMode function with a parameter of <b>SEM_FAILCRITICALERRORS</b> at startup. This is to
+///                prevent error mode dialogs from hanging the application. </td> </tr> <tr> <td width="40%"><a
+///                id="SEM_NOGPFAULTERRORBOX"></a><a id="sem_nogpfaulterrorbox"></a><dl> <dt><b>SEM_NOGPFAULTERRORBOX</b></dt>
+///                <dt>0x0002</dt> </dl> </td> <td width="60%"> The system does not display the Windows Error Reporting dialog.
+///                </td> </tr> <tr> <td width="40%"><a id="SEM_NOOPENFILEERRORBOX"></a><a id="sem_noopenfileerrorbox"></a><dl>
+///                <dt><b>SEM_NOOPENFILEERRORBOX</b></dt> <dt>0x8000</dt> </dl> </td> <td width="60%"> The OpenFile function does
+///                not display a message box when it fails to find a file. Instead, the error is returned to the caller. This error
+///                mode overrides the <b>OF_PROMPT</b> flag. </td> </tr> </table>
+///    lpOldMode = If the function succeeds, this parameter is set to the thread's previous error mode. This parameter can be
+///                <b>NULL</b>.
+///Returns:
+///    If the function succeeds, the return value is nonzero. If the function fails, the return value is zero. To get
+///    extended error information, call GetLastError.
+///    
 @DllImport("KERNEL32")
 BOOL SetThreadErrorMode(uint dwNewMode, uint* lpOldMode);
 
 @DllImport("api-ms-win-core-errorhandling-l1-1-3")
 void TerminateProcessOnMemoryExhaustion(size_t FailedAllocationSize);
 
+///Creates a new WCT session.
+///Params:
+///    Flags = The session type. This parameter can be one of the following values. <table> <tr> <th>Value</th> <th>Meaning</th>
+///            </tr> <tr> <td width="40%"> <dl> <dt>0</dt> </dl> </td> <td width="60%"> A synchronous session. </td> </tr> <tr>
+///            <td width="40%"><a id="WCT_ASYNC_OPEN_FLAG"></a><a id="wct_async_open_flag"></a><dl>
+///            <dt><b>WCT_ASYNC_OPEN_FLAG</b></dt> </dl> </td> <td width="60%"> An asynchronous session. </td> </tr> </table>
+///    callback = If the session is asynchronous, this parameter can be a pointer to a WaitChainCallback callback function.
+///Returns:
+///    If the function succeeds, the return value is a handle to the newly created session. If the function fails, the
+///    return value is <b>NULL</b>. To get extended error information, call GetLastError.
+///    
 @DllImport("ADVAPI32")
 void* OpenThreadWaitChainSession(uint Flags, PWAITCHAINCALLBACK callback);
 
+///Closes the specified WCT session and cancels any outstanding asynchronous operations.
+///Params:
+///    WctHandle = A handle to the WCT session created by the OpenThreadWaitChainSession function.
 @DllImport("ADVAPI32")
 void CloseThreadWaitChainSession(void* WctHandle);
 
+///Retrieves the wait chain for the specified thread.
+///Params:
+///    WctHandle = A handle to the WCT session created by the OpenThreadWaitChainSession function.
+///    Context = A pointer to an application-defined context structure to be passed to the callback function for an asynchronous
+///              session.
+///    Flags = The wait chain retrieval options. This parameter can be one of more of the following values. <table> <tr>
+///            <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="WCT_OUT_OF_PROC_COM_FLAG"></a><a
+///            id="wct_out_of_proc_com_flag"></a><dl> <dt><b>WCT_OUT_OF_PROC_COM_FLAG</b></dt> </dl> </td> <td width="60%">
+///            Enumerates all threads of an out-of-proc MTA COM server to find the correct thread identifier. </td> </tr> <tr>
+///            <td width="40%"><a id="WCT_OUT_OF_PROC_CS_FLAG"></a><a id="wct_out_of_proc_cs_flag"></a><dl>
+///            <dt><b>WCT_OUT_OF_PROC_CS_FLAG</b></dt> </dl> </td> <td width="60%"> Retrieves critical-section information from
+///            other processes. </td> </tr> <tr> <td width="40%"><a id="WCT_OUT_OF_PROC_FLAG"></a><a
+///            id="wct_out_of_proc_flag"></a><dl> <dt><b>WCT_OUT_OF_PROC_FLAG</b></dt> </dl> </td> <td width="60%"> Follows the
+///            wait chain into other processes. Otherwise, the function reports the first thread in a different process but does
+///            not retrieve additional information. </td> </tr> </table>
+///    ThreadId = The identifier of the thread.
+///    NodeCount = On input, a number from 1 to WCT_MAX_NODE_COUNT that specifies the number of nodes in the wait chain. On return,
+///                the number of nodes retrieved. If the array cannot contain all the nodes of the wait chain, the function fails,
+///                GetLastError returns ERROR_MORE_DATA, and this parameter receives the number of array elements required to
+///                contain all the nodes. For asynchronous sessions, check the value that is passed to the callback function. Do not
+///                free the variable until the callback function has returned.
+///    NodeInfoArray = An array of WAITCHAIN_NODE_INFO structures that receives the wait chain. For asynchronous sessions, check the
+///                    value that is passed to the callback function. Do not free the array until the callback function has returned.
+///    IsCycle = If the function detects a deadlock, this variable is set to <b>TRUE</b>; otherwise, it is set to <b>FALSE</b>.
+///              For asynchronous sessions, check the value that is passed to the callback function. Do not free the variable
+///              until the callback function has returned.
+///Returns:
+///    If the function succeeds, the return value is nonzero. If the function fails, the return value is zero. To
+///    retrieve extended error information, call GetLastError. <table> <tr> <th>Return code</th> <th>Description</th>
+///    </tr> <tr> <td width="40%"> <dl> <dt><b>ERROR_ACCESS_DENIED</b></dt> </dl> </td> <td width="60%"> The caller did
+///    not have sufficient privilege to open a target thread. </td> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>ERROR_INVALID_PARAMETER</b></dt> </dl> </td> <td width="60%"> One of the input parameters is invalid.
+///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>ERROR_IO_PENDING</b></dt> </dl> </td> <td width="60%"> The WCT
+///    session was opened in asynchronous mode. The results will be returned through the WaitChainCallback callback
+///    function. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>ERROR_MORE_DATA</b></dt> </dl> </td> <td width="60%"> The
+///    <i>NodeInfoArray</i> buffer is not large enough to contain all the nodes in the wait chain. The <i>NodeCount</i>
+///    parameter contains the number of nodes in the chain. The wait chain returned is still valid. </td> </tr> <tr> <td
+///    width="40%"> <dl> <dt><b>ERROR_NOT_SUPPORTED</b></dt> </dl> </td> <td width="60%"> The operating system is not
+///    providing this service. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>ERROR_OBJECT_NOT_FOUND</b></dt> </dl> </td>
+///    <td width="60%"> The specified thread could not be located. </td> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>ERROR_TOO_MANY_THREADS</b></dt> </dl> </td> <td width="60%"> The number of nodes exceeds
+///    WCT_MAX_NODE_COUNT. The wait chain returned is still valid. </td> </tr> </table>
+///    
 @DllImport("ADVAPI32")
 BOOL GetThreadWaitChain(void* WctHandle, size_t Context, uint Flags, uint ThreadId, uint* NodeCount, 
                         char* NodeInfoArray, int* IsCycle);
 
+///Register COM callback functions for WCT.
+///Params:
+///    CallStateCallback = The address of the <b>CoGetCallState</b> function.
+///    ActivationStateCallback = The address of the <b>CoGetActivationState</b> function.
 @DllImport("ADVAPI32")
 void RegisterWaitChainCOMCallback(PCOGETCALLSTATE CallStateCallback, PCOGETACTIVATIONSTATE ActivationStateCallback);
 
+///Writes user-mode minidump information to the specified file.
+///Params:
+///    hProcess = A handle to the process for which the information is to be generated. This handle must have
+///               <b>PROCESS_QUERY_INFORMATION</b> and <b>PROCESS_VM_READ</b> access to the process. If handle information is to be
+///               collected then <b>PROCESS_DUP_HANDLE</b> access is also required. For more information, see Process Security and
+///               Access Rights. The caller must also be able to get <b>THREAD_ALL_ACCESS</b> access to the threads in the process.
+///               For more information, see Thread Security and Access Rights.
+///    ProcessId = The identifier of the process for which the information is to be generated.
+///    hFile = A handle to the file in which the information is to be written.
+///    DumpType = The type of information to be generated. This parameter can be one or more of the values from the MINIDUMP_TYPE
+///               enumeration.
+///    ExceptionParam = A pointer to a MINIDUMP_EXCEPTION_INFORMATION structure describing the client exception that caused the minidump
+///                     to be generated. If the value of this parameter is <b>NULL</b>, no exception information is included in the
+///                     minidump file.
+///    UserStreamParam = A pointer to a MINIDUMP_USER_STREAM_INFORMATION structure. If the value of this parameter is <b>NULL</b>, no
+///                      user-defined information is included in the minidump file.
+///    CallbackParam = A pointer to a MINIDUMP_CALLBACK_INFORMATION structure that specifies a callback routine which is to receive
+///                    extended minidump information. If the value of this parameter is <b>NULL</b>, no callbacks are performed.
+///Returns:
+///    If the function succeeds, the return value is <b>TRUE</b>; otherwise, the return value is <b>FALSE</b>. To
+///    retrieve extended error information, call GetLastError. Note that the last error will be an <b>HRESULT</b> value.
+///    If the operation is canceled, the last error code is <code>HRESULT_FROM_WIN32(ERROR_CANCELLED)</code>.
+///    
 @DllImport("api-ms-win-core-debug-minidump-l1-1-0")
 BOOL MiniDumpWriteDump(HANDLE hProcess, uint ProcessId, HANDLE hFile, MINIDUMP_TYPE DumpType, 
                        MINIDUMP_EXCEPTION_INFORMATION* ExceptionParam, 
                        MINIDUMP_USER_STREAM_INFORMATION* UserStreamParam, 
                        MINIDUMP_CALLBACK_INFORMATION* CallbackParam);
 
+///Reads a stream from a user-mode minidump file.
+///Params:
+///    BaseOfDump = A pointer to the base of the mapped minidump file. The file should have been mapped into memory using the
+///                 MapViewOfFile function.
+///    StreamNumber = The type of data to be read from the minidump file. This member can be one of the values in the
+///                   MINIDUMP_STREAM_TYPE enumeration.
+///    Dir = A pointer to a MINIDUMP_DIRECTORY structure.
+///    StreamPointer = A pointer to the beginning of the minidump stream. The format of this stream depends on the value of
+///                    <i>StreamNumber</i>. For more information, see MINIDUMP_STREAM_TYPE.
+///    StreamSize = The size of the stream pointed to by <i>StreamPointer</i>, in bytes.
+///Returns:
+///    If the function succeeds, the return value is <b>TRUE</b>; otherwise, the return value is <b>FALSE</b>.
+///    
 @DllImport("api-ms-win-core-debug-minidump-l1-1-0")
 BOOL MiniDumpReadDumpStream(void* BaseOfDump, uint StreamNumber, MINIDUMP_DIRECTORY** Dir, void** StreamPointer, 
                             uint* StreamSize);
@@ -16281,6 +18720,7 @@ interface DispDOMException : IDispatch
 {
 }
 
+///Represents an item ID range to exclude from a knowledge object.
 @GUID("3051072D-98B5-11CF-BB82-00AA00BDCE0B")
 interface IRangeException : IDispatch
 {
@@ -17735,59 +20175,177 @@ interface IBFCacheable : IUnknown
     HRESULT ExitBFCache();
 }
 
+///Enables a debugging or authoring app to receive notification of scripting engine events.
 @GUID("7C3F6998-1567-4BBA-B52B-48D32141D613")
 interface IWebApplicationScriptEvents : IUnknown
 {
     HRESULT BeforeScriptExecute(IHTMLWindow2 htmlWindow);
+    ///Fired when an unhandled script error occurs.
+    ///Params:
+    ///    htmlWindow = Type: <b>IHTMLWindow2*</b> The window or frame in which the script error occurred.
+    ///    scriptError = Type: <b>IActiveScriptError*</b> The object that contains info about the script error that occurred.
+    ///    url = Type: <b>LPCWSTR</b> The URL on which the script error occurred.
+    ///    errorHandled = Type: <b>BOOL</b> <b>TRUE</b> if the app handled the error; otherwise <b>FALSE</b>.
+    ///Returns:
+    ///    Type: <b>HRESULT</b> If this method succeeds, it returns <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
+    ///    
     HRESULT ScriptError(IHTMLWindow2 htmlWindow, IActiveScriptError scriptError, const(wchar)* url, 
                         BOOL errorHandled);
 }
 
+///Enables a debugging or authoring app to receive notification of navigation events.
 @GUID("C22615D2-D318-4DA2-8422-1FCAF77B10E4")
 interface IWebApplicationNavigationEvents : IUnknown
 {
+    ///Fired before navigate occurs in the given host (window or frameset element).
+    ///Params:
+    ///    htmlWindow = Type: <b>IHTMLWindow2*</b> The window or frame in which the navigation is about occur.
+    ///    url = Type: <b>LPCWSTR</b> The URL to navigate to.
+    ///    navigationFlags = Type: <b>DWORD</b> Flags related to the current navigation.
+    ///    targetFrameName = Type: <b>LPCWSTR</b> The name of the frame in which the navigation is about to occur. The value is
+    ///                      <b>null</b> if no named frame is targeted.
+    ///Returns:
+    ///    Type: <b>HRESULT</b> Ignored by the host. If this method succeeds, it returns <b>S_OK</b>. Otherwise, it
+    ///    returns an <b>HRESULT</b> error code.
+    ///    
     HRESULT BeforeNavigate(IHTMLWindow2 htmlWindow, const(wchar)* url, uint navigationFlags, 
                            const(wchar)* targetFrameName);
+    ///Fired when the document being navigated to becomes visible and enters the navigation stack.
+    ///Params:
+    ///    htmlWindow = Type: <b>IHTMLWindow2*</b> The window or frame in which the navigation is occurred.
+    ///    url = Type: <b>LPCWSTR</b> The URL which was navigated to
+    ///Returns:
+    ///    Type: <b>HRESULT</b> Ignored by the host. If this method succeeds, it returns <b>S_OK</b>. Otherwise, it
+    ///    returns an <b>HRESULT</b> error code.
+    ///    
     HRESULT NavigateComplete(IHTMLWindow2 htmlWindow, const(wchar)* url);
+    ///Fired when a binding error occurs (window or frameset element).
+    ///Params:
+    ///    htmlWindow = Type: <b>IHTMLWindow2*</b> The window ro frame in which the navigation error occurred.
+    ///    url = Type: <b>LPCWSTR</b> The URL for which navigation failed.
+    ///    targetFrameName = Type: <b>LPCWSTR</b> The name of the frame in which the navigation error occurred. The value is <b>null</b>
+    ///                      if no named frame was targeted.
+    ///    statusCode = Type: <b>DWORD</b> The error code. Could be a <b>HRESULT</b> or a HTTP status code.
+    ///Returns:
+    ///    Type: <b>HRESULT</b> Ignored by the host. If this method succeeds, it returns <b>S_OK</b>. Otherwise, it
+    ///    returns an <b>HRESULT</b> error code.
+    ///    
     HRESULT NavigateError(IHTMLWindow2 htmlWindow, const(wchar)* url, const(wchar)* targetFrameName, 
                           uint statusCode);
+    ///Fired when the document being navigated to reaches ReadyState_Complete.
+    ///Params:
+    ///    htmlWindow = Type: <b>IHTMLWindow2*</b> The window or frame in which the document is loaded.
+    ///    url = Type: <b>LPCWSTR</b> The URL of the document.
+    ///Returns:
+    ///    Type: <b>HRESULT</b> Ignored by the host. If this method succeeds, it returns <b>S_OK</b>. Otherwise, it
+    ///    returns an <b>HRESULT</b> error code.
+    ///    
     HRESULT DocumentComplete(IHTMLWindow2 htmlWindow, const(wchar)* url);
+    ///Download of a page has started.
+    ///Returns:
+    ///    Type: <b>HRESULT</b> Ignored by the host. If this method succeeds, it returns <b>S_OK</b>. Otherwise, it
+    ///    returns an <b>HRESULT</b> error code.
+    ///    
     HRESULT DownloadBegin();
+    ///Download of a page has completed.
+    ///Returns:
+    ///    Type: <b>HRESULT</b> Ignored by the host. If this method succeeds, it returns <b>S_OK</b>. Otherwise, it
+    ///    returns an <b>HRESULT</b> error code.
+    ///    
     HRESULT DownloadComplete();
 }
 
+///Enables a debugging or authoring app to receive notification of user interface events and respond to events that
+///require user interaction.
 @GUID("5B2B3F99-328C-41D5-A6F7-7483ED8E71DD")
 interface IWebApplicationUIEvents : IUnknown
 {
+    ///Notifies the authoring app about an authentication problem.
+    ///Params:
+    ///    securityProblem = Type: <b>DWORD</b> The security problem encountered.
+    ///    result = Type: <b>HRESULT*</b>
+    ///Returns:
+    ///    Type: <b>HRESULT</b> If this method succeeds, it returns <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
+    ///    
     HRESULT SecurityProblem(uint securityProblem, int* result);
 }
 
+///Enables an authoring app to receive notification of designer events and respond to those events.
 @GUID("3E59E6B7-C652-4DAF-AD5E-16FEB350CDE3")
 interface IWebApplicationUpdateEvents : IUnknown
 {
+    ///Notifies the authoring app that a portion of the app was painted.
+    ///Returns:
+    ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
+    ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
+    ///    
     HRESULT OnPaint();
+    ///Notifies the authoring app that the Cascading Style Sheets (CSS) has changed.
+    ///Returns:
+    ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
+    ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
+    ///    
     HRESULT OnCssChanged();
 }
 
+///Exposes methods and properties that are implemented by the WWAHost.
 @GUID("CECBD2C3-A3A5-4749-9681-20E9161C6794")
 interface IWebApplicationHost : IUnknown
 {
+    ///Gets the handle of the current WWAHost window. This property is read-only.
     HRESULT get_HWND(HWND* hwnd);
+    ///Gets the HTML document object model of the current top-level document. This property is read-only.
     HRESULT get_Document(IHTMLDocument2* htmlDocument);
+    ///Refreshes the current document without sending a 'Pragma:no-cache' HTTP header to the server.
+    ///Returns:
+    ///    Type: <b>HRESULT</b> If this method succeeds, it returns <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
+    ///    
     HRESULT Refresh();
+    ///Establishes a connection to allow a client to receive events.
+    ///Params:
+    ///    interfaceId = Type: <b>REFIID</b> The identifier of the event interface.
+    ///    callback = Type: <b>IUnknown*</b> The caller's event interface.
+    ///    cookie = Type: <b>DWORD*</b> A token that uniquely identifies this connection.
+    ///Returns:
+    ///    Type: <b>HRESULT</b> If this method succeeds, it returns <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
+    ///    
     HRESULT Advise(const(GUID)* interfaceId, IUnknown callback, uint* cookie);
+    ///Removes a previously established connection.
+    ///Params:
+    ///    cookie = Type: <b>DWORD</b> A connection token previously returned from the Advise method.
+    ///Returns:
+    ///    Type: <b>HRESULT</b> If this method succeeds, it returns <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
+    ///    
     HRESULT Unadvise(uint cookie);
 }
 
+///Enables debugging applications to manage activations.
 @GUID("BCDCD0DE-330E-481B-B843-4898A6A8EBAC")
 interface IWebApplicationActivation : IUnknown
 {
+    ///Cancels a pending activation.
+    ///Returns:
+    ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
+    ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
+    ///    
     HRESULT CancelPendingActivation();
 }
 
+///Provides the full local path to the authoring binary to be loaded into the WWAHost process.
 @GUID("720AEA93-1964-4DB0-B005-29EB9E2B18A9")
 interface IWebApplicationAuthoringMode : IServiceProvider
 {
+    ///Gets the full local path to a DLL to be loaded into the WWAHost process. This property is read-only.
     HRESULT get_AuthoringClientBinary(BSTR* designModeDllPath);
 }
 

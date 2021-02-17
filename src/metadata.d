@@ -9,6 +9,7 @@ import std.exception: enforce;
 import std.format: format;
 import std.algorithm: startsWith, endsWith;
 import std.traits: getUDAs;
+import std.string: toStringz;
 
 
 
@@ -3858,9 +3859,12 @@ public:
     this(string fileName)
     {
         version(Windows)
-        {
-            wstring wFileName = toUTF16(fileName);      
-            fileHandle = CreateFileW(wFileName.ptr, GENERIC_READ, FILE_SHARE_READ, null, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, null);
+        {   
+            fileHandle = CreateFileW(toUTF16z(fileName), GENERIC_READ, FILE_SHARE_READ, null, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, null);
+            if (fileHandle == INVALID_HANDLE_VALUE)
+            {
+                auto err = GetLastError();
+            }
             enforce(fileHandle != INVALID_HANDLE_VALUE, format("Cannot open file '%s'", fileName));
             LARGE_INTEGER sz;
             GetFileSizeEx(fileHandle, &sz);

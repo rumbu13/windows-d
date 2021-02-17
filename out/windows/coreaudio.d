@@ -1,3 +1,5 @@
+// Written in the D programming language.
+
 module windows.coreaudio;
 
 public import windows.core;
@@ -20,43 +22,67 @@ extern(Windows):
 // Enums
 
 
+///The <b>AUDCLNT_SHAREMODE</b> enumeration defines constants that indicate whether an audio stream will run in shared
+///mode or in exclusive mode.
+alias AUDCLNT_SHAREMODE = int;
 enum : int
 {
+    ///The audio stream will run in shared mode. For more information, see Remarks.
     AUDCLNT_SHAREMODE_SHARED    = 0x00000000,
+    ///The audio stream will run in exclusive mode. For more information, see Remarks.
     AUDCLNT_SHAREMODE_EXCLUSIVE = 0x00000001,
 }
-alias AUDCLNT_SHAREMODE = int;
 
+///Specifies the category of an audio stream.
+alias AUDIO_STREAM_CATEGORY = int;
 enum : int
 {
+    ///Other audio stream.
     AudioCategory_Other               = 0x00000000,
+    ///Media that will only stream when the app is in the foreground. This enumeration value has been deprecated. For
+    ///more information, see the Remarks section.
     AudioCategory_ForegroundOnlyMedia = 0x00000001,
+    ///Real-time communications, such as VOIP or chat.
     AudioCategory_Communications      = 0x00000003,
+    ///Alert sounds.
     AudioCategory_Alerts              = 0x00000004,
+    ///Sound effects.
     AudioCategory_SoundEffects        = 0x00000005,
+    ///Game sound effects.
     AudioCategory_GameEffects         = 0x00000006,
+    ///Background audio for games.
     AudioCategory_GameMedia           = 0x00000007,
+    ///Game chat audio. Similar to <b>AudioCategory_Communications</b> except that <b>AudioCategory_GameChat</b> will
+    ///not attenuate other streams.
     AudioCategory_GameChat            = 0x00000008,
+    ///Speech.
     AudioCategory_Speech              = 0x00000009,
+    ///Stream that includes audio with dialog.
     AudioCategory_Movie               = 0x0000000a,
+    ///Stream that includes audio without dialog.
     AudioCategory_Media               = 0x0000000b,
 }
-alias AUDIO_STREAM_CATEGORY = int;
 
+///The <b>AudioSessionState</b> enumeration defines constants that indicate the current state of an audio session.
 enum AudioSessionState : int
 {
+    ///The audio session is inactive. (It contains at least one stream, but none of the streams in the session is
+    ///currently running.)
     AudioSessionStateInactive = 0x00000000,
+    ///The audio session is active. (At least one of the streams in the session is running.)
     AudioSessionStateActive   = 0x00000001,
+    ///The audio session has expired. (It contains no streams.)
     AudioSessionStateExpired  = 0x00000002,
 }
 
+alias KSRESET = int;
 enum : int
 {
     KSRESET_BEGIN = 0x00000000,
     KSRESET_END   = 0x00000001,
 }
-alias KSRESET = int;
 
+alias KSSTATE = int;
 enum : int
 {
     KSSTATE_STOP    = 0x00000000,
@@ -64,21 +90,21 @@ enum : int
     KSSTATE_PAUSE   = 0x00000002,
     KSSTATE_RUN     = 0x00000003,
 }
-alias KSSTATE = int;
 
+alias KSPROPERTY_GENERAL = int;
 enum : int
 {
     KSPROPERTY_GENERAL_COMPONENTID = 0x00000000,
 }
-alias KSPROPERTY_GENERAL = int;
 
+alias KSMETHOD_STREAMIO = int;
 enum : int
 {
     KSMETHOD_STREAMIO_READ  = 0x00000000,
     KSMETHOD_STREAMIO_WRITE = 0x00000001,
 }
-alias KSMETHOD_STREAMIO = int;
 
+alias KSPROPERTY_MEDIASEEKING = int;
 enum : int
 {
     KSPROPERTY_MEDIASEEKING_CAPABILITIES      = 0x00000000,
@@ -92,8 +118,8 @@ enum : int
     KSPROPERTY_MEDIASEEKING_PREROLL           = 0x00000008,
     KSPROPERTY_MEDIASEEKING_CONVERTTIMEFORMAT = 0x00000009,
 }
-alias KSPROPERTY_MEDIASEEKING = int;
 
+alias KS_SEEKING_FLAGS = int;
 enum : int
 {
     KS_SEEKING_NoPositioning          = 0x00000000,
@@ -104,8 +130,8 @@ enum : int
     KS_SEEKING_SeekToKeyFrame         = 0x00000004,
     KS_SEEKING_ReturnTime             = 0x00000008,
 }
-alias KS_SEEKING_FLAGS = int;
 
+alias KS_SEEKING_CAPABILITIES = int;
 enum : int
 {
     KS_SEEKING_CanSeekAbsolute  = 0x00000001,
@@ -116,8 +142,8 @@ enum : int
     KS_SEEKING_CanGetDuration   = 0x00000020,
     KS_SEEKING_CanPlayBackwards = 0x00000040,
 }
-alias KS_SEEKING_CAPABILITIES = int;
 
+alias KSPROPERTY_TOPOLOGY = int;
 enum : int
 {
     KSPROPERTY_TOPOLOGY_CATEGORIES  = 0x00000000,
@@ -125,22 +151,22 @@ enum : int
     KSPROPERTY_TOPOLOGY_CONNECTIONS = 0x00000002,
     KSPROPERTY_TOPOLOGY_NAME        = 0x00000003,
 }
-alias KSPROPERTY_TOPOLOGY = int;
 
+alias KSINTERFACE_STANDARD = int;
 enum : int
 {
     KSINTERFACE_STANDARD_STREAMING        = 0x00000000,
     KSINTERFACE_STANDARD_LOOPED_STREAMING = 0x00000001,
     KSINTERFACE_STANDARD_CONTROL          = 0x00000002,
 }
-alias KSINTERFACE_STANDARD = int;
 
+alias KSINTERFACE_FILEIO = int;
 enum : int
 {
     KSINTERFACE_FILEIO_STREAMING = 0x00000000,
 }
-alias KSINTERFACE_FILEIO = int;
 
+alias KSPROPERTY_PIN = int;
 enum : int
 {
     KSPROPERTY_PIN_CINSTANCES            = 0x00000000,
@@ -161,15 +187,15 @@ enum : int
     KSPROPERTY_PIN_PROPOSEDATAFORMAT2    = 0x0000000f,
     KSPROPERTY_PIN_MODEDATAFORMATS       = 0x00000010,
 }
-alias KSPROPERTY_PIN = int;
 
+alias KSPIN_DATAFLOW = int;
 enum : int
 {
     KSPIN_DATAFLOW_IN  = 0x00000001,
     KSPIN_DATAFLOW_OUT = 0x00000002,
 }
-alias KSPIN_DATAFLOW = int;
 
+alias KSPIN_COMMUNICATION = int;
 enum : int
 {
     KSPIN_COMMUNICATION_NONE   = 0x00000000,
@@ -178,28 +204,28 @@ enum : int
     KSPIN_COMMUNICATION_BOTH   = 0x00000003,
     KSPIN_COMMUNICATION_BRIDGE = 0x00000004,
 }
-alias KSPIN_COMMUNICATION = int;
 
+alias KSEVENT_PINCAPS_CHANGENOTIFICATIONS = int;
 enum : int
 {
     KSEVENT_PINCAPS_FORMATCHANGE   = 0x00000000,
     KSEVENT_PINCAPS_JACKINFOCHANGE = 0x00000001,
 }
-alias KSEVENT_PINCAPS_CHANGENOTIFICATIONS = int;
 
+alias KSEVENT_VOLUMELIMIT = int;
 enum : int
 {
     KSEVENT_VOLUMELIMIT_CHANGED = 0x00000000,
 }
-alias KSEVENT_VOLUMELIMIT = int;
 
+alias KSPROPERTY_QUALITY = int;
 enum : int
 {
     KSPROPERTY_QUALITY_REPORT = 0x00000000,
     KSPROPERTY_QUALITY_ERROR  = 0x00000001,
 }
-alias KSPROPERTY_QUALITY = int;
 
+alias KSPROPERTY_CONNECTION = int;
 enum : int
 {
     KSPROPERTY_CONNECTION_STATE               = 0x00000000,
@@ -211,22 +237,22 @@ enum : int
     KSPROPERTY_CONNECTION_ALLOCATORFRAMING_EX = 0x00000006,
     KSPROPERTY_CONNECTION_STARTAT             = 0x00000007,
 }
-alias KSPROPERTY_CONNECTION = int;
 
+alias KSEVENT_STREAMALLOCATOR = int;
 enum : int
 {
     KSEVENT_STREAMALLOCATOR_INTERNAL_FREEFRAME = 0x00000000,
     KSEVENT_STREAMALLOCATOR_FREEFRAME          = 0x00000001,
 }
-alias KSEVENT_STREAMALLOCATOR = int;
 
+alias KSMETHOD_STREAMALLOCATOR = int;
 enum : int
 {
     KSMETHOD_STREAMALLOCATOR_ALLOC = 0x00000000,
     KSMETHOD_STREAMALLOCATOR_FREE  = 0x00000001,
 }
-alias KSMETHOD_STREAMALLOCATOR = int;
 
+alias KSPIN_MDL_CACHING_EVENT = int;
 enum : int
 {
     KSPIN_MDL_CACHING_NOTIFY_CLEANUP         = 0x00000000,
@@ -234,14 +260,14 @@ enum : int
     KSPIN_MDL_CACHING_NOTIFY_CLEANALL_NOWAIT = 0x00000002,
     KSPIN_MDL_CACHING_NOTIFY_ADDSAMPLE       = 0x00000003,
 }
-alias KSPIN_MDL_CACHING_EVENT = int;
 
+alias KSPROPERTY_STREAMINTERFACE = int;
 enum : int
 {
     KSPROPERTY_STREAMINTERFACE_HEADERSIZE = 0x00000000,
 }
-alias KSPROPERTY_STREAMINTERFACE = int;
 
+alias KSPROPERTY_STREAM = int;
 enum : int
 {
     KSPROPERTY_STREAM_ALLOCATOR          = 0x00000000,
@@ -256,14 +282,14 @@ enum : int
     KSPROPERTY_STREAM_RATE               = 0x00000009,
     KSPROPERTY_STREAM_PIPE_ID            = 0x0000000a,
 }
-alias KSPROPERTY_STREAM = int;
 
+alias KSPPROPERTY_ALLOCATOR_MDLCACHING = int;
 enum : int
 {
     KSPROPERTY_ALLOCATOR_CLEANUP_CACHEDMDLPAGES = 0x00000001,
 }
-alias KSPPROPERTY_ALLOCATOR_MDLCACHING = int;
 
+alias KSPROPERTY_CLOCK = int;
 enum : int
 {
     KSPROPERTY_CLOCK_TIME                   = 0x00000000,
@@ -273,15 +299,15 @@ enum : int
     KSPROPERTY_CLOCK_RESOLUTION             = 0x00000004,
     KSPROPERTY_CLOCK_STATE                  = 0x00000005,
 }
-alias KSPROPERTY_CLOCK = int;
 
+alias KSEVENT_CLOCK_POSITION = int;
 enum : int
 {
     KSEVENT_CLOCK_INTERVAL_MARK = 0x00000000,
     KSEVENT_CLOCK_POSITION_MARK = 0x00000001,
 }
-alias KSEVENT_CLOCK_POSITION = int;
 
+alias KSEVENT_CONNECTION = int;
 enum : int
 {
     KSEVENT_CONNECTION_POSITIONUPDATE    = 0x00000000,
@@ -290,15 +316,15 @@ enum : int
     KSEVENT_CONNECTION_PRIORITY          = 0x00000003,
     KSEVENT_CONNECTION_ENDOFSTREAM       = 0x00000004,
 }
-alias KSEVENT_CONNECTION = int;
 
+alias KSDEVICE_THERMAL_STATE = int;
 enum : int
 {
     KSDEVICE_THERMAL_STATE_LOW  = 0x00000000,
     KSDEVICE_THERMAL_STATE_HIGH = 0x00000001,
 }
-alias KSDEVICE_THERMAL_STATE = int;
 
+alias KSEVENT_DEVICE = int;
 enum : int
 {
     KSEVENT_DEVICE_LOST         = 0x00000000,
@@ -306,8 +332,8 @@ enum : int
     KSEVENT_DEVICE_THERMAL_HIGH = 0x00000002,
     KSEVENT_DEVICE_THERMAL_LOW  = 0x00000003,
 }
-alias KSEVENT_DEVICE = int;
 
+alias KSDEGRADE_STANDARD = int;
 enum : int
 {
     KSDEGRADE_STANDARD_SAMPLE      = 0x00000000,
@@ -315,23 +341,23 @@ enum : int
     KSDEGRADE_STANDARD_COMPUTATION = 0x00000002,
     KSDEGRADE_STANDARD_SKIP        = 0x00000003,
 }
-alias KSDEGRADE_STANDARD = int;
 
+alias KSINTERFACE_MEDIA = int;
 enum : int
 {
     KSINTERFACE_MEDIA_MUSIC         = 0x00000000,
     KSINTERFACE_MEDIA_WAVE_BUFFERED = 0x00000001,
     KSINTERFACE_MEDIA_WAVE_QUEUED   = 0x00000002,
 }
-alias KSINTERFACE_MEDIA = int;
 
+alias CONSTRICTOR_OPTION = int;
 enum : int
 {
     CONSTRICTOR_OPTION_DISABLE = 0x00000000,
     CONSTRICTOR_OPTION_MUTE    = 0x00000001,
 }
-alias CONSTRICTOR_OPTION = int;
 
+alias KSMICARRAY_MICTYPE = int;
 enum : int
 {
     KSMICARRAY_MICTYPE_OMNIDIRECTIONAL = 0x00000000,
@@ -342,16 +368,16 @@ enum : int
     KSMICARRAY_MICTYPE_8SHAPED         = 0x00000005,
     KSMICARRAY_MICTYPE_VENDORDEFINED   = 0x0000000f,
 }
-alias KSMICARRAY_MICTYPE = int;
 
+alias KSMICARRAY_MICARRAYTYPE = int;
 enum : int
 {
     KSMICARRAY_MICARRAYTYPE_LINEAR = 0x00000000,
     KSMICARRAY_MICARRAYTYPE_PLANAR = 0x00000001,
     KSMICARRAY_MICARRAYTYPE_3D     = 0x00000002,
 }
-alias KSMICARRAY_MICARRAYTYPE = int;
 
+alias KSPROPERTY_DIRECTSOUND3DLISTENER = int;
 enum : int
 {
     KSPROPERTY_DIRECTSOUND3DLISTENER_ALL            = 0x00000000,
@@ -364,8 +390,8 @@ enum : int
     KSPROPERTY_DIRECTSOUND3DLISTENER_BATCH          = 0x00000007,
     KSPROPERTY_DIRECTSOUND3DLISTENER_ALLOCATION     = 0x00000008,
 }
-alias KSPROPERTY_DIRECTSOUND3DLISTENER = int;
 
+alias KSPROPERTY_DIRECTSOUND3DBUFFER = int;
 enum : int
 {
     KSPROPERTY_DIRECTSOUND3DBUFFER_ALL               = 0x00000000,
@@ -378,52 +404,52 @@ enum : int
     KSPROPERTY_DIRECTSOUND3DBUFFER_MAXDISTANCE       = 0x00000007,
     KSPROPERTY_DIRECTSOUND3DBUFFER_MODE              = 0x00000008,
 }
-alias KSPROPERTY_DIRECTSOUND3DBUFFER = int;
 
+alias KSDS3D_HRTF_FILTER_QUALITY = int;
 enum : int
 {
     FULL_FILTER                 = 0x00000000,
     LIGHT_FILTER                = 0x00000001,
     KSDS3D_FILTER_QUALITY_COUNT = 0x00000002,
 }
-alias KSDS3D_HRTF_FILTER_QUALITY = int;
 
+alias KSDS3D_HRTF_COEFF_FORMAT = int;
 enum : int
 {
     FLOAT_COEFF        = 0x00000000,
     SHORT_COEFF        = 0x00000001,
     KSDS3D_COEFF_COUNT = 0x00000002,
 }
-alias KSDS3D_HRTF_COEFF_FORMAT = int;
 
+alias KSDS3D_HRTF_FILTER_METHOD = int;
 enum : int
 {
     DIRECT_FORM                = 0x00000000,
     CASCADE_FORM               = 0x00000001,
     KSDS3D_FILTER_METHOD_COUNT = 0x00000002,
 }
-alias KSDS3D_HRTF_FILTER_METHOD = int;
 
+alias KSDS3D_HRTF_FILTER_VERSION = int;
 enum : int
 {
     DS3D_HRTF_VERSION_1 = 0x00000000,
 }
-alias KSDS3D_HRTF_FILTER_VERSION = int;
 
+alias KSPROPERTY_HRTF3D = int;
 enum : int
 {
     KSPROPERTY_HRTF3D_PARAMS        = 0x00000000,
     KSPROPERTY_HRTF3D_INITIALIZE    = 0x00000001,
     KSPROPERTY_HRTF3D_FILTER_FORMAT = 0x00000002,
 }
-alias KSPROPERTY_HRTF3D = int;
 
+alias KSPROPERTY_ITD3D = int;
 enum : int
 {
     KSPROPERTY_ITD3D_PARAMS = 0x00000000,
 }
-alias KSPROPERTY_ITD3D = int;
 
+alias KSPROPERTY_BIBLIOGRAPHIC = int;
 enum : int
 {
     KSPROPERTY_BIBLIOGRAPHIC_LEADER                      = 0x52444c20,
@@ -463,15 +489,15 @@ enum : int
     KSPROPERTY_BIBLIOGRAPHIC_SERIESSTATEMENTPERSONALNAME = 0x30303820,
     KSPROPERTY_BIBLIOGRAPHIC_SERIESSTATEMENTUNIFORMTITLE = 0x30333820,
 }
-alias KSPROPERTY_BIBLIOGRAPHIC = int;
 
+alias KSPROPERTY_TOPOLOGYNODE = int;
 enum : int
 {
     KSPROPERTY_TOPOLOGYNODE_ENABLE = 0x00000001,
     KSPROPERTY_TOPOLOGYNODE_RESET  = 0x00000002,
 }
-alias KSPROPERTY_TOPOLOGYNODE = int;
 
+alias KSPROPERTY_RTAUDIO = int;
 enum : int
 {
     KSPROPERTY_RTAUDIO_GETPOSITIONFUNCTION           = 0x00000000,
@@ -489,27 +515,27 @@ enum : int
     KSPROPERTY_RTAUDIO_SETWRITEPACKET                = 0x0000000c,
     KSPROPERTY_RTAUDIO_PACKETVREGISTER               = 0x0000000d,
 }
-alias KSPROPERTY_RTAUDIO = int;
 
+alias KSPROPERTY_BTAUDIO = int;
 enum : int
 {
     KSPROPERTY_ONESHOT_RECONNECT  = 0x00000000,
     KSPROPERTY_ONESHOT_DISCONNECT = 0x00000001,
 }
-alias KSPROPERTY_BTAUDIO = int;
 
+alias KSPROPERTY_DRMAUDIOSTREAM = int;
 enum : int
 {
     KSPROPERTY_DRMAUDIOSTREAM_CONTENTID = 0x00000000,
 }
-alias KSPROPERTY_DRMAUDIOSTREAM = int;
 
+alias KSPROPERTY_INTERLEAVEDAUDIO = int;
 enum : int
 {
     KSPROPERTY_INTERLEAVEDAUDIO_FORMATINFORMATION = 0x00000001,
 }
-alias KSPROPERTY_INTERLEAVEDAUDIO = int;
 
+alias KSPROPERTY_SOUNDDETECTOR = int;
 enum : int
 {
     KSPROPERTY_SOUNDDETECTOR_SUPPORTEDPATTERNS = 0x00000001,
@@ -519,14 +545,14 @@ enum : int
     KSPROPERTY_SOUNDDETECTOR_RESET             = 0x00000005,
     KSPROPERTY_SOUNDDETECTOR_STREAMINGSUPPORT  = 0x00000006,
 }
-alias KSPROPERTY_SOUNDDETECTOR = int;
 
+alias KSEVENT_SOUNDDETECTOR = int;
 enum : int
 {
     KSEVENT_SOUNDDETECTOR_MATCHDETECTED = 0x00000001,
 }
-alias KSEVENT_SOUNDDETECTOR = int;
 
+alias KSPROPERTY_AUDIO = int;
 enum : int
 {
     KSPROPERTY_AUDIO_LATENCY                                  = 0x00000001,
@@ -590,8 +616,8 @@ enum : int
     KSPROPERTY_AUDIO_MIC_SNR                                  = 0x0000003b,
     KSPROPERTY_AUDIO_MIC_SENSITIVITY2                         = 0x0000003c,
 }
-alias KSPROPERTY_AUDIO = int;
 
+alias KSPROPERTY_TELEPHONY_CONTROL = int;
 enum : int
 {
     KSPROPERTY_TELEPHONY_PROVIDERID     = 0x00000000,
@@ -601,31 +627,31 @@ enum : int
     KSPROPERTY_TELEPHONY_CALLHOLD       = 0x00000004,
     KSPROPERTY_TELEPHONY_MUTE_TX        = 0x00000005,
 }
-alias KSPROPERTY_TELEPHONY_CONTROL = int;
 
+alias TELEPHONY_CALLTYPE = int;
 enum : int
 {
     TELEPHONY_CALLTYPE_CIRCUITSWITCHED     = 0x00000000,
     TELEPHONY_CALLTYPE_PACKETSWITCHED_LTE  = 0x00000001,
     TELEPHONY_CALLTYPE_PACKETSWITCHED_WLAN = 0x00000002,
 }
-alias TELEPHONY_CALLTYPE = int;
 
+alias TELEPHONY_CALLCONTROLOP = int;
 enum : int
 {
     TELEPHONY_CALLCONTROLOP_DISABLE = 0x00000000,
     TELEPHONY_CALLCONTROLOP_ENABLE  = 0x00000001,
 }
-alias TELEPHONY_CALLCONTROLOP = int;
 
+alias TELEPHONY_PROVIDERCHANGEOP = int;
 enum : int
 {
     TELEPHONY_PROVIDERCHANGEOP_END    = 0x00000000,
     TELEPHONY_PROVIDERCHANGEOP_BEGIN  = 0x00000001,
     TELEPHONY_PROVIDERCHANGEOP_CANCEL = 0x00000002,
 }
-alias TELEPHONY_PROVIDERCHANGEOP = int;
 
+alias TELEPHONY_CALLSTATE = int;
 enum : int
 {
     TELEPHONY_CALLSTATE_DISABLED           = 0x00000000,
@@ -633,35 +659,35 @@ enum : int
     TELEPHONY_CALLSTATE_HOLD               = 0x00000002,
     TELEPHONY_CALLSTATE_PROVIDERTRANSITION = 0x00000003,
 }
-alias TELEPHONY_CALLSTATE = int;
 
+alias KSPROPERTY_TELEPHONY_TOPOLOGY = int;
 enum : int
 {
     KSPROPERTY_TELEPHONY_ENDPOINTIDPAIR = 0x00000000,
     KSPROPERTY_TELEPHONY_VOLUME         = 0x00000001,
 }
-alias KSPROPERTY_TELEPHONY_TOPOLOGY = int;
 
+alias KSPROPERTY_FMRX_TOPOLOGY = int;
 enum : int
 {
     KSPROPERTY_FMRX_ENDPOINTID        = 0x00000000,
     KSPROPERTY_FMRX_VOLUME            = 0x00000001,
     KSPROPERTY_FMRX_ANTENNAENDPOINTID = 0x00000002,
 }
-alias KSPROPERTY_FMRX_TOPOLOGY = int;
 
+alias KSPROPERTY_FMRX_CONTROL = int;
 enum : int
 {
     KSPROPERTY_FMRX_STATE = 0x00000000,
 }
-alias KSPROPERTY_FMRX_CONTROL = int;
 
+alias KSEVENT_TELEPHONY = int;
 enum : int
 {
     KSEVENT_TELEPHONY_ENDPOINTPAIRS_CHANGED = 0x00000000,
 }
-alias KSEVENT_TELEPHONY = int;
 
+alias KSMETHOD_WAVETABLE = int;
 enum : int
 {
     KSMETHOD_WAVETABLE_WAVE_ALLOC = 0x00000000,
@@ -669,8 +695,8 @@ enum : int
     KSMETHOD_WAVETABLE_WAVE_FIND  = 0x00000002,
     KSMETHOD_WAVETABLE_WAVE_WRITE = 0x00000003,
 }
-alias KSMETHOD_WAVETABLE = int;
 
+alias KSPROPERTY_WAVE = int;
 enum : int
 {
     KSPROPERTY_WAVE_COMPATIBLE_CAPABILITIES = 0x00000000,
@@ -681,26 +707,26 @@ enum : int
     KSPROPERTY_WAVE_VOLUME                  = 0x00000005,
     KSPROPERTY_WAVE_PAN                     = 0x00000006,
 }
-alias KSPROPERTY_WAVE = int;
 
+alias KSPROPERTY_CYCLIC = int;
 enum : int
 {
     KSPROPERTY_CYCLIC_POSITION = 0x00000000,
 }
-alias KSPROPERTY_CYCLIC = int;
 
+alias KSEVENT_AUDIO_CONTROL_CHANGE = int;
 enum : int
 {
     KSEVENT_CONTROL_CHANGE = 0x00000000,
 }
-alias KSEVENT_AUDIO_CONTROL_CHANGE = int;
 
+alias KSEVENT_LOOPEDSTREAMING = int;
 enum : int
 {
     KSEVENT_LOOPEDSTREAMING_POSITION = 0x00000000,
 }
-alias KSEVENT_LOOPEDSTREAMING = int;
 
+alias KSPROPERTY_MPEG2VID = int;
 enum : int
 {
     KSPROPERTY_MPEG2VID_MODES        = 0x00000000,
@@ -709,8 +735,8 @@ enum : int
     KSPROPERTY_MPEG2VID_16_9_RECT    = 0x00000003,
     KSPROPERTY_MPEG2VID_16_9_PANSCAN = 0x00000004,
 }
-alias KSPROPERTY_MPEG2VID = int;
 
+alias KSPROPERTY_AC3 = int;
 enum : int
 {
     KSPROPERTY_AC3_ERROR_CONCEALMENT = 0x00000001,
@@ -721,23 +747,23 @@ enum : int
     KSPROPERTY_AC3_LANGUAGE_CODE     = 0x00000006,
     KSPROPERTY_AC3_ROOM_TYPE         = 0x00000007,
 }
-alias KSPROPERTY_AC3 = int;
 
+alias KSPROPERTY_AUDDECOUT = int;
 enum : int
 {
     KSPROPERTY_AUDDECOUT_MODES    = 0x00000000,
     KSPROPERTY_AUDDECOUT_CUR_MODE = 0x00000001,
 }
-alias KSPROPERTY_AUDDECOUT = int;
 
+alias KSPROPERTY_DVDSUBPIC = int;
 enum : int
 {
     KSPROPERTY_DVDSUBPIC_PALETTE     = 0x00000000,
     KSPROPERTY_DVDSUBPIC_HLI         = 0x00000001,
     KSPROPERTY_DVDSUBPIC_COMPOSIT_ON = 0x00000002,
 }
-alias KSPROPERTY_DVDSUBPIC = int;
 
+alias KSPROPERTY_COPYPROT = int;
 enum : int
 {
     KSPROPERTY_DVDCOPY_CHLG_KEY       = 0x00000001,
@@ -749,8 +775,8 @@ enum : int
     KSPROPERTY_DVDCOPY_SET_COPY_STATE = 0x00000007,
     KSPROPERTY_DVDCOPY_DISC_KEY       = 0x00000080,
 }
-alias KSPROPERTY_COPYPROT = int;
 
+alias KS_DVDCOPYSTATE = int;
 enum : int
 {
     KS_DVDCOPYSTATE_INITIALIZE                  = 0x00000000,
@@ -759,8 +785,8 @@ enum : int
     KS_DVDCOPYSTATE_AUTHENTICATION_REQUIRED     = 0x00000003,
     KS_DVDCOPYSTATE_DONE                        = 0x00000004,
 }
-alias KS_DVDCOPYSTATE = int;
 
+alias KS_COPY_MACROVISION_LEVEL = int;
 enum : int
 {
     KS_MACROVISION_DISABLED = 0x00000000,
@@ -768,8 +794,8 @@ enum : int
     KS_MACROVISION_LEVEL2   = 0x00000002,
     KS_MACROVISION_LEVEL3   = 0x00000003,
 }
-alias KS_COPY_MACROVISION_LEVEL = int;
 
+alias KS_MPEG2Level = int;
 enum : int
 {
     KS_MPEG2Level_Low      = 0x00000000,
@@ -777,8 +803,8 @@ enum : int
     KS_MPEG2Level_High1440 = 0x00000002,
     KS_MPEG2Level_High     = 0x00000003,
 }
-alias KS_MPEG2Level = int;
 
+alias KS_MPEG2Profile = int;
 enum : int
 {
     KS_MPEG2Profile_Simple            = 0x00000000,
@@ -787,14 +813,14 @@ enum : int
     KS_MPEG2Profile_SpatiallyScalable = 0x00000003,
     KS_MPEG2Profile_High              = 0x00000004,
 }
-alias KS_MPEG2Profile = int;
 
+alias KSPROPERTY_VBICAP = int;
 enum : int
 {
     KSPROPERTY_VBICAP_PROPERTIES_PROTECTION = 0x00000001,
 }
-alias KSPROPERTY_VBICAP = int;
 
+alias KSPROPERTY_VBICODECFILTERING = int;
 enum : int
 {
     KSPROPERTY_VBICODECFILTERING_SCANLINES_REQUESTED_BIT_ARRAY   = 0x00000001,
@@ -803,8 +829,8 @@ enum : int
     KSPROPERTY_VBICODECFILTERING_SUBSTREAMS_DISCOVERED_BIT_ARRAY = 0x00000004,
     KSPROPERTY_VBICODECFILTERING_STATISTICS                      = 0x00000005,
 }
-alias KSPROPERTY_VBICODECFILTERING = int;
 
+alias CAPTURE_MEMORY_ALLOCATION_FLAGS = int;
 enum : int
 {
     KS_CAPTURE_ALLOC_INVALID       = 0x00000000,
@@ -814,8 +840,8 @@ enum : int
     KS_CAPTURE_ALLOC_VRAM_MAPPED   = 0x00000008,
     KS_CAPTURE_ALLOC_SECURE_BUFFER = 0x00000010,
 }
-alias CAPTURE_MEMORY_ALLOCATION_FLAGS = int;
 
+alias KSPROPERTY_VIDMEM_TRANSPORT = int;
 enum : int
 {
     KSPROPERTY_DISPLAY_ADAPTER_GUID               = 0x00000001,
@@ -823,20 +849,20 @@ enum : int
     KSPROPERTY_CURRENT_CAPTURE_SURFACE            = 0x00000003,
     KSPROPERTY_MAP_CAPTURE_HANDLE_TO_VRAM_ADDRESS = 0x00000004,
 }
-alias KSPROPERTY_VIDMEM_TRANSPORT = int;
 
+alias KSPROPERTY_MPEG4_MEDIATYPE_ATTRIBUTES = int;
 enum : int
 {
     KSPROPERTY_MPEG4_MEDIATYPE_SD_BOX = 0x00000001,
 }
-alias KSPROPERTY_MPEG4_MEDIATYPE_ATTRIBUTES = int;
 
+alias KSEVENT_DYNAMICFORMATCHANGE = int;
 enum : int
 {
     KSEVENT_DYNAMIC_FORMAT_CHANGE = 0x00000000,
 }
-alias KSEVENT_DYNAMICFORMATCHANGE = int;
 
+alias KS_AnalogVideoStandard = int;
 enum : int
 {
     KS_AnalogVideo_None        = 0x00000000,
@@ -861,8 +887,8 @@ enum : int
     KS_AnalogVideo_SECAM_L1    = 0x00080000,
     KS_AnalogVideo_PAL_N_COMBO = 0x00100000,
 }
-alias KS_AnalogVideoStandard = int;
 
+alias KSPROPERTY_ALLOCATOR_CONTROL = int;
 enum : int
 {
     KSPROPERTY_ALLOCATOR_CONTROL_HONOR_COUNT        = 0x00000000,
@@ -870,8 +896,8 @@ enum : int
     KSPROPERTY_ALLOCATOR_CONTROL_CAPTURE_CAPS       = 0x00000002,
     KSPROPERTY_ALLOCATOR_CONTROL_CAPTURE_INTERLEAVE = 0x00000003,
 }
-alias KSPROPERTY_ALLOCATOR_CONTROL = int;
 
+alias KSPROPERTY_VIDCAP_VIDEOPROCAMP = int;
 enum : int
 {
     KSPROPERTY_VIDEOPROCAMP_BRIGHTNESS               = 0x00000000,
@@ -889,15 +915,15 @@ enum : int
     KSPROPERTY_VIDEOPROCAMP_WHITEBALANCE_COMPONENT   = 0x0000000c,
     KSPROPERTY_VIDEOPROCAMP_POWERLINE_FREQUENCY      = 0x0000000d,
 }
-alias KSPROPERTY_VIDCAP_VIDEOPROCAMP = int;
 
+alias KSPROPERTY_VIDCAP_SELECTOR = int;
 enum : int
 {
     KSPROPERTY_SELECTOR_SOURCE_NODE_ID = 0x00000000,
     KSPROPERTY_SELECTOR_NUM_SOURCES    = 0x00000001,
 }
-alias KSPROPERTY_VIDCAP_SELECTOR = int;
 
+alias KSPROPERTY_TUNER = int;
 enum : int
 {
     KSPROPERTY_TUNER_CAPS                  = 0x00000000,
@@ -913,8 +939,8 @@ enum : int
     KSPROPERTY_TUNER_STANDARD_MODE         = 0x0000000a,
     KSPROPERTY_TUNER_NETWORKTYPE_SCAN_CAPS = 0x0000000b,
 }
-alias KSPROPERTY_TUNER = int;
 
+alias KSPROPERTY_TUNER_MODES = int;
 enum : int
 {
     KSPROPERTY_TUNER_MODE_TV       = 0x00000001,
@@ -923,39 +949,39 @@ enum : int
     KSPROPERTY_TUNER_MODE_DSS      = 0x00000008,
     KSPROPERTY_TUNER_MODE_ATSC     = 0x00000010,
 }
-alias KSPROPERTY_TUNER_MODES = int;
 
+alias KS_TUNER_TUNING_FLAGS = int;
 enum : int
 {
     KS_TUNER_TUNING_EXACT  = 0x00000001,
     KS_TUNER_TUNING_FINE   = 0x00000002,
     KS_TUNER_TUNING_COARSE = 0x00000003,
 }
-alias KS_TUNER_TUNING_FLAGS = int;
 
+alias KS_TUNER_STRATEGY = int;
 enum : int
 {
     KS_TUNER_STRATEGY_PLL             = 0x00000001,
     KS_TUNER_STRATEGY_SIGNAL_STRENGTH = 0x00000002,
     KS_TUNER_STRATEGY_DRIVER_TUNES    = 0x00000004,
 }
-alias KS_TUNER_STRATEGY = int;
 
+alias _TunerDecoderLockType = int;
 enum : int
 {
     Tuner_LockType_None                      = 0x00000000,
     Tuner_LockType_Within_Scan_Sensing_Range = 0x00000001,
     Tuner_LockType_Locked                    = 0x00000002,
 }
-alias _TunerDecoderLockType = int;
 
+alias KSEVENT_TUNER = int;
 enum : int
 {
     KSEVENT_TUNER_CHANGED       = 0x00000000,
     KSEVENT_TUNER_INITIATE_SCAN = 0x00000001,
 }
-alias KSEVENT_TUNER = int;
 
+alias KSPROPERTY_VIDCAP_VIDEOENCODER = int;
 enum : int
 {
     KSPROPERTY_VIDEOENCODER_CAPS           = 0x00000000,
@@ -963,8 +989,8 @@ enum : int
     KSPROPERTY_VIDEOENCODER_COPYPROTECTION = 0x00000002,
     KSPROPERTY_VIDEOENCODER_CC_ENABLE      = 0x00000003,
 }
-alias KSPROPERTY_VIDCAP_VIDEOENCODER = int;
 
+alias KSPROPERTY_VIDCAP_VIDEODECODER = int;
 enum : int
 {
     KSPROPERTY_VIDEODECODER_CAPS          = 0x00000000,
@@ -974,29 +1000,29 @@ enum : int
     KSPROPERTY_VIDEODECODER_VCR_TIMING    = 0x00000004,
     KSPROPERTY_VIDEODECODER_STATUS2       = 0x00000005,
 }
-alias KSPROPERTY_VIDCAP_VIDEODECODER = int;
 
+alias KS_VIDEODECODER_FLAGS = int;
 enum : int
 {
     KS_VIDEODECODER_FLAGS_CAN_DISABLE_OUTPUT  = 0x00000001,
     KS_VIDEODECODER_FLAGS_CAN_USE_VCR_LOCKING = 0x00000002,
     KS_VIDEODECODER_FLAGS_CAN_INDICATE_LOCKED = 0x00000004,
 }
-alias KS_VIDEODECODER_FLAGS = int;
 
+alias KSEVENT_VIDEODECODER = int;
 enum : int
 {
     KSEVENT_VIDEODECODER_CHANGED = 0x00000000,
 }
-alias KSEVENT_VIDEODECODER = int;
 
+alias KSEVENT_CAMERACONTROL = int;
 enum : int
 {
     KSEVENT_CAMERACONTROL_FOCUS = 0x00000000,
     KSEVENT_CAMERACONTROL_ZOOM  = 0x00000001,
 }
-alias KSEVENT_CAMERACONTROL = int;
 
+alias KSPROPERTY_VIDCAP_CAMERACONTROL = int;
 enum : int
 {
     KSPROPERTY_CAMERACONTROL_PAN                    = 0x00000000,
@@ -1020,40 +1046,40 @@ enum : int
     KSPROPERTY_CAMERACONTROL_FOCAL_LENGTH           = 0x00000012,
     KSPROPERTY_CAMERACONTROL_AUTO_EXPOSURE_PRIORITY = 0x00000013,
 }
-alias KSPROPERTY_VIDCAP_CAMERACONTROL = int;
 
+alias KS_CameraControlAsyncOperation = int;
 enum : int
 {
     KS_CAMERACONTROL_ASYNC_START = 0x00000001,
     KS_CAMERACONTROL_ASYNC_STOP  = 0x00000002,
     KS_CAMERACONTROL_ASYNC_RESET = 0x00000003,
 }
-alias KS_CameraControlAsyncOperation = int;
 
+alias KSPROPERTY_CAMERACONTROL_FLASH = int;
 enum : int
 {
     KSPROPERTY_CAMERACONTROL_FLASH_PROPERTY_ID = 0x00000000,
 }
-alias KSPROPERTY_CAMERACONTROL_FLASH = int;
 
+alias KSPROPERTY_CAMERACONTROL_VIDEO_STABILIZATION_MODE = int;
 enum : int
 {
     KSPROPERTY_CAMERACONTROL_VIDEO_STABILIZATION_MODE_PROPERTY_ID = 0x00000000,
 }
-alias KSPROPERTY_CAMERACONTROL_VIDEO_STABILIZATION_MODE = int;
 
+alias KSPROPERTY_CAMERACONTROL_REGION_OF_INTEREST = int;
 enum : int
 {
     KSPROPERTY_CAMERACONTROL_REGION_OF_INTEREST_PROPERTY_ID = 0x00000000,
 }
-alias KSPROPERTY_CAMERACONTROL_REGION_OF_INTEREST = int;
 
+alias KSPROPERTY_CAMERACONTROL_IMAGE_PIN_CAPABILITY = int;
 enum : int
 {
     KSPROPERTY_CAMERACONTROL_IMAGE_PIN_CAPABILITY_PROPERTY_ID = 0x00000000,
 }
-alias KSPROPERTY_CAMERACONTROL_IMAGE_PIN_CAPABILITY = int;
 
+alias KSPROPERTY_CAMERACONTROL_EXTENDED_PROPERTY = int;
 enum : int
 {
     KSPROPERTY_CAMERACONTROL_EXTENDED_PHOTOMODE                 = 0x00000000,
@@ -1099,21 +1125,21 @@ enum : int
     KSPROPERTY_CAMERACONTROL_EXTENDED_END                       = 0x00000028,
     KSPROPERTY_CAMERACONTROL_EXTENDED_END2                      = 0x00000028,
 }
-alias KSPROPERTY_CAMERACONTROL_EXTENDED_PROPERTY = int;
 
+alias KSEVENT_CAMERAEVENT = int;
 enum : int
 {
     KSEVENT_PHOTO_SAMPLE_SCANNED = 0x00000000,
 }
-alias KSEVENT_CAMERAEVENT = int;
 
+alias KSCAMERA_EXTENDEDPROP_WHITEBALANCE_MODE = int;
 enum : int
 {
     KSCAMERA_EXTENDEDPROP_WHITEBALANCE_TEMPERATURE = 0x00000001,
     KSCAMERA_EXTENDEDPROP_WHITEBALANCE_PRESET      = 0x00000002,
 }
-alias KSCAMERA_EXTENDEDPROP_WHITEBALANCE_MODE = int;
 
+alias KSCAMERA_EXTENDEDPROP_WBPRESET = int;
 enum : int
 {
     KSCAMERA_EXTENDEDPROP_WBPRESET_CLOUDY      = 0x00000001,
@@ -1123,15 +1149,15 @@ enum : int
     KSCAMERA_EXTENDEDPROP_WBPRESET_TUNGSTEN    = 0x00000005,
     KSCAMERA_EXTENDEDPROP_WBPRESET_CANDLELIGHT = 0x00000006,
 }
-alias KSCAMERA_EXTENDEDPROP_WBPRESET = int;
 
+alias KSPROPERTY_CAMERA_PHOTOTRIGGERTIME_FLAGS = int;
 enum : int
 {
     KSPROPERTY_CAMERA_PHOTOTRIGGERTIME_CLEAR = 0x00000000,
     KSPROPERTY_CAMERA_PHOTOTRIGGERTIME_SET   = 0x00000001,
 }
-alias KSPROPERTY_CAMERA_PHOTOTRIGGERTIME_FLAGS = int;
 
+alias KSCAMERA_EXTENDEDPROP_MetadataAlignment = int;
 enum : int
 {
     KSCAMERA_EXTENDEDPROP_MetadataAlignment_16   = 0x00000004,
@@ -1145,8 +1171,8 @@ enum : int
     KSCAMERA_EXTENDEDPROP_MetadataAlignment_4096 = 0x0000000c,
     KSCAMERA_EXTENDEDPROP_MetadataAlignment_8192 = 0x0000000d,
 }
-alias KSCAMERA_EXTENDEDPROP_MetadataAlignment = int;
 
+alias KSCAMERA_MetadataId = int;
 enum : int
 {
     MetadataId_Standard_Start    = 0x00000001,
@@ -1159,8 +1185,8 @@ enum : int
     MetadataId_Standard_End      = 0x00000006,
     MetadataId_Custom_Start      = 0x80000000,
 }
-alias KSCAMERA_MetadataId = int;
 
+alias KSCAMERA_EXTENDEDPROP_FOCUSSTATE = int;
 enum : int
 {
     KSCAMERA_EXTENDEDPROP_FOCUSSTATE_UNINITIALIZED = 0x00000000,
@@ -1169,23 +1195,23 @@ enum : int
     KSCAMERA_EXTENDEDPROP_FOCUSSTATE_FOCUSED       = 0x00000003,
     KSCAMERA_EXTENDEDPROP_FOCUSSTATE_FAILED        = 0x00000004,
 }
-alias KSCAMERA_EXTENDEDPROP_FOCUSSTATE = int;
 
+alias KSCAMERA_EXTENDEDPROP_ROITYPE = int;
 enum : int
 {
     KSCAMERA_EXTENDEDPROP_ROITYPE_UNKNOWN = 0x00000000,
     KSCAMERA_EXTENDEDPROP_ROITYPE_FACE    = 0x00000001,
 }
-alias KSCAMERA_EXTENDEDPROP_ROITYPE = int;
 
+alias KSPROPERTY_CAMERACONTROL_PERFRAMESETTING_PROPERTY = int;
 enum : int
 {
     KSPROPERTY_CAMERACONTROL_PERFRAMESETTING_CAPABILITY = 0x00000000,
     KSPROPERTY_CAMERACONTROL_PERFRAMESETTING_SET        = 0x00000001,
     KSPROPERTY_CAMERACONTROL_PERFRAMESETTING_CLEAR      = 0x00000002,
 }
-alias KSPROPERTY_CAMERACONTROL_PERFRAMESETTING_PROPERTY = int;
 
+alias KSCAMERA_PERFRAMESETTING_ITEM_TYPE = int;
 enum : int
 {
     KSCAMERA_PERFRAMESETTING_ITEM_EXPOSURE_TIME         = 0x00000001,
@@ -1196,23 +1222,23 @@ enum : int
     KSCAMERA_PERFRAMESETTING_ITEM_PHOTOCONFIRMATION     = 0x00000006,
     KSCAMERA_PERFRAMESETTING_ITEM_CUSTOM                = 0x00000007,
 }
-alias KSCAMERA_PERFRAMESETTING_ITEM_TYPE = int;
 
+alias KSPROPERTY_NETWORKCAMERACONTROL_NTPINFO_TYPE = int;
 enum : int
 {
     KSPROPERTY_NETWORKCAMERACONTROL_NTPINFO_TYPE_DISABLE = 0x00000000,
     KSPROPERTY_NETWORKCAMERACONTROL_NTPINFO_TYPE_HOSTNTP = 0x00000001,
     KSPROPERYT_NETWORKCAMERACONTROL_NTPINFO_TYPE_CUSTOM  = 0x00000002,
 }
-alias KSPROPERTY_NETWORKCAMERACONTROL_NTPINFO_TYPE = int;
 
+alias KSPROPERTY_NETWORKCAMERACONTROL_PROPERTY = int;
 enum : int
 {
     KSPROPERTY_NETWORKCAMERACONTROL_NTP = 0x00000000,
     KSPROPERTY_NETWORKCAMERACONTROL_URI = 0x00000001,
 }
-alias KSPROPERTY_NETWORKCAMERACONTROL_PROPERTY = int;
 
+alias KSPROPERTY_EXTDEVICE = int;
 enum : int
 {
     KSPROPERTY_EXTDEVICE_ID           = 0x00000000,
@@ -1221,8 +1247,8 @@ enum : int
     KSPROPERTY_EXTDEVICE_PORT         = 0x00000003,
     KSPROPERTY_EXTDEVICE_CAPABILITIES = 0x00000004,
 }
-alias KSPROPERTY_EXTDEVICE = int;
 
+alias KSPROPERTY_EXTXPORT = int;
 enum : int
 {
     KSPROPERTY_EXTXPORT_CAPABILITIES       = 0x00000000,
@@ -1237,16 +1263,16 @@ enum : int
     KSPROPERTY_EXTXPORT_RTC_SEARCH         = 0x00000009,
     KSPROPERTY_RAW_AVC_CMD                 = 0x0000000a,
 }
-alias KSPROPERTY_EXTXPORT = int;
 
+alias KSPROPERTY_TIMECODE = int;
 enum : int
 {
     KSPROPERTY_TIMECODE_READER = 0x00000000,
     KSPROPERTY_ATN_READER      = 0x00000001,
     KSPROPERTY_RTC_READER      = 0x00000002,
 }
-alias KSPROPERTY_TIMECODE = int;
 
+alias KSEVENT_DEVCMD = int;
 enum : int
 {
     KSEVENT_EXTDEV_COMMAND_NOTIFY_INTERIM_READY  = 0x00000000,
@@ -1258,8 +1284,8 @@ enum : int
     KSEVENT_EXTDEV_NOTIFY_REMOVAL                = 0x00000006,
     KSEVENT_EXTDEV_NOTIFY_MEDIUM_CHANGE          = 0x00000007,
 }
-alias KSEVENT_DEVCMD = int;
 
+alias KSPROPERTY_VIDCAP_CROSSBAR = int;
 enum : int
 {
     KSPROPERTY_CROSSBAR_CAPS         = 0x00000000,
@@ -1268,14 +1294,14 @@ enum : int
     KSPROPERTY_CROSSBAR_ROUTE        = 0x00000003,
     KSPROPERTY_CROSSBAR_INPUT_ACTIVE = 0x00000004,
 }
-alias KSPROPERTY_VIDCAP_CROSSBAR = int;
 
+alias KSEVENT_CROSSBAR = int;
 enum : int
 {
     KSEVENT_CROSSBAR_CHANGED = 0x00000000,
 }
-alias KSEVENT_CROSSBAR = int;
 
+alias KS_PhysicalConnectorType = int;
 enum : int
 {
     KS_PhysConn_Video_Tuner           = 0x00000001,
@@ -1303,22 +1329,22 @@ enum : int
     KS_PhysConn_Audio_USB             = 0x00001008,
     KS_PhysConn_Audio_AudioDecoder    = 0x00001009,
 }
-alias KS_PhysicalConnectorType = int;
 
+alias KSPROPERTY_VIDCAP_TVAUDIO = int;
 enum : int
 {
     KSPROPERTY_TVAUDIO_CAPS                      = 0x00000000,
     KSPROPERTY_TVAUDIO_MODE                      = 0x00000001,
     KSPROPERTY_TVAUDIO_CURRENTLY_AVAILABLE_MODES = 0x00000002,
 }
-alias KSPROPERTY_VIDCAP_TVAUDIO = int;
 
+alias KSEVENT_TVAUDIO = int;
 enum : int
 {
     KSEVENT_TVAUDIO_CHANGED = 0x00000000,
 }
-alias KSEVENT_TVAUDIO = int;
 
+alias KSPROPERTY_VIDCAP_VIDEOCOMPRESSION = int;
 enum : int
 {
     KSPROPERTY_VIDEOCOMPRESSION_GETINFO              = 0x00000000,
@@ -1329,8 +1355,8 @@ enum : int
     KSPROPERTY_VIDEOCOMPRESSION_OVERRIDE_FRAME_SIZE  = 0x00000005,
     KSPROPERTY_VIDEOCOMPRESSION_WINDOWSIZE           = 0x00000006,
 }
-alias KSPROPERTY_VIDCAP_VIDEOCOMPRESSION = int;
 
+alias KS_CompressionCaps = int;
 enum : int
 {
     KS_CompressionCaps_CanQuality  = 0x00000001,
@@ -1339,8 +1365,8 @@ enum : int
     KS_CompressionCaps_CanBFrame   = 0x00000008,
     KS_CompressionCaps_CanWindow   = 0x00000010,
 }
-alias KS_CompressionCaps = int;
 
+alias KS_VideoStreamingHints = int;
 enum : int
 {
     KS_StreamingHint_FrameInterval  = 0x00000100,
@@ -1349,8 +1375,8 @@ enum : int
     KS_StreamingHint_CompQuality    = 0x00000800,
     KS_StreamingHint_CompWindowSize = 0x00001000,
 }
-alias KS_VideoStreamingHints = int;
 
+alias KSPROPERTY_OVERLAYUPDATE = int;
 enum : int
 {
     KSPROPERTY_OVERLAYUPDATE_INTERESTS     = 0x00000000,
@@ -1361,8 +1387,8 @@ enum : int
     KSPROPERTY_OVERLAYUPDATE_DISPLAYCHANGE = 0x00000010,
     KSPROPERTY_OVERLAYUPDATE_COLORREF      = 0x10000000,
 }
-alias KSPROPERTY_OVERLAYUPDATE = int;
 
+alias KSPROPERTY_VIDCAP_VIDEOCONTROL = int;
 enum : int
 {
     KSPROPERTY_VIDEOCONTROL_CAPS              = 0x00000000,
@@ -1370,8 +1396,8 @@ enum : int
     KSPROPERTY_VIDEOCONTROL_FRAME_RATES       = 0x00000002,
     KSPROPERTY_VIDEOCONTROL_MODE              = 0x00000003,
 }
-alias KSPROPERTY_VIDCAP_VIDEOCONTROL = int;
 
+alias KS_VideoControlFlags = int;
 enum : int
 {
     KS_VideoControlFlag_FlipHorizontal                 = 0x00000001,
@@ -1385,14 +1411,14 @@ enum : int
     KS_VideoControlFlag_StartPhotoSequenceCapture      = 0x00000100,
     KS_VideoControlFlag_StopPhotoSequenceCapture       = 0x00000200,
 }
-alias KS_VideoControlFlags = int;
 
+alias KSPROPERTY_VIDCAP_DROPPEDFRAMES = int;
 enum : int
 {
     KSPROPERTY_DROPPEDFRAMES_CURRENT = 0x00000000,
 }
-alias KSPROPERTY_VIDCAP_DROPPEDFRAMES = int;
 
+alias KSPROPERTY_VPCONFIG = int;
 enum : int
 {
     KSPROPERTY_VPCONFIG_NUMCONNECTINFO       = 0x00000000,
@@ -1412,8 +1438,8 @@ enum : int
     KSPROPERTY_VPCONFIG_DDRAWSURFACEHANDLE   = 0x0000000e,
     KSPROPERTY_VPCONFIG_SURFACEPARAMS        = 0x0000000f,
 }
-alias KSPROPERTY_VPCONFIG = int;
 
+alias KS_AMPixAspectRatio = int;
 enum : int
 {
     KS_PixAspectRatio_NTSC4x3  = 0x00000000,
@@ -1421,16 +1447,16 @@ enum : int
     KS_PixAspectRatio_PAL4x3   = 0x00000002,
     KS_PixAspectRatio_PAL16x9  = 0x00000003,
 }
-alias KS_AMPixAspectRatio = int;
 
+alias KS_AMVP_SELECTFORMATBY = int;
 enum : int
 {
     KS_AMVP_DO_NOT_CARE          = 0x00000000,
     KS_AMVP_BEST_BANDWIDTH       = 0x00000001,
     KS_AMVP_INPUT_SAME_AS_OUTPUT = 0x00000002,
 }
-alias KS_AMVP_SELECTFORMATBY = int;
 
+alias KS_AMVP_MODE = int;
 enum : int
 {
     KS_AMVP_MODE_WEAVE             = 0x00000000,
@@ -1439,36 +1465,36 @@ enum : int
     KS_AMVP_MODE_SKIPEVEN          = 0x00000003,
     KS_AMVP_MODE_SKIPODD           = 0x00000004,
 }
-alias KS_AMVP_MODE = int;
 
+alias KSEVENT_VPNOTIFY = int;
 enum : int
 {
     KSEVENT_VPNOTIFY_FORMATCHANGE = 0x00000000,
 }
-alias KSEVENT_VPNOTIFY = int;
 
+alias KSEVENT_VIDCAPTOSTI = int;
 enum : int
 {
     KSEVENT_VIDCAPTOSTI_EXT_TRIGGER = 0x00000000,
     KSEVENT_VIDCAP_AUTO_UPDATE      = 0x00000001,
     KSEVENT_VIDCAP_SEARCH           = 0x00000002,
 }
-alias KSEVENT_VIDCAPTOSTI = int;
 
+alias KSPROPERTY_EXTENSION_UNIT = int;
 enum : int
 {
     KSPROPERTY_EXTENSION_UNIT_INFO         = 0x00000000,
     KSPROPERTY_EXTENSION_UNIT_CONTROL      = 0x00000001,
     KSPROPERTY_EXTENSION_UNIT_PASS_THROUGH = 0x0000ffff,
 }
-alias KSPROPERTY_EXTENSION_UNIT = int;
 
+alias KSEVENT_VPVBINOTIFY = int;
 enum : int
 {
     KSEVENT_VPVBINOTIFY_FORMATCHANGE = 0x00000000,
 }
-alias KSEVENT_VPVBINOTIFY = int;
 
+alias KS_AM_PROPERTY_TS_RATE_CHANGE = int;
 enum : int
 {
     KS_AM_RATE_SimpleRateChange = 0x00000001,
@@ -1476,8 +1502,8 @@ enum : int
     KS_AM_RATE_MaxFullDataRate  = 0x00000003,
     KS_AM_RATE_Step             = 0x00000004,
 }
-alias KS_AM_PROPERTY_TS_RATE_CHANGE = int;
 
+alias KSPROPERTY_JACK = int;
 enum : int
 {
     KSPROPERTY_JACK_DESCRIPTION  = 0x00000001,
@@ -1485,7 +1511,6 @@ enum : int
     KSPROPERTY_JACK_SINK_INFO    = 0x00000003,
     KSPROPERTY_JACK_CONTAINERID  = 0x00000004,
 }
-alias KSPROPERTY_JACK = int;
 
 enum EPcxConnectionType : int
 {
@@ -1540,19 +1565,24 @@ enum EPxcPortConnection : int
     ePortConnUnknown               = 0x00000003,
 }
 
+///The <b>KSJACK_SINK_CONNECTIONTYPE</b> enumeration defines constants that specify the type of connection. These values
+///are used in the KSJACK_SINK_INFORMATION structure that stores information about an audio jack sink.
+alias KSJACK_SINK_CONNECTIONTYPE = int;
 enum : int
 {
+    ///High-Definition Multimedia Interface (HDMI) connection.
     KSJACK_SINK_CONNECTIONTYPE_HDMI        = 0x00000000,
+    ///Display port.
     KSJACK_SINK_CONNECTIONTYPE_DISPLAYPORT = 0x00000001,
 }
-alias KSJACK_SINK_CONNECTIONTYPE = int;
 
+alias KSPROPERTY_AUDIOPOSTURE = int;
 enum : int
 {
     KSPROPERTY_AUDIOPOSTURE_DESCRIPTION = 0x00000001,
 }
-alias KSPROPERTY_AUDIOPOSTURE = int;
 
+alias AUDIOPOSTURE_PANEL_ORIENTATION = int;
 enum : int
 {
     AUDIOPOSTURE_PANEL_ORIENTATION_NOTROTATED                        = 0x00000000,
@@ -1563,22 +1593,22 @@ enum : int
     AUDIOPOSTURE_PANEL_ORIENTATION_FACEDOWN                          = 0x00000005,
     AUDIOPOSTURE_PANEL_ORIENTATION_COUNT                             = 0x00000006,
 }
-alias AUDIOPOSTURE_PANEL_ORIENTATION = int;
 
+alias AUDIOPOSTURE_PANEL_POWER = int;
 enum : int
 {
     AUDIOPOSTURE_PANEL_POWER_OFF = 0x00000000,
     AUDIOPOSTURE_PANEL_POWER_ON  = 0x00000001,
 }
-alias AUDIOPOSTURE_PANEL_POWER = int;
 
+alias AUDIOPOSTURE_MEMBER_FLAGS = int;
 enum : int
 {
     AUDIOPOSTURE_MEMBER_FLAGS_HINGEANGLE = 0x00000001,
     AUDIOPOSTURE_MEMBER_FLAGS_PANELSTATE = 0x00000002,
 }
-alias AUDIOPOSTURE_MEMBER_FLAGS = int;
 
+alias KSPROPERTY_AUDIOENGINE = int;
 enum : int
 {
     KSPROPERTY_AUDIOENGINE_LFXENABLE              = 0x00000000,
@@ -1591,142 +1621,240 @@ enum : int
     KSPROPERTY_AUDIOENGINE_LOOPBACK_PROTECTION    = 0x00000008,
     KSPROPERTY_AUDIOENGINE_VOLUMELEVEL            = 0x00000009,
 }
-alias KSPROPERTY_AUDIOENGINE = int;
 
+alias AUDIO_CURVE_TYPE = int;
 enum : int
 {
     AUDIO_CURVE_TYPE_NONE         = 0x00000000,
     AUDIO_CURVE_TYPE_WINDOWS_FADE = 0x00000001,
 }
-alias AUDIO_CURVE_TYPE = int;
 
+alias KSPROPERTY_AUDIOSIGNALPROCESSING = int;
 enum : int
 {
     KSPROPERTY_AUDIOSIGNALPROCESSING_MODES = 0x00000000,
 }
-alias KSPROPERTY_AUDIOSIGNALPROCESSING = int;
 
+alias KSPROPERTY_AUDIOMODULE = int;
 enum : int
 {
     KSPROPERTY_AUDIOMODULE_DESCRIPTORS            = 0x00000001,
     KSPROPERTY_AUDIOMODULE_COMMAND                = 0x00000002,
     KSPROPERTY_AUDIOMODULE_NOTIFICATION_DEVICE_ID = 0x00000003,
 }
-alias KSPROPERTY_AUDIOMODULE = int;
 
+///The <b>_AUDCLNT_BUFFERFLAGS</b> enumeration defines flags that indicate the status of an audio endpoint buffer.
+alias _AUDCLNT_BUFFERFLAGS = int;
 enum : int
 {
+    ///The data in the packet is not correlated with the previous packet's device position; this is possibly due to a
+    ///stream state transition or timing glitch.
     AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY = 0x00000001,
+    ///Treat all of the data in the packet as silence and ignore the actual data values. For more information about the
+    ///use of this flag, see Rendering a Stream and Capturing a Stream.
     AUDCLNT_BUFFERFLAGS_SILENT             = 0x00000002,
+    ///The time at which the device's stream position was recorded is uncertain. Thus, the client might be unable to
+    ///accurately set the time stamp for the current data packet.
     AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR    = 0x00000004,
 }
-alias _AUDCLNT_BUFFERFLAGS = int;
 
+///Defines values that describe the characteristics of an audio stream.
+alias AUDCLNT_STREAMOPTIONS = int;
 enum : int
 {
+    ///No stream options.
     AUDCLNT_STREAMOPTIONS_NONE         = 0x00000000,
+    ///The audio stream is a 'raw' stream that bypasses all signal processing except for endpoint specific, always-on
+    ///processing in the Audio Processing Object (APO), driver, and hardware.
     AUDCLNT_STREAMOPTIONS_RAW          = 0x00000001,
+    ///The audio client is requesting that the audio engine match the format proposed by the client. The audio engine
+    ///will match this format only if the format is supported by the audio driver and associated APOs. Supported in
+    ///Windows 10 and later.
     AUDCLNT_STREAMOPTIONS_MATCH_FORMAT = 0x00000002,
     AUDCLNT_STREAMOPTIONS_AMBISONICS   = 0x00000004,
 }
-alias AUDCLNT_STREAMOPTIONS = int;
 
+alias AMBISONICS_TYPE = int;
 enum : int
 {
     AMBISONICS_TYPE_FULL3D = 0x00000000,
 }
-alias AMBISONICS_TYPE = int;
 
+alias AMBISONICS_CHANNEL_ORDERING = int;
 enum : int
 {
     AMBISONICS_CHANNEL_ORDERING_ACN = 0x00000000,
 }
-alias AMBISONICS_CHANNEL_ORDERING = int;
 
+alias AMBISONICS_NORMALIZATION = int;
 enum : int
 {
     AMBISONICS_NORMALIZATION_SN3D = 0x00000000,
     AMBISONICS_NORMALIZATION_N3D  = 0x00000001,
 }
-alias AMBISONICS_NORMALIZATION = int;
 
+///Specifies the type of an ISpatialAudioObject. A spatial audio object can be dynamic, meaning that it's spatial
+///properties can change over time, or static, which means that its spatial properties are fixed. There are 17 audio
+///channels to which a static spatial audio object can be assigned, each representing a real or virtualized speaker. The
+///static channel values of the enumeration can be combined as a mask to assign a spatial audio object to multiple
+///channels. All of the enumeration values except for <b>AudioObjectType_None</b> and <b>AudioObjectType_Dynamic</b>
+///represent static channels.
 enum AudioObjectType : int
 {
+    ///The spatial audio object is not spatialized.
     AudioObjectType_None             = 0x00000000,
+    ///The spatial audio object is dynamic. It's spatial properties can be changed over time.
     AudioObjectType_Dynamic          = 0x00000001,
+    ///The spatial audio object is assigned the front left channel. The equivalent channel mask of DirectShow's
+    ///WAVEFORMATEXTENSIBLE enumeration is SPEAKER_FRONT_LEFT.
     AudioObjectType_FrontLeft        = 0x00000002,
+    ///The spatial audio object is assigned the front right channel. The equivalent channel mask of DirectShow's
+    ///WAVEFORMATEXTENSIBLE enumeration is SPEAKER_FRONT_RIGHT.
     AudioObjectType_FrontRight       = 0x00000004,
+    ///The spatial audio object is assigned the front center channel. The equivalent channel mask of DirectShow's
+    ///WAVEFORMATEXTENSIBLE enumeration is SPEAKER_FRONT_CENTER.
     AudioObjectType_FrontCenter      = 0x00000008,
+    ///The spatial audio object is assigned the low frequency channel. Because this channel is not spatialized, it does
+    ///not count toward the system resource limits for spatialized audio objects. The equivalent channel mask of
+    ///DirectShow's WAVEFORMATEXTENSIBLE enumeration is SPEAKER_LOW_FREQUENCY.
     AudioObjectType_LowFrequency     = 0x00000010,
+    ///The spatial audio object is assigned the side left channel. The equivalent channel mask of DirectShow's
+    ///WAVEFORMATEXTENSIBLE enumeration is SPEAKER_SIDE_LEFT.
     AudioObjectType_SideLeft         = 0x00000020,
+    ///The spatial audio object is assigned the side right channel. The equivalent channel mask of DirectShow's
+    ///WAVEFORMATEXTENSIBLE enumeration is SPEAKER_SIDE_RIGHT.
     AudioObjectType_SideRight        = 0x00000040,
+    ///The spatial audio object is assigned the back left channel. The equivalent channel mask of DirectShow's
+    ///WAVEFORMATEXTENSIBLE enumeration is SPEAKER_BACK_LEFT.
     AudioObjectType_BackLeft         = 0x00000080,
+    ///The spatial audio object is assigned the back right channel. The equivalent channel mask of DirectShow's
+    ///WAVEFORMATEXTENSIBLE enumeration is SPEAKER_BACK_RIGHT.
     AudioObjectType_BackRight        = 0x00000100,
+    ///The spatial audio object is assigned the top front left channel. The equivalent channel mask of DirectShow's
+    ///WAVEFORMATEXTENSIBLE enumeration is SPEAKER_TOP_FRONT_LEFT.
     AudioObjectType_TopFrontLeft     = 0x00000200,
+    ///The spatial audio object is assigned the top front right channel. The equivalent channel mask of DirectShow's
+    ///WAVEFORMATEXTENSIBLE enumeration is SPEAKER_TOP_FRONT_RIGHT.
     AudioObjectType_TopFrontRight    = 0x00000400,
+    ///The spatial audio object is assigned the top back left channel. The equivalent channel mask of DirectShow's
+    ///WAVEFORMATEXTENSIBLE enumeration is SPEAKER_TOP_BACK_LEFT.
     AudioObjectType_TopBackLeft      = 0x00000800,
+    ///The spatial audio object is assigned the top back right channel. The equivalent channel mask of DirectShow's
+    ///WAVEFORMATEXTENSIBLE enumeration is SPEAKER_TOP_BACK_RIGHT.
     AudioObjectType_TopBackRight     = 0x00001000,
+    ///The spatial audio object is assigned the bottom front left channel.
     AudioObjectType_BottomFrontLeft  = 0x00002000,
+    ///The spatial audio object is assigned the bottom front right channel.
     AudioObjectType_BottomFrontRight = 0x00004000,
+    ///The spatial audio object is assigned the bottom back left channel.
     AudioObjectType_BottomBackLeft   = 0x00008000,
+    ///The spatial audio object is assigned the bottom back right channel.
     AudioObjectType_BottomBackRight  = 0x00010000,
     AudioObjectType_BackCenter       = 0x00020000,
 }
 
+///Specifies the shape in which sound is emitted by an ISpatialAudioObjectForHrtf.
 enum SpatialAudioHrtfDirectivityType : int
 {
+    ///The sound is emitted in all directions.
     SpatialAudioHrtfDirectivity_OmniDirectional = 0x00000000,
+    ///The sound is emitted in a cardioid shape.
     SpatialAudioHrtfDirectivity_Cardioid        = 0x00000001,
     SpatialAudioHrtfDirectivity_Cone            = 0x00000002,
 }
 
+///Specifies the type of acoustic environment that is simulated when audio is processed for an
+///ISpatialAudioObjectForHrtf.
 enum SpatialAudioHrtfEnvironmentType : int
 {
+    ///A small room.
     SpatialAudioHrtfEnvironment_Small    = 0x00000000,
+    ///A medium-sized room.
     SpatialAudioHrtfEnvironment_Medium   = 0x00000001,
+    ///A large room.
     SpatialAudioHrtfEnvironment_Large    = 0x00000002,
+    ///An outdoor space.
     SpatialAudioHrtfEnvironment_Outdoors = 0x00000003,
     SpatialAudioHrtfEnvironment_Average  = 0x00000004,
 }
 
+///Specifies the type of decay applied over distance from the position of an ISpatialAudioObjectForHrtf to the position
+///of the listener.
 enum SpatialAudioHrtfDistanceDecayType : int
 {
+    ///A natural decay over distance, as constrained by minimum and maximum gain distance limits. The output drops to
+    ///silent at the distance specified by SpatialAudioHrtfDistanceDecay.CutoffDistance.
     SpatialAudioHrtfDistanceDecay_NaturalDecay = 0x00000000,
     SpatialAudioHrtfDistanceDecay_CustomDecay  = 0x00000001,
 }
 
+///The <b>EDataFlow</b> enumeration defines constants that indicate the direction in which audio data flows between an
+///audio endpoint device and an application.
 enum EDataFlow : int
 {
+    ///Audio rendering stream. Audio data flows from the application to the audio endpoint device, which renders the
+    ///stream.
     eRender              = 0x00000000,
+    ///Audio capture stream. Audio data flows from the audio endpoint device that captures the stream, to the
+    ///application.
     eCapture             = 0x00000001,
+    ///Audio rendering or capture stream. Audio data can flow either from the application to the audio endpoint device,
+    ///or from the audio endpoint device to the application.
     eAll                 = 0x00000002,
+    ///The number of members in the EDataFlow enumeration (not counting the EDataFlow_enum_count member).
     EDataFlow_enum_count = 0x00000003,
 }
 
+///The <b>ERole</b> enumeration defines constants that indicate the role that the system has assigned to an audio
+///endpoint device.
 enum ERole : int
 {
+    ///Games, system notification sounds, and voice commands.
     eConsole         = 0x00000000,
+    ///Music, movies, narration, and live music recording.
     eMultimedia      = 0x00000001,
+    ///Voice communications (talking to another person).
     eCommunications  = 0x00000002,
+    ///The number of members in the ERole enumeration (not counting the ERole_enum_count member).
     ERole_enum_count = 0x00000003,
 }
 
+///The <b>EndpointFormFactor</b> enumeration defines constants that indicate the general physical attributes of an audio
+///endpoint device.
 enum EndpointFormFactor : int
 {
+    ///An audio endpoint device that the user accesses remotely through a network.
     RemoteNetworkDevice           = 0x00000000,
+    ///A set of speakers.
     Speakers                      = 0x00000001,
+    ///An audio endpoint device that sends a line-level analog signal to a line-input jack on an audio adapter or that
+    ///receives a line-level analog signal from a line-output jack on the adapter.
     LineLevel                     = 0x00000002,
+    ///A set of headphones.
     Headphones                    = 0x00000003,
+    ///A microphone.
     Microphone                    = 0x00000004,
+    ///An earphone or a pair of earphones with an attached mouthpiece for two-way communication.
     Headset                       = 0x00000005,
+    ///The part of a telephone that is held in the hand and that contains a speaker and a microphone for two-way
+    ///communication.
     Handset                       = 0x00000006,
+    ///An audio endpoint device that connects to an audio adapter through a connector for a digital interface of unknown
+    ///type that transmits non-PCM data in digital pass-through mode. For more information, see Remarks.
     UnknownDigitalPassthrough     = 0x00000007,
+    ///An audio endpoint device that connects to an audio adapter through a Sony/Philips Digital Interface (S/PDIF)
+    ///connector.
     SPDIF                         = 0x00000008,
+    ///An audio endpoint device that connects to an audio adapter through a High-Definition Multimedia Interface (HDMI)
+    ///connector or a display port. In <b>Windows Vista</b>, this value was named HDMI.
     DigitalAudioDisplayDevice     = 0x00000009,
+    ///An audio endpoint device with unknown physical attributes.
     UnknownFormFactor             = 0x0000000a,
+    ///Windows 7: Maximum number of endpoint form factors.
     EndpointFormFactor_enum_count = 0x0000000b,
 }
 
+alias __MIDL___MIDL_itf_audioengineendpoint_0000_0000_0001 = int;
 enum : int
 {
     eHostProcessConnector     = 0x00000000,
@@ -1735,27 +1863,50 @@ enum : int
     eKeywordDetectorConnector = 0x00000003,
     eConnectorCount           = 0x00000004,
 }
-alias __MIDL___MIDL_itf_audioengineendpoint_0000_0000_0001 = int;
 
+///The <b>DataFlow</b> enumeration indicates the data-flow direction of an audio stream through a connector.
 enum DataFlow : int
 {
+    ///Input stream. The audio stream flows into the device through the connector.
     In      = 0x00000000,
+    ///Output stream. The audio stream flows out of the device through the connector.
     Out     = 0x00000001,
 }
 
+///The <b>PartType</b> enumeration defines constants that indicate whether a part in a device topology is a connector or
+///subunit.
 enum PartType : int
 {
+    ///The part is a connector. A connector can represent an audio jack, an internal connection to an integrated
+    ///endpoint device, or a software connection implemented through DMA transfers. For more information about connector
+    ///types, see ConnectorType Enumeration.
     Connector = 0x00000000,
+    ///The part is a subunit. A subunit is an audio-processing node in a device topology. A subunit frequently has one
+    ///or more hardware control parameters that can be set under program control. For example, an audio application can
+    ///change the volume setting of a volume-control subunit.
     Subunit   = 0x00000001,
 }
 
+///The <b>ConnectorType</b> enumeration indicates the type of connection that a connector is part of.
 enum ConnectorType : int
 {
+    ///The connector is part of a connection of unknown type.
     Unknown_Connector = 0x00000000,
+    ///The connector is part of a physical connection to an auxiliary device that is installed inside the system chassis
+    ///(for example, a connection to the analog output of an internal CD player, or to a built-in microphone or built-in
+    ///speakers in a laptop computer).
     Physical_Internal = 0x00000001,
+    ///The connector is part of a physical connection to an external device. That is, the connector is a user-accessible
+    ///jack that connects to a microphone, speakers, headphones, S/PDIF input or output device, or line input or output
+    ///device.
     Physical_External = 0x00000002,
+    ///The connector is part of a software-configured I/O connection (typically a DMA channel) between system memory and
+    ///an audio hardware device on an audio adapter.
     Software_IO       = 0x00000003,
+    ///The connector is part of a permanent connection that is fixed and cannot be configured under software control.
+    ///This type of connection is typically used to connect two audio hardware devices that reside on the same adapter.
     Software_Fixed    = 0x00000004,
+    ///The connector is part of a connection to a network.
     Network           = 0x00000005,
 }
 
@@ -1769,17 +1920,29 @@ enum AudioSessionDisconnectReason : int
     DisconnectReasonExclusiveModeOverride = 0x00000005,
 }
 
+///Specifies the desired behavior when an ISpatialAudioMetadataWriter attempts to write more items into the metadata
+///buffer than was specified when the client was initialized.
 enum SpatialAudioMetadataWriterOverflowMode : int
 {
+    ///The write operation will fail.
     SpatialAudioMetadataWriterOverflow_Fail          = 0x00000000,
+    ///The write operation will succeed, the overflow item will be merged with previous item and adopt the frame offset
+    ///of newest item.
     SpatialAudioMetadataWriterOverflow_MergeWithNew  = 0x00000001,
     SpatialAudioMetadataWriterOverflow_MergeWithLast = 0x00000002,
 }
 
+///Specifies the copy mode used when calling ISpatialAudioMetadataCopier::CopyMetadataForFrames.
 enum SpatialAudioMetadataCopyMode : int
 {
+    ///Creates a direct copy of the number of metadata items specified with the <i>copyFrameCount</i> parameter into
+    ///destination buffer, overwriting any previously existing data.
     SpatialAudioMetadataCopy_Overwrite            = 0x00000000,
+    ///Performs an append operation which will fail if the resulting ISpatialAudioMetadataItemsBuffer has too many
+    ///items.
     SpatialAudioMetadataCopy_Append               = 0x00000001,
+    ///Performs an append operation, and if overflow occurs, extra items are merged into last item, adopting last merged
+    ///item's offset value.
     SpatialAudioMetadataCopy_AppendMergeWithLast  = 0x00000002,
     SpatialAudioMetadataCopy_AppendMergeWithFirst = 0x00000003,
 }
@@ -4977,33 +5140,106 @@ struct KS_AM_ExactRateChange
     int  Rate;
 }
 
+///The <b>KSJACK_DESCRIPTION</b> structure describes an audio jack.
 struct KSJACK_DESCRIPTION
 {
+    ///Specifies the mapping of the two audio channels in a stereo jack to speaker positions. In Windows Vista, the
+    ///value of this member is one of the <b>EChannelMapping</b> enumeration values shown in the following table.<table>
+    ///<tr> <th>Value</th> <th>First channel</th> <th>Second channel</th> </tr> <tr> <td>ePcxChanMap_FL_FR</td>
+    ///<td>Front-left speaker</td> <td>Front-right speaker</td> </tr> <tr> <td>ePcxChanMap_FC_LFE</td> <td>Front-center
+    ///speaker</td> <td>Low-frequency-effects speaker (subwoofer)</td> </tr> <tr> <td>ePcxChanMap_BL_BR</td>
+    ///<td>Back-left speaker</td> <td>Back-right speakers</td> </tr> <tr> <td>ePcxChanMap_FLC_FRC</td>
+    ///<td>Front-left-center speaker</td> <td>Front-right-center speaker</td> </tr> <tr> <td>ePcxChanMap_SL_SR</td>
+    ///<td>Side-left speaker</td> <td>Side-right speaker</td> </tr> <tr> <td>ePcxChanMap_Unknown</td> <td>Unknown</td>
+    ///<td>Unknown</td> </tr> </table> </p>For a physical connector with one, three, or more channels, the value of this
+    ///member is ePcxChanMap_Unknown. In Windows 7, the <b>EChannelMapping</b>enumeration has been deprecated. The
+    ///datatype of this member is a <b>DWORD</b>. This member stores either 0 or the bitwise-OR combination of one or
+    ///more of the following values that are defined in Ksmedia.h. <pre class="syntax" xml:space="preserve"><code>
     uint               ChannelMapping;
+    ///The jack color. The color is expressed as a 32-bit RGB value that is formed by concatenating the 8-bit blue,
+    ///green, and red color components. The blue component occupies the 8 least-significant bits (bits 0-7), the green
+    ///component occupies bits 8-15, and the red component occupies bits 16-23. The 8 most-significant bits are zeros.
+    ///If the jack color is unknown or the physical connector has no identifiable color, the value of this member is
+    ///0x00000000, which is black.
     uint               Color;
+    ///The connection type. The value of this member is one of the <b>EPcxConnectionType</b> enumeration values shown in
+    ///the following table. <table> <tr> <th>Value</th> <th>Connector type</th> </tr> <tr> <td>eConnTypeUnknown</td>
+    ///<td>Unknown</td> </tr> <tr> <td> eConnTypeEighth (Windows Vista) eConnType3Point5mm</p> (Windows 7) </td>
+    ///<td>1/8-inch jack</td> </tr> <tr> <td>eConnTypeQuarter</td> <td>1/4-inch jack</td> </tr> <tr>
+    ///<td>eConnTypeAtapiInternal</td> <td>ATAPI internal connector</td> </tr> <tr> <td>eConnTypeRCA</td> <td>RCA
+    ///jack</td> </tr> <tr> <td>eConnTypeOptical</td> <td>Optical connector</td> </tr> <tr>
+    ///<td>eConnTypeOtherDigital</td> <td>Generic digital connector</td> </tr> <tr> <td>eConnTypeOtherAnalog</td>
+    ///<td>Generic analog connector</td> </tr> <tr> <td>eConnTypeMultichannelAnalogDIN</td> <td>Multichannel analog DIN
+    ///connector</td> </tr> <tr> <td>eConnTypeXlrProfessional</td> <td>XLR connector</td> </tr> <tr>
+    ///<td>eConnTypeRJ11Modem</td> <td>RJ11 modem connector</td> </tr> <tr> <td>eConnTypeCombination</td>
+    ///<td>Combination of connector types</td> </tr> </table>
     EPcxConnectionType ConnectionType;
+    ///The geometric location of the jack. The value of this member is one of the <b>EPcxGeoLocation</b> enumeration
+    ///values shown in the following table. <table> <tr> <th>Value</th> <th>Geometric location</th> </tr> <tr>
+    ///<td>eGeoLocRear</td> <td>Rear-mounted panel</td> </tr> <tr> <td>eGeoLocFront</td> <td>Front-mounted panel</td>
+    ///</tr> <tr> <td>eGeoLocLeft</td> <td>Left-mounted panel</td> </tr> <tr> <td>eGeoLocRight</td> <td>Right-mounted
+    ///panel</td> </tr> <tr> <td>eGeoLocTop</td> <td>Top-mounted panel</td> </tr> <tr> <td>eGeoLocBottom</td>
+    ///<td>Bottom-mounted panel</td> </tr> <tr> <td> eGeoLocRearOPanel(Windows Vista) eGeoLocRearPanel(Windows 7) </td>
+    ///<td> Rear slide-open or pull-open panel</td> </tr> <tr> <td>eGeoLocRiser</td> <td>Riser card</td> </tr> <tr>
+    ///<td>eGeoLocInsideMobileLid</td> <td>Inside lid of mobile computer</td> </tr> <tr> <td>eGeoLocDrivebay</td>
+    ///<td>Drive bay</td> </tr> <tr> <td>eGeoLocHDMI</td> <td>HDMI connector</td> </tr> <tr>
+    ///<td>eGeoLocOutsideMobileLid</td> <td>Outside lid of mobile computer</td> </tr> <tr> <td>eGeoLocATAPI</td>
+    ///<td>ATAPI connector</td> </tr> </table>
     EPcxGeoLocation    GeoLocation;
+    ///The general location of the jack. The value of this member is one of the <b>EPcxGenLocation</b> enumeration
+    ///values shown in the following table. <table> <tr> <th>Value</th> <th>General location</th> </tr> <tr>
+    ///<td>eGenLocPrimaryBox</td> <td>On primary chassis</td> </tr> <tr> <td>eGenLocInternal</td> <td>Inside primary
+    ///chassis</td> </tr> <tr> <td> eGenLocSeperate(Windows Vista) eGenLocSeparate(Windows 7) </td> <td>On separate
+    ///chassis</td> </tr> <tr> <td>eGenLocOther</td> <td>Other location</td> </tr> </table>
     EPcxGenLocation    GenLocation;
+    ///The type of port represented by the jack. The value of this member is one of the <b>EPxcPortConnection</b>
+    ///enumeration values shown in the following table. <table> <tr> <th>Value</th> <th>Port connection type</th> </tr>
+    ///<tr> <td>ePortConnJack</td> <td>Jack</td> </tr> <tr> <td>ePortConnIntegratedDevice</td> <td>Slot for an
+    ///integrated device</td> </tr> <tr> <td>ePortConnBothIntegratedAndJack</td> <td>Both a jack and a slot for an
+    ///integrated device</td> </tr> <tr> <td>ePortConnUnknown</td> <td>Unknown</td> </tr> </table>
     EPxcPortConnection PortConnection;
+    ///If the audio adapter supports jack-presence detection on the jack, the value of <b>IsConnected</b> indicates
+    ///whether an endpoint device is plugged into the jack. If <b>IsConnected</b> is <b>TRUE</b>, a device is plugged
+    ///in. If it is <b>FALSE</b>, the jack is empty. For devices that do not support jack-presence detection, this
+    ///member is always <b>TRUE</b>. For more information about jack-presence detection, see Audio Endpoint Devices.
     BOOL               IsConnected;
 }
 
+///The <b>KSJACK_SINK_INFORMATION</b> structure stores information about an audio jack sink.
 struct KSJACK_SINK_INFORMATION
 {
+    ///Specifies the type of connection. The connection type values are defined in the KSJACK_SINK_CONNECTIONTYPE
+    ///enumeration.
     KSJACK_SINK_CONNECTIONTYPE ConnType;
+    ///Specifies the sink manufacturer identifier.
     ushort     ManufacturerId;
+    ///Specifies the sink product identifier.
     ushort     ProductId;
+    ///Specifies the latency of the audio sink.
     ushort     AudioLatency;
+    ///Specifies whether the sink supports High-bandwidth Digital Content Protection (HDCP).
     BOOL       HDCPCapable;
+    ///Specifies whether the sink supports ACP Packet, ISRC1, or ISRC2.
     BOOL       AICapable;
+    ///Specifies the length of the string in the <b>SinkDescription</b> member.
     ubyte      SinkDescriptionLength;
+    ///String containing the monitor sink name. The maximum length is defined by the constant
+    ///<b>MAX_SINK_DESCRIPTION_NAME_LENGTH</b> (32 wide characters).
     ushort[32] SinkDescription;
+    ///Specifies the video port identifier in a LUID structure.
     LUID       PortId;
 }
 
+///The <b>KSJACK_DESCRIPTION2</b> structure describes an audio jack. To get the description of an audio jack of a
+///connector, call IKsJackDescription2::GetJackDescription2.
 struct KSJACK_DESCRIPTION2
 {
+    ///Reserved for future use.
     uint DeviceStateInfo;
+    ///Stores the audio jack's capabilities: jack presence detection capability or dynamic format changing capability.
+    ///The constants that can be stored in this member of the structure are defined in Ksmedia.h as follows: <ul>
+    ///<li>JACKDESC2_PRESENCE_DETECT_CAPABILITY (0x00000001)</li> <li>JACKDESC2_DYNAMIC_FORMAT_CHANGE_CAPABILITY
+    ///(0x00000002) </li> </ul>
     uint JackCapabilities;
 }
 
@@ -5076,10 +5312,15 @@ struct KSAUDIOMODULE_NOTIFICATION
     }
 }
 
+///The <b>AudioClientProperties</b> structure is used to set the parameters that describe the properties of the client's
+///audio stream.
 struct AudioClientProperties
 {
+    ///The size of the <b>AudioClientProperties</b> structure, in bytes.
     uint cbSize;
+    ///Boolean value to indicate whether or not the audio stream is hardware-offloaded.
     BOOL bIsOffload;
+    ///An enumeration that is used to specify the category of the audio stream.
     AUDIO_STREAM_CATEGORY eCategory;
     AUDCLNT_STREAMOPTIONS Options;
 }
@@ -5101,21 +5342,38 @@ struct AMBISONICS_PARAMS
     uint*           pu32ChannelMap;
 }
 
+///Represents activation parameters for a spatial audio render stream. Pass this structure to
+///ISpatialAudioClient::ActivateSpatialAudioStream when activating a stream.
 struct SpatialAudioObjectRenderStreamActivationParams
 {
 align (1):
+    ///Format descriptor for a single spatial audio object. All objects used by the stream must have the same format and
+    ///the format must be of type WAVEFORMATEX or WAVEFORMATEXTENSIBLE.
     const(WAVEFORMATEX)* ObjectFormat;
+    ///A bitwise combination of <b>AudioObjectType</b> values indicating the set of static spatial audio channels that
+    ///will be allowed by the activated stream.
     AudioObjectType      StaticObjectTypeMask;
+    ///The minimum number of concurrent dynamic objects. If this number of dynamic audio objects can't be activated
+    ///simultaneously, ISpatialAudioClient::ActivateSpatialAudioStream will fail with this error
+    ///<b>SPTLAUDCLNT_E_NO_MORE_OBJECTS</b>.
     uint                 MinDynamicObjectCount;
+    ///The maximum number of concurrent dynamic objects that can be activated with ISpatialAudioObjectRenderStream.
     uint                 MaxDynamicObjectCount;
+    ///The category of the audio stream and its spatial audio objects.
     AUDIO_STREAM_CATEGORY Category;
+    ///The event that will signal the client to provide more audio data. This handle will be duplicated internally
+    ///before it is used.
     HANDLE               EventHandle;
     ISpatialAudioObjectRenderStreamNotify NotifyObject;
 }
 
+///Represents optional activation parameters for a spatial audio render stream. Pass this structure to
+///ActivateAudioInterfaceAsync when activating an ISpatialAudioClient interface.
 struct SpatialAudioClientActivationParams
 {
+    ///An app-defined context identifier, used for event logging.
     GUID tracingContextId;
+    ///An identifier for the client app, used for event logging.
     GUID appId;
     int  majorVersion;
     int  minorVersion1;
@@ -5123,38 +5381,54 @@ struct SpatialAudioClientActivationParams
     int  minorVersion3;
 }
 
+///Represents an omnidirectional model for an ISpatialAudioObjectForHrtf. The omnidirectional emission is interpolated
+///linearly with the directivity model specified in the <b>Type</b> field based on the value of the <b>Scaling</b>
+///field.
 struct SpatialAudioHrtfDirectivity
 {
 align (1):
+    ///The type of shape in which sound is emitted by an ISpatialAudioObjectForHrtf.
     SpatialAudioHrtfDirectivityType Type;
     float Scaling;
 }
 
+///Represents a cardioid-shaped directivity model for an ISpatialAudioObjectForHrtf.
 struct SpatialAudioHrtfDirectivityCardioid
 {
 align (1):
+    ///A structure that expresses the direction in which sound is emitted by an ISpatialAudioObjectForHrtf.
     SpatialAudioHrtfDirectivity directivity;
     float Order;
 }
 
+///Represents a cone-shaped directivity model for an ISpatialAudioObjectForHrtf.
 struct SpatialAudioHrtfDirectivityCone
 {
 align (1):
+    ///A structure that expresses the direction in which sound is emitted by an ISpatialAudioObjectForHrtf.
     SpatialAudioHrtfDirectivity directivity;
+    ///The inner angle of the cone.
     float InnerAngle;
     float OuterAngle;
 }
 
+///Defines a spatial audio directivity model for an ISpatialAudioObjectForHrtf.
 union SpatialAudioHrtfDirectivityUnion
 {
+    ///A cone-shaped directivity model
     SpatialAudioHrtfDirectivityCone Cone;
     SpatialAudioHrtfDirectivityCardioid Cardiod;
+    ///And omni-direction directivity model that can be interpolated linearly with one of the other directivity models.
     SpatialAudioHrtfDirectivity Omni;
 }
 
+///Represents the decay model that is applied over distance from the position of an ISpatialAudioObjectForHrtf to the
+///position of the listener.
 struct SpatialAudioHrtfDistanceDecay
 {
 align (1):
+    ///The type of decay, natural or custom. The default value for this field is
+    ///<b>SpatialAudioHrtfDistanceDecay_NaturalDecay</b>.
     SpatialAudioHrtfDistanceDecayType Type;
     float MaxGain;
     float MinGain;
@@ -5162,34 +5436,71 @@ align (1):
     float CutoffDistance;
 }
 
+///Specifies the activation parameters for an ISpatialAudioRenderStreamForHrtf.
 struct SpatialAudioHrtfActivationParams
 {
 align (1):
+    ///Format descriptor for spatial audio objects associated with the stream. All objects must have the same format and
+    ///must be of type WAVEFORMATEX or WAVEFORMATEXTENSIBLE.
     const(WAVEFORMATEX)* ObjectFormat;
+    ///A bitwise combination of <b>AudioObjectType</b> values indicating the set of static spatial audio channels that
+    ///will be allowed by the activated stream.
     AudioObjectType      StaticObjectTypeMask;
+    ///The minimum number of concurrent dynamic objects. If this number of dynamic audio objects can't be activated
+    ///simultaneously, no dynamic audio objects will be activated.
     uint                 MinDynamicObjectCount;
+    ///The maximum number of concurrent dynamic objects that can be activated with ISpatialAudioRenderStreamForHrtf.
     uint                 MaxDynamicObjectCount;
+    ///The category of the audio stream and its spatial audio objects.
     AUDIO_STREAM_CATEGORY Category;
+    ///The event that will signal the client to provide more audio data. This handle will be duplicated internally
+    ///before it is used.
     HANDLE               EventHandle;
+    ///The object that provides notifications for spatial audio clients to respond to changes in the state of an
+    ///ISpatialAudioRenderStreamForHrtf. This object is used to notify clients that the number of dynamic spatial audio
+    ///objects that can be activated concurrently is about to change.
     ISpatialAudioObjectRenderStreamNotify NotifyObject;
+    ///Optional default value for the decay model used for ISpatialAudioObjectForHrtf objects associated with the
+    ///stream. <b>nullptr</b> if unused.
     SpatialAudioHrtfDistanceDecay* DistanceDecay;
+    ///Optional default value for the spatial audio directivity model used for ISpatialAudioObjectForHrtf objects
+    ///associated with the stream. <b>nullptr</b> if unused.
     SpatialAudioHrtfDirectivityUnion* Directivity;
+    ///Optional default value for the type of environment that is simulated when audio is processed for
+    ///ISpatialAudioObjectForHrtf objects associated with the stream. <b>nullptr</b> if unused.
     SpatialAudioHrtfEnvironmentType* Environment;
     float*               Orientation;
 }
 
+///The <b>DIRECTX_AUDIO_ACTIVATION_PARAMS</b> structure specifies the initialization parameters for a DirectSound
+///stream.
 struct DIRECTX_AUDIO_ACTIVATION_PARAMS
 {
+    ///The size, in bytes, of the <b>DIRECTX_AUDIO_ACTIVATION_PARAMS</b> structure. Set this member to
+    ///sizeof(DIRECTX_AUDIO_ACTIVATION_PARAMS).
     uint cbDirectXAudioActivationParams;
+    ///Session GUID. This member is a GUID value that identifies the audio session that the stream belongs to. If the
+    ///GUID identifies a session that has been previously opened, the method adds the stream to that session. If the
+    ///GUID does not identify an existing session, the method opens a new session and adds the stream to that session.
+    ///The stream remains a member of the same session for its lifetime.
     GUID guidAudioSession;
+    ///Stream-initialization flags. This member specifies whether the stream belongs to a cross-process session or to a
+    ///session that is specific to the current process. Set this member to 0 or to the following AUDCLNT_STREAMFLAGS_XXX
+    ///constant: AUDCLNT_STREAMFLAGS_CROSSPROCESS
     uint dwAudioStreamFlags;
 }
 
+///This structure is passed to the Control Panel Endpoint Extension property page through IShellPropSheetExt::AddPages
+///and is used to create endpoint PropertyPages.
 struct AudioExtensionParams
 {
+    ///The add page param.
     LPARAM    AddPageParam;
+    ///Pointer to the end point.
     IMMDevice pEndpoint;
+    ///Pointer to the Pnp interface.
     IMMDevice pPnpInterface;
+    ///Pointer to the Pnp devnode.
     IMMDevice pPnpDevnode;
 }
 
@@ -5201,35 +5512,75 @@ struct AUDIO_ENDPOINT_SHARED_CREATE_PARAMS
     WAVEFORMATEX wfxDeviceFormat;
 }
 
+///The <b>AUDIO_VOLUME_NOTIFICATION_DATA</b> structure describes a change in the volume level or muting state of an
+///audio endpoint device.
 struct AUDIO_VOLUME_NOTIFICATION_DATA
 {
+    ///Context value for the IAudioEndpointVolumeCallback::OnNotify method. This member is the value of the
+    ///event-context GUID that was provided as an input parameter to the IAudioEndpointVolume method call that changed
+    ///the endpoint volume level or muting state. For more information, see Remarks.
     GUID     guidEventContext;
+    ///Specifies whether the audio stream is currently muted. If <b>bMuted</b> is <b>TRUE</b>, the stream is muted. If
+    ///<b>FALSE</b>, the stream is not muted.
     BOOL     bMuted;
+    ///Specifies the current master volume level of the audio stream. The volume level is normalized to the range from
+    ///0.0 to 1.0, where 0.0 is the minimum volume level and 1.0 is the maximum level. Within this range, the
+    ///relationship of the normalized volume level to the attenuation of signal amplitude is described by a nonlinear,
+    ///audio-tapered curve. For more information about audio tapers, see Audio-Tapered Volume Controls.
     float    fMasterVolume;
+    ///Specifies the number of channels in the audio stream, which is also the number of elements in the
+    ///<b>afChannelVolumes</b> array. If the audio stream contains <i>n</i> channels, the channels are numbered from 0
+    ///to <i>n</i>-1. The volume level for a particular channel is contained in the array element whose index matches
+    ///the channel number.
     uint     nChannels;
+    ///The first element in an array of channel volumes. This element contains the current volume level of channel 0 in
+    ///the audio stream. If the audio stream contains more than one channel, the volume levels for the additional
+    ///channels immediately follow the <b>AUDIO_VOLUME_NOTIFICATION_DATA</b> structure. The volume level for each
+    ///channel is normalized to the range from 0.0 to 1.0, where 0.0 is the minimum volume level and 1.0 is the maximum
+    ///level. Within this range, the relationship of the normalized volume level to the attenuation of signal amplitude
+    ///is described by a nonlinear, audio-tapered curve.
     float[1] afChannelVolumes;
 }
 
+///Provides information about an ISpatialAudioMetadataItems object. Get a copy of this structure by calling GetInfo.
 struct SpatialAudioMetadataItemsInfo
 {
 align (1):
+    ///The total frame count, which defines valid item offsets.
     ushort FrameCount;
+    ///The current number of items stored.
     ushort ItemCount;
     ushort MaxItemCount;
     uint   MaxValueBufferLength;
 }
 
+///Represents activation parameters for a spatial audio render stream for metadata. Pass this structure to
+///ISpatialAudioClient::ActivateSpatialAudioStream when activating a stream.
 struct SpatialAudioObjectRenderStreamForMetadataActivationParams
 {
 align (1):
+    ///Format descriptor for a single spatial audio object. All objects used by the stream must have the same format and
+    ///the format must be of type WAVEFORMATEX or WAVEFORMATEXTENSIBLE.
     const(WAVEFORMATEX)* ObjectFormat;
+    ///A bitwise combination of <b>AudioObjectType</b> values indicating the set of static spatial audio channels that
+    ///will be allowed by the activated stream.
     AudioObjectType      StaticObjectTypeMask;
+    ///The minimum number of concurrent dynamic objects. If this number of dynamic audio objects can't be activated
+    ///simultaneously, ISpatialAudioClient::ActivateSpatialAudioStream will fail with this error
+    ///<b>SPTLAUDCLNT_E_NO_MORE_OBJECTS</b>.
     uint                 MinDynamicObjectCount;
+    ///The maximum number of concurrent dynamic objects that can be activated with ISpatialAudioObjectRenderStream.
     uint                 MaxDynamicObjectCount;
+    ///The category of the audio stream and its spatial audio objects.
     AUDIO_STREAM_CATEGORY Category;
+    ///The event that will signal the client to provide more audio data. This handle will be duplicated internally
+    ///before it is used.
     HANDLE               EventHandle;
+    ///The identifier of the metadata format for the currently active spatial rendering engine.
     GUID                 MetadataFormatId;
+    ///The maximum number of metadata items per frame.
     ushort               MaxMetadataItemCount;
+    ///Additional activation parameters.
     const(PROPVARIANT)*  MetadataActivationParams;
     ISpatialAudioObjectRenderStreamNotify NotifyObject;
 }
@@ -5322,6 +5673,28 @@ HRESULT KsCreatePin2(HANDLE FilterHandle, KSPIN_CONNECT* Connect, uint DesiredAc
 HRESULT KsCreateTopologyNode2(HANDLE ParentHandle, KSNODE_CREATE* NodeCreate, uint DesiredAccess, 
                               ptrdiff_t* NodeHandle);
 
+///Enables Windows Store apps to access preexisting Component Object Model (COM) interfaces in the WASAPI family.
+///Params:
+///    deviceInterfacePath = A device interface ID for an audio device. This is normally retrieved from a DeviceInformation object or one of
+///                          the methods of the MediaDevice class. The GUIDs DEVINTERFACE_AUDIO_CAPTURE and <b>DEVINTERFACE_AUDIO_RENDER</b>
+///                          represent the default audio capture and render device respectively. Call StringFromIID to convert either of these
+///                          GUIDs to an <b>LPCWSTR</b> to use for this argument.
+///    riid = The IID of a COM interface in the WASAPI family, such as IAudioClient.
+///    activationParams = Interface-specific activation parameters. For more information, see the <i>pActivationParams</i> parameter in
+///                       IMMDevice::Activate.
+///    completionHandler = An interface implemented by the caller that is called by Windows when the result of the activation procedure is
+///                        available.
+///    activationOperation = Returns an IActivateAudioInterfaceAsyncOperation interface that represents the asynchronous operation of
+///                          activating the requested <b>WASAPI</b> interface.
+///Returns:
+///    The function returns an <b>HRESULT</b>. Possible values include, but are not limited to, those in the following
+///    table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The underlying object and asynchronous operation were created
+///    successfully. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_ILLEGAL_METHOD_CALL </b></dt> </dl> </td> <td
+///    width="60%"> On versions of Windows previous to Windows 10, this error may result if the function is called from
+///    an incorrect COM apartment, or if the passed IActivateAudioInterfaceCompletionHandler is not implemented on an
+///    agile object (aggregating a free-threaded marshaler). </td> </tr> </table>
+///    
 @DllImport("MMDevAPI")
 HRESULT ActivateAudioInterfaceAsync(const(wchar)* deviceInterfacePath, const(GUID)* riid, 
                                     PROPVARIANT* activationParams, 
@@ -6888,97 +7261,982 @@ struct DEVINTERFACE_AUDIOENDPOINTPLUGIN;
 @GUID("1DF639D0-5EC1-47AA-9379-828DC1AA8C59")
 struct DeviceTopology;
 
+///The <b>IAudioClient</b> interface enables a client to create and initialize an audio stream between an audio
+///application and the audio engine (for a shared-mode stream) or the hardware buffer of an audio endpoint device (for
+///an exclusive-mode stream). A client obtains a reference to an <b>IAudioClient</b> interface for an audio endpoint
+///device by following these steps:<ol> <li>By using one of the techniques described in IMMDevice Interface, obtain a
+///reference to the <b>IMMDevice</b> interface for an audio endpoint device.</li> <li>Call the IMMDevice::Activate
+///method with parameter <i>iid</i> set to REFIID IID_IAudioClient.</li> </ol> The application thread that uses this
+///interface must be initialized for COM. For more information about COM initialization, see the description of the
+///<b>CoInitializeEx</b> function in the Windows SDK documentation. For code examples that use the <b>IAudioClient</b>
+///interface, see the following topics: <ul> <li> Rendering a Stream </li> <li> Capturing a Stream </li> <li>
+///Exclusive-Mode Streams </li> </ul>
 @GUID("1CB9AD4C-DBFA-4C32-B178-C2F568A703B2")
 interface IAudioClient : IUnknown
 {
+    ///The <b>Initialize</b> method initializes the audio stream.
+    ///Params:
+    ///    ShareMode = The sharing mode for the connection. Through this parameter, the client tells the audio engine whether it
+    ///                wants to share the audio endpoint device with other clients. The client should set this parameter to one of
+    ///                the following AUDCLNT_SHAREMODE enumeration values: AUDCLNT_SHAREMODE_EXCLUSIVE AUDCLNT_SHAREMODE_SHARED
+    ///    StreamFlags = Flags to control creation of the stream. The client should set this parameter to 0 or to the bitwise OR of
+    ///                  one or more of the AUDCLNT_STREAMFLAGS_XXX Constants or the AUDCLNT_SESSIONFLAGS_XXX Constants.
+    ///    hnsBufferDuration = The buffer capacity as a time value. This parameter is of type <b>REFERENCE_TIME</b> and is expressed in
+    ///                        100-nanosecond units. This parameter contains the buffer size that the caller requests for the buffer that
+    ///                        the audio application will share with the audio engine (in shared mode) or with the endpoint device (in
+    ///                        exclusive mode). If the call succeeds, the method allocates a buffer that is a least this large. For more
+    ///                        information about <b>REFERENCE_TIME</b>, see the Windows SDK documentation. For more information about
+    ///                        buffering requirements, see Remarks.
+    ///    hnsPeriodicity = The device period. This parameter can be nonzero only in exclusive mode. In shared mode, always set this
+    ///                     parameter to 0. In exclusive mode, this parameter specifies the requested scheduling period for successive
+    ///                     buffer accesses by the audio endpoint device. If the requested device period lies outside the range that is
+    ///                     set by the device's minimum period and the system's maximum period, then the method clamps the period to that
+    ///                     range. If this parameter is 0, the method sets the device period to its default value. To obtain the default
+    ///                     device period, call the IAudioClient::GetDevicePeriod method. If the AUDCLNT_STREAMFLAGS_EVENTCALLBACK stream
+    ///                     flag is set and AUDCLNT_SHAREMODE_EXCLUSIVE is set as the ShareMode, then <i>hnsPeriodicity</i> must be
+    ///                     nonzero and equal to <i>hnsBufferDuration</i>.
+    ///    pFormat = Pointer to a format descriptor. This parameter must point to a valid format descriptor of type
+    ///              <b>WAVEFORMATEX</b> (or <b>WAVEFORMATEXTENSIBLE</b>). For more information, see Remarks.
+    ///    AudioSessionGuid = Pointer to a session GUID. This parameter points to a GUID value that identifies the audio session that the
+    ///                       stream belongs to. If the GUID identifies a session that has been previously opened, the method adds the
+    ///                       stream to that session. If the GUID does not identify an existing session, the method opens a new session and
+    ///                       adds the stream to that session. The stream remains a member of the same session for its lifetime. Setting
+    ///                       this parameter to <b>NULL</b> is equivalent to passing a pointer to a GUID_NULL value.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>AUDCLNT_E_ALREADY_INITIALIZED</b></dt> </dl> </td> <td width="60%"> The
+    ///    <b>IAudioClient</b> object is already initialized. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_WRONG_ENDPOINT_TYPE</b></dt> </dl> </td> <td width="60%"> The AUDCLNT_STREAMFLAGS_LOOPBACK
+    ///    flag is set but the endpoint device is a capture device, not a rendering device. </td> </tr> <tr> <td
+    ///    width="40%"> <dl> <dt><b>AUDCLNT_E_BUFFER_SIZE_NOT_ALIGNED</b></dt> </dl> </td> <td width="60%"> <div
+    ///    class="alert"><b>Note</b> Applies to Windows 7 and later.</div> <div> </div> The requested buffer size is not
+    ///    aligned. This code can be returned for a render or a capture device if the caller specified
+    ///    AUDCLNT_SHAREMODE_EXCLUSIVE and the AUDCLNT_STREAMFLAGS_EVENTCALLBACK flags. The caller must call Initialize
+    ///    again with the aligned buffer size. For more information, see Remarks. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_BUFFER_SIZE_ERROR</b></dt> </dl> </td> <td width="60%"> <div class="alert"><b>Note</b>
+    ///    Applies to Windows 7 and later.</div> <div> </div> Indicates that the buffer duration value requested by an
+    ///    exclusive-mode client is out of range. The requested duration value for pull mode must not be greater than
+    ///    5000 milliseconds; for push mode the duration value must not be greater than 2 seconds. </td> </tr> <tr> <td
+    ///    width="40%"> <dl> <dt><b>AUDCLNT_E_CPUUSAGE_EXCEEDED</b></dt> </dl> </td> <td width="60%"> Indicates that the
+    ///    process-pass duration exceeded the maximum CPU usage. The audio engine keeps track of CPU usage by
+    ///    maintaining the number of times the process-pass duration exceeds the maximum CPU usage. The maximum CPU
+    ///    usage is calculated as a percent of the engine's periodicity. The percentage value is the system's CPU
+    ///    throttle value (within the range of 10% and 90%). If this value is not found, then the default value of 40%
+    ///    is used to calculate the maximum CPU usage. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td> <td width="60%"> The audio endpoint device has been
+    ///    unplugged, or the audio hardware or associated hardware resources have been reconfigured, disabled, removed,
+    ///    or otherwise made unavailable for use. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_DEVICE_IN_USE</b></dt> </dl> </td> <td width="60%"> The endpoint device is already in use.
+    ///    Either the device is being used in exclusive mode, or the device is being used in shared mode and the caller
+    ///    asked to use the device in exclusive mode. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_ENDPOINT_CREATE_FAILED</b></dt> </dl> </td> <td width="60%"> The method failed to create the
+    ///    audio endpoint for the render or the capture device. This can occur if the audio endpoint device has been
+    ///    unplugged, or the audio hardware or associated hardware resources have been reconfigured, disabled, removed,
+    ///    or otherwise made unavailable for use. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_INVALID_DEVICE_PERIOD</b></dt> </dl> </td> <td width="60%"> <div class="alert"><b>Note</b>
+    ///    Applies to Windows 7 and later.</div> <div> </div> Indicates that the device period requested by an
+    ///    exclusive-mode client is greater than 5000 milliseconds. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_UNSUPPORTED_FORMAT</b></dt> </dl> </td> <td width="60%"> The audio engine (shared mode) or
+    ///    audio endpoint device (exclusive mode) does not support the specified format. </td> </tr> <tr> <td
+    ///    width="40%"> <dl> <dt><b>AUDCLNT_E_EXCLUSIVE_MODE_NOT_ALLOWED</b></dt> </dl> </td> <td width="60%"> The
+    ///    caller is requesting exclusive-mode use of the endpoint device, but the user has disabled exclusive-mode use
+    ///    of the device. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_E_BUFDURATION_PERIOD_NOT_EQUAL</b></dt>
+    ///    </dl> </td> <td width="60%"> The AUDCLNT_STREAMFLAGS_EVENTCALLBACK flag is set but parameters
+    ///    <i>hnsBufferDuration</i> and <i>hnsPeriodicity</i> are not equal. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows audio service is not
+    ///    running. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%">
+    ///    Parameter <i>pFormat</i> is <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt>
+    ///    </dl> </td> <td width="60%"> Parameter <i>pFormat</i> points to an invalid format description; or the
+    ///    AUDCLNT_STREAMFLAGS_LOOPBACK flag is set but <i>ShareMode</i> is not equal to AUDCLNT_SHAREMODE_SHARED; or
+    ///    the AUDCLNT_STREAMFLAGS_CROSSPROCESS flag is set but <i>ShareMode</i> is equal to
+    ///    AUDCLNT_SHAREMODE_EXCLUSIVE. A prior call to SetClientProperties was made with an invalid category for
+    ///    audio/render streams. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td
+    ///    width="60%"> Out of memory. </td> </tr> </table>
+    ///    
     HRESULT Initialize(AUDCLNT_SHAREMODE ShareMode, uint StreamFlags, long hnsBufferDuration, long hnsPeriodicity, 
                        const(WAVEFORMATEX)* pFormat, GUID* AudioSessionGuid);
+    ///The <b>GetBufferSize</b> method retrieves the size (maximum capacity) of the endpoint buffer.
+    ///Params:
+    ///    pNumBufferFrames = Pointer to a <b>UINT32</b> variable into which the method writes the number of audio frames that the buffer
+    ///                       can hold.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>AUDCLNT_E_NOT_INITIALIZED</b></dt> </dl> </td> <td width="60%"> The audio stream
+    ///    has not been successfully initialized. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td> <td width="60%"> The audio endpoint device has been
+    ///    unplugged, or the audio hardware or associated hardware resources have been reconfigured, disabled, removed,
+    ///    or otherwise made unavailable for use. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows audio service is not
+    ///    running. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%">
+    ///    Parameter <i>pNumBufferFrames</i> is <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetBufferSize(uint* pNumBufferFrames);
+    ///The <b>GetStreamLatency</b> method retrieves the maximum latency for the current stream and can be called any
+    ///time after the stream has been initialized.
+    ///Params:
+    ///    phnsLatency = Pointer to a REFERENCE_TIME variable into which the method writes a time value representing the latency. The
+    ///                  time is expressed in 100-nanosecond units. For more information about <b>REFERENCE_TIME</b>, see the Windows
+    ///                  SDK documentation.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>AUDCLNT_E_NOT_INITIALIZED</b></dt> </dl> </td> <td width="60%"> The audio stream
+    ///    has not been successfully initialized. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td> <td width="60%"> The audio endpoint device has been
+    ///    unplugged, or the audio hardware or associated hardware resources have been reconfigured, disabled, removed,
+    ///    or otherwise made unavailable for use. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows audio service is not
+    ///    running. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%">
+    ///    Parameter <i>phnsLatency</i> is <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetStreamLatency(long* phnsLatency);
+    ///The <b>GetCurrentPadding</b> method retrieves the number of frames of padding in the endpoint buffer.
+    ///Params:
+    ///    pNumPaddingFrames = Pointer to a <b>UINT32</b> variable into which the method writes the frame count (the number of audio frames
+    ///                        of padding in the buffer).
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>AUDCLNT_E_NOT_INITIALIZED</b></dt> </dl> </td> <td width="60%"> The audio stream
+    ///    has not been successfully initialized. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td> <td width="60%"> The audio endpoint device has been
+    ///    unplugged, or the audio hardware or associated hardware resources have been reconfigured, disabled, removed,
+    ///    or otherwise made unavailable for use. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows audio service is not
+    ///    running. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%">
+    ///    Parameter <i>pNumPaddingFrames</i> is <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetCurrentPadding(uint* pNumPaddingFrames);
+    ///The <b>IsFormatSupported</b> method indicates whether the audio endpoint device supports a particular stream
+    ///format.
+    ///Params:
+    ///    ShareMode = The sharing mode for the stream format. Through this parameter, the client indicates whether it wants to use
+    ///                the specified format in exclusive mode or shared mode. The client should set this parameter to one of the
+    ///                following AUDCLNT_SHAREMODE enumeration values: AUDCLNT_SHAREMODE_EXCLUSIVE AUDCLNT_SHAREMODE_SHARED
+    ///    pFormat = Pointer to the specified stream format. This parameter points to a caller-allocated format descriptor of type
+    ///              <b>WAVEFORMATEX</b> or <b>WAVEFORMATEXTENSIBLE</b>. The client writes a format description to this structure
+    ///              before calling this method. For information about <b>WAVEFORMATEX</b> and <b>WAVEFORMATEXTENSIBLE</b>, see
+    ///              the Windows DDK documentation.
+    ///    ppClosestMatch = Pointer to a pointer variable into which the method writes the address of a <b>WAVEFORMATEX</b> or
+    ///                     <b>WAVEFORMATEXTENSIBLE</b> structure. This structure specifies the supported format that is closest to the
+    ///                     format that the client specified through the <i>pFormat</i> parameter. For shared mode (that is, if the
+    ///                     <i>ShareMode</i> parameter is AUDCLNT_SHAREMODE_SHARED), set <i>ppClosestMatch</i> to point to a valid,
+    ///                     non-<b>NULL</b> pointer variable. For exclusive mode, set <i>ppClosestMatch</i> to <b>NULL</b>. The method
+    ///                     allocates the storage for the structure. The caller is responsible for freeing the storage, when it is no
+    ///                     longer needed, by calling the <b>CoTaskMemFree</b> function. If the <b>IsFormatSupported</b> call fails and
+    ///                     <i>ppClosestMatch</i> is non-<b>NULL</b>, the method sets <i>*ppClosestMatch</i> to <b>NULL</b>. For
+    ///                     information about <b>CoTaskMemFree</b>, see the Windows SDK documentation.
+    ///Returns:
+    ///    <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt>
+    ///    </dl> </td> <td width="60%"> Succeeded and the audio endpoint device supports the specified stream format.
+    ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>S_FALSE</b></dt> </dl> </td> <td width="60%"> Succeeded with a
+    ///    closest match to the specified format. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_UNSUPPORTED_FORMAT</b></dt> </dl> </td> <td width="60%"> Succeeded but the specified format
+    ///    is not supported in exclusive mode. </td> </tr> </table> If the operation fails, possible return codes
+    ///    include, but are not limited to, the values shown in the following table. <table> <tr> <th>Return code</th>
+    ///    <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%">
+    ///    Parameter <i>pFormat</i> is <b>NULL</b>, or <i>ppClosestMatch</i> is <b>NULL</b> and <i>ShareMode</i> is
+    ///    AUDCLNT_SHAREMODE_SHARED. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td
+    ///    width="60%"> Parameter <i>ShareMode</i> is a value other than AUDCLNT_SHAREMODE_SHARED or
+    ///    AUDCLNT_SHAREMODE_EXCLUSIVE. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td> <td width="60%"> The audio endpoint device has been
+    ///    unplugged, or the audio hardware or associated hardware resources have been reconfigured, disabled, removed,
+    ///    or otherwise made unavailable for use. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows audio service is not
+    ///    running. </td> </tr> </table>
+    ///    
     HRESULT IsFormatSupported(AUDCLNT_SHAREMODE ShareMode, const(WAVEFORMATEX)* pFormat, 
                               WAVEFORMATEX** ppClosestMatch);
+    ///The <b>GetMixFormat</b> method retrieves the stream format that the audio engine uses for its internal processing
+    ///of shared-mode streams.
+    ///Params:
+    ///    ppDeviceFormat = Pointer to a pointer variable into which the method writes the address of the mix format. This parameter must
+    ///                     be a valid, non-<b>NULL</b> pointer to a pointer variable. The method writes the address of a
+    ///                     <b>WAVEFORMATEX</b> (or <b>WAVEFORMATEXTENSIBLE</b>) structure to this variable. The method allocates the
+    ///                     storage for the structure. The caller is responsible for freeing the storage, when it is no longer needed, by
+    ///                     calling the <b>CoTaskMemFree</b> function. If the <b>GetMixFormat</b> call fails, <i>*ppDeviceFormat</i> is
+    ///                     <b>NULL</b>. For information about <b>WAVEFORMATEX</b>, <b>WAVEFORMATEXTENSIBLE</b>, and
+    ///                     <b>CoTaskMemFree</b>, see the Windows SDK documentation.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td> <td width="60%"> The audio
+    ///    endpoint device has been unplugged, or the audio hardware or associated hardware resources have been
+    ///    reconfigured, disabled, removed, or otherwise made unavailable for use. </td> </tr> <tr> <td width="40%">
+    ///    <dl> <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows audio service is
+    ///    not running. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%">
+    ///    Parameter <i>ppDeviceFormat</i> is <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Out of memory. </td> </tr> </table>
+    ///    
     HRESULT GetMixFormat(WAVEFORMATEX** ppDeviceFormat);
+    ///The <b>GetDevicePeriod</b> method retrieves the length of the periodic interval separating successive processing
+    ///passes by the audio engine on the data in the endpoint buffer.
+    ///Params:
+    ///    phnsDefaultDevicePeriod = Pointer to a REFERENCE_TIME variable into which the method writes a time value specifying the default
+    ///                              interval between periodic processing passes by the audio engine. The time is expressed in 100-nanosecond
+    ///                              units. For information about <b>REFERENCE_TIME</b>, see the Windows SDK documentation.
+    ///    phnsMinimumDevicePeriod = Pointer to a REFERENCE_TIME variable into which the method writes a time value specifying the minimum
+    ///                              interval between periodic processing passes by the audio endpoint device. The time is expressed in
+    ///                              100-nanosecond units.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td> <td width="60%"> The audio
+    ///    endpoint device has been unplugged, or the audio hardware or associated hardware resources have been
+    ///    reconfigured, disabled, removed, or otherwise made unavailable for use. </td> </tr> <tr> <td width="40%">
+    ///    <dl> <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows audio service is
+    ///    not running. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%">
+    ///    Parameters <i>phnsDefaultDevicePeriod</i> and <i>phnsMinimumDevicePeriod</i> are both <b>NULL</b>. </td>
+    ///    </tr> </table>
+    ///    
     HRESULT GetDevicePeriod(long* phnsDefaultDevicePeriod, long* phnsMinimumDevicePeriod);
+    ///The <b>Start</b> method starts the audio stream.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>AUDCLNT_E_NOT_INITIALIZED</b></dt> </dl> </td> <td width="60%"> The audio stream
+    ///    has not been successfully initialized. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_NOT_STOPPED</b></dt> </dl> </td> <td width="60%"> The audio stream was not stopped at the
+    ///    time of the Start call. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_E_EVENTHANDLE_NOT_SET</b></dt>
+    ///    </dl> </td> <td width="60%"> The audio stream is configured to use event-driven buffering, but the caller has
+    ///    not called IAudioClient::SetEventHandle to set the event handle on the stream. </td> </tr> <tr> <td
+    ///    width="40%"> <dl> <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td> <td width="60%"> The audio
+    ///    endpoint device has been unplugged, or the audio hardware or associated hardware resources have been
+    ///    reconfigured, disabled, removed, or otherwise made unavailable for use. </td> </tr> <tr> <td width="40%">
+    ///    <dl> <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows audio service is
+    ///    not running. </td> </tr> </table>
+    ///    
     HRESULT Start();
+    ///The <b>Stop</b> method stops the audio stream.
+    ///Returns:
+    ///    If the method succeeds and stops the stream, it returns S_OK. If the method succeeds and the stream was
+    ///    already stopped, the method returns S_FALSE. If it fails, possible return codes include, but are not limited
+    ///    to, the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr>
+    ///    <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_E_NOT_INITIALIZED</b></dt> </dl> </td> <td width="60%"> The client
+    ///    has not been successfully initialized. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows audio service is not
+    ///    running. </td> </tr> </table>
+    ///    
     HRESULT Stop();
+    ///The <b>Reset</b> method resets the audio stream.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If the method succeeds and the stream was already reset, the method
+    ///    returns S_FALSE. If it fails, possible return codes include, but are not limited to, the values shown in the
+    ///    following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_NOT_INITIALIZED</b></dt> </dl> </td> <td width="60%"> The audio stream has not been
+    ///    successfully initialized. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_E_NOT_STOPPED</b></dt> </dl>
+    ///    </td> <td width="60%"> The audio stream was not stopped at the time the call was made. </td> </tr> <tr> <td
+    ///    width="40%"> <dl> <dt><b>AUDCLNT_E_BUFFER_OPERATION_PENDING</b></dt> </dl> </td> <td width="60%"> The client
+    ///    is currently writing to or reading from the buffer. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows audio service is not
+    ///    running. </td> </tr> </table>
+    ///    
     HRESULT Reset();
+    ///The <b>SetEventHandle</b> method sets the event handle that the system signals when an audio buffer is ready to
+    ///be processed by the client.
+    ///Params:
+    ///    eventHandle = The event handle.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> Parameter <i>eventHandle</i>
+    ///    is <b>NULL</b> or an invalid handle. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_EVENTHANDLE_NOT_EXPECTED</b></dt> </dl> </td> <td width="60%"> The audio stream was not
+    ///    initialized for event-driven buffering. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_NOT_INITIALIZED</b></dt> </dl> </td> <td width="60%"> The audio stream has not been
+    ///    successfully initialized. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt>
+    ///    </dl> </td> <td width="60%"> The audio endpoint device has been unplugged, or the audio hardware or
+    ///    associated hardware resources have been reconfigured, disabled, removed, or otherwise made unavailable for
+    ///    use. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td
+    ///    width="60%"> The Windows audio service is not running. </td> </tr> </table>
+    ///    
     HRESULT SetEventHandle(HANDLE eventHandle);
+    ///The <b>GetService</b> method accesses additional services from the audio client object.
+    ///Params:
+    ///    riid = The interface ID for the requested service. The client should set this parameter to one of the following
+    ///           REFIID values: IID_IAudioCaptureClient IID_IAudioClock IID_IAudioRenderClient IID_IAudioSessionControl
+    ///           IID_IAudioStreamVolume IID_IChannelAudioVolume IID_IMFTrustedOutput IID_ISimpleAudioVolume For more
+    ///           information, see Remarks.
+    ///    ppv = Pointer to a pointer variable into which the method writes the address of an instance of the requested
+    ///          interface. Through this method, the caller obtains a counted reference to the interface. The caller is
+    ///          responsible for releasing the interface, when it is no longer needed, by calling the interface's
+    ///          <b>Release</b> method. If the <b>GetService</b> call fails, <i>*ppv</i> is <b>NULL</b>.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>ppv</i> is
+    ///    <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_NOINTERFACE</b></dt> </dl> </td> <td
+    ///    width="60%"> The requested interface is not available. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_NOT_INITIALIZED</b></dt> </dl> </td> <td width="60%"> The audio stream has not been
+    ///    initialized. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_E_WRONG_ENDPOINT_TYPE</b></dt> </dl> </td>
+    ///    <td width="60%"> The caller tried to access an IAudioCaptureClient interface on a rendering endpoint, or an
+    ///    IAudioRenderClient interface on a capture endpoint. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td> <td width="60%"> The audio endpoint device has been
+    ///    unplugged, or the audio hardware or associated hardware resources have been reconfigured, disabled, removed,
+    ///    or otherwise made unavailable for use. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows audio service is not
+    ///    running. </td> </tr> </table>
+    ///    
     HRESULT GetService(const(GUID)* riid, void** ppv);
 }
 
+///The <b>IAudioClient2</b> interface is derived from the IAudioClient interface, with a set of additional methods that
+///enable a Windows Audio Session API (WASAPI) audio client to do the following: opt in for offloading, query stream
+///properties, and get information from the hardware that handles offloading.The audio client can be successful in
+///creating an offloaded stream if the underlying endpoint supports the hardware audio engine, the endpoint has been
+///enumerated and discovered by the audio system, and there are still offload pin instances available on the
+///endpoint.</p>
 @GUID("726778CD-F60A-4EDA-82DE-E47610CD78AA")
 interface IAudioClient2 : IAudioClient
 {
+    ///The <b>IsOffloadCapable</b> method retrieves information about whether or not the endpoint on which a stream is
+    ///created is capable of supporting an offloaded audio stream.
+    ///Params:
+    ///    Category = An enumeration that specifies the category of an audio stream.
+    ///    pbOffloadCapable = A pointer to a Boolean value. <b>TRUE</b> indicates that the endpoint is offload-capable. <b>FALSE</b>
+    ///                       indicates that the endpoint is not offload-capable.
+    ///Returns:
+    ///    The <b>IsOffloadCapable</b> method returns <b>S_OK</b> to indicate that it has completed successfully.
+    ///    Otherwise it returns an appropriate error code.
+    ///    
     HRESULT IsOffloadCapable(AUDIO_STREAM_CATEGORY Category, int* pbOffloadCapable);
+    ///Sets the properties of the audio stream by populating an AudioClientProperties structure.
+    ///Params:
+    ///    pProperties = Pointer to an AudioClientProperties structure.
+    ///Returns:
+    ///    The <b>SetClientProperties</b> method returns <b>S_OK</b> to indicate that it has completed successfully.
+    ///    Otherwise it returns an appropriate error code.
+    ///    
     HRESULT SetClientProperties(const(AudioClientProperties)* pProperties);
+    ///The <b>GetBufferSizeLimits</b> method returns the buffer size limits of the hardware audio engine in
+    ///100-nanosecond units.
+    ///Params:
+    ///    pFormat = A pointer to the target format that is being queried for the buffer size limit.
+    ///    bEventDriven = Boolean value to indicate whether or not the stream can be event-driven.
+    ///    phnsMinBufferDuration = Returns a pointer to the minimum buffer size (in 100-nanosecond units) that is required for the underlying
+    ///                            hardware audio engine to operate at the format specified in the <i>pFormat</i> parameter, without frequent
+    ///                            audio glitching.
+    ///    phnsMaxBufferDuration = Returns a pointer to the maximum buffer size (in 100-nanosecond units) that the underlying hardware audio
+    ///                            engine can support for the format specified in the <i>pFormat</i> parameter.
+    ///Returns:
+    ///    The <b>GetBufferSizeLimits</b> method returns <b>S_OK</b> to indicate that it has completed successfully.
+    ///    Otherwise it returns an appropriate error code. For example, it can return
+    ///    <b>AUDCLNT_E_DEVICE_INVALIDATED</b>, if the device was removed and the method is called.
+    ///    
     HRESULT GetBufferSizeLimits(const(WAVEFORMATEX)* pFormat, BOOL bEventDriven, long* phnsMinBufferDuration, 
                                 long* phnsMaxBufferDuration);
 }
 
+///The <b>IAudioClient3</b> interface is derived from the IAudioClient2 interface, with a set of additional methods that
+///enable a Windows Audio Session API (WASAPI) audio client to query for the audio engine's supported periodicities and
+///current periodicity as well as request initialization a shared audio stream with a specified periodicity.
 @GUID("7ED4EE07-8E67-4CD4-8C1A-2B7A5987AD42")
 interface IAudioClient3 : IAudioClient2
 {
+    ///Returns the range of periodicities supported by the engine for the specified stream format. The periodicity of
+    ///the engine is the rate at which the engine wakes an event-driven audio client to transfer audio data to or from
+    ///the engine. The values returned depend on the characteristics of the audio client as specified through a previous
+    ///call to IAudioClient2::SetClientProperties.
+    ///Params:
+    ///    pFormat = Type: <b>const WAVEFORMATEX*</b> The stream format for which the supported periodicities are queried.
+    ///    pDefaultPeriodInFrames = Type: <b>UINT32*</b> The default period with which the engine will wake the client for transferring audio
+    ///                             samples
+    ///    pFundamentalPeriodInFrames = Type: <b>UINT32*</b> The fundamental period with which the engine will wake the client for transferring audio
+    ///                                 samples. When setting the audio engine periodicity, you must use an integral multiple of this value.
+    ///    pMinPeriodInFrames = Type: <b>UINT32*</b> The shortest period, in audio frames, with which the audio engine will wake the client
+    ///                         for transferring audio samples.
+    ///    pMaxPeriodInFrames = Type: <b>UINT32*</b> The longest period, in audio frames, with which the audio engine will wake the client
+    ///                         for transferring audio samples.
+    ///Returns:
+    ///    Type: <b>HRESULT</b> This method returns <b>S_OK</b> to indicate that it has completed successfully.
+    ///    Otherwise it returns an appropriate error code.
+    ///    
     HRESULT GetSharedModeEnginePeriod(const(WAVEFORMATEX)* pFormat, uint* pDefaultPeriodInFrames, 
                                       uint* pFundamentalPeriodInFrames, uint* pMinPeriodInFrames, 
                                       uint* pMaxPeriodInFrames);
+    ///Returns the current format and periodicity of the audio engine. This method enables audio clients to match the
+    ///current period of the audio engine.
+    ///Params:
+    ///    ppFormat = Type: <b>WAVEFORMATEX**</b> The current device format that is being used by the audio engine.
+    ///    pCurrentPeriodInFrames = Type: <b>UINT32*</b> The current period of the audio engine, in audio frames.
+    ///Returns:
+    ///    Type: <b>HRESULT</b> This method returns <b>S_OK</b> to indicate that it has completed successfully.
+    ///    Otherwise it returns an appropriate error code.
+    ///    
     HRESULT GetCurrentSharedModeEnginePeriod(WAVEFORMATEX** ppFormat, uint* pCurrentPeriodInFrames);
+    ///Initializes a shared stream with the specified periodicity.
+    ///Params:
+    ///    StreamFlags = Type: <b>DWORD</b> Flags to control creation of the stream. The client should set this parameter to 0 or to
+    ///                  the bitwise OR of one or more of the supported AUDCLNT_STREAMFLAGS_XXX Constants or AUDCLNT_SESSIONFLAGS_XXX
+    ///                  Constants. The supported AUDCLNT_STREAMFLAGS_XXX Constants for this parameter when using this method are: -
+    ///                  AUDCLNT_STREAMFLAGS_EVENTCALLBACK - AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM -
+    ///                  AUDCLNT_STREAMFLAGS_SRC_DEFAULT_QUALITY
+    ///    PeriodInFrames = Type: <b>UINT32</b> Periodicity requested by the client. This value must be an integral multiple of the value
+    ///                     returned in the <i>pFundamentalPeriodInFrames</i> parameter to IAudioClient3::GetSharedModeEnginePeriod.
+    ///                     <i>PeriodInFrames</i> must also be greater than or equal to the value returned in <i>pMinPeriodInFrames</i>
+    ///                     and less than or equal to the value returned in <i>pMaxPeriodInFrames</i>.
+    ///    pFormat = Type: <b>const WAVEFORMATEX*</b> Pointer to a format descriptor. This parameter must point to a valid format
+    ///              descriptor of type WAVEFORMATEX or <b></b>WAVEFORMATEXTENSIBLE. For more information, see the Remarks section
+    ///              for IAudioClient::Initialize.
+    ///    AudioSessionGuid = Type: <b>LPCGUID</b> Pointer to a session GUID. This parameter points to a GUID value that identifies the
+    ///                       audio session that the stream belongs to. If the GUID identifies a session that has been previously opened,
+    ///                       the method adds the stream to that session. If the GUID does not identify an existing session, the method
+    ///                       opens a new session and adds the stream to that session. The stream remains a member of the same session for
+    ///                       its lifetime. Setting this parameter to <b>NULL</b> is equivalent to passing a pointer to a GUID_NULL value.
+    ///Returns:
+    ///    Type: <b>HRESULT</b> If the method succeeds, it returns S_OK. If it fails, possible return codes include, but
+    ///    are not limited to, the values shown in the following table. <table> <tr> <th>Return code</th>
+    ///    <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_E_ALREADY_INITIALIZED</b></dt> </dl>
+    ///    </td> <td width="60%"> The <b>IAudioClient</b> object is already initialized. </td> </tr> <tr> <td
+    ///    width="40%"> <dl> <dt><b>AUDCLNT_E_WRONG_ENDPOINT_TYPE</b></dt> </dl> </td> <td width="60%"> The
+    ///    AUDCLNT_STREAMFLAGS_LOOPBACK flag is set but the endpoint device is a capture device, not a rendering device.
+    ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_E_CPUUSAGE_EXCEEDED</b></dt> </dl> </td> <td
+    ///    width="60%"> Indicates that the process-pass duration exceeded the maximum CPU usage. The audio engine keeps
+    ///    track of CPU usage by maintaining the number of times the process-pass duration exceeds the maximum CPU
+    ///    usage. The maximum CPU usage is calculated as a percent of the engine's periodicity. The percentage value is
+    ///    the system's CPU throttle value (within the range of 10% and 90%). If this value is not found, then the
+    ///    default value of 40% is used to calculate the maximum CPU usage. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td> <td width="60%"> The audio endpoint device has been
+    ///    unplugged, or the audio hardware or associated hardware resources have been reconfigured, disabled, removed,
+    ///    or otherwise made unavailable for use. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_DEVICE_IN_USE</b></dt> </dl> </td> <td width="60%"> The endpoint device is already in use.
+    ///    Either the device is being used in exclusive mode, or the device is being used in shared mode and the caller
+    ///    asked to use the device in exclusive mode. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_ENGINE_FORMAT_LOCKED</b></dt> </dl> </td> <td width="60%"> The client specified
+    ///    AUDCLNT_STREAMOPTIONS_MATCH_FORMAT when calling IAudioClient2::SetClientProperties, but the format of the
+    ///    audio engine has been locked by another client. In this case, you can call
+    ///    <b>IAudioClient2::SetClientProperties</b> without specifying the match format option and then use audio
+    ///    engine's current format. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_ENGINE_PERIODICITY_LOCKED</b></dt> </dl> </td> <td width="60%"> The client specified
+    ///    AUDCLNT_STREAMOPTIONS_MATCH_FORMAT when calling IAudioClient2::SetClientProperties, but the periodicity of
+    ///    the audio engine has been locked by another client. In this case, you can call
+    ///    <b>IAudioClient2::SetClientProperties</b> without specifying the match format option and then use audio
+    ///    engine's current periodicity. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_ENDPOINT_CREATE_FAILED</b></dt> </dl> </td> <td width="60%"> The method failed to create the
+    ///    audio endpoint for the render or the capture device. This can occur if the audio endpoint device has been
+    ///    unplugged, or the audio hardware or associated hardware resources have been reconfigured, disabled, removed,
+    ///    or otherwise made unavailable for use. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_INVALID_DEVICE_PERIOD</b></dt> </dl> </td> <td width="60%"> Indicates that the requested
+    ///    device period specified with the <i>PeriodInFrames</i> is not an integral multiple of the fundamental
+    ///    periodicity of the audio engine, is shorter than the engine's minimum period, or is longer than the engine's
+    ///    maximum period. Get the supported periodicity values of the engine by calling
+    ///    IAudioClient3::GetSharedModeEnginePeriod. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_UNSUPPORTED_FORMAT</b></dt> </dl> </td> <td width="60%"> The audio engine (shared mode) or
+    ///    audio endpoint device (exclusive mode) does not support the specified format. </td> </tr> <tr> <td
+    ///    width="40%"> <dl> <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows
+    ///    audio service is not running. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td>
+    ///    <td width="60%"> Parameter <i>pFormat</i> is <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> Parameter <i>pFormat</i> points to an invalid
+    ///    format description; or the AUDCLNT_STREAMFLAGS_LOOPBACK flag is set but <i>ShareMode</i> is not equal to
+    ///    AUDCLNT_SHAREMODE_SHARED; or the AUDCLNT_STREAMFLAGS_CROSSPROCESS flag is set but <i>ShareMode</i> is equal
+    ///    to AUDCLNT_SHAREMODE_EXCLUSIVE. A prior call to SetClientProperties was made with an invalid category for
+    ///    audio/render streams. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td
+    ///    width="60%"> Out of memory. </td> </tr> </table>
+    ///    
     HRESULT InitializeSharedAudioStream(uint StreamFlags, uint PeriodInFrames, const(WAVEFORMATEX)* pFormat, 
                                         GUID* AudioSessionGuid);
 }
 
+///The <b>IAudioRenderClient</b> interface enables a client to write output data to a rendering endpoint buffer. The
+///client obtains a reference to the <b>IAudioRenderClient</b> interface of a stream object by calling the
+///IAudioClient::GetService method with parameter <i>riid</i> set to <b>REFIID</b> IID_IAudioRenderClient. The methods
+///in this interface manage the movement of data packets that contain audio-rendering data. The length of a data packet
+///is expressed as the number of audio frames in the packet. The size of an audio frame is specified by the
+///<b>nBlockAlign</b> member of the <b>WAVEFORMATEX</b> structure that the client obtains by calling the
+///IAudioClient::GetMixFormat method. The size in bytes of an audio frame equals the number of channels in the stream
+///multiplied by the sample size per channel. For example, the frame size is four bytes for a stereo (2-channel) stream
+///with 16-bit samples. A packet always contains an integral number of audio frames. When releasing an
+///<b>IAudioRenderClient</b> interface instance, the client must call the interface's <b>Release</b> method from the
+///same thread as the call to <b>IAudioClient::GetService</b> that created the object. For code examples that use the
+///<b>IAudioRenderClient</b> interface, see the following topics: <ul> <li> Rendering a Stream </li> <li> Exclusive-Mode
+///Streams </li> </ul>
 @GUID("F294ACFC-3146-4483-A7BF-ADDCA7C260E2")
 interface IAudioRenderClient : IUnknown
 {
+    ///Retrieves a pointer to the next available space in the rendering endpoint buffer into which the caller can write
+    ///a data packet.
+    ///Params:
+    ///    NumFramesRequested = The number of audio frames in the data packet that the caller plans to write to the requested space in the
+    ///                         buffer. If the call succeeds, the size of the buffer area pointed to by <i>*ppData</i> matches the size
+    ///                         specified in <i>NumFramesRequested</i>.
+    ///    ppData = Pointer to a pointer variable into which the method writes the starting address of the buffer area into which
+    ///             the caller will write the data packet.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>AUDCLNT_E_BUFFER_ERROR</b></dt> </dl> </td> <td width="60%"> GetBuffer failed to
+    ///    retrieve a data buffer and *<i>ppData</i> points to <b>NULL</b>. For more information, see Remarks. </td>
+    ///    </tr> <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_E_BUFFER_TOO_LARGE</b></dt> </dl> </td> <td width="60%"> The
+    ///    <i>NumFramesRequested</i> value exceeds the available buffer space (buffer size minus padding size). </td>
+    ///    </tr> <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_E_BUFFER_SIZE_ERROR</b></dt> </dl> </td> <td width="60%"> The
+    ///    stream is exclusive mode and uses event-driven buffering, but the client attempted to get a packet that was
+    ///    not the size of the buffer. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_E_OUT_OF_ORDER</b></dt>
+    ///    </dl> </td> <td width="60%"> A previous <b>IAudioRenderClient::GetBuffer</b> call is still in effect. </td>
+    ///    </tr> <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td> <td width="60%">
+    ///    The audio endpoint device has been unplugged, or the audio hardware or associated hardware resources have
+    ///    been reconfigured, disabled, removed, or otherwise made unavailable for use. </td> </tr> <tr> <td
+    ///    width="40%"> <dl> <dt><b>AUDCLNT_E_BUFFER_OPERATION_PENDING</b></dt> </dl> </td> <td width="60%"> Buffer
+    ///    cannot be accessed because a stream reset is in progress. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows audio service is not
+    ///    running. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%">
+    ///    Parameter <i>ppData</i> is <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetBuffer(uint NumFramesRequested, ubyte** ppData);
+    ///The <b>ReleaseBuffer</b> method releases the buffer space acquired in the previous call to the
+    ///IAudioRenderClient::GetBuffer method.
+    ///Params:
+    ///    NumFramesWritten = The number of audio frames written by the client to the data packet. The value of this parameter must be less
+    ///                       than or equal to the size of the data packet, as specified in the <i>NumFramesRequested</i> parameter passed
+    ///                       to the IAudioRenderClient::GetBuffer method.
+    ///    dwFlags = The buffer-configuration flags. The caller can set this parameter either to 0 or to the following
+    ///              _AUDCLNT_BUFFERFLAGS enumeration value (a flag bit): AUDCLNT_BUFFERFLAGS_SILENT If this flag bit is set, the
+    ///              audio engine treats the data packet as though it contains silence regardless of the data values contained in
+    ///              the packet. This flag eliminates the need for the client to explicitly write silence data to the rendering
+    ///              buffer.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>AUDCLNT_E_INVALID_SIZE</b></dt> </dl> </td> <td width="60%"> The
+    ///    <i>NumFramesWritten</i> value exceeds the <i>NumFramesRequested</i> value specified in the previous
+    ///    IAudioRenderClient::GetBuffer call. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_BUFFER_SIZE_ERROR</b></dt> </dl> </td> <td width="60%"> The stream is exclusive mode and
+    ///    uses event-driven buffering, but the client attempted to release a packet that was not the size of the
+    ///    buffer. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_E_OUT_OF_ORDER</b></dt> </dl> </td> <td
+    ///    width="60%"> This call was not preceded by a corresponding call to IAudioRenderClient::GetBuffer. </td> </tr>
+    ///    <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td> <td width="60%"> The
+    ///    audio endpoint device has been unplugged, or the audio hardware or associated hardware resources have been
+    ///    reconfigured, disabled, removed, or otherwise made unavailable for use. </td> </tr> <tr> <td width="40%">
+    ///    <dl> <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows audio service is
+    ///    not running. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%">
+    ///    Parameter <i>dwFlags</i> is not a valid value. </td> </tr> </table>
+    ///    
     HRESULT ReleaseBuffer(uint NumFramesWritten, uint dwFlags);
 }
 
+///The <b>IAudioCaptureClient</b> interface enables a client to read input data from a capture endpoint buffer. The
+///client obtains a reference to the <b>IAudioCaptureClient</b> interface on a stream object by calling the
+///IAudioClient::GetService method with parameter <i>riid</i> set to REFIID IID_IAudioCaptureClient. The methods in this
+///interface manage the movement of data packets that contain capture data. The length of a data packet is expressed as
+///the number of audio frames in the packet. The size of an audio frame is specified by the <b>nBlockAlign</b> member of
+///the W<b>AVEFORMATEX (or WAVEFORMATEXTENSIBLE)</b> structure that the client obtains by calling the
+///IAudioClient::GetMixFormat method. The size in bytes of an audio frame equals the number of channels in the stream
+///multiplied by the sample size per channel. For example, the frame size is four bytes for a stereo (2-channel) stream
+///with 16-bit samples. A packet always contains an integral number of audio frames. When releasing an
+///<b>IAudioCaptureClient</b> interface instance, the client must call the <b>Release</b> method of the instance from
+///the same thread as the call to <b>IAudioClient::GetService</b> that created the object. For a code example that uses
+///the <b>IAudioCaptureClient</b> interface, see Capturing a Stream.
 @GUID("C8ADBD64-E71E-48A0-A4DE-185C395CD317")
 interface IAudioCaptureClient : IUnknown
 {
+    ///Retrieves a pointer to the next available packet of data in the capture endpoint buffer.
+    ///Params:
+    ///    ppData = Pointer to a pointer variable into which the method writes the starting address of the next data packet that
+    ///             is available for the client to read.
+    ///    pNumFramesToRead = Pointer to a <b>UINT32</b> variable into which the method writes the frame count (the number of audio frames
+    ///                       available in the data packet). The client should either read the entire data packet or none of it.
+    ///    pdwFlags = Pointer to a <b>DWORD</b> variable into which the method writes the buffer-status flags. The method writes
+    ///               either 0 or the bitwise-OR combination of one or more of the following _AUDCLNT_BUFFERFLAGS enumeration
+    ///               values: AUDCLNT_BUFFERFLAGS_SILENT AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR
+    ///               <div class="alert"><b>Note</b> The AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY flag is not supported in Windows
+    ///               Vista.<p class="note">In Windows 7 and later OS releases, this flag can be used for glitch detection. To
+    ///               start the capture stream, the client application must call IAudioClient::Start followed by calls to
+    ///               <b>GetBuffer</b> in a loop to read data packets until all of the available packets in the endpoint buffer
+    ///               have been read. <b>GetBuffer</b> sets the AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY flag to indicate a glitch in
+    ///               the buffer pointed by <i>ppData</i>. </div> <div> </div>
+    ///    pu64DevicePosition = Pointer to a <b>UINT64</b> variable into which the method writes the device position of the first audio frame
+    ///                         in the data packet. The device position is expressed as the number of audio frames from the start of the
+    ///                         stream. This parameter can be <b>NULL</b> if the client does not require the device position. For more
+    ///                         information, see Remarks.
+    ///    pu64QPCPosition = Pointer to a <b>UINT64</b> variable into which the method writes the value of the performance counter at the
+    ///                      time that the audio endpoint device recorded the device position of the first audio frame in the data packet.
+    ///                      The method converts the counter value to 100-nanosecond units before writing it to <i>*pu64QPCPosition.</i>
+    ///                      This parameter can be <b>NULL</b> if the client does not require the performance counter value. For more
+    ///                      information, see Remarks.
+    ///Returns:
+    ///    Possible return codes include, but are not limited to, the values shown in the following table. <table> <tr>
+    ///    <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td>
+    ///    <td width="60%"> The call succeeded and <i>*pNumFramesToRead</i> is nonzero, indicating that a packet is
+    ///    ready to be read. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_S_BUFFER_EMPTY</b></dt> </dl> </td>
+    ///    <td width="60%"> The call succeeded and <i>*pNumFramesToRead</i> is 0, indicating that no capture data is
+    ///    available to be read. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_E_BUFFER_ERROR</b></dt> </dl>
+    ///    </td> <td width="60%"> <b>Windows 7 and later</b>: GetBuffer failed to retrieve a data buffer and
+    ///    *<i>ppData</i> points to <b>NULL</b>. For more information, see Remarks. </td> </tr> <tr> <td width="40%">
+    ///    <dl> <dt><b>AUDCLNT_E_OUT_OF_ORDER</b></dt> </dl> </td> <td width="60%"> A previous
+    ///    <b>IAudioCaptureClient::GetBuffer</b> call is still in effect. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td> <td width="60%"> The audio endpoint device has been
+    ///    unplugged, or the audio hardware or associated hardware resources have been reconfigured, disabled, removed,
+    ///    or otherwise made unavailable for use. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_BUFFER_OPERATION_PENDING</b></dt> </dl> </td> <td width="60%"> Buffer cannot be accessed
+    ///    because a stream reset is in progress. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows audio service is not
+    ///    running. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%">
+    ///    Parameter ppData, pNumFramesToRead, or pdwFlags is <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetBuffer(ubyte** ppData, uint* pNumFramesToRead, uint* pdwFlags, ulong* pu64DevicePosition, 
                       ulong* pu64QPCPosition);
+    ///The <b>ReleaseBuffer</b> method releases the buffer.
+    ///Params:
+    ///    NumFramesRead = The number of audio frames that the client read from the capture buffer. This parameter must be either equal
+    ///                    to the number of frames in the previously acquired data packet or 0.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>AUDCLNT_E_INVALID_SIZE</b></dt> </dl> </td> <td width="60%"> The
+    ///    <i>NumFramesRead</i> parameter is set to a value other than the data packet size or 0. </td> </tr> <tr> <td
+    ///    width="40%"> <dl> <dt><b>AUDCLNT_E_OUT_OF_ORDER</b></dt> </dl> </td> <td width="60%"> This call was not
+    ///    preceded by a corresponding IAudioCaptureClient::GetBuffer call. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td> <td width="60%"> The audio endpoint device has been
+    ///    unplugged, or the audio hardware or associated hardware resources have been reconfigured, disabled, removed,
+    ///    or otherwise made unavailable for use. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows audio service is not
+    ///    running. </td> </tr> </table>
+    ///    
     HRESULT ReleaseBuffer(uint NumFramesRead);
+    ///The <b>GetNextPacketSize</b> method retrieves the number of frames in the next data packet in the capture
+    ///endpoint buffer.
+    ///Params:
+    ///    pNumFramesInNextPacket = Pointer to a <b>UINT32</b> variable into which the method writes the frame count (the number of audio frames
+    ///                             in the next capture packet).
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td> <td width="60%"> The audio
+    ///    endpoint device has been unplugged, or the audio hardware or associated hardware resources have been
+    ///    reconfigured, disabled, removed, or otherwise made unavailable for use. </td> </tr> <tr> <td width="40%">
+    ///    <dl> <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows audio service is
+    ///    not running. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%">
+    ///    Parameter <i>pNumFramesInNextPacket</i> is <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetNextPacketSize(uint* pNumFramesInNextPacket);
 }
 
+///The <b>IAudioClock</b> interface enables a client to monitor a stream's data rate and the current position in the
+///stream. The client obtains a reference to the <b>IAudioClock</b> interface of a stream object by calling the
+///IAudioClient::GetService method with parameter <i>riid</i> set to REFIID IID_IAudioClock. When releasing an
+///<b>IAudioClock</b> interface instance, the client must call the interface's Release method from the same thread as
+///the call to <b>IAudioClient::GetService</b> that created the object.
 @GUID("CD63314F-3FBA-4A1B-812C-EF96358728E7")
 interface IAudioClock : IUnknown
 {
+    ///The <b>GetFrequency</b> method gets the device frequency.
+    ///Params:
+    ///    pu64Frequency = Pointer to a <b>UINT64</b> variable into which the method writes the device frequency. For more information,
+    ///                    see Remarks.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>pu64Frequency</i>
+    ///    is <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl>
+    ///    </td> <td width="60%"> The audio endpoint device has been unplugged, or the audio hardware or associated
+    ///    hardware resources have been reconfigured, disabled, removed, or otherwise made unavailable for use. </td>
+    ///    </tr> <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%">
+    ///    The Windows audio service is not running. </td> </tr> </table>
+    ///    
     HRESULT GetFrequency(ulong* pu64Frequency);
+    ///The <b>GetPosition</b> method gets the current device position.
+    ///Params:
+    ///    pu64Position = Pointer to a <b>UINT64</b> variable into which the method writes the device position. The device position is
+    ///                   the offset from the start of the stream to the current position in the stream. However, the units in which
+    ///                   this offset is expressed are undefined—the device position value has meaning only in relation to the
+    ///                   frequency reported by the IAudioClock::GetFrequency method. For more information, see Remarks.
+    ///    pu64QPCPosition = Pointer to a <b>UINT64</b> variable into which the method writes the value of the performance counter at the
+    ///                      time that the audio endpoint device read the device position (<i>*pu64Position</i>) in response to the
+    ///                      <b>GetPosition</b> call. The method converts the counter value to 100-nanosecond time units before writing it
+    ///                      to <i>*pu64QPCPosition</i>. This parameter can be <b>NULL</b> if the client does not require the performance
+    ///                      counter value.
+    ///Returns:
+    ///    If the method succeeds and obtains an accurate reading of the position, it returns S_OK. If the method
+    ///    succeeds but the duration of the call is long enough to detract from the accuracy of the position reading,
+    ///    the method returns S_FALSE. If it fails, possible return codes include, but are not limited to, the values
+    ///    shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td
+    ///    width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>pu64Position</i> is
+    ///    <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td>
+    ///    <td width="60%"> The audio endpoint device has been unplugged, or the audio hardware or associated hardware
+    ///    resources have been reconfigured, disabled, removed, or otherwise made unavailable for use. </td> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows
+    ///    audio service is not running. </td> </tr> </table>
+    ///    
     HRESULT GetPosition(ulong* pu64Position, ulong* pu64QPCPosition);
+    ///The <b>GetCharacteristics</b> method is reserved for future use.
+    ///Params:
+    ///    pdwCharacteristics = Pointer to a <b>DWORD</b> variable into which the method writes a value that indicates the characteristics of
+    ///                         the audio clock.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter
+    ///    <i>pdwCharacteristics</i> is <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetCharacteristics(uint* pdwCharacteristics);
 }
 
+///The <b>IAudioClock2</b> interface is used to get the current device position. To get a reference to the
+///<b>IAudioClock2</b> interface, the application must call <b>IAudioClock::QueryInterface</b> to request the interface
+///pointer from the stream object's IAudioClock interface. The client obtains a reference to the <b>IAudioClock</b>
+///interface of a stream object by calling the IAudioClient::GetService method with parameter <i>riid</i> set to REFIID
+///IID_IAudioClock. When releasing an <b>IAudioClock2</b> interface instance, the client must call the interface's
+///<b>Release</b> method from the same thread as the call to IAudioClient::GetService that created the object.
 @GUID("6F49FF73-6727-49AC-A008-D98CF5E70048")
 interface IAudioClock2 : IUnknown
 {
+    ///The <b>GetDevicePosition</b> method gets the current device position, in frames, directly from the hardware.
+    ///Params:
+    ///    DevicePosition = Receives the device position, in frames. The received position is an unprocessed value that the method
+    ///                     obtains directly from the hardware. For more information, see Remarks.
+    ///    QPCPosition = Receives the value of the performance counter at the time that the audio endpoint device read the device
+    ///                  position retrieved in the <i>DevicePosition</i> parameter in response to the <b>GetDevicePosition</b> call.
+    ///                  <b>GetDevicePosition</b> converts the counter value to 100-nanosecond time units before writing it to
+    ///                  <i>QPCPosition</i>. <i>QPCPosition</i> can be <b>NULL</b> if the client does not require the performance
+    ///                  counter value. For more information, see Remarks.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>DevicePosition</i>
+    ///    is <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl>
+    ///    </td> <td width="60%"> The audio endpoint has been disconnected. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_S_POSITION_STALLED</b></dt> </dl> </td> <td width="60%"> The IAudioClient::Start method has
+    ///    not been called for this stream. </td> </tr> </table>
+    ///    
     HRESULT GetDevicePosition(ulong* DevicePosition, ulong* QPCPosition);
 }
 
+///The <b>IAudioClockAdjustment</b> interface is used to adjust the sample rate of a stream. The client obtains a
+///reference to the <b>IAudioClockAdjustment</b> interface of a stream object by calling the IAudioClient::GetService
+///method with parameter <i>riid</i> set to REFIID IID_IAudioClockAdjustment. Adjusting the sample rate is not supported
+///for exclusive mode streams. The <b>IAudioClockAdjustment</b> interface must be obtained from an audio client that is
+///initialized with both the AUDCLNT_STREAMFLAGS_RATEADJUST flag and the share mode set to AUDCLNT_SHAREMODE_SHARED. If
+///Initialize is called in an exclusive mode with the AUDCLNT_STREAMFLAGS_RATEADJUST flag, <b>Initialize</b> fails with
+///the AUDCLNT_E_UNSUPPORTED_FORMAT error code. When releasing an <b>IAudioClockAdjustment</b> interface instance, the
+///client must call the interface's <b>Release</b> method from the same thread as the call to IAudioClient::GetService
+///that created the object.
 @GUID("F6E4C0A0-46D9-4FB8-BE21-57A3EF2B626C")
 interface IAudioClockAdjustment : IUnknown
 {
+    ///The <b>SetSampleRate</b> method sets the sample rate of a stream.
+    ///Params:
+    ///    flSampleRate = The new sample rate in frames per second.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>AUDCLNT_E_NOT_INITIALIZED</b></dt> </dl> </td> <td width="60%"> The audio stream
+    ///    has not been successfully initialized. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt>
+    ///    </dl> </td> <td width="60%"> The sample rate is out of the range for the Audio Processing Object. </td> </tr>
+    ///    </table>
+    ///    
     HRESULT SetSampleRate(float flSampleRate);
 }
 
+///The <b>ISimpleAudioVolume</b> interface enables a client to control the master volume level of an audio session. The
+///IAudioClient::Initialize method initializes a stream object and assigns the stream to an audio session. The client
+///obtains a reference to the <b>ISimpleAudioVolume</b> interface on a stream object by calling the
+///IAudioClient::GetService method with parameter <i>riid</i> set to <b>REFIID</b> IID_ISimpleAudioVolume.
+///Alternatively, a client can obtain the <b>ISimpleAudioVolume</b> interface of an existing session without having to
+///first create a stream object and add the stream to the session. Instead, the client calls the
+///IAudioSessionManager::GetSimpleAudioVolume method with the session GUID. The effective volume level of any channel in
+///the session submix, as heard at the speakers, is the product of the following four volume-level factors: <ul> <li>The
+///per-channel volume levels of the streams in the session, which clients can control through the methods in the
+///IAudioStreamVolume interface.</li> <li>The master volume level of the session, which clients can control through the
+///methods in the <b>ISimpleAudioVolume</b> interface.</li> <li>The per-channel volume level of the session, which
+///clients can control through the methods in the IChannelAudioVolume interface.</li> <li>The policy-based volume level
+///of the session, which the system dynamically assigns to the session as the global mix changes.</li> </ul> Each of the
+///four volume-level factors in the preceding list is a value in the range 0.0 to 1.0, where 0.0 indicates silence and
+///1.0 indicates full volume (no attenuation). The effective volume level is also a value in the range 0.0 to 1.0.
+///Typical audio applications do not modify the volume levels of sessions. Instead, they rely on users to set these
+///volume levels through the Sndvol program. Sndvol modifies only the master volume levels of sessions. By default, the
+///session manager sets the master volume level to 1.0 at the initial activation of a session. Subsequent volume changes
+///by Sndvol or other clients are persistent across computer restarts. When releasing an <b>ISimpleAudioVolume</b>
+///interface instance, the client must call the interface's <b>Release</b> method from the same thread as the call to
+///<b>IAudioClient::GetService</b> that created the object. The <b>ISimpleAudioVolume</b> interface controls the volume
+///of an audio session. An audio session is a collection of shared-mode streams. This interface does not work with
+///exclusive-mode streams. For information about volume controls for exclusive-mode streams, see EndpointVolume API.
 @GUID("87CE5498-68D6-44E5-9215-6DA47EF883D8")
 interface ISimpleAudioVolume : IUnknown
 {
+    ///The <b>SetMasterVolume</b> method sets the master volume level for the audio session.
+    ///Params:
+    ///    fLevel = The new master volume level. Valid volume levels are in the range 0.0 to 1.0.
+    ///    EventContext = Pointer to the event-context GUID. If a call to this method generates a volume-change event, the session
+    ///                   manager sends notifications to all clients that have registered IAudioSessionEvents interfaces with the
+    ///                   session manager. The session manager includes the <i>EventContext</i> pointer value with each notification.
+    ///                   Upon receiving a notification, a client can determine whether it or another client is the source of the event
+    ///                   by inspecting the <i>EventContext</i> value. This scheme depends on the client selecting a value for this
+    ///                   parameter that is unique among all clients in the session. If the caller supplies a <b>NULL</b> pointer for
+    ///                   this parameter, the client's notification method receives a <b>NULL</b> context pointer.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> Parameter <i>fLevel</i> is
+    ///    not in the range 0.0 to 1.0. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td> <td width="60%"> The audio endpoint device has been
+    ///    unplugged, or the audio hardware or associated hardware resources have been reconfigured, disabled, removed,
+    ///    or otherwise made unavailable for use. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows audio service is not
+    ///    running. </td> </tr> </table>
+    ///    
     HRESULT SetMasterVolume(float fLevel, GUID* EventContext);
+    ///The <b>GetMasterVolume</b> method retrieves the client volume level for the audio session.
+    ///Params:
+    ///    pfLevel = Pointer to a <b>float</b> variable into which the method writes the client volume level. The volume level is
+    ///              a value in the range 0.0 to 1.0.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>pfLevel</i> is
+    ///    <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td>
+    ///    <td width="60%"> The audio endpoint device has been unplugged, or the audio hardware or associated hardware
+    ///    resources have been reconfigured, disabled, removed, or otherwise made unavailable for use. </td> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows
+    ///    audio service is not running. </td> </tr> </table>
+    ///    
     HRESULT GetMasterVolume(float* pfLevel);
+    ///The <b>SetMute</b> method sets the muting state for the audio session.
+    ///Params:
+    ///    bMute = The new muting state. <b>TRUE</b> enables muting. <b>FALSE</b> disables muting.
+    ///    EventContext = Pointer to the event-context GUID. If a call to this method generates a volume-change event, the session
+    ///                   manager sends notifications to all clients that have registered IAudioSessionEvents interfaces with the
+    ///                   session manager. The session manager includes the <i>EventContext</i> pointer value with each notification.
+    ///                   Upon receiving a notification, a client can determine whether it or another client is the source of the event
+    ///                   by inspecting the <i>EventContext</i> value. This scheme depends on the client selecting a value for this
+    ///                   parameter that is unique among all clients in the session. If the caller supplies a <b>NULL</b> pointer for
+    ///                   this parameter, the client's notification method receives a <b>NULL</b> context pointer.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td> <td width="60%"> The audio
+    ///    endpoint device has been unplugged, or the audio hardware or associated hardware resources have been
+    ///    reconfigured, disabled, removed, or otherwise made unavailable for use. </td> </tr> <tr> <td width="40%">
+    ///    <dl> <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows audio service is
+    ///    not running. </td> </tr> </table>
+    ///    
     HRESULT SetMute(const(int) bMute, GUID* EventContext);
+    ///The <b>GetMute</b> method retrieves the current muting state for the audio session.
+    ///Params:
+    ///    pbMute = Pointer to a <b>BOOL</b> variable into which the method writes the muting state. <b>TRUE</b> indicates that
+    ///             muting is enabled. <b>FALSE</b> indicates that it is disabled.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>pbMute</i> is
+    ///    <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td>
+    ///    <td width="60%"> The audio endpoint device has been unplugged, or the audio hardware or associated hardware
+    ///    resources have been reconfigured, disabled, removed, or otherwise made unavailable for use. </td> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows
+    ///    audio service is not running. </td> </tr> </table>
+    ///    
     HRESULT GetMute(int* pbMute);
 }
 
+///The <b>IAudioStreamVolume</b> interface enables a client to control and monitor the volume levels for all of the
+///channels in an audio stream. The client obtains a reference to the <b>IAudioStreamVolume</b> interface on a stream
+///object by calling the IAudioClient::GetService method with parameter <i>riid</i> set to REFIID
+///IID_IAudioStreamVolume. The effective volume level of any channel in the session submix, as heard at the speakers, is
+///the product of the following four volume-level factors: <ul> <li>The per-channel volume levels of the streams in the
+///session, which clients can control through the methods in the <b>IAudioStreamVolume</b> interface.</li> <li>The
+///per-channel volume level of the session, which clients can control through the methods in the IChannelAudioVolume
+///interface.</li> <li>The master volume level of the session, which clients can control through the methods in the
+///ISimpleAudioVolume interface.</li> <li>The policy-based volume level of the session, which the system dynamically
+///assigns to the session as the global mix changes.</li> </ul> Each of the four volume-level factors in the preceding
+///list is a value in the range 0.0 to 1.0, where 0.0 indicates silence and 1.0 indicates full volume (no attenuation).
+///The effective volume level is also a value in the range 0.0 to 1.0. When releasing an <b>IAudioStreamVolume</b>
+///interface instance, the client must call the interface's <b>Release</b> method from the same thread as the call to
+///<b>IAudioClient::GetService</b> that created the object. The <b>IAudioStreamVolume</b> interface controls the channel
+///volumes in a shared-mode audio stream. This interface does not work with exclusive-mode streams. For information
+///about volume controls for exclusive-mode streams, see EndpointVolume API.
 @GUID("93014887-242D-4068-8A15-CF5E93B90FE3")
 interface IAudioStreamVolume : IUnknown
 {
+    ///The <b>GetChannelCount</b> method retrieves the number of channels in the audio stream.
+    ///Params:
+    ///    pdwCount = Pointer to a <b>UINT32</b> variable into which the method writes the channel count.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>pdwCount</i> is
+    ///    <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td>
+    ///    <td width="60%"> The audio endpoint device has been unplugged, or the audio hardware or associated hardware
+    ///    resources have been reconfigured, disabled, removed, or otherwise made unavailable for use. </td> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows
+    ///    audio service is not running. </td> </tr> </table>
+    ///    
     HRESULT GetChannelCount(uint* pdwCount);
+    ///The <b>SetChannelVolume</b> method sets the volume level for the specified channel in the audio stream.
+    ///Params:
+    ///    dwIndex = The channel number. If the stream format has <i>N</i> channels, the channels are numbered from 0 to
+    ///              <i>N</i>– 1. To get the number of channels, call the IAudioStreamVolume::GetChannelCount method.
+    ///    fLevel = The volume level for the channel. Valid volume levels are in the range 0.0 to 1.0.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> Parameter <i>dwIndex</i> is
+    ///    set to an invalid channel number, or parameter <i>fLevel</i> is not in the range 0.0 to 1.0. </td> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td> <td width="60%"> The audio
+    ///    endpoint device has been unplugged, or the audio hardware or associated hardware resources have been
+    ///    reconfigured, disabled, removed, or otherwise made unavailable for use. </td> </tr> <tr> <td width="40%">
+    ///    <dl> <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows audio service is
+    ///    not running. </td> </tr> </table>
+    ///    
     HRESULT SetChannelVolume(uint dwIndex, const(float) fLevel);
+    ///The <b>GetChannelVolume</b> method retrieves the volume level for the specified channel in the audio stream.
+    ///Params:
+    ///    dwIndex = The channel number. If the stream format has <i>N</i> channels, then the channels are numbered from 0 to
+    ///              <i>N</i>– 1. To get the number of channels, call the IAudioStreamVolume::GetChannelCount method.
+    ///    pfLevel = Pointer to a <b>float</b> variable into which the method writes the volume level of the specified channel.
+    ///              The volume level is in the range 0.0 to 1.0.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> Parameter <i>dwIndex</i> is
+    ///    set to an invalid channel number. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl>
+    ///    </td> <td width="60%"> Parameter <i>pfLevel</i> is <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td> <td width="60%"> The audio endpoint device has been
+    ///    unplugged, or the audio hardware or associated hardware resources have been reconfigured, disabled, removed,
+    ///    or otherwise made unavailable for use. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows audio service is not
+    ///    running. </td> </tr> </table>
+    ///    
     HRESULT GetChannelVolume(uint dwIndex, float* pfLevel);
+    ///The <b>SetAllVolumes</b> method sets the individual volume levels for all the channels in the audio stream.
+    ///Params:
+    ///    dwCount = The number of elements in the <i>pfVolumes</i> array. This parameter must equal the number of channels in the
+    ///              stream format. To get the number of channels, call the IAudioStreamVolume::GetChannelCount method.
+    ///    pfVolumes = Pointer to an array of volume levels for the channels in the audio stream. The number of elements in the
+    ///                <i>pfVolumes</i> array is specified by the <i>dwCount</i> parameter. The caller writes the volume level for
+    ///                each channel to the array element whose index matches the channel number. If the stream format has <i>N</i>
+    ///                channels, the channels are numbered from 0 to <i>N</i>– 1. Valid volume levels are in the range 0.0 to 1.0.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> Parameter <i>dwCount</i> does
+    ///    not equal the number of channels in the stream, or the value of a <i>pfVolumes</i> array element is not in
+    ///    the range 0.0 to 1.0. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td
+    ///    width="60%"> Parameter <i>pfVolumes</i> is <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td> <td width="60%"> The audio endpoint device has been
+    ///    unplugged, or the audio hardware or associated hardware resources have been reconfigured, disabled, removed,
+    ///    or otherwise made unavailable for use. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows audio service is not
+    ///    running. </td> </tr> </table>
+    ///    
     HRESULT SetAllVolumes(uint dwCount, char* pfVolumes);
+    ///The <b>GetAllVolumes</b> method retrieves the volume levels for all the channels in the audio stream.
+    ///Params:
+    ///    dwCount = The number of elements in the <i>pfVolumes</i> array. The <i>dwCount</i> parameter must equal the number of
+    ///              channels in the stream format. To get the number of channels, call the IAudioStreamVolume::GetChannelCount
+    ///              method.
+    ///    pfVolumes = Pointer to an array of volume levels for the channels in the audio stream. This parameter points to a
+    ///                caller-allocated <b>float</b> array into which the method writes the volume levels for the individual
+    ///                channels. Volume levels are in the range 0.0 to 1.0.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> Parameter <i>dwCount</i> does
+    ///    not equal the number of channels in the stream. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>pfVolumes</i> is <b>NULL</b>. </td> </tr>
+    ///    <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td> <td width="60%"> The
+    ///    audio endpoint device has been unplugged, or the audio hardware or associated hardware resources have been
+    ///    reconfigured, disabled, removed, or otherwise made unavailable for use. </td> </tr> <tr> <td width="40%">
+    ///    <dl> <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows audio service is
+    ///    not running. </td> </tr> </table>
+    ///    
     HRESULT GetAllVolumes(uint dwCount, char* pfVolumes);
 }
 
@@ -6991,140 +8249,1118 @@ interface IAudioAmbisonicsControl : IUnknown
     HRESULT SetRotation(float X, float Y, float Z, float W);
 }
 
+///The <b>IChannelAudioVolume</b> interface enables a client to control and monitor the volume levels for all of the
+///channels in the audio session that the stream belongs to. This is the session that the client assigned the stream to
+///during the call to the IAudioClient::Initialize method. The client obtains a reference to the
+///<b>IChannelAudioVolume</b> interface on a stream object by calling the IAudioClient::GetService method with parameter
+///<i>riid</i> set to REFIID IID_IChannelAudioVolume. The effective volume level of any channel in the session submix,
+///as heard at the speakers, is the product of the following four volume-level factors: <ul> <li>The per-channel volume
+///levels of the streams in the session, which clients can control through the methods in the IAudioStreamVolume
+///interface.</li> <li>The per-channel volume level of the session, which clients can control through the methods in the
+///<b>IChannelAudioVolume</b> interface.</li> <li>The master volume level of the session, which clients can control
+///through the methods in the ISimpleAudioVolume interface.</li> <li>The policy-based volume level of the session, which
+///the system dynamically assigns to the session as the global mix changes.</li> </ul> Each of the four volume-level
+///factors in the preceding list is a value in the range 0.0 to 1.0, where 0.0 indicates silence and 1.0 indicates full
+///volume (no attenuation). The effective volume level is also a value in the range 0.0 to 1.0. Typical audio
+///applications do not modify the volume levels of sessions. Instead, they rely on users to set these volume levels
+///through the Sndvol program. Sndvol modifies only the master volume levels of sessions. By default, the session
+///manager sets the per-channel volume levels to 1.0 at the initial activation of a session. Subsequent per-channel
+///volume changes by clients are persistent across computer restarts. When releasing an <b>IChannelAudioVolume</b>
+///interface instance, the client must call the interface's <b>Release</b> method from the same thread as the call to
+///<b>IAudioClient::GetService</b> that created the object. The <b>IChannelAudioVolume</b> interface controls the
+///channel volumes in an audio session. An audio session is a collection of shared-mode streams. This interface does not
+///work with exclusive-mode streams. For information about volume controls for exclusive-mode streams, see
+///EndpointVolume API.
 @GUID("1C158861-B533-4B30-B1CF-E853E51C59B8")
 interface IChannelAudioVolume : IUnknown
 {
+    ///The <b>GetChannelCount</b> method retrieves the number of channels in the stream format for the audio session.
+    ///Params:
+    ///    pdwCount = Pointer to a <b>UINT32</b> variable into which the method writes the channel count.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>pdwCount</i> is
+    ///    <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td>
+    ///    <td width="60%"> The audio endpoint device has been unplugged, or the audio hardware or associated hardware
+    ///    resources have been reconfigured, disabled, removed, or otherwise made unavailable for use. </td> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows
+    ///    audio service is not running. </td> </tr> </table>
+    ///    
     HRESULT GetChannelCount(uint* pdwCount);
+    ///The <b>SetChannelVolume</b> method sets the volume level for the specified channel in the audio session.
+    ///Params:
+    ///    dwIndex = The channel number. If the stream format for the audio session has <i>N</i> channels, the channels are
+    ///              numbered from 0 to <i>N</i>– 1. To get the number of channels, call the
+    ///              IChannelAudioVolume::GetChannelCount method.
+    ///    fLevel = The volume level for the channel. Valid volume levels are in the range 0.0 to 1.0.
+    ///    EventContext = Pointer to the event-context GUID. If a call to this method generates a channel-volume-change event, the
+    ///                   session manager sends notifications to all clients that have registered IAudioSessionEvents interfaces with
+    ///                   the session manager. The session manager includes the <i>EventContext</i> pointer value with each
+    ///                   notification. Upon receiving a notification, a client can determine whether it or another client is the
+    ///                   source of the event by inspecting the <i>EventContext</i> value. This scheme depends on the client selecting
+    ///                   a value for this parameter that is unique among all clients in the session. If the caller supplies a
+    ///                   <b>NULL</b> pointer for this parameter, the client's notification method receives a <b>NULL</b> context
+    ///                   pointer.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> Parameter <i>dwIndex</i> is
+    ///    set to an invalid channel number, or parameter <i>fLevel</i> is not in the range 0.0 to 1.0. </td> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td> <td width="60%"> The audio
+    ///    endpoint device has been unplugged, or the audio hardware or associated hardware resources have been
+    ///    reconfigured, disabled, removed, or otherwise made unavailable for use. </td> </tr> <tr> <td width="40%">
+    ///    <dl> <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows audio service is
+    ///    not running. </td> </tr> </table>
+    ///    
     HRESULT SetChannelVolume(uint dwIndex, const(float) fLevel, GUID* EventContext);
+    ///The <b>GetChannelVolume</b> method retrieves the volume level for the specified channel in the audio session.
+    ///Params:
+    ///    dwIndex = The channel number. If the stream format for the audio session has <i>N</i> channels, then the channels are
+    ///              numbered from 0 to <i>N</i>– 1. To get the number of channels, call the
+    ///              IChannelAudioVolume::GetChannelCount method.
+    ///    pfLevel = Pointer to a <b>float</b> variable into which the method writes the volume level of the specified channel.
+    ///              The volume level is in the range 0.0 to 1.0.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> Parameter <i>dwIndex</i> is
+    ///    set to an invalid channel number. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl>
+    ///    </td> <td width="60%"> Parameter <i>pfLevel</i> is <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td> <td width="60%"> The audio endpoint device has been
+    ///    unplugged, or the audio hardware or associated hardware resources have been reconfigured, disabled, removed,
+    ///    or otherwise made unavailable for use. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows audio service is not
+    ///    running. </td> </tr> </table>
+    ///    
     HRESULT GetChannelVolume(uint dwIndex, float* pfLevel);
+    ///The <b>SetAllVolumes</b> method sets the individual volume levels for all the channels in the audio session.
+    ///Params:
+    ///    dwCount = The number of elements in the <i>pfVolumes</i> array. This parameter must equal the number of channels in the
+    ///              stream format for the audio session. To get the number of channels, call the
+    ///              IChannelAudioVolume::GetChannelCount method.
+    ///    pfVolumes = Pointer to an array of volume levels for the channels in the audio session. The number of elements in the
+    ///                <i>pfVolumes</i> array is specified by the <i>dwCount</i> parameter. The caller writes the volume level for
+    ///                each channel to the array element whose index matches the channel number. If the stream format for the audio
+    ///                session has <i>N</i> channels, the channels are numbered from 0 to <i>N</i>– 1. Valid volume levels are in
+    ///                the range 0.0 to 1.0.
+    ///    EventContext = Pointer to the event-context GUID. If a call to this method generates a channel-volume-change event, the
+    ///                   session manager sends notifications to all clients that have registered IAudioSessionEvents interfaces with
+    ///                   the session manager. The session manager includes the <i>EventContext</i> pointer value with each
+    ///                   notification. Upon receiving a notification, a client can determine whether it or another client is the
+    ///                   source of the event by inspecting the <i>EventContext</i> value. This scheme depends on the client selecting
+    ///                   a value for this parameter that is unique among all clients in the session. If the caller supplies a
+    ///                   <b>NULL</b> pointer for this parameter, the client's notification method receives a <b>NULL</b> context
+    ///                   pointer.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> Parameter <i>dwCount</i> does
+    ///    not equal the number of channels in the stream format for the audio session, or the value of a
+    ///    <i>pfVolumes</i> array element is not in the range 0.0 to 1.0. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>pfVolumes</i> is <b>NULL</b>. </td> </tr>
+    ///    <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td> <td width="60%"> The
+    ///    audio endpoint device has been unplugged, or the audio hardware or associated hardware resources have been
+    ///    reconfigured, disabled, removed, or otherwise made unavailable for use. </td> </tr> <tr> <td width="40%">
+    ///    <dl> <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows audio service is
+    ///    not running. </td> </tr> </table>
+    ///    
     HRESULT SetAllVolumes(uint dwCount, char* pfVolumes, GUID* EventContext);
+    ///The <b>GetAllVolumes</b> method retrieves the volume levels for all the channels in the audio session.
+    ///Params:
+    ///    dwCount = The number of elements in the <i>pfVolumes</i> array. The <i>dwCount</i> parameter must equal the number of
+    ///              channels in the stream format for the audio session. To get the number of channels, call the
+    ///              IChannelAudioVolume::GetChannelCount method.
+    ///    pfVolumes = Pointer to an array of volume levels for the channels in the audio session. This parameter points to a
+    ///                caller-allocated <b>float</b> array into which the method writes the volume levels for the individual
+    ///                channels. Volume levels are in the range 0.0 to 1.0.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> Parameter <i>dwCount</i> does
+    ///    not equal the number of channels in the stream format for the audio session. </td> </tr> <tr> <td
+    ///    width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>pfVolumes</i> is
+    ///    <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td>
+    ///    <td width="60%"> The audio endpoint device has been unplugged, or the audio hardware or associated hardware
+    ///    resources have been reconfigured, disabled, removed, or otherwise made unavailable for use. </td> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows
+    ///    audio service is not running. </td> </tr> </table>
+    ///    
     HRESULT GetAllVolumes(uint dwCount, char* pfVolumes);
 }
 
+///Provides a list of supported audio formats. The most preferred format is first in the list. Get a reference to this
+///interface by calling ISpatialAudioClient::GetSupportedAudioObjectFormatEnumerator.
 @GUID("DCDAA858-895A-4A22-A5EB-67BDA506096D")
 interface IAudioFormatEnumerator : IUnknown
 {
+    ///Gets the number of supported audio formats in the list
+    ///Params:
+    ///    count = The number of supported audio formats in the list.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK.
+    ///    
     HRESULT GetCount(uint* count);
+    ///Gets the format with the specified index in the list. The formats are listed in order of importance. The most
+    ///preferable format is first in the list.
+    ///Params:
+    ///    index = The index of the item in the list to retrieve.
+    ///    format = Pointer to a pointer to a <b>WAVEFORMATEX</b> structure describing a supported audio format.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK.
+    ///    
     HRESULT GetFormat(uint index, WAVEFORMATEX** format);
 }
 
+///Base interface that represents an object that provides audio data to be rendered from a position in 3D space,
+///relative to the user. Spatial audio objects can be static or dynamic, which you specify with the <i>type</i>
+///parameter to the ISpatialAudioObjectRenderStream::ActivateSpatialAudioObject method. Dynamic audio objects can be
+///placed in an arbitrary position in space and can be moved over time. Static audio objects are assigned to one or more
+///channels, defined in the AudioObjectType enumeration, that each correlate to a fixed speaker location that may be a
+///physical or a virtualized speaker. This interface is a part of Windows Sonic, Microsoft’s audio platform for more
+///immersive audio which includes integrated spatial sound on Xbox and Windows.
 @GUID("CCE0B8F2-8D4D-4EFB-A8CF-3D6ECF1C30E0")
 interface ISpatialAudioObjectBase : IUnknown
 {
+    ///Gets a buffer that is used to supply the audio data for the ISpatialAudioObject.
+    ///Params:
+    ///    buffer = The buffer into which audio data is written.
+    ///    bufferLength = The length of the buffer in bytes. This length will be the value returned in the <i>frameCountPerBuffer</i>
+    ///                   parameter to ISpatialAudioObjectRenderStream::BeginUpdatingAudioObjects multiplied by the value of the
+    ///                   <b>nBlockAlign</b> field of the WAVEFORMATEX structure passed in the
+    ///                   SpatialAudioObjectRenderStreamActivationParams parameter to ISpatialAudioClient::ActivateSpatialAudioStream.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>SPTLAUDCLNT_E_OUT_OF_ORDER</b></dt> </dl> </td> <td width="60%">
+    ///    ISpatialAudioObjectRenderStream::BeginUpdatingAudioObjects was not called before the call to
+    ///    <b>GetBuffer</b>. This method must be called before the first time <b>GetBuffer</b> is called and after every
+    ///    subsequent call to ISpatialAudioObjectRenderStream::EndUpdatingAudioObjects. </td> </tr> <tr> <td
+    ///    width="40%"> <dl> <dt><b>SPTLAUDCLNT_E_RESOURCES_INVALIDATED</b></dt> </dl> </td> <td width="60%">
+    ///    SetEndOfStream was called either explicitly or implicitly in a previous audio processing pass.
+    ///    <b>SetEndOfStream</b> is called implicitly by the system if <b>GetBuffer</b> is not called within an audio
+    ///    processing pass (between calls to ISpatialAudioObjectRenderStream::BeginUpdatingAudioObjects and
+    ///    ISpatialAudioObjectRenderStream::EndUpdatingAudioObjects). </td> </tr> </table>
+    ///    
     HRESULT GetBuffer(ubyte** buffer, uint* bufferLength);
+    ///Instructs the system that the final block of audio data has been submitted for the ISpatialAudioObject so that
+    ///the object can be deactivated and it's resources reused.
+    ///Params:
+    ///    frameCount = The number of audio frames in the audio buffer that should be included in the final processing pass. This
+    ///                 number may be smaller than or equal to the value returned in the <i>frameCountPerBuffer</i> parameter to
+    ///                 ISpatialAudioObjectRenderStream::BeginUpdatingAudioObjects.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>SPTLAUDCLNT_E_OUT_OF_ORDER</b></dt> </dl> </td> <td width="60%">
+    ///    ISpatialAudioObjectRenderStream::BeginUpdatingAudioObjects was not called before the call to
+    ///    <b>SetEndOfStream</b>. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>SPTLAUDCLNT_E_RESOURCES_INVALIDATED</b></dt> </dl> </td> <td width="60%"> SetEndOfStream was called
+    ///    either explicitly or implicitly in a previous audio processing pass. <b>SetEndOfStream</b> is called
+    ///    implicitly by the system if <b>GetBuffer</b> is not called within an audio processing pass (between calls to
+    ///    ISpatialAudioObjectRenderStream::BeginUpdatingAudioObjects and
+    ///    ISpatialAudioObjectRenderStream::EndUpdatingAudioObjects). </td> </tr> </table>
+    ///    
     HRESULT SetEndOfStream(uint frameCount);
+    ///Gets a boolean value indicating whether the ISpatialAudioObject is valid.
+    ///Params:
+    ///    isActive = <b>TRUE</b> if the audio object is currently valid; otherwise, <b>FALSE</b>.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK.
+    ///    
     HRESULT IsActive(int* isActive);
+    ///Gets a value specifying the type of audio object that is represented by the ISpatialAudioObject. This value
+    ///indicates if the object is dynamic or static. If the object is static, one and only one of the static audio
+    ///channel values to which the object is assigned is returned.
+    ///Params:
+    ///    audioObjectType = A value specifying the type of audio object that is represented
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK.
+    ///    
     HRESULT GetAudioObjectType(AudioObjectType* audioObjectType);
 }
 
+///Represents an object that provides audio data to be rendered from a position in 3D space, relative to the user.
+///Spatial audio objects can be static or dynamic, which you specify with the <i>type</i> parameter to the
+///ISpatialAudioObjectRenderStream::ActivateSpatialAudioObject method. Dynamic audio objects can be placed in an
+///arbitrary position in space and can be moved over time. Static audio objects are assigned to one or more channels,
+///defined in the AudioObjectType enumeration, that each correlate to a fixed speaker location that may be a physical or
+///a virtualized speaker. This interface is a part of Windows Sonic, Microsoft’s audio platform for more immersive
+///audio which includes integrated spatial sound on Xbox and Windows.
 @GUID("DDE28967-521B-46E5-8F00-BD6F2BC8AB1D")
 interface ISpatialAudioObject : ISpatialAudioObjectBase
 {
+    ///Sets the position in 3D space, relative to the listener, from which the ISpatialAudioObject audio data will be
+    ///rendered.
+    ///Params:
+    ///    x = The x position of the audio object, in meters, relative to the listener. Positive values are to the right of
+    ///        the listener and negative values are to the left.
+    ///    y = The y position of the audio object, in meters, relative to the listener. Positive values are above the
+    ///        listener and negative values are below.
+    ///    z = The z position of the audio object, in meters, relative to the listener. Positive values are behind the
+    ///        listener and negative values are in front.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>SPTLAUDCLNT_E_OUT_OF_ORDER</b></dt> </dl> </td> <td width="60%">
+    ///    ISpatialAudioObjectRenderStreamBase::BeginUpdatingAudioObjects was not called before the call to
+    ///    <b>SetPosition</b>. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>SPTLAUDCLNT_E_RESOURCES_INVALIDATED</b></dt> </dl> </td> <td width="60%"> SetEndOfStream was called
+    ///    either explicitly or implicitly in a previous audio processing pass. <b>SetEndOfStream</b> is called
+    ///    implicitly by the system if <b>GetBuffer</b> is not called within an audio processing pass (between calls to
+    ///    ISpatialAudioObjectRenderStreamBase::BeginUpdatingAudioObjects and
+    ///    ISpatialAudioObjectRenderStreamBase::EndUpdatingAudioObjects). </td> </tr> <tr> <td width="40%"> <dl> <dt><b>
+    ///    SPTLAUDCLNT_E_PROPERTY_NOT_SUPPORTED </b></dt> </dl> </td> <td width="60%"> The ISpatialAudioObject is not of
+    ///    type <b>AudioObjectType_Dynamic</b>. Set the type of the audio object with the <i>type</i> parameter to the
+    ///    ISpatialAudioObjectRenderStreamBase::ActivateSpatialAudioObject method. </td> </tr> </table>
+    ///    
     HRESULT SetPosition(float x, float y, float z);
+    ///Sets an audio amplitude multiplier that will be applied to the audio data provided by the ISpatialAudioObject
+    ///before it is submitted to the audio rendering engine.
+    ///Params:
+    ///    volume = The amplitude multiplier for audio data. This must be a value between 0.0 and 1.0.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>SPTLAUDCLNT_E_OUT_OF_ORDER</b></dt> </dl> </td> <td width="60%">
+    ///    ISpatialAudioObjectRenderStreamBase::BeginUpdatingAudioObjects was not called before the call to
+    ///    <b>SetVolume</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>SPTLAUDCLNT_E_RESOURCES_INVALIDATED</b></dt>
+    ///    </dl> </td> <td width="60%"> SetEndOfStream was called either explicitly or implicitly in a previous audio
+    ///    processing pass. <b>SetEndOfStream</b> is called implicitly by the system if <b>GetBuffer</b> is not called
+    ///    within an audio processing pass (between calls to
+    ///    ISpatialAudioObjectRenderStreamBase::BeginUpdatingAudioObjects and
+    ///    ISpatialAudioObjectRenderStreamBase::EndUpdatingAudioObjects). </td> </tr> </table>
+    ///    
     HRESULT SetVolume(float volume);
 }
 
+///Base interface that provides methods for controlling a spatial audio object render stream, including starting,
+///stopping, and resetting the stream. Also provides methods for activating new ISpatialAudioObject instances and
+///notifying the system when you are beginning and ending the process of updating activated spatial audio objects and
+///data. This interface is a part of Windows Sonic, Microsoft’s audio platform for more immersive audio which includes
+///integrated spatial sound on Xbox and Windows.
 @GUID("FEAAF403-C1D8-450D-AA05-E0CCEE7502A8")
 interface ISpatialAudioObjectRenderStreamBase : IUnknown
 {
+    ///Gets the number of dynamic spatial audio objects that are currently available.
+    ///Params:
+    ///    value = The number of dynamic spatial audio objects that are currently available.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>SPTLAUDCLNT_E_DESTROYED</b></dt> </dl> </td> <td width="60%"> The
+    ///    ISpatialAudioClient associated with the spatial audio stream has been destroyed. </td> </tr> <tr> <td
+    ///    width="40%"> <dl> <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td> <td width="60%"> The audio device
+    ///    associated with the spatial audio stream is no longer valid. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td> <td width="60%"> The audio endpoint device has been
+    ///    unplugged, or the audio hardware or associated hardware resources have been reconfigured, disabled, removed,
+    ///    or otherwise made unavailable for use. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>SPTLAUDCLNT_E_INTERNAL</b></dt> </dl> </td> <td width="60%"> An internal error has occurred. </td>
+    ///    </tr> <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_E_UNSUPPORTED_FORMAT</b></dt> </dl> </td> <td width="60%">
+    ///    <b>The media associated with the spatial audio stream uses an unsupported format. </td> </tr>
+    ///    
     HRESULT GetAvailableDynamicObjectCount(uint* value);
+    ///Gets additional services from the <b>ISpatialAudioObjectRenderStream</b>.
+    ///Params:
+    ///    riid = The interface ID for the requested service. The client should set this parameter to one of the following
+    ///           REFIID values: IID_IAudioClock IID_IAudioClock2 IID_IAudioStreamVolume
+    ///    service = Pointer to a pointer variable into which the method writes the address of an instance of the requested
+    ///              interface. Through this method, the caller obtains a counted reference to the interface. The caller is
+    ///              responsible for releasing the interface, when it is no longer needed, by calling the interface's Release
+    ///              method. If the <b>GetService</b> call fails, <i>*ppv </i>is NULL.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>ppv</i> is NULL.
+    ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>SPTLAUDCLNT_E_DESTROYED</b></dt> </dl> </td> <td width="60%">
+    ///    The ISpatialAudioClient associated with the spatial audio stream has been destroyed. </td> </tr> <tr> <td
+    ///    width="40%"> <dl> <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td> <td width="60%"> The audio
+    ///    endpoint device has been unplugged, or the audio hardware or associated hardware resources have been
+    ///    reconfigured, disabled, removed, or otherwise made unavailable for use. </td> </tr> <tr> <td width="40%">
+    ///    <dl> <dt><b>SPTLAUDCLNT_E_INTERNAL</b></dt> </dl> </td> <td width="60%"> An internal error has occurred.
+    ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_E_UNSUPPORTED_FORMAT</b></dt> </dl> </td> <td
+    ///    width="60%"> The media associated with the spatial audio stream uses an unsupported format. </td> </tr>
+    ///    </table>
+    ///    
     HRESULT GetService(const(GUID)* riid, void** service);
+    ///Starts the spatial audio stream.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>SPTLAUDCLNT_E_STREAM_NOT_STOPPED</b></dt> </dl> </td> <td width="60%"> The audio
+    ///    stream has not been stopped. Stop the stream by calling Stop. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>SPTLAUDCLNT_E_DESTROYED</b></dt> </dl> </td> <td width="60%"> The ISpatialAudioClient associated with
+    ///    the spatial audio stream has been destroyed. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td> <td width="60%"> The audio endpoint device has been
+    ///    unplugged, or the audio hardware or associated hardware resources have been reconfigured, disabled, removed,
+    ///    or otherwise made unavailable for use. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>SPTLAUDCLNT_E_INTERNAL</b></dt> </dl> </td> <td width="60%"> An internal error has occurred. </td>
+    ///    </tr> <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_E_UNSUPPORTED_FORMAT</b></dt> </dl> </td> <td width="60%">
+    ///    The media associated with the spatial audio stream uses an unsupported format. </td> </tr> </table>
+    ///    
     HRESULT Start();
+    ///Stops a running audio stream.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>SPTLAUDCLNT_E_DESTROYED</b></dt> </dl> </td> <td width="60%"> The
+    ///    ISpatialAudioClient associated with the spatial audio stream has been destroyed. </td> </tr> <tr> <td
+    ///    width="40%"> <dl> <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td> <td width="60%"> The audio
+    ///    endpoint device has been unplugged, or the audio hardware or associated hardware resources have been
+    ///    reconfigured, disabled, removed, or otherwise made unavailable for use. </td> </tr> <tr> <td width="40%">
+    ///    <dl> <dt><b>SPTLAUDCLNT_E_INTERNAL</b></dt> </dl> </td> <td width="60%"> An internal error has occurred.
+    ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_E_UNSUPPORTED_FORMAT</b></dt> </dl> </td> <td
+    ///    width="60%"> The media associated with the spatial audio stream uses an unsupported format. </td> </tr>
+    ///    </table>
+    ///    
     HRESULT Stop();
+    ///Reset a stopped audio stream.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>SPTLAUDCLNT_E_STREAM_NOT_STOPPED</b></dt> </dl> </td> <td width="60%"> The audio
+    ///    stream has not been stopped. Stop the stream by calling Stop. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>SPTLAUDCLNT_E_DESTROYED</b></dt> </dl> </td> <td width="60%"> The ISpatialAudioClient associated with
+    ///    the spatial audio stream has been destroyed. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td> <td width="60%"> The audio endpoint device has been
+    ///    unplugged, or the audio hardware or associated hardware resources have been reconfigured, disabled, removed,
+    ///    or otherwise made unavailable for use. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>SPTLAUDCLNT_E_INTERNAL</b></dt> </dl> </td> <td width="60%"> An internal error has occurred. </td>
+    ///    </tr> <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_E_UNSUPPORTED_FORMAT</b></dt> </dl> </td> <td width="60%">
+    ///    The media associated with the spatial audio stream uses an unsupported format. </td> </tr> </table>
+    ///    
     HRESULT Reset();
+    ///Puts the system into the state where audio object data can be submitted for processing and the
+    ///ISpatialAudioObject state can be modified.
+    ///Params:
+    ///    availableDynamicObjectCount = The number of dynamic audio objects that are available to be rendered for the current processing pass. All
+    ///                                  allocated static audio objects can be rendered in every pass. For information on audio object types, see
+    ///                                  AudioObjectType.
+    ///    frameCountPerBuffer = The size, in audio frames, of the buffer returned by GetBuffer.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>SPTLAUDCLNT_E_OUT_OF_ORDER</b></dt> </dl> </td> <td width="60%">
+    ///    <b>BeginUpdatingAudioObjects</b> was called twice without a matching call to EndUpdatingAudioObjects between
+    ///    the two calls. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>SPTLAUDCLNT_E_DESTROYED</b></dt> </dl> </td> <td
+    ///    width="60%"> The ISpatialAudioClient associated with the spatial audio stream has been destroyed. </td> </tr>
+    ///    <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td> <td width="60%"> The
+    ///    audio endpoint device has been unplugged, or the audio hardware or associated hardware resources have been
+    ///    reconfigured, disabled, removed, or otherwise made unavailable for use. </td> </tr> <tr> <td width="40%">
+    ///    <dl> <dt><b>AUDCLNT_E_RESOURCES_INVALIDATED</b></dt> </dl> </td> <td width="60%"> A resource associated with
+    ///    the spatial audio stream is no longer valid. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>SPTLAUDCLNT_E_INTERNAL</b></dt> </dl> </td> <td width="60%"> An internal error has occurred. </td>
+    ///    </tr> <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_E_UNSUPPORTED_FORMAT</b></dt> </dl> </td> <td width="60%">
+    ///    The media associated with the spatial audio stream uses an unsupported format. </td> </tr> </table>
+    ///    
     HRESULT BeginUpdatingAudioObjects(uint* availableDynamicObjectCount, uint* frameCountPerBuffer);
+    ///Notifies the system that the app has finished supplying audio data for the spatial audio objects activated with
+    ///ActivateSpatialAudioObject.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>SPTLAUDCLNT_E_OUT_OF_ORDER</b></dt> </dl> </td> <td width="60%">
+    ///    <b>EndUpdatingAudioObjects</b> was called before BeginUpdatingAudioObjects. </td> </tr> <tr> <td width="40%">
+    ///    <dl> <dt><b>SPTLAUDCLNT_E_DESTROYED</b></dt> </dl> </td> <td width="60%"> The ISpatialAudioClient associated
+    ///    with the spatial audio stream has been destroyed. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td> <td width="60%"> The audio endpoint device has been
+    ///    unplugged, or the audio hardware or associated hardware resources have been reconfigured, disabled, removed,
+    ///    or otherwise made unavailable for use. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_RESOURCES_INVALIDATED</b></dt> </dl> </td> <td width="60%"> A resource associated with the
+    ///    spatial audio stream is no longer valid. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>SPTLAUDCLNT_E_INTERNAL</b></dt> </dl> </td> <td width="60%"> An internal error has occurred. </td>
+    ///    </tr> <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_E_UNSUPPORTED_FORMAT</b></dt> </dl> </td> <td width="60%">
+    ///    The media associated with the spatial audio stream uses an unsupported format. </td> </tr> </table>
+    ///    
     HRESULT EndUpdatingAudioObjects();
 }
 
+///Provides methods for controlling a spatial audio object render stream, including starting, stopping, and resetting
+///the stream. Also provides methods for activating new ISpatialAudioObject instances and notifying the system when you
+///are beginning and ending the process of updating activated spatial audio objects and data. This interface is a part
+///of Windows Sonic, Microsoft’s audio platform for more immersive audio which includes integrated spatial sound on
+///Xbox and Windows.
 @GUID("BAB5F473-B423-477B-85F5-B5A332A04153")
 interface ISpatialAudioObjectRenderStream : ISpatialAudioObjectRenderStreamBase
 {
+    ///Activates an ISpatialAudioObject for audio rendering.
+    ///Params:
+    ///    type = The type of audio object to activate. For dynamic audio objects, this value must be
+    ///           <b>AudioObjectType_Dynamic</b>. For static audio objects, specify one of the static audio channel values from
+    ///           the enumeration. Specifying <b>AudioObjectType_None</b> will produce an audio object that is not spatialized.
+    ///    audioObject = Receives a pointer to the activated interface.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>SPTLAUDCLNT_E_NO_MORE_OBJECTS </b></dt> </dl> </td> <td width="60%"> The system
+    ///    has reached the maximum number of simultaneous audio objects. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>SPTLAUDCLNT_E_DESTROYED</b></dt> </dl> </td> <td width="60%"> The ISpatialAudioClient associated with
+    ///    the spatial audio stream has been destroyed. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td> <td width="60%"> The audio endpoint device has been
+    ///    unplugged, or the audio hardware or associated hardware resources have been reconfigured, disabled, removed,
+    ///    or otherwise made unavailable for use. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>SPTLAUDCLNT_E_INTERNAL</b></dt> </dl> </td> <td width="60%"> An internal error has occurred. </td>
+    ///    </tr> <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_E_UNSUPPORTED_FORMAT</b></dt> </dl> </td> <td width="60%">
+    ///    The media associated with the spatial audio stream uses an unsupported format. </td> </tr> </table>
+    ///    
     HRESULT ActivateSpatialAudioObject(AudioObjectType type, ISpatialAudioObject* audioObject);
 }
 
+///Provides notifications for spatial audio clients to respond to changes in the state of an
+///ISpatialAudioObjectRenderStream. You register the object that implements this interface by assigning it to the
+///<i>NotifyObject</i> parameter of the SpatialAudioClientActivationParams structure passed into the
+///ISpatialAudioClient::ActivateSpatialAudioStream method. After registering its
+///<b>ISpatialAudioObjectRenderStreamNotify</b> interface, the client receives event notifications in the form of
+///callbacks through the OnAvailableDynamicObjectCountChange method in the interface. This interface is a part of
+///Windows Sonic, Microsoft’s audio platform for more immersive audio which includes integrated spatial sound on Xbox
+///and Windows.
 @GUID("DDDF83E6-68D7-4C70-883F-A1836AFB4A50")
 interface ISpatialAudioObjectRenderStreamNotify : IUnknown
 {
+    ///Notifies the spatial audio client when the rendering capacity for an ISpatialAudioObjectRenderStream is about to
+    ///change, specifies the time after which the change will occur, and specifies the number of dynamic audio objects
+    ///that will be available after the change.
+    ///Params:
+    ///    sender = The spatial audio render stream for which the available dynamic object count is changing.
+    ///    hnsComplianceDeadlineTime = The time after which the spatial resource limit will change, in 100-nanosecond units. A value of 0 means that
+    ///                                the change will occur immediately.
+    ///    availableDynamicObjectCountChange = The number of dynamic spatial audio objects that will be available to the stream after
+    ///                                        <i>hnsComplianceDeadlineTime</i>.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, it returns an error code.
+    ///    
     HRESULT OnAvailableDynamicObjectCountChange(ISpatialAudioObjectRenderStreamBase sender, 
                                                 long hnsComplianceDeadlineTime, 
                                                 uint availableDynamicObjectCountChange);
 }
 
+///The <b>ISpatialAudioClient</b> interface enables a client to create audio streams that emit audio from a position in
+///3D space. This interface is a part of Windows Sonic, Microsoft’s audio platform for more immersive audio which
+///includes integrated spatial sound on Xbox and Windows.
 @GUID("BBF8E066-AAAA-49BE-9A4D-FD2A858EA27F")
 interface ISpatialAudioClient : IUnknown
 {
+    ///Gets the position in 3D space of the specified static spatial audio channel.
+    ///Params:
+    ///    type = A value indicating the static spatial audio channel for which the position is being queried. This method will
+    ///           return E_INVALIDARG if the value does not represent a static channel, including
+    ///           <b>AudioObjectType_Dynamic</b> and <b>AudioObjectType_None</b>.
+    ///    x = The x coordinate of the static audio channel, in meters, relative to the listener. Positive values are to the
+    ///        right of the listener and negative values are to the left.
+    ///    y = The y coordinate of the static audio channel, in meters, relative to the listener. Positive values are above
+    ///        the listener and negative values are below.
+    ///    z = The z coordinate of the static audio channel, in meters, relative to the listener. Positive values are behind
+    ///        the listener and negative values are in front.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> The supplied AudioObjectType
+    ///    value does not represent a static channel. </td> </tr> </table>
+    ///    
     HRESULT GetStaticObjectPosition(AudioObjectType type, float* x, float* y, float* z);
+    ///Gets a channel mask which represents the subset of static speaker bed channels native to current rendering
+    ///engine.
+    ///Params:
+    ///    mask = A bitwise combination of values from the AudioObjectType enumeration indicating a subset of static speaker
+    ///           channels. The values returned will only include the static channel values and will not include
+    ///           <b>AudioObjectType_Dynamic</b>.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK.
+    ///    
     HRESULT GetNativeStaticObjectTypeMask(AudioObjectType* mask);
+    ///Gets the maximum number of dynamic audio objects for the spatial audio client.
+    ///Params:
+    ///    value = Gets the maximum dynamic object count for this client.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK.
+    ///    
     HRESULT GetMaxDynamicObjectCount(uint* value);
+    ///Gets an IAudioFormatEnumerator that contains all supported audio formats for spatial audio objects, the first
+    ///item in the list represents the most preferable format.
+    ///Params:
+    ///    enumerator = Pointer to the pointer that receives the IAudioFormatEnumerator interface.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK.
+    ///    
     HRESULT GetSupportedAudioObjectFormatEnumerator(IAudioFormatEnumerator* enumerator);
+    ///Gets the maximum possible frame count per processing pass. This method can be used to determine the size of the
+    ///source buffer that should be allocated to convey audio data for each processing pass.
+    ///Params:
+    ///    objectFormat = The audio format used to calculate the maximum frame count. This should be the same format specified in the
+    ///                   <b>ObjectFormat</b> field of the SpatialAudioObjectRenderStreamActivationParams passed to
+    ///                   ActivateSpatialAudioStream.
+    ///    frameCountPerBuffer = The maximum number of audio frames that will be processed in one pass.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK.
+    ///    
     HRESULT GetMaxFrameCount(const(WAVEFORMATEX)* objectFormat, uint* frameCountPerBuffer);
+    ///Gets a value indicating whether ISpatialAudioObjectRenderStream supports a the specified format.
+    ///Params:
+    ///    objectFormat = The format for which support is queried.
+    ///Returns:
+    ///    If the specified format is supported, it returns S_OK. If specified format is unsupported, this method
+    ///    returns AUDCLNT_E_UNSUPPORTED_FORMAT.
+    ///    
     HRESULT IsAudioObjectFormatSupported(const(WAVEFORMATEX)* objectFormat);
+    ///When successful, gets a value indicating whether the currently active spatial rendering engine supports the
+    ///specified spatial audio render stream.
+    ///Params:
+    ///    streamUuid = The interface ID of the interface for which availability is queried.
+    ///    auxiliaryInfo = A structure containing additional information to be used when support is queried. For more information, see
+    ///                    Remarks.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>SPTLAUDCLNT_E_STREAM_IS_NOT_AVAILABLE</b></dt> </dl> </td> <td width="60%"> The
+    ///    specified stream interface can't be activated by the currently active rendering engine. </td> </tr> <tr> <td
+    ///    width="40%"> <dl> <dt><b>SPTLAUDCLNT_E_METADATA_FORMAT_IS_NOT_SUPPORTED</b></dt> </dl> </td> <td width="60%">
+    ///    The metadata format supplied in the <i>auxiliaryInfo</i> parameter is not supported by the current rendering
+    ///    engine. For more information, see Remarks.. </td> </tr> </table>
+    ///    
     HRESULT IsSpatialAudioStreamAvailable(const(GUID)* streamUuid, const(PROPVARIANT)* auxiliaryInfo);
+    ///Activates and initializes spatial audio stream using one of the spatial audio stream activation structures.
+    ///Params:
+    ///    activationParams = The structure defining the activation parameters for the spatial audio stream. The <b>vt</b> field should be
+    ///                       set to VT_BLOB and the <b>blob</b> field should be populated with a
+    ///                       SpatialAudioObjectRenderStreamActivationParams or a
+    ///                       SpatialAudioObjectRenderStreamForMetadataActivationParams.
+    ///    riid = The UUID of the spatial audio stream interface to activate.
+    ///    stream = A pointer to the pointer which receives the activated spatial audio interface.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK.
+    ///    
     HRESULT ActivateSpatialAudioStream(const(PROPVARIANT)* activationParams, const(GUID)* riid, void** stream);
 }
 
+///Represents an object that provides audio data to be rendered from a position in 3D space, relative to the user, a
+///head-relative transfer function (HRTF). Spatial audio objects can be static or dynamic, which you specify with the
+///<i>type</i> parameter to the ISpatialAudioObjectRenderStreamForHrtf::ActivateSpatialAudioObjectForHrtf method.
+///Dynamic audio objects can be placed in an arbitrary position in space and can be moved over time. Static audio
+///objects are assigned to one or more channels, defined in the AudioObjectType enumeration, that each correlate to a
+///fixed speaker location that may be a physical or a virtualized speaker This interface is a part of Windows Sonic,
+///Microsoft’s audio platform for more immersive audio which includes integrated spatial sound on Xbox and Windows.
 @GUID("D7436ADE-1978-4E14-ABA0-555BD8EB83B4")
 interface ISpatialAudioObjectForHrtf : ISpatialAudioObjectBase
 {
+    ///Sets the position in 3D space, relative to the listener, from which the ISpatialAudioObjectForHrtf audio data
+    ///will be rendered.
+    ///Params:
+    ///    x = The x position of the audio object, in meters, relative to the listener. Positive values are to the right of
+    ///        the listener and negative values are to the left.
+    ///    y = The y position of the audio object, in meters, relative to the listener. Positive values are above the
+    ///        listener and negative values are below.
+    ///    z = The z position of the audio object, in meters, relative to the listener. Positive values are behind the
+    ///        listener and negative values are in front.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>SPTLAUDCLNT_E_OUT_OF_ORDER</b></dt> </dl> </td> <td width="60%">
+    ///    ISpatialAudioObjectRenderStreamBase::BeginUpdatingAudioObjects was not called before the call to
+    ///    <b>SetPosition</b>. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>SPTLAUDCLNT_E_RESOURCES_INVALIDATED</b></dt> </dl> </td> <td width="60%"> SetEndOfStream was called
+    ///    either explicitly or implicitly in a previous audio processing pass. <b>SetEndOfStream</b> is called
+    ///    implicitly by the system if <b>GetBuffer</b> is not called within an audio processing pass (between calls to
+    ///    ISpatialAudioObjectRenderStreamBase::BeginUpdatingAudioObjects and
+    ///    ISpatialAudioObjectRenderStreamBase::EndUpdatingAudioObjects). </td> </tr> <tr> <td width="40%"> <dl> <dt><b>
+    ///    SPTLAUDCLNT_E_PROPERTY_NOT_SUPPORTED </b></dt> </dl> </td> <td width="60%"> The ISpatialAudioObjectForHrtf is
+    ///    not of type <b>AudioObjectType_Dynamic</b>. Set the type of the audio object with the <i>type</i> parameter
+    ///    to the ISpatialAudioObjectRenderStreamBase::ActivateSpatialAudioObjectForHrtf method. </td> </tr> </table>
+    ///    
     HRESULT SetPosition(float x, float y, float z);
+    ///Sets the gain for the ISpatialAudioObjectForHrtf in dB.
+    ///Params:
+    ///    gain = The gain for the ISpatialAudioObjectForHrtf in dB.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>SPTLAUDCLNT_E_OUT_OF_ORDER</b></dt> </dl> </td> <td width="60%">
+    ///    ISpatialAudioObjectRenderStreamBase::BeginUpdatingAudioObjects was not called before the call to
+    ///    <b>SetGain</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>SPTLAUDCLNT_E_RESOURCES_INVALIDATED</b></dt>
+    ///    </dl> </td> <td width="60%"> SetEndOfStream was called either explicitly or implicitly in a previous audio
+    ///    processing pass. <b>SetEndOfStream</b> is called implicitly by the system if <b>GetBuffer</b> is not called
+    ///    within an audio processing pass (between calls to
+    ///    ISpatialAudioObjectRenderStreamBase::BeginUpdatingAudioObjects and
+    ///    ISpatialAudioObjectRenderStreamBase::EndUpdatingAudioObjects). </td> </tr> </table>
+    ///    
     HRESULT SetGain(float gain);
+    ///Sets the orientation in 3D space, relative to the listener's frame of reference, from which the
+    ///ISpatialAudioObjectForHrtf audio data will be rendered.
+    ///Params:
+    ///    orientation = An array of floats defining row-major 3x3 rotation matrix.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>SPTLAUDCLNT_E_OUT_OF_ORDER</b></dt> </dl> </td> <td width="60%">
+    ///    ISpatialAudioObjectRenderStreamBase::BeginUpdatingAudioObjects was not called before the call to
+    ///    <b>SetOrientation</b>. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>SPTLAUDCLNT_E_RESOURCES_INVALIDATED</b></dt> </dl> </td> <td width="60%"> SetEndOfStream was called
+    ///    either explicitly or implicitly in a previous audio processing pass. <b>SetEndOfStream</b> is called
+    ///    implicitly by the system if <b>GetBuffer</b> is not called within an audio processing pass (between calls to
+    ///    ISpatialAudioObjectRenderStreamBase::BeginUpdatingAudioObjects and
+    ///    ISpatialAudioObjectRenderStreamBase::EndUpdatingAudioObjects). </td> </tr> </table>
+    ///    
     HRESULT SetOrientation(const(float)** orientation);
+    ///Sets the type of acoustic environment that is simulated when audio is processed for the
+    ///ISpatialAudioObjectForHrtf.
+    ///Params:
+    ///    environment = A value specifying the type of acoustic environment that is simulated when audio is processed for the
+    ///                  ISpatialAudioObjectForHrtf.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>SPTLAUDCLNT_E_OUT_OF_ORDER</b></dt> </dl> </td> <td width="60%">
+    ///    ISpatialAudioObjectRenderStreamBase::BeginUpdatingAudioObjects was not called before the call to
+    ///    <b>SetEnvironment</b>. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>SPTLAUDCLNT_E_RESOURCES_INVALIDATED</b></dt> </dl> </td> <td width="60%"> SetEndOfStream was called
+    ///    either explicitly or implicitly in a previous audio processing pass. <b>SetEndOfStream</b> is called
+    ///    implicitly by the system if <b>GetBuffer</b> is not called within an audio processing pass (between calls to
+    ///    ISpatialAudioObjectRenderStreamBase::BeginUpdatingAudioObjects and
+    ///    ISpatialAudioObjectRenderStreamBase::EndUpdatingAudioObjects). </td> </tr> </table>
+    ///    
     HRESULT SetEnvironment(SpatialAudioHrtfEnvironmentType environment);
+    ///Sets the decay model that is applied over distance from the position of an ISpatialAudioObjectForHrtf to the
+    ///position of the listener.
+    ///Params:
+    ///    distanceDecay = The decay model.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>SPTLAUDCLNT_E_OUT_OF_ORDER</b></dt> </dl> </td> <td width="60%">
+    ///    ISpatialAudioObjectRenderStreamBase::BeginUpdatingAudioObjects was not called before the call to
+    ///    <b>SetDistanceDecay</b>. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>SPTLAUDCLNT_E_RESOURCES_INVALIDATED</b></dt> </dl> </td> <td width="60%"> SetEndOfStream was called
+    ///    either explicitly or implicitly in a previous audio processing pass. <b>SetEndOfStream</b> is called
+    ///    implicitly by the system if <b>GetBuffer</b> is not called within an audio processing pass (between calls to
+    ///    ISpatialAudioObjectRenderStreamBase::BeginUpdatingAudioObjects and
+    ///    ISpatialAudioObjectRenderStreamBase::EndUpdatingAudioObjects). </td> </tr> </table>
+    ///    
     HRESULT SetDistanceDecay(SpatialAudioHrtfDistanceDecay* distanceDecay);
+    ///Sets the spatial audio directivity model for the ISpatialAudioObjectForHrtf.
+    ///Params:
+    ///    directivity = The spatial audio directivity model. This value can be one of the following structures: <ul> <li>
+    ///                  SpatialAudioHrtfDirectivity </li> <li> SpatialAudioHrtfDirectivityCardioid </li> <li>
+    ///                  SpatialAudioHrtfDirectivityCone </li> </ul>
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>SPTLAUDCLNT_E_OUT_OF_ORDER</b></dt> </dl> </td> <td width="60%">
+    ///    ISpatialAudioObjectRenderStreamBase::BeginUpdatingAudioObjects was not called before the call to
+    ///    <b>SetDirectivity</b>. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>SPTLAUDCLNT_E_RESOURCES_INVALIDATED</b></dt> </dl> </td> <td width="60%"> SetEndOfStream was called
+    ///    either explicitly or implicitly in a previous audio processing pass. <b>SetEndOfStream</b> is called
+    ///    implicitly by the system if <b>GetBuffer</b> is not called within an audio processing pass (between calls to
+    ///    ISpatialAudioObjectRenderStreamBase::BeginUpdatingAudioObjects and
+    ///    ISpatialAudioObjectRenderStreamBase::EndUpdatingAudioObjects). </td> </tr> </table>
+    ///    
     HRESULT SetDirectivity(SpatialAudioHrtfDirectivityUnion* directivity);
 }
 
+///Provides methods for controlling an Hrtf spatial audio object render stream, including starting, stopping, and
+///resetting the stream. Also provides methods for activating new ISpatialAudioObjectForHrtf instances and notifying the
+///system when you are beginning and ending the process of updating activated spatial audio objects and data. This
+///interface is a part of Windows Sonic, Microsoft’s audio platform for more immersive audio which includes integrated
+///spatial sound on Xbox and Windows.
 @GUID("E08DEEF9-5363-406E-9FDC-080EE247BBE0")
 interface ISpatialAudioObjectRenderStreamForHrtf : ISpatialAudioObjectRenderStreamBase
 {
+    ///Activates an ISpatialAudioObjectForHrtf for audio rendering.
+    ///Params:
+    ///    type = The type of audio object to activate. For dynamic audio objects, this value must be
+    ///           <b>AudioObjectType_Dynamic</b>. For static audio objects, specify one of the static audio channel values from
+    ///           the enumeration. Specifying <b>AudioObjectType_None</b> will produce an audio object that is not spatialized.
+    ///    audioObject = Receives a pointer to the activated interface.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>SPTLAUDCLNT_E_NO_MORE_OBJECTS </b></dt> </dl> </td> <td width="60%"> The system
+    ///    has reached the maximum number of simultaneous audio objects. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>SPTLAUDCLNT_E_DESTROYED</b></dt> </dl> </td> <td width="60%"> The ISpatialAudioClient associated with
+    ///    the spatial audio stream has been destroyed. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td> <td width="60%"> The audio endpoint device has been
+    ///    unplugged, or the audio hardware or associated hardware resources have been reconfigured, disabled, removed,
+    ///    or otherwise made unavailable for use. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>SPTLAUDCLNT_E_INTERNAL</b></dt> </dl> </td> <td width="60%"> An internal error has occurred. </td>
+    ///    </tr> <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_E_UNSUPPORTED_FORMAT</b></dt> </dl> </td> <td width="60%">
+    ///    The media associated with the spatial audio stream uses an unsupported format. </td> </tr> </table>
+    ///    
     HRESULT ActivateSpatialAudioObjectForHrtf(AudioObjectType type, ISpatialAudioObjectForHrtf* audioObject);
 }
 
+///Used for resetting the current audio endpoint device format.
 @GUID("784CFD40-9F89-456E-A1A6-873B006A664E")
 interface IAudioEndpointFormatControl : IUnknown
 {
+    ///Resets the format to the default setting provided by the device manufacturer.
+    ///Params:
+    ///    ResetFlags = Allows the application to specify which formats are reset. If no flags are set, then this method reevaluates
+    ///                 both the endpoint's device format and mix format and sets them to their default values.
+    ///                 ENDPOINT_FORMAT_RESET_MIX_ONLY: Only reset the mix format. The endpoint's device format will not be reset if
+    ///                 this flag is set.
+    ///Returns:
+    ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
+    ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
+    ///    
     HRESULT ResetToDefault(uint ResetFlags);
 }
 
+///The <b>IMMNotificationClient</b> interface provides notifications when an audio endpoint device is added or removed,
+///when the state or properties of an endpoint device change, or when there is a change in the default role assigned to
+///an endpoint device. Unlike the other interfaces in this section, which are implemented by the MMDevice API system
+///component, an MMDevice API client implements the <b>IMMNotificationClient</b> interface. To receive notifications,
+///the client passes a pointer to its <b>IMMNotificationClient</b> interface instance as a parameter to the
+///IMMDeviceEnumerator::RegisterEndpointNotificationCallback method. After registering its <b>IMMNotificationClient</b>
+///interface, the client receives event notifications in the form of callbacks through the methods of the interface.
+///Each method in the <b>IMMNotificationClient</b> interface receives, as one of its input parameters, an endpoint ID
+///string that identifies the audio endpoint device that is the subject of the notification. The string uniquely
+///identifies the device with respect to all of the other audio endpoint devices in the system. The methods in the
+///<b>IMMNotificationClient</b> interface implementation should treat this string as opaque. That is, none of the
+///methods should attempt to parse the contents of the string to obtain information about the device. The reason is that
+///the string format is undefined and might change from one implementation of the MMDevice API system module to the
+///next. A client can use the endpoint ID string that it receives as an input parameter in a call to an
+///<b>IMMNotificationClient</b> method in two ways: <ul> <li>The client can create an instance of the device that the
+///endpoint ID string identifies. The client does this by calling the IMMDeviceEnumerator::GetDevice method and
+///supplying the endpoint ID string as an input parameter.</li> <li>The client can compare the endpoint ID string with
+///the endpoint ID string of an existing device instance. To obtain the second endpoint ID string, the client calls the
+///IMMDevice::GetId method of the device instance. If the two strings match, they identify the same device.</li> </ul>
+///In implementing the <b>IMMNotificationClient</b> interface, the client should observe these rules to avoid deadlocks
+///and undefined behavior: <ul> <li>The methods of the interface must be nonblocking. The client should never wait on a
+///synchronization object during an event callback.</li> <li>To avoid dead locks, the client should never call
+///IMMDeviceEnumerator::RegisterEndpointNotificationCallback or
+///IMMDeviceEnumerator::UnregisterEndpointNotificationCallback in its implementation of <b>IMMNotificationClient</b>
+///methods. </li> <li>The client should never release the final reference on an MMDevice API object during an event
+///callback.</li> </ul> For a code example that implements the <b>IMMNotificationClient</b> interface, see Device
+///Events.
 @GUID("7991EEC9-7E89-4D85-8390-6C703CEC60C0")
 interface IMMNotificationClient : IUnknown
 {
+    ///The <b>OnDeviceStateChanged</b> method indicates that the state of an audio endpoint device has changed.
+    ///Params:
+    ///    pwstrDeviceId = Pointer to the endpoint ID string that identifies the audio endpoint device. This parameter points to a
+    ///                    null-terminated, wide-character string containing the endpoint ID. The string remains valid for the duration
+    ///                    of the call.
+    ///    dwNewState = Specifies the new state of the endpoint device. The value of this parameter is one of the following
+    ///                 DEVICE_STATE_XXX constants: DEVICE_STATE_ACTIVE DEVICE_STATE_DISABLED DEVICE_STATE_NOTPRESENT
+    ///                 DEVICE_STATE_UNPLUGGED
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, it returns an error code.
+    ///    
     HRESULT OnDeviceStateChanged(const(wchar)* pwstrDeviceId, uint dwNewState);
+    ///The <b>OnDeviceAdded</b> method indicates that a new audio endpoint device has been added.
+    ///Params:
+    ///    pwstrDeviceId = Pointer to the endpoint ID string that identifies the audio endpoint device. This parameter points to a
+    ///                    null-terminated, wide-character string containing the endpoint ID. The string remains valid for the duration
+    ///                    of the call.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, it returns an error code.
+    ///    
     HRESULT OnDeviceAdded(const(wchar)* pwstrDeviceId);
+    ///The <b>OnDeviceRemoved</b> method indicates that an audio endpoint device has been removed.
+    ///Params:
+    ///    pwstrDeviceId = Pointer to the endpoint ID string that identifies the audio endpoint device. This parameter points to a
+    ///                    null-terminated, wide-character string containing the endpoint ID. The string remains valid for the duration
+    ///                    of the call.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, it returns an error code.
+    ///    
     HRESULT OnDeviceRemoved(const(wchar)* pwstrDeviceId);
+    ///The <b>OnDefaultDeviceChanged</b> method notifies the client that the default audio endpoint device for a
+    ///particular device role has changed.
+    ///Params:
+    ///    flow = The data-flow direction of the endpoint device. This parameter is set to one of the following EDataFlow
+    ///           enumeration values: eRender eCapture The data-flow direction for a rendering device is eRender. The data-flow
+    ///           direction for a capture device is eCapture.
+    ///    role = The device role of the audio endpoint device. This parameter is set to one of the following ERole enumeration
+    ///           values: eConsole eMultimedia eCommunications
+    ///    pwstrDefaultDeviceId = Pointer to the endpoint ID string that identifies the audio endpoint device. This parameter points to a
+    ///                           null-terminated, wide-character string containing the endpoint ID. The string remains valid for the duration
+    ///                           of the call. If the user has removed or disabled the default device for a particular role, and no other
+    ///                           device is available to assume that role, then <i>pwstrDefaultDevice</i> is <b>NULL</b>.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, it returns an error code.
+    ///    
     HRESULT OnDefaultDeviceChanged(EDataFlow flow, ERole role, const(wchar)* pwstrDefaultDeviceId);
+    ///The <b>OnPropertyValueChanged</b> method indicates that the value of a property belonging to an audio endpoint
+    ///device has changed.
+    ///Params:
+    ///    pwstrDeviceId = Pointer to the endpoint ID string that identifies the audio endpoint device. This parameter points to a
+    ///                    null-terminated, wide-character string that contains the endpoint ID. The string remains valid for the
+    ///                    duration of the call.
+    ///    key = A PROPERTYKEY structure that specifies the property. The structure contains the property-set GUID and an
+    ///          index identifying a property within the set. The structure is passed by value. It remains valid for the
+    ///          duration of the call. For more information about <b>PROPERTYKEY</b>, see the Windows SDK documentation.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, it returns an error code.
+    ///    
     HRESULT OnPropertyValueChanged(const(wchar)* pwstrDeviceId, const(PROPERTYKEY) key);
 }
 
+///The <b>IMMDevice</b> interface encapsulates the generic features of a multimedia device resource. In the current
+///implementation of the MMDevice API, the only type of device resource that an <b>IMMDevice</b> interface can represent
+///is an audio endpoint device. A client can obtain an <b>IMMDevice</b> interface from one of the following methods:
+///<ul> <li> IMMDeviceCollection::Item </li> <li> IMMDeviceEnumerator::GetDefaultAudioEndpoint </li> <li>
+///IMMDeviceEnumerator::GetDevice </li> </ul> For more information, see IMMDeviceCollection Interface. After obtaining
+///the <b>IMMDevice</b> interface of an audio endpoint device, a client can obtain an interface that encapsulates the
+///endpoint-specific features of the device by calling the <b>IMMDevice::QueryInterface</b> method with parameter
+///<i>iid</i> set to <b>REFIID</b> IID_IMMEndpoint. For more information, see IMMEndpoint Interface. For code examples
+///that use the <b>IMMDevice</b> interface, see the following topics: <ul> <li> Device Properties </li> <li> Rendering a
+///Stream </li> <li> Device Roles for Legacy Windows Multimedia Applications </li> </ul>
 @GUID("D666063F-1587-4E43-81F1-B948E807363F")
 interface IMMDevice : IUnknown
 {
+    ///The <b>Activate</b> method creates a COM object with the specified interface.
+    ///Params:
+    ///    iid = The interface identifier. This parameter is a reference to a GUID that identifies the interface that the
+    ///          caller requests be activated. The caller will use this interface to communicate with the COM object. Set this
+    ///          parameter to one of the following interface identifiers: IID_IAudioClient IID_IAudioEndpointVolume
+    ///          IID_IAudioMeterInformation IID_IAudioSessionManager IID_IAudioSessionManager2 IID_IBaseFilter
+    ///          IID_IDeviceTopology IID_IDirectSound IID_IDirectSound8 IID_IDirectSoundCapture IID_IDirectSoundCapture8
+    ///          IID_IMFTrustedOutput IID_ISpatialAudioClient IID_ISpatialAudioMetadataClient For more information, see
+    ///          Remarks.
+    ///    dwClsCtx = The execution context in which the code that manages the newly created object will run. The caller can
+    ///               restrict the context by setting this parameter to the bitwise <b>OR</b> of one or more <b>CLSCTX</b>
+    ///               enumeration values. Alternatively, the client can avoid imposing any context restrictions by specifying
+    ///               CLSCTX_ALL. For more information about <b>CLSCTX</b>, see the Windows SDK documentation.
+    ///    pActivationParams = Set to <b>NULL</b> to activate an IAudioClient, IAudioEndpointVolume, IAudioMeterInformation,
+    ///                        IAudioSessionManager, or IDeviceTopology interface on an audio endpoint device. When activating an
+    ///                        <b>IBaseFilter</b>, <b>IDirectSound</b>, <b>IDirectSound8</b>, <b>IDirectSoundCapture</b>, or
+    ///                        <b>IDirectSoundCapture8</b> interface on the device, the caller can specify a pointer to a <b>PROPVARIANT</b>
+    ///                        structure that contains stream-initialization information. For more information, see Remarks.
+    ///    ppInterface = Pointer to a pointer variable into which the method writes the address of the interface specified by
+    ///                  parameter <i>iid</i>. Through this method, the caller obtains a counted reference to the interface. The
+    ///                  caller is responsible for releasing the interface, when it is no longer needed, by calling the interface's
+    ///                  <b>Release</b> method. If the <b>Activate</b> call fails, <i>*ppInterface</i> is <b>NULL</b>.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_NOINTERFACE</b></dt> </dl> </td> <td width="60%"> The object does not support
+    ///    the requested interface type. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td>
+    ///    <td width="60%"> Parameter <i>ppInterface</i> is <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> The <i>pActivationParams</i> parameter must be
+    ///    <b>NULL</b> for the specified interface; or <i>pActivationParams</i> points to invalid data. </td> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Out of memory. </td> </tr>
+    ///    <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td> <td width="60%"> The user
+    ///    has removed either the audio endpoint device or the adapter device that the endpoint device connects to.
+    ///    </td> </tr> </table>
+    ///    
     HRESULT Activate(const(GUID)* iid, uint dwClsCtx, PROPVARIANT* pActivationParams, void** ppInterface);
+    ///The <b>OpenPropertyStore</b> method retrieves an interface to the device's property store.
+    ///Params:
+    ///    stgmAccess = The storage-access mode. This parameter specifies whether to open the property store in read mode, write
+    ///                 mode, or read/write mode. Set this parameter to one of the following STGM constants: STGM_READ STGM_WRITE
+    ///                 STGM_READWRITE The method permits a client running as an administrator to open a store for read-only,
+    ///                 write-only, or read/write access. A client that is not running as an administrator is restricted to read-only
+    ///                 access. For more information about STGM constants, see the Windows SDK documentation.
+    ///    ppProperties = Pointer to a pointer variable into which the method writes the address of the <b>IPropertyStore</b> interface
+    ///                   of the device's property store. Through this method, the caller obtains a counted reference to the interface.
+    ///                   The caller is responsible for releasing the interface, when it is no longer needed, by calling the
+    ///                   interface's <b>Release</b> method. If the <b>OpenPropertyStore</b> call fails, <i>*ppProperties</i> is
+    ///                   <b>NULL</b>. For more information about <b>IPropertyStore</b>, see the Windows SDK documentation.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> Parameter <i>stgmAccess</i>
+    ///    is not a valid access mode. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td
+    ///    width="60%"> Parameter <i>ppProperties</i> is <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Out of memory. </td> </tr> </table>
+    ///    
     HRESULT OpenPropertyStore(uint stgmAccess, IPropertyStore* ppProperties);
+    ///The <b>GetId</b> method retrieves an endpoint ID string that identifies the audio endpoint device.
+    ///Params:
+    ///    ppstrId = Pointer to a pointer variable into which the method writes the address of a null-terminated, wide-character
+    ///              string containing the endpoint device ID. The method allocates the storage for the string. The caller is
+    ///              responsible for freeing the storage, when it is no longer needed, by calling the <b>CoTaskMemFree</b>
+    ///              function. If the <b>GetId</b> call fails, <i>*ppstrId is NULL.</i> For information about
+    ///              <b>CoTaskMemFree</b>, see the Windows SDK documentation.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Out of memory. </td> </tr>
+    ///    <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>pwstrId</i> is
+    ///    <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetId(ushort** ppstrId);
+    ///The <b>GetState</b> method retrieves the current device state.
+    ///Params:
+    ///    pdwState = Pointer to a <b>DWORD</b> variable into which the method writes the current state of the device. The
+    ///               device-state value is one of the following DEVICE_STATE_XXX constants: DEVICE_STATE_ACTIVE
+    ///               DEVICE_STATE_DISABLED DEVICE_STATE_NOTPRESENT DEVICE_STATE_UNPLUGGED
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>pdwState</i> is
+    ///    <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetState(uint* pdwState);
 }
 
+///The <b>IMMDeviceCollection</b> interface represents a collection of multimedia device resources. In the current
+///implementation, the only device resources that the MMDevice API can create collections of are audio endpoint devices.
+///A client can obtain a reference to an <b>IMMDeviceCollection</b> interface instance by calling the
+///IMMDeviceEnumerator::EnumAudioEndpoints method. This method creates a collection of endpoint objects, each of which
+///represents an audio endpoint device in the system. Each endpoint object in the collection supports the IMMDevice and
+///IMMEndpoint interfaces. For more information, see IMMDeviceEnumerator Interface. For a code example that uses the
+///<b>IMMDeviceCollection</b> interface, see Device Properties.
 @GUID("0BD7A1BE-7A1A-44DB-8397-CC5392387B5E")
 interface IMMDeviceCollection : IUnknown
 {
+    ///The <b>GetCount</b> method retrieves a count of the devices in the device collection.
+    ///Params:
+    ///    pcDevices = Pointer to a <b>UINT</b> variable into which the method writes the number of devices in the device
+    ///                collection.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>pcDevices</i> is
+    ///    <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetCount(uint* pcDevices);
+    ///The <b>Item</b> method retrieves a pointer to the specified item in the device collection.
+    ///Params:
+    ///    nDevice = The device number. If the collection contains <i>n</i> devices, the devices are numbered 0 to <i>n</i>– 1.
+    ///    ppDevice = Pointer to a pointer variable into which the method writes the address of the IMMDevice interface of the
+    ///               specified item in the device collection. Through this method, the caller obtains a counted reference to the
+    ///               interface. The caller is responsible for releasing the interface, when it is no longer needed, by calling the
+    ///               interface's <b>Release</b> method. If the <b>Item</b> call fails, <i>*ppDevice</i> is <b>NULL</b>.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>ppDevice</i> is
+    ///    <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%">
+    ///    Parameter <i>nDevice</i> is not a valid device number. </td> </tr> </table>
+    ///    
     HRESULT Item(uint nDevice, IMMDevice* ppDevice);
 }
 
+///The <b>IMMEndpoint</b> interface represents an audio endpoint device. A client obtains a reference to an
+///<b>IMMEndpoint</b> interface instance by following these steps: <ol> <li>By using one of the techniques described in
+///IMMDevice Interface, obtain a reference to the <b>IMMDevice</b> interface of an audio endpoint device.</li> <li>Call
+///the <b>IMMDevice::QueryInterface</b> method with parameter <i>iid</i> set to <b>REFIID</b> IID_IMMEndpoint.</li>
+///</ol>
 @GUID("1BE09788-6894-4089-8586-9A2A6C265AC5")
 interface IMMEndpoint : IUnknown
 {
+    ///The <b>GetDataFlow</b> method indicates whether the audio endpoint device is a rendering device or a capture
+    ///device.
+    ///Params:
+    ///    pDataFlow = Pointer to a variable into which the method writes the data-flow direction of the endpoint device. The
+    ///                direction is indicated by one of the following EDataFlow enumeration constants: eRender eCapture The
+    ///                data-flow direction for a rendering device is eRender. The data-flow direction for a capture device is
+    ///                eCapture.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>ppDataFlow</i> is
+    ///    <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetDataFlow(EDataFlow* pDataFlow);
 }
 
+///The <b>IMMDeviceEnumerator</b> interface provides methods for enumerating multimedia device resources. In the current
+///implementation of the MMDevice API, the only device resources that this interface can enumerate are audio endpoint
+///devices. A client obtains a reference to an <b>IMMDeviceEnumerator</b> interface by calling the
+///<b>CoCreateInstance</b> function, as described previously (see MMDevice API). The device resources enumerated by the
+///methods in the <b>IMMDeviceEnumerator</b> interface are represented as collections of objects with IMMDevice
+///interfaces. A collection has an IMMDeviceCollection interface. The IMMDeviceEnumerator::EnumAudioEndpoints method
+///creates a device collection. To obtain a pointer to the <b>IMMDevice</b> interface of an item in a device collection,
+///the client calls the IMMDeviceCollection::Item method. For code examples that use the <b>IMMDeviceEnumerator</b>
+///interface, see the following topics: <ul> <li> Device Properties </li> <li> Rendering a Stream </li> </ul>
 @GUID("A95664D2-9614-4F35-A746-DE8DB63617E6")
 interface IMMDeviceEnumerator : IUnknown
 {
+    ///The <b>EnumAudioEndpoints</b> method generates a collection of audio endpoint devices that meet the specified
+    ///criteria.
+    ///Params:
+    ///    dataFlow = The data-flow direction for the endpoint devices in the collection. The caller should set this parameter to
+    ///               one of the following EDataFlow enumeration values: eRender eCapture eAll If the caller specifies eAll, the
+    ///               method includes both rendering and capture endpoints in the collection.
+    ///    dwStateMask = The state or states of the endpoints that are to be included in the collection. The caller should set this
+    ///                  parameter to the bitwise OR of one or more of the following DEVICE_STATE_XXX constants: DEVICE_STATE_ACTIVE
+    ///                  DEVICE_STATE_DISABLED DEVICE_STATE_NOTPRESENT DEVICE_STATE_UNPLUGGED For example, if the caller sets the
+    ///                  <i>dwStateMask</i> parameter to DEVICE_STATE_ACTIVE | DEVICE_STATE_UNPLUGGED, the method includes endpoints
+    ///                  that are either active or unplugged from their jacks, but excludes endpoints that are on audio adapters that
+    ///                  have been disabled or are not present. To include all endpoints, regardless of state, set <i>dwStateMask</i>
+    ///                  = DEVICE_STATEMASK_ALL.
+    ///    ppDevices = Pointer to a pointer variable into which the method writes the address of the IMMDeviceCollection interface
+    ///                of the device-collection object. Through this method, the caller obtains a counted reference to the
+    ///                interface. The caller is responsible for releasing the interface, when it is no longer needed, by calling the
+    ///                interface's <b>Release</b> method. If the <b>EnumAudioEndpoints</b> call fails, <i>*ppDevices</i> is
+    ///                <b>NULL</b>.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>ppDevices</i> is
+    ///    <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%">
+    ///    Parameter <i>dataFlow</i> or <i>dwStateMask</i> is out of range. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Out of memory. </td> </tr> </table>
+    ///    
     HRESULT EnumAudioEndpoints(EDataFlow dataFlow, uint dwStateMask, IMMDeviceCollection* ppDevices);
+    ///The <b>GetDefaultAudioEndpoint</b> method retrieves the default audio endpoint for the specified data-flow
+    ///direction and role.
+    ///Params:
+    ///    dataFlow = The data-flow direction for the endpoint device. The caller should set this parameter to one of the following
+    ///               two EDataFlow enumeration values: eRender eCapture The data-flow direction for a rendering device is eRender.
+    ///               The data-flow direction for a capture device is eCapture.
+    ///    role = The role of the endpoint device. The caller should set this parameter to one of the following ERole
+    ///           enumeration values: eConsole eMultimedia eCommunications For more information, see Remarks.
+    ///    ppEndpoint = Pointer to a pointer variable into which the method writes the address of the IMMDevice interface of the
+    ///                 endpoint object for the default audio endpoint device. Through this method, the caller obtains a counted
+    ///                 reference to the interface. The caller is responsible for releasing the interface, when it is no longer
+    ///                 needed, by calling the interface's <b>Release</b> method. If the <b>GetDefaultAudioEndpoint</b> call fails,
+    ///                 <i>*ppDevice</i> is <b>NULL</b>.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>ppDevice</i> is
+    ///    <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%">
+    ///    Parameter <i>dataFlow</i> or <i>role</i> is out of range. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>E_NOTFOUND</b></dt> </dl> </td> <td width="60%"> No device is available. </td> </tr> <tr> <td
+    ///    width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Out of memory. </td> </tr>
+    ///    </table>
+    ///    
     HRESULT GetDefaultAudioEndpoint(EDataFlow dataFlow, ERole role, IMMDevice* ppEndpoint);
+    ///The <b>GetDevice</b> method retrieves an audio endpoint device that is identified by an endpoint ID string.
+    ///Params:
+    ///    pwstrId = Pointer to a string containing the endpoint ID. The caller typically obtains this string from the
+    ///              IMMDevice::GetId method or from one of the methods in the IMMNotificationClient interface.
+    ///    ppDevice = Pointer to a pointer variable into which the method writes the address of the IMMDevice interface for the
+    ///               specified device. Through this method, the caller obtains a counted reference to the interface. The caller is
+    ///               responsible for releasing the interface, when it is no longer needed, by calling the interface's
+    ///               <b>Release</b> method. If the <b>GetDevice</b> call fails, <i>*ppDevice</i> is <b>NULL</b>.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>pwstrId</i> or
+    ///    <i>ppDevice</i> is <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_NOTFOUND</b></dt> </dl> </td>
+    ///    <td width="60%"> The device ID does not identify an audio device that is in this system. </td> </tr> <tr> <td
+    ///    width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Out of memory. </td> </tr>
+    ///    </table>
+    ///    
     HRESULT GetDevice(const(wchar)* pwstrId, IMMDevice* ppDevice);
+    ///The <b>RegisterEndpointNotificationCallback</b> method registers a client's notification callback interface.
+    ///Params:
+    ///    pClient = Pointer to the IMMNotificationClient interface that the client is registering for notification callbacks.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>pNotify</i> is
+    ///    <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td
+    ///    width="60%"> Out of memory. </td> </tr> </table>
+    ///    
     HRESULT RegisterEndpointNotificationCallback(IMMNotificationClient pClient);
+    ///The <b>UnregisterEndpointNotificationCallback</b> method deletes the registration of a notification interface
+    ///that the client registered in a previous call to the IMMDeviceEnumerator::RegisterEndpointNotificationCallback
+    ///method.
+    ///Params:
+    ///    pClient = Pointer to the client's IMMNotificationClient interface. The client passed this same interface pointer to the
+    ///              device enumerator in a previous call to the IMMDeviceEnumerator::RegisterEndpointNotificationCallback method.
+    ///              For more information, see Remarks.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>pNotify</i> is
+    ///    <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_NOTFOUND</b></dt> </dl> </td> <td width="60%">
+    ///    The specified notification interface was not found. </td> </tr> </table>
+    ///    
     HRESULT UnregisterEndpointNotificationCallback(IMMNotificationClient pClient);
 }
 
@@ -7134,179 +9370,982 @@ interface IMMDeviceActivator : IUnknown
     HRESULT Activate(const(GUID)* iid, IMMDevice pDevice, PROPVARIANT* pActivationParams, void** ppInterface);
 }
 
+///Provides a callback to indicate that activation of a WASAPI interface is complete.
 @GUID("41D949AB-9862-444A-80F6-C261334DA5EB")
 interface IActivateAudioInterfaceCompletionHandler : IUnknown
 {
+    ///Indicates that activation of a WASAPI interface is complete and results are available.
+    ///Params:
+    ///    activateOperation = An interface representing the asynchronous operation of activating the requested <b>WASAPI</b> interface
+    ///Returns:
+    ///    The function returns an <b>HRESULT</b>. Possible values include, but are not limited to, those in the
+    ///    following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The function succeeded. </td> </tr> </table>
+    ///    
     HRESULT ActivateCompleted(IActivateAudioInterfaceAsyncOperation activateOperation);
 }
 
+///Represents an asynchronous operation activating a WASAPI interface and provides a method to retrieve the results of
+///the activation.
 @GUID("72A22D78-CDE4-431D-B8CC-843A71199B6D")
 interface IActivateAudioInterfaceAsyncOperation : IUnknown
 {
+    ///Gets the results of an asynchronous activation of a WASAPI interface initiated by an application calling the
+    ///ActivateAudioInterfaceAsync function.
+    ///Params:
+    ///    activateResult = 
+    ///    activatedInterface = 
+    ///Returns:
+    ///    The function returns an <b>HRESULT</b>. Possible values include, but are not limited to, those in the
+    ///    following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>E_ILLEGAL_METHOD_CALL</b></dt> </dl> </td> <td width="60%"> The method was called before the
+    ///    asynchronous operation was complete. </td> </tr> </table>
+    ///    
     HRESULT GetActivateResult(int* activateResult, IUnknown* activatedInterface);
 }
 
+///The <b>IAudioEndpointOffloadStreamVolume</b> interface allows the client application to manipulate the volume level
+///of the offloaded audio stream.
 @GUID("64F1DD49-71CA-4281-8672-3A9EDDD1D0B6")
 interface IAudioEndpointOffloadStreamVolume : IUnknown
 {
+    ///The <b>GetVolumeChannelCount</b> method retrieves the number of available audio channels in the offloaded stream.
+    ///Params:
+    ///    pu32ChannelCount = A pointer to the number of available audio channels in the offloaded stream.
+    ///Returns:
+    ///    The <b>GetVolumeChannelCount</b> method returns <b>S_OK</b> to indicate that it has completed successfully.
+    ///    Otherwise it returns an appropriate error code.
+    ///    
     HRESULT GetVolumeChannelCount(uint* pu32ChannelCount);
+    ///The <b>SetChannelVolumes</b> method sets the volume levels for the various audio channels in the offloaded
+    ///stream.
+    ///Params:
+    ///    u32ChannelCount = Indicates the number of available audio channels in the offloaded stream.
+    ///    pf32Volumes = A pointer to the volume levels for the various audio channels in the offloaded stream.
+    ///    u32CurveType = A value from the
+    ///                   [AUDIO_CURVE_TYPE](/windows-hardware/drivers/ddi/content/ksmedia/ne-ksmedia-audio_curve_type) enumeration
+    ///                   specifying the curve to use when changing the channel volumes.
+    ///    pCurveDuration = A **LONGLONG** value specifying the curve duration in hundred nanosecond units.
+    ///Returns:
+    ///    The <b>SetChannelVolumes</b> method returns <b>S_OK</b> to indicate that it has completed successfully.
+    ///    Otherwise it returns an appropriate error code.
+    ///    
     HRESULT SetChannelVolumes(uint u32ChannelCount, float* pf32Volumes, AUDIO_CURVE_TYPE u32CurveType, 
                               long* pCurveDuration);
+    ///The <b>GetChannelVolumes</b> method retrieves the volume levels for the various audio channels in the offloaded
+    ///stream.
+    ///Params:
+    ///    u32ChannelCount = Indicates the numer of available audio channels in the offloaded stream.
+    ///    pf32Volumes = A pointer to the volume levels for the various audio channels in the offloaded stream.
+    ///Returns:
+    ///    The <b>GetChannelVolumes</b> method returns <b>S_OK</b> to indicate that it has completed successfully.
+    ///    Otherwise it returns an appropriate error code.
+    ///    
     HRESULT GetChannelVolumes(uint u32ChannelCount, float* pf32Volumes);
 }
 
+///The <b>IAudioEndpointOffloadStreamMute</b> interface allows a client to manipulate the mute status of the offloaded
+///audio stream.
 @GUID("DFE21355-5EC2-40E0-8D6B-710AC3C00249")
 interface IAudioEndpointOffloadStreamMute : IUnknown
 {
+    ///The <b>SetMute</b> method sets the mute status of the offloaded audio stream.
+    ///Params:
+    ///    bMuted = Indicates whether or not the offloaded audio stream is to be muted. A value of <b>TRUE</b> mutes the stream,
+    ///             and a value of <b>FALSE</b> sets the stream to a non-muted state.
+    ///Returns:
+    ///    The <b>SetMute</b> method returns <b>S_OK</b> to indicate that it has completed successfully. Otherwise it
+    ///    returns an appropriate error code.
+    ///    
     HRESULT SetMute(ubyte bMuted);
+    ///The <b>GetMute</b> method retrieves the mute status of the offloaded audio stream.
+    ///Params:
+    ///    pbMuted = Indicates whether or not the offloaded audio stream is muted. A value of<b>TRUE</b> indicates that the stream
+    ///              is muted, and a value of<b>FALSE</b> indicates that the stream is not muted.
+    ///Returns:
+    ///    The <b>GetMute</b> method returns <b>S_OK</b> to indicate that it has completed successfully. Otherwise it
+    ///    returns an appropriate error code.
+    ///    
     HRESULT GetMute(ubyte* pbMuted);
 }
 
+///The <b>IAudioEndpointOffloadStreamMeter</b> interface retrieves general information about the audio channels in the
+///offloaded audio stream.
 @GUID("E1546DCE-9DD1-418B-9AB2-348CED161C86")
 interface IAudioEndpointOffloadStreamMeter : IUnknown
 {
+    ///Gets the number of available audio channels in the offloaded stream that can be metered.
+    ///Params:
+    ///    pu32ChannelCount = A Pointer to a variable that indicates the number of available audio channels in the offloaded stream that
+    ///                       can be metered.
+    ///Returns:
+    ///    The <b>GetMeterChannelCount</b> method returns <b>S_OK</b> to indicate that it has completed successfully.
+    ///    Otherwise it returns an appropriate error code.
+    ///    
     HRESULT GetMeterChannelCount(uint* pu32ChannelCount);
+    ///The <b>GetMeteringData</b> method retrieves general information about the available audio channels in the
+    ///offloaded stream.
+    ///Params:
+    ///    u32ChannelCount = Indicates the number of available audio channels in the offloaded audio stream.
+    ///    pf32PeakValues = A pointer to the peak values for the audio channels in the offloaded audio stream.
+    ///Returns:
+    ///    The <b>GetMeteringData</b> method returns <b>S_OK</b> to indicate that it has completed successfully.
+    ///    Otherwise it returns an appropriate error code.
+    ///    
     HRESULT GetMeteringData(uint u32ChannelCount, float* pf32PeakValues);
 }
 
+///Provides functionality to allow an offload stream client to notify the endpoint that the last buffer has been sent
+///only partially filled.
 @GUID("F8520DD3-8F9D-4437-9861-62F584C33DD6")
 interface IAudioEndpointLastBufferControl : IUnknown
 {
+    ///Indicates if last buffer control is supported.
+    ///Returns:
+    ///    <b>true</b> if last buffer control is supported; otherwise, <b>false</b>.
+    ///    
     BOOL IsLastBufferControlSupported();
+    ///Releases the output data pointer for the last buffer.
+    ///Params:
+    ///    pConnectionProperty = The APO connection property.
     void ReleaseOutputDataPointerForLastBuffer(const(APO_CONNECTION_PROPERTY)* pConnectionProperty);
 }
 
+///The <b>IAudioLfxControl</b> interface allows the client to apply or remove local effects from the offloaded audio
+///stream.
 @GUID("076A6922-D802-4F83-BAF6-409D9CA11BFE")
 interface IAudioLfxControl : IUnknown
 {
+    ///The <b>SetLocalEffectsState</b> method sets the local effects state that is to be applied to the offloaded audio
+    ///stream.
+    ///Params:
+    ///    bEnabled = Indicates the local effects state that is to be applied to the offloaded audio stream. A value of <b>TRUE</b>
+    ///               enables local effects, and the local effects in the audio graph are applied to the stream. A value of
+    ///               <b>FALSE</b> disables local effects, so that the local effects in the audio graph are not applied to the
+    ///               audio stream.
+    ///Returns:
+    ///    The <b>SetLocalEffectsState</b> method returns <b>S_OK</b> to indicate that it has completed successfully.
+    ///    Otherwise it returns an appropriate error code.
+    ///    
     HRESULT SetLocalEffectsState(BOOL bEnabled);
+    ///The <b>GetLocalEffectsState</b> method retrieves the local effects state that is currently applied to the
+    ///offloaded audio stream.
+    ///Params:
+    ///    pbEnabled = A pointer to the Boolean variable that indicates the state of the local effects that have been applied to the
+    ///                offloaded audio stream. A value of <b>TRUE</b> indicates that local effects have been enabled and applied to
+    ///                the stream. A value of <b>FALSE</b> indicates that local effects have been disabled.
+    ///Returns:
+    ///    The <b>GetLocalEffectsState</b> method returns <b>S_OK</b> to indicate that it has completed successfully.
+    ///    Otherwise it returns an appropriate error code.
+    ///    
     HRESULT GetLocalEffectsState(int* pbEnabled);
 }
 
+///The <b>IHardwareAudioEngineBase</b> interface is implemented by audio endpoints for the audio stack to use to
+///configure and retrieve information about the hardware audio engine.
 @GUID("EDDCE3E4-F3C1-453A-B461-223563CBD886")
 interface IHardwareAudioEngineBase : IUnknown
 {
+    ///The <b>GetAvailableOffloadConnectorCount</b> method retrieves the number of avaialable endpoints that can handle
+    ///offloaded streams on the hardware audio engine.
+    ///Params:
+    ///    _pwstrDeviceId = A pointer to the device ID of the hardware audio engine device.
+    ///    _uConnectorId = The identifier for the endpoint connector.
+    ///    _pAvailableConnectorInstanceCount = A pointer to the number of available endpoint connectors that can handle offloaded audio streams.
+    ///Returns:
+    ///    The <b>GetAvailableOffloadConnectorCount</b> method returns <b>S_OK</b> to indicate that it has completed
+    ///    successfully. Otherwise it returns an appropriate error code.
+    ///    
     HRESULT GetAvailableOffloadConnectorCount(const(wchar)* _pwstrDeviceId, uint _uConnectorId, 
                                               uint* _pAvailableConnectorInstanceCount);
+    ///The <b>GetEngineFormat</b> method retrieves the current data format of the offloaded audio stream.
+    ///Params:
+    ///    pDevice = A pointer to an IMMDevice interface.
+    ///    _bRequestDeviceFormat = A Boolean variable that indicates whether or not the <b>IMMDevice</b> interface is being accessed to retrieve
+    ///                            the device format.
+    ///    _ppwfxFormat = A pointer to a pointer to a WAVEFORMATEX structure that provides information about the hardware audio engine.
+    ///                   This includes the waveform audio format type, the number of audio channels, and the sample rate of the audio
+    ///                   engine.
+    ///Returns:
+    ///    The <b>GetEngineFormat</b> method returns <b>S_OK</b> to indicate that it has completed successfully.
+    ///    Otherwise it returns an appropriate error code.
+    ///    
     HRESULT GetEngineFormat(IMMDevice pDevice, BOOL _bRequestDeviceFormat, WAVEFORMATEX** _ppwfxFormat);
+    ///The <b>SetEngineDeviceFormat</b> method sets the waveform audio format for the hardware audio engine.
+    ///Params:
+    ///    pDevice = A pointer to an IMMDevice interface.
+    ///    _pwfxFormat = A pointer to a WAVEFORMATEX structure that provides information about the hardware audio engine.
+    ///Returns:
+    ///    The <b>SetEngineDeviceFormat</b> method returns <b>S_OK</b> to indicate that it has completed successfully.
+    ///    Otherwise it returns an appropriate error code.
+    ///    
     HRESULT SetEngineDeviceFormat(IMMDevice pDevice, WAVEFORMATEX* _pwfxFormat);
+    ///The <b>SetGfxState</b> method sets the GFX state of the offloaded audio stream.
+    ///Params:
+    ///    pDevice = Pointer to an IMMDevice interface.
+    ///    _bEnable = Pointer to a boolean variable.
+    ///Returns:
+    ///    The <b>SetGfxState</b> method returns S_OK to indicate that it has completed successfully. Otherwise it
+    ///    returns an appropriate error code.
+    ///    
     HRESULT SetGfxState(IMMDevice pDevice, BOOL _bEnable);
+    ///The <b>GetGfxState</b> method retrieves the GFX state of the offloaded audio stream.
+    ///Params:
+    ///    pDevice = Pointer to an IMMDevice interface.
+    ///    _pbEnable = Pointer to a boolean variable.
+    ///Returns:
+    ///    The <b>GetGfxState</b> method returns S_OK to indicate that it has completed successfully. Otherwise it
+    ///    returns an appropriate error code.
+    ///    
     HRESULT GetGfxState(IMMDevice pDevice, int* _pbEnable);
 }
 
+///The <b>IPerChannelDbLevel</b> interface represents a generic subunit control interface that provides per-channel
+///control over the volume level, in decibels, of an audio stream or of a frequency band in an audio stream. A positive
+///volume level represents gain, and a negative value represents attenuation. Clients do not call the methods in this
+///interface directly. Instead, this interface serves as the base interface for the following interfaces, which clients
+///do call directly: <ul> <li> IAudioBass Interface </li> <li> IAudioMidrange Interface </li> <li> IAudioTreble
+///Interface </li> <li> IAudioVolumeLevel Interface </li> </ul>
 @GUID("C2F8E001-F205-4BC9-99BC-C13B1E048CCB")
 interface IPerChannelDbLevel : IUnknown
 {
+    ///The <b>GetChannelCount</b> method gets the number of channels in the audio stream.
+    ///Params:
+    ///    pcChannels = Pointer to a <b>UINT</b> variable into which the method writes the channel count (the number of channels in
+    ///                 the audio stream).
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Pointer <i>pcChannels</i> is
+    ///    <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetChannelCount(uint* pcChannels);
+    ///The <b>GetLevelRange</b> method gets the range, in decibels, of the volume level of the specified channel.
+    ///Params:
+    ///    nChannel = The number of the selected channel. If the audio stream has <i>n</i> channels, the channels are numbered from
+    ///               0 to <i>n</i>– 1. To get the number of channels in the stream, call the IPerChannelDbLevel::GetChannelCount
+    ///               method.
+    ///    pfMinLevelDB = Pointer to a <b>float</b> variable into which the method writes the minimum volume level in decibels.
+    ///    pfMaxLevelDB = Pointer to a <b>float</b> variable into which the method writes the maximum volume level in decibels.
+    ///    pfStepping = Pointer to a <b>float</b> variable into which the method writes the stepping value between consecutive volume
+    ///                 levels in the range <i>*pfMinLevelDB</i> to <i>*pfMaxLevelDB</i>. If the difference between the maximum and
+    ///                 minimum volume levels is <i>d</i> decibels, and the range is divided into <i>n</i> steps (uniformly sized
+    ///                 intervals), then the volume can have <i>n</i> + 1 discrete levels and the size of the step between
+    ///                 consecutive levels is <i>d</i> / <i>n</i> decibels.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> Parameter <i>nChannel</i> is
+    ///    out of range. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%">
+    ///    Pointer <i>pfminLevelDB</i>, <i>pfmaxLevelDB</i>, or <i>pfmaxLevelDB</i> is <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetLevelRange(uint nChannel, float* pfMinLevelDB, float* pfMaxLevelDB, float* pfStepping);
+    ///The <b>GetLevel</b> method gets the volume level, in decibels, of the specified channel.
+    ///Params:
+    ///    nChannel = The channel number. If the audio stream has <i>N</i> channels, the channels are numbered from 0 to
+    ///               <i>N</i>– 1. To get the number of channels in the stream, call the IPerChannelDbLevel::GetChannelCount
+    ///               method.
+    ///    pfLevelDB = Pointer to a <b>float</b> variable into which the method writes the volume level, in decibels, of the
+    ///                specified channel.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> Parameter <i>nChannel</i> is
+    ///    out of range. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%">
+    ///    Pointer <i>pfLevelDB</i> is <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetLevel(uint nChannel, float* pfLevelDB);
+    ///The <b>SetLevel</b> method sets the volume level, in decibels, of the specified channel.
+    ///Params:
+    ///    nChannel = The number of the selected channel. If the audio stream has <i>N</i> channels, the channels are numbered from
+    ///               0 to <i>N</i>– 1. To get the number of channels in the stream, call the IPerChannelDbLevel::GetChannelCount
+    ///               method.
+    ///    fLevelDB = The new volume level in decibels. A positive value represents gain, and a negative value represents
+    ///               attenuation.
+    ///    pguidEventContext = Context value for the IControlChangeNotify::OnNotify method. This parameter points to an event-context GUID.
+    ///                        If the <b>SetLevel</b> call changes the state of the level control, all clients that have registered
+    ///                        IControlChangeNotify interfaces with that control receive notifications. In its implementation of the
+    ///                        <b>OnNotify</b> method, a client can inspect the event-context GUID to discover whether it or another client
+    ///                        is the source of the control-change event. If the caller supplies a <b>NULL</b> pointer for this parameter,
+    ///                        the client's notification method receives a <b>NULL</b> context pointer.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> Parameter <i>nChannel</i> is
+    ///    out of range. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td
+    ///    width="60%"> Out of memory. </td> </tr> </table>
+    ///    
     HRESULT SetLevel(uint nChannel, float fLevelDB, GUID* pguidEventContext);
+    ///The <b>SetLevelUniform</b> method sets all channels in the audio stream to the same uniform volume level, in
+    ///decibels.
+    ///Params:
+    ///    fLevelDB = The new uniform level in decibels.
+    ///    pguidEventContext = Context value for the IControlChangeNotify::OnNotify method. This parameter points to an event-context GUID.
+    ///                        If the <b>SetLevelUniform</b> call changes the state of the level control, all clients that have registered
+    ///                        IControlChangeNotify interfaces with that control receive notifications. In its implementation of the
+    ///                        <b>OnNotify</b> method, a client can inspect the event-context GUID to discover whether it or another client
+    ///                        is the source of the control-change event. If the caller supplies a <b>NULL</b> pointer for this parameter,
+    ///                        the client's notification method receives a <b>NULL</b> context pointer.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Out of memory. </td> </tr>
+    ///    </table>
+    ///    
     HRESULT SetLevelUniform(float fLevelDB, GUID* pguidEventContext);
+    ///The <b>SetLevelAllChannels</b> method sets the volume levels, in decibels, of all the channels in the audio
+    ///stream.
+    ///Params:
+    ///    aLevelsDB = Pointer to an array of volume levels. This parameter points to a caller-allocated <b>float</b> array into
+    ///                which the method writes the new volume levels, in decibels, for all the channels. The method writes the level
+    ///                for a particular channel into the array element whose index matches the channel number. If the audio stream
+    ///                contains <i>n</i> channels, the channels are numbered 0 to <i>n</i>– 1. To get the number of channels in
+    ///                the stream, call the IPerChannelDbLevel::GetChannelCount method.
+    ///    cChannels = The number of elements in the <i>aLevelsDB</i> array. If this parameter does not match the number of channels
+    ///                in the audio stream, the method fails without modifying the <i>aLevelsDB</i> array.
+    ///    pguidEventContext = Context value for the IControlChangeNotify::OnNotify method. This parameter points to an event-context GUID.
+    ///                        If the <b>SetLevelAllChannels</b> call changes the state of the level control, all clients that have
+    ///                        registered IControlChangeNotify interfaces with that control receive notifications. In its implementation of
+    ///                        the <b>OnNotify</b> method, a client can inspect the event-context GUID to discover whether it or another
+    ///                        client is the source of the control-change event. If the caller supplies a <b>NULL</b> pointer for this
+    ///                        parameter, the client's notification method receives a <b>NULL</b> context pointer.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> Parameter <i>cChannels</i>
+    ///    does not equal the number of channels. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl>
+    ///    </td> <td width="60%"> Pointer <i>aLevelsDB</i> is <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Out of memory. </td> </tr> </table>
+    ///    
     HRESULT SetLevelAllChannels(char* aLevelsDB, uint cChannels, GUID* pguidEventContext);
 }
 
+///The <b>IAudioVolumeLevel</b> interface provides access to a hardware volume control. The client obtains a reference
+///to the <b>IAudioVolumeLevel</b> interface of a subunit by calling the IPart::Activate method with parameter
+///<i>refiid</i> set to REFIID IID_IAudioVolumeLevel. The call to <b>IPart::Activate</b> succeeds only if the subunit
+///supports the <b>IAudioVolumeLevel</b> interface. Only a subunit object that represents a hardware volume-level
+///control will support this interface. The <b>IAudioVolumeLevel</b> interface provides per-channel controls for setting
+///and getting the gain or attenuation levels in an the audio stream. If a volume-level hardware control can only
+///attenuate the channels in the audio stream, then the maximum volume level for any channel is 0 dB. If a volume-level
+///control can provide gain (amplification), then the maximum volume level is greater than 0 dB. Most Windows audio
+///adapter drivers support the Windows Driver Model (WDM) and use kernel-streaming (KS) properties to represent the
+///hardware control parameters in subunits (referred to as KS nodes). The <b>IAudioVolumeLevel</b> interface provides
+///convenient access to the KSPROPERTY_AUDIO_VOLUMELEVEL property of a subunit that has a subtype GUID value of
+///KSNODETYPE_VOLUME. To obtain the subtype GUID of a subunit, call the IPart::GetSubType method. For more information
+///about KS properties and KS node types, see the Windows DDK documentation.
 @GUID("7FB7B48F-531D-44A2-BCB3-5AD5A134B3DC")
 interface IAudioVolumeLevel : IPerChannelDbLevel
 {
 }
 
+///The <b>IAudioChannelConfig</b> interface provides access to a hardware channel-configuration control. The client
+///obtains a reference to the <b>IAudioChannelConfig</b> interface of a subunit by calling the IPart::Activate method
+///with parameter <i>refiid</i> set to REFIID IID_IAudioChannelConfig. The call to IPart::Activate succeeds only if the
+///subunit supports the <b>IAudioChannelConfig</b> interface. Only a subunit object that represents a hardware
+///channel-configuration control will support this interface. A client of the <b>IAudioChannelConfig</b> interface
+///programs a hardware channel-configuration control by writing a channel-configuration mask to the control. The mask
+///specifies the assignment of audio channels to speakers. For more information about channel-configuration masks, see
+///the following: <ul> <li>The discussion of the KSPROPERTY_AUDIO_CHANNEL_CONFIG property in the Windows DDK
+///documentation.</li> <li>The white paper titled "Audio Driver Support for Home Theater Speaker Configurations" at the
+///Audio Device Technologies for Windows website.</li> </ul> Most Windows audio adapter drivers support the Windows
+///Driver Model (WDM) and use kernel-streaming (KS) properties to represent the hardware control parameters in subunits
+///(referred to as KS nodes). The <b>IAudioChannelConfig</b> interface provides convenient access to the
+///KSPROPERTY_AUDIO_CHANNEL_CONFIG property of a subunit that has a subtype GUID value of KSNODETYPE_3D_EFFECTS,
+///KSNODETYPE_DAC, KSNODETYPE_VOLUME, or KSNODETYPE_PROLOGIC_DECODER. To obtain the subtype GUID of a subunit, call the
+///IPart::GetSubType method. For more information about KS properties and KS node types, see the Windows DDK
+///documentation.
 @GUID("BB11C46F-EC28-493C-B88A-5DB88062CE98")
 interface IAudioChannelConfig : IUnknown
 {
+    ///The <b>SetChannelConfig</b> method sets the channel-configuration mask in a channel-configuration control.
+    ///Params:
+    ///    dwConfig = The channel-configuration mask.
+    ///    pguidEventContext = Context value for the IControlChangeNotify::OnNotify method. This parameter points to an event-context GUID.
+    ///                        If the <b>SetChannelConfig</b> call changes the state of the channel-configuration control, all clients that
+    ///                        have registered IControlChangeNotify interfaces with that control receive notifications. In its
+    ///                        implementation of the <b>OnNotify</b> method, a client can inspect the event-context GUID to discover whether
+    ///                        it or another client is the source of the control-change event. If the caller supplies a <b>NULL</b> pointer
+    ///                        for this parameter, the client's notification method receives a <b>NULL</b> context pointer.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Out of memory. </td> </tr>
+    ///    </table>
+    ///    
     HRESULT SetChannelConfig(uint dwConfig, GUID* pguidEventContext);
+    ///The <b>GetChannelConfig</b> method gets the current channel-configuration mask from a channel-configuration
+    ///control.
+    ///Params:
+    ///    pdwConfig = Pointer to a <b>DWORD</b> variable into which the method writes the current channel-configuration mask value.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Pointer <i>pdwConfig</i> is
+    ///    <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetChannelConfig(uint* pdwConfig);
 }
 
+///The <b>IAudioLoudness</b> interface provides access to a "loudness" compensation control. The client obtains a
+///reference to the <b>IAudioLoudness</b> interface of a subunit by calling the IPart::Activate method with parameter
+///<i>refiid</i> set to REFIID IID_IAudioLoudness. The call to <b>IPart::Activate</b> succeeds only if the subunit
+///supports the <b>IAudioLoudness</b> interface. Only a subunit object that represents a hardware loudness control
+///function will support this interface. Most Windows audio adapter drivers support the Windows Driver Model (WDM) and
+///use kernel-streaming (KS) properties to represent the hardware control parameters in subunits (referred to as KS
+///nodes). The <b>IAudioLoudness</b> interface provides convenient access to the KSPROPERTY_AUDIO_LOUDNESS property of a
+///subunit that has a subtype GUID value of KSNODETYPE_LOUDNESS. To obtain the subtype GUID of a subunit, call the
+///IPart::GetSubType method. For more information about KS properties and KS node types, see the Windows DDK
+///documentation.
 @GUID("7D8B1437-DD53-4350-9C1B-1EE2890BD938")
 interface IAudioLoudness : IUnknown
 {
+    ///The <b>GetEnabled</b> method gets the current state (enabled or disabled) of the loudness control.
+    ///Params:
+    ///    pbEnabled = Pointer to a <b>BOOL</b> variable into which the method writes the current loudness state. If the state is
+    ///                <b>TRUE</b>, loudness is enabled. If <b>FALSE</b>, loudness is disabled.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Pointer <i>pbEnabled</i> is
+    ///    <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetEnabled(int* pbEnabled);
+    ///The <b>SetEnabled</b> method enables or disables the loudness control.
+    ///Params:
+    ///    bEnable = The new loudness state. If <i>bEnable</i> is <b>TRUE</b> (nonzero), the method enables loudness. If
+    ///              <b>FALSE</b>, it disables loudness.
+    ///    pguidEventContext = Context value for the IControlChangeNotify::OnNotify method. This parameter points to an event-context GUID.
+    ///                        If the <b>SetEnabled</b> call changes the state of the loudness control, all clients that have registered
+    ///                        IControlChangeNotify interfaces with that control receive notifications. In its implementation of the
+    ///                        <b>OnNotify</b> method, a client can inspect the event-context GUID to discover whether it or another client
+    ///                        is the source of the control-change event. If the caller supplies a <b>NULL</b> pointer for this parameter,
+    ///                        the client's notification method receives a <b>NULL</b> context pointer.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Out of memory. </td> </tr>
+    ///    </table>
+    ///    
     HRESULT SetEnabled(BOOL bEnable, GUID* pguidEventContext);
 }
 
+///The <b>IAudioInputSelector</b> interface provides access to a hardware multiplexer control (input selector). The
+///client obtains a reference to the <b>IAudioInputSelector</b> interface of a subunit by calling the IPart::Activate
+///method with parameter <i>refiid</i> set to REFIID IID_IAudioInputSelector. The call to <b>IPart::Activate</b>
+///succeeds only if the subunit supports the <b>IAudioInputSelector</b> interface. Only a subunit object that represents
+///a hardware input selector will support this interface. Each input of an input selector is identified by the local ID
+///of the part (a connector or subunit of a device topology) that has a direct link to the input. A local ID is a number
+///that uniquely identifies a part among all the parts in a device topology. Most Windows audio adapter drivers support
+///the Windows Driver Model (WDM) and use kernel-streaming (KS) properties to represent the hardware control parameters
+///in subunits (referred to as KS nodes). The <b>IAudioInputSelector</b> interface provides convenient access to the
+///KSPROPERTY_AUDIO_MUX_SOURCE property of a subunit that has a subtype GUID value of KSNODETYPE_MUX. To obtain the
+///subtype GUID of a subunit, call the IPart::GetSubType method. For more information about KS properties and KS node
+///types, see the Windows DDK documentation. For a code example that uses the <b>IAudioInputSelector</b> interface, see
+///the implementation of the SelectCaptureDevice function in Device Topologies.
 @GUID("4F03DC02-5E6E-4653-8F72-A030C123D598")
 interface IAudioInputSelector : IUnknown
 {
+    ///The GetSelection method gets the local ID of the part that is connected to the selector input that is currently
+    ///selected.
+    ///Params:
+    ///    pnIdSelected = Pointer to a <b>UINT</b> variable into which the method writes the local ID of the part that directly links
+    ///                   to the currently selected selector input.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Pointer <i>pnIdSelected</i> is
+    ///    <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetSelection(uint* pnIdSelected);
+    ///The <b>SetSelection</b> method selects one of the inputs of the input selector.
+    ///Params:
+    ///    nIdSelect = The new selector input. The caller should set this parameter to the local ID of a part that has a direct link
+    ///                to one of the selector inputs.
+    ///    pguidEventContext = Context value for the IControlChangeNotify::OnNotify method. This parameter points to an event-context GUID.
+    ///                        If the <b>SetSelection</b> call changes the state of the input-selector control, all clients that have
+    ///                        registered IControlChangeNotify interfaces with that control receive notifications. In its implementation of
+    ///                        the <b>OnNotify</b> method, a client can inspect the event-context GUID to discover whether it or another
+    ///                        client is the source of the control-change event. If the caller supplies a <b>NULL</b> pointer for this
+    ///                        parameter, the client's notification method receives a <b>NULL</b> context pointer.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> Parameter <i>nIdSelect</i> is
+    ///    not the local ID of a part at a selector input. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Out of memory. </td> </tr> </table>
+    ///    
     HRESULT SetSelection(uint nIdSelect, GUID* pguidEventContext);
 }
 
+///The <b>IAudioOutputSelector</b> interface provides access to a hardware demultiplexer control (output selector). The
+///client obtains a reference to the <b>IAudioOutputSelector</b> interface of a subunit by calling the IPart::Activate
+///method with parameter <i>refiid</i> set to REFIID IID_IAudioOutputSelector. The call to <b>IPart::Activate</b>
+///succeeds only if the subunit supports the <b>IAudioOutputSelector</b> interface. Only a subunit object that
+///represents a hardware output selector will support this interface. Each output of an output selector is identified by
+///the local ID of the part (a connector or subunit of a device topology) with a direct link to the output. A local ID
+///is a number that uniquely identifies a part among all the parts in a device topology. Most Windows audio adapter
+///drivers support the Windows Driver Model (WDM) and use kernel-streaming (KS) properties to represent the hardware
+///control parameters in subunits (referred to as KS nodes). The <b>IAudioOutputSelector</b> interface provides
+///convenient access to the KSPROPERTY_AUDIO_DEMUX_DEST property of a subunit that has a subtype GUID value of
+///KSNODETYPE_DEMUX. To obtain the subtype GUID of a subunit, call the IPart::GetSubType method. For more information
+///about KS properties and KS node types, see the Windows DDK documentation.
 @GUID("BB515F69-94A7-429E-8B9C-271B3F11A3AB")
 interface IAudioOutputSelector : IUnknown
 {
+    ///The <b>GetSelection</b> method gets the local ID of the part that is connected to the selector output that is
+    ///currently selected.
+    ///Params:
+    ///    pnIdSelected = Pointer to a <b>UINT</b> variable into which the method writes the local ID of the part that has a direct
+    ///                   link to the currently selected selector output.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Pointer <i>pnIdSelected</i> is
+    ///    <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetSelection(uint* pnIdSelected);
+    ///The <b>SetSelection</b> method selects one of the outputs of the output selector.
+    ///Params:
+    ///    nIdSelect = The new selector output. The caller should set this parameter to the local ID of a part that has a direct
+    ///                link to one of the selector outputs.
+    ///    pguidEventContext = Context value for the IControlChangeNotify::OnNotify method. This parameter points to an event-context GUID.
+    ///                        If the <b>SetSelection</b> call changes the state of the output-selector control, all clients that have
+    ///                        registered IControlChangeNotify interfaces with that control receive notifications. In its implementation of
+    ///                        the <b>OnNotify</b> method, a client can inspect the event-context GUID to discover whether it or another
+    ///                        client is the source of the control-change event. If the caller supplies a <b>NULL</b> pointer for this
+    ///                        parameter, the client's notification method receives a <b>NULL</b> context pointer.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> Parameter <i>nIdSelect</i> is
+    ///    not the local ID of a part at a selector output. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Out of memory. </td> </tr> </table>
+    ///    
     HRESULT SetSelection(uint nIdSelect, GUID* pguidEventContext);
 }
 
+///The <b>IAudioMute</b> interface provides access to a hardware mute control. The client obtains a reference to the
+///<b>IAudioMute</b> interface of a subunit by calling the IPart::Activate method with parameter <i>refiid</i> set to
+///REFIID IID_IAudioMute. The call to <b>IPart::Activate</b> succeeds only if the subunit supports the <b>IAudioMute</b>
+///interface. Only a subunit object that represents a hardware mute control function will support this interface. Most
+///Windows audio adapter drivers support the Windows Driver Model (WDM) and use kernel-streaming (KS) properties to
+///represent the hardware control parameters in subunits (referred to as KS nodes). The <b>IAudioMute</b> interface
+///provides convenient access to the KSPROPERTY_AUDIO_MUTE property of a subunit that has a subtype GUID value of
+///KSNODETYPE_MUTE. To obtain the subtype GUID of a subunit, call the IPart::GetSubType method. For more information
+///about KS properties and KS node types, see the Windows DDK documentation.
 @GUID("DF45AEEA-B74A-4B6B-AFAD-2366B6AA012E")
 interface IAudioMute : IUnknown
 {
+    ///The <b>SetMute</b> method enables or disables the mute control.
+    ///Params:
+    ///    bMuted = The new muting state. If <i>bMuted</i> is <b>TRUE</b> (nonzero), the method enables muting. If <b>FALSE</b>,
+    ///             the method disables muting.
+    ///    pguidEventContext = Context value for the IControlChangeNotify::OnNotify method. This parameter points to an event-context GUID.
+    ///                        If the <b>SetMute</b> call changes the state of the mute control, all clients that have registered
+    ///                        IControlChangeNotify interfaces with that control receive notifications. In its implementation of the
+    ///                        <b>OnNotify</b> method, a client can inspect the event-context GUID to discover whether it or another client
+    ///                        is the source of the control-change event. If the caller supplies a <b>NULL</b> pointer for this parameter,
+    ///                        the client's notification method receives a <b>NULL</b> context pointer.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Out of memory. </td> </tr>
+    ///    </table>
+    ///    
     HRESULT SetMute(BOOL bMuted, GUID* pguidEventContext);
+    ///The <b>GetMute</b> method gets the current state (enabled or disabled) of the mute control.
+    ///Params:
+    ///    pbMuted = Pointer to a <b>BOOL</b> variable into which the method writes the current state of the mute control. If the
+    ///              state is <b>TRUE</b>, muting is enabled. If <b>FALSE</b>, it is disabled.
+    ///Returns:
+    ///    <table> <tr> <th>Return code </th> <th>Description </th> </tr> <tr> <td>E_POINTER</td> <td>Pointer
+    ///    <i>pbMuted</i> is <b>NULL</b>.</td> </tr> </table>
+    ///    
     HRESULT GetMute(int* pbMuted);
 }
 
+///The <b>IAudioBass</b> interface provides access to a hardware bass-level control. The client obtains a reference to
+///the <b>IAudioBass</b> interface of a subunit by calling the IPart::Activate method with parameter <i>refiid</i> set
+///to REFIID IID_IAudioBass. The call to <b>IPart::Activate</b> succeeds only if the subunit supports the
+///<b>IAudioBass</b> interface. Only a subunit object that represents a hardware function for controlling the level of
+///the bass frequencies in each channel will support this interface.
 @GUID("A2B1A1D9-4DB3-425D-A2B2-BD335CB3E2E5")
 interface IAudioBass : IPerChannelDbLevel
 {
 }
 
+///The <b>IAudioMidrange</b> interface provides access to a hardware midrange-level control. The client obtains a
+///reference to the <b>IAudioMidrange</b> interface of a subunit by calling the IPart::Activate method with parameter
+///<i>refiid</i> set to REFIID IID_IAudioMidrange. The call to <b>IPart::Activate</b> succeeds only if the subunit
+///supports the <b>IAudioMidrange</b> interface. Only a subunit object that represents a hardware function for
+///controlling the level of the mid-range frequencies in each channel will support this interface. The
+///<b>IAudioMidrange</b> interface provides per-channel controls for setting and getting the gain or attenuation level
+///of the midrange frequencies in the audio stream. If a midrange-level hardware control can only attenuate the channels
+///in the audio stream, then the maximum midrange level for any channel is 0 dB. If a midrange-level control can provide
+///gain (amplification), then the maximum midrange level is greater than 0 dB. Most Windows audio adapter drivers
+///support the Windows Driver Model (WDM) and use kernel-streaming (KS) properties to represent the hardware control
+///parameters in subunits (referred to as KS nodes). The <b>IAudioMidrange</b> interface provides convenient access to
+///the KSPROPERTY_AUDIO_MID property of a subunit that has a subtype GUID value of KSNODETYPE_TONE. To obtain the
+///subtype GUID of a subunit, call the IPart::GetSubType method. For more information about KS properties and KS node
+///types, see the Windows DDK documentation.
 @GUID("5E54B6D7-B44B-40D9-9A9E-E691D9CE6EDF")
 interface IAudioMidrange : IPerChannelDbLevel
 {
 }
 
+///The <b>IAudioTreble</b> interface provides access to a hardware treble-level control. The client obtains a reference
+///to the <b>IAudioTreble</b> interface of a subunit by calling the IPart::Activate method with parameter <i>refiid</i>
+///set to REFIID IID_IAudioTreble. The call to <b>IPart::Activate</b> succeeds only if the subunit supports the
+///<b>IAudioTreble</b> interface. Only a subunit object that represents a hardware function for controlling the level of
+///the treble frequencies in each channel will support this interface. The <b>IAudioTreble</b> interface provides
+///per-channel controls for setting and getting the gain or attenuation level of the treble frequencies in the audio
+///stream. If a treble-level hardware control can only attenuate the channels in the audio stream, then the maximum
+///treble level for any channel is 0 dB. If a treble-level control can provide gain (amplification), then the maximum
+///treble level is greater than 0 dB. Most Windows audio adapter drivers support the Windows Driver Model (WDM) and use
+///kernel-streaming (KS) properties to represent the hardware control parameters in subunits (referred to as KS nodes).
+///The <b>IAudioTreble</b> interface provides convenient access to the KSPROPERTY_AUDIO_TREBLE property of a subunit
+///that has a subtype GUID value of KSNODETYPE_TONE. To obtain the subtype GUID of a subunit, call the IPart::GetSubType
+///method. For more information about KS properties and KS node types, see the Windows DDK documentation.
 @GUID("0A717812-694E-4907-B74B-BAFA5CFDCA7B")
 interface IAudioTreble : IPerChannelDbLevel
 {
 }
 
+///The <b>IAudioAutoGainControl</b> interface provides access to a hardware automatic gain control (AGC). The client
+///obtains a reference to the <b>IAudioAutoGainControl</b> interface of a subunit by calling the IPart::Activate method
+///with parameter <i>refiid</i> set to REFIID IID_IAudioAutoGainControl. The call to <b>IPart::Activate</b> succeeds
+///only if the subunit supports the <b>IAudioAutoGainControl</b> interface. Only a subunit object that represents a
+///hardware AGC function will support this interface. Most Windows audio adapter drivers support the Windows Driver
+///Model (WDM) and use kernel-streaming (KS) properties to represent the hardware control parameters in subunits
+///(referred to as KS nodes). The <b>IAudioAutoGainControl</b> interface provides convenient access to the
+///KSPROPERTY_AUDIO_AGC property of a subunit that has a subtype GUID value of KSNODETYPE_AGC. To obtain the subtype
+///GUID of a subunit, call the IPart::GetSubType method. For more information about KS properties and KS node types, see
+///the Windows DDK documentation.
 @GUID("85401FD4-6DE4-4B9D-9869-2D6753A82F3C")
 interface IAudioAutoGainControl : IUnknown
 {
+    ///The <b>GetEnabled</b> method gets the current state (enabled or disabled) of the AGC.
+    ///Params:
+    ///    pbEnabled = Pointer to a <b>BOOL</b> variable into which the method writes the current AGC state. If the state is
+    ///                <b>TRUE</b>, AGC is enabled. If <b>FALSE</b>, AGC is disabled.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Pointer <i>pbEnabled</i> is
+    ///    <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetEnabled(int* pbEnabled);
+    ///The <b>SetEnabled</b> method enables or disables the AGC.
+    ///Params:
+    ///    bEnable = The new AGC state. If this parameter is <b>TRUE</b> (nonzero), the method enables AGC. If <b>FALSE</b>, it
+    ///              disables AGC.
+    ///    pguidEventContext = Context value for the IControlChangeNotify::OnNotify method. This parameter points to an event-context GUID.
+    ///                        If the <b>SetEnabled</b> call changes the state of the AGC control, all clients that have registered
+    ///                        IControlChangeNotify interfaces with that control receive notifications. In its implementation of the
+    ///                        <b>OnNotify</b> method, a client can inspect the event-context GUID to discover whether it or another client
+    ///                        is the source of the control-change event. If the caller supplies a <b>NULL</b> pointer for this parameter,
+    ///                        the client's notification method receives a <b>NULL</b> context pointer.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Out of memory. </td> </tr>
+    ///    </table>
+    ///    
     HRESULT SetEnabled(BOOL bEnable, GUID* pguidEventContext);
 }
 
+///The <b>IAudioPeakMeter</b> interface provides access to a hardware peak-meter control. The client obtains a reference
+///to the <b>IAudioPeakMeter</b> interface of a subunit by calling the IPart::Activate method with parameter
+///<i>refiid</i> set to REFIID IID_IAudioPeakMeter. The call to <b>IPart::Activate</b> succeeds only if the subunit
+///supports the <b>IAudioPeakMeter</b> interface. Only a subunit object that represents a hardware peak meter will
+///support this interface. Most Windows audio adapter drivers support the Windows Driver Model (WDM) and use
+///kernel-streaming (KS) properties to represent the hardware control parameters in subunits (referred to as KS nodes).
+///The <b>IAudioPeakMeter</b> interface provides convenient access to the KSPROPERTY_AUDIO_PEAKMETER property of a
+///subunit that has a subtype GUID value of KSNODETYPE_PEAKMETER. To obtain the subtype GUID of a subunit, call the
+///IPart::GetSubType method. For more information about KS properties and KS node types, see the Windows DDK
+///documentation.
 @GUID("DD79923C-0599-45E0-B8B6-C8DF7DB6E796")
 interface IAudioPeakMeter : IUnknown
 {
+    ///The <b>GetChannelCount</b> method gets the number of channels in the audio stream.
+    ///Params:
+    ///    pcChannels = Pointer to a <b>UINT</b> variable into which the method writes the channel count.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Pointer <i>pcChannels</i> is
+    ///    <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetChannelCount(uint* pcChannels);
+    ///The <b>GetLevel</b> method gets the peak level that the peak meter recorded for the specified channel since the
+    ///peak level for that channel was previously read.
+    ///Params:
+    ///    nChannel = The channel number. If the audio stream has <i>N</i> channels, the channels are numbered from 0 to
+    ///               <i>N</i>– 1. To get the number of channels in the stream, call the IAudioPeakMeter::GetChannelCount method.
+    ///    pfLevel = Pointer to a <b>float</b> variable into which the method writes the peak meter level in decibels.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> Parameter <i>nChannel</i> is
+    ///    out of range. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%">
+    ///    Pointer <i>pfLevel</i> is <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetLevel(uint nChannel, float* pfLevel);
 }
 
+///The <b>IDeviceSpecificProperty</b> interface provides access to the control value of a device-specific hardware
+///control. A client obtains a reference to an <b>IDeviceSpecificProperty</b> interface of a part by calling the
+///IPart::Activate method with parameter <i>refiid</i> set to <b>REFIID</b> IID_IDeviceSpecificProperty. The call to
+///<b>IPart::Activate</b> succeeds only if the part supports the <b>IDeviceSpecificProperty</b> interface. A part
+///supports this interface only if the underlying hardware control has a device-specific control value and the control
+///cannot be adequately represented by any other interface in the DeviceTopology API. Typically, a device-specific
+///property is useful only to a client that can infer the meaning of the property value from information such as the
+///part type, part subtype, and part name. The client can obtain this information by calling the IPart::GetPartType,
+///IPart::GetSubType, and IPart::GetName methods. Most Windows audio adapter drivers support the Windows Driver Model
+///(WDM) and use kernel-streaming (KS) properties to represent the hardware control parameters in subunits (referred to
+///as KS nodes). The <b>IDeviceSpecificProperty</b> interface provides convenient access to the
+///KSPROPERTY_AUDIO_DEV_SPECIFIC property of a subunit that has a subtype GUID value of KSNODETYPE_DEV_SPECIFIC. To
+///obtain the subtype GUID of a subunit, call the IPart::GetSubType method. For more information about KS properties and
+///KS node types, see the Windows DDK documentation.
 @GUID("3B22BCBF-2586-4AF0-8583-205D391B807C")
 interface IDeviceSpecificProperty : IUnknown
 {
+    ///The <b>GetType</b> method gets the data type of the device-specific property value.
+    ///Params:
+    ///    pVType = Pointer to a <b>VARTYPE</b> variable into which the method writes a <b>VARTYPE</b> enumeration value that
+    ///             indicates the data type of the device-specific property value. For more information about <b>VARTYPE</b> and
+    ///             <b>VARTYPE</b>, see the Windows SDK documentation.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Pointer <i>pVType</i> is
+    ///    <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetType(ushort* pVType);
+    ///The <b>GetValue</b> method gets the current value of the device-specific property.
+    ///Params:
+    ///    pvValue = Pointer to a caller-allocated buffer into which the method writes the property value.
+    ///    pcbValue = [inout] Pointer to a <b>DWORD</b> variable that specifies the size in bytes of the property value. On entry,
+    ///               <i>*pcbValue</i> contains the size of the caller-allocated buffer (or 0 if <i>pvValue</i> is <b>NULL</b>).
+    ///               Before returning, the method writes the actual size of the property value written to the buffer (or the
+    ///               required size if the buffer is too small or if <i>pvValue</i> is <b>NULL</b>).
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Pointer <i>pcbValue</i> is
+    ///    <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>HRESULT_FROM_WIN32(ERROR_INSUFFICIENT_BUFFER)</b></dt> </dl> </td> <td width="60%"> The buffer pointed
+    ///    to by parameter <i>pvValue</i> is too small to contain the property value, or <i>pvValue</i> is <b>NULL</b>
+    ///    and the size of the property value is fixed rather than variable. For information about this macro, see the
+    ///    Windows SDK documentation. </td> </tr> </table>
+    ///    
     HRESULT GetValue(void* pvValue, uint* pcbValue);
+    ///The <b>SetValue</b> method sets the value of the device-specific property.
+    ///Params:
+    ///    pvValue = Pointer to the new value for the device-specific property.
+    ///    cbValue = The size in bytes of the device-specific property value.
+    ///    pguidEventContext = Context value for the IControlChangeNotify::OnNotify method. This parameter points to an event-context GUID.
+    ///                        If the <b>SetValue</b> call changes the state of the control, all clients that have registered
+    ///                        IControlChangeNotify interfaces with that control receive notifications. In its implementation of the
+    ///                        <b>OnNotify</b> method, a client can inspect the event-context GUID to discover whether it or another client
+    ///                        is the source of the control-change event. If the caller supplies a <b>NULL</b> pointer for this parameter,
+    ///                        the client's notification method receives a <b>NULL</b> context pointer.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Pointer <i>pvValue</i> is
+    ///    <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%">
+    ///    Parameter <i>cbValue</i> does not match the required size of the property value. </td> </tr> <tr> <td
+    ///    width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Out of memory. </td> </tr>
+    ///    </table>
+    ///    
     HRESULT SetValue(void* pvValue, uint cbValue, GUID* pguidEventContext);
+    ///The <b>Get4BRange</b> method gets the 4-byte range of the device-specific property value.
+    ///Params:
+    ///    plMin = Pointer to a <b>LONG</b> variable into which the method writes the minimum property value.
+    ///    plMax = Pointer to a <b>LONG</b> variable into which the method writes the maximum property value.
+    ///    plStepping = Pointer to a <b>LONG</b> variable into which the method writes the stepping value between consecutive
+    ///                 property values in the range <i>*plMin</i> to <i>*plMax</i>. If the difference between the maximum and
+    ///                 minimum property values is <i>d</i>, and the range is divided into <i>n</i> steps (uniformly sized
+    ///                 intervals), then the property can take <i>n</i> + 1 discrete values and the size of the step between
+    ///                 consecutive values is d / n.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Pointer <i>plMin</i>,
+    ///    <i>plMax</i>, or <i>plStepping</i> is <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>HRESULT_FROM_WIN32(ERROR_NOT_SUPPORTED)</b></dt> </dl> </td> <td width="60%"> The property value is
+    ///    not a 32-bit signed or unsigned integer. For information about this macro, see the Windows SDK documentation.
+    ///    </td> </tr> </table>
+    ///    
     HRESULT Get4BRange(int* plMin, int* plMax, int* plStepping);
 }
 
+///The <b>IKsFormatSupport</b> interface provides information about the audio data formats that are supported by a
+///software-configured I/O connection (typically a DMA channel) between an audio adapter device and system memory. The
+///client obtains a reference to the <b>IKsFormatSupport</b> interface of a part by calling the IPart::Activate method
+///with parameter <i>refiid</i> set to REFIID IID_IKsFormatSupport. The call to <b>IPart::Activate</b> succeeds only if
+///the part supports the <b>IKsFormatSupport</b> interface. Only a part object that represents a connector with a
+///Software_IO connection type will support this interface. For more information about Software_IO, see ConnectorType
+///Enumeration. Most Windows audio adapter drivers support the Windows Driver Model (WDM) and use kernel-streaming (KS)
+///properties to represent the hardware description parameters in connectors (referred to as KS pins). The
+///<b>IKsFormatSupport</b> interface provides convenient access to the KSPROPERTY_PIN_DATAINTERSECTION and
+///KSPROPERTY_PIN_PROPOSEDDATAFORMAT properties of a connector to a system bus (typically, PCI or PCI Express) or an
+///external bus (for example, USB). Not all drivers support the KSPROPERTY_PIN_PROPOSEDDATAFORMAT property. If a driver
+///does not support this property, <b>IKsFormatSupport</b> uses the information in the KS data ranges for the connector
+///to determine whether the connector supports the proposed format. For more information about KS properties, KS pins,
+///and KS data ranges, see the Windows DDK documentation.
 @GUID("3CB4A69D-BB6F-4D2B-95B7-452D2C155DB5")
 interface IKsFormatSupport : IUnknown
 {
+    ///The <b>IsFormatSupported</b> method indicates whether the audio endpoint device supports the specified audio
+    ///stream format.
+    ///Params:
+    ///    pKsFormat = Pointer to an audio-stream format specifier. This parameter points to a caller-allocated buffer that contains
+    ///                a format specifier. The specifier begins with a KSDATAFORMAT structure that might be followed by additional
+    ///                format information. For more information about <b>KSDATAFORMAT</b> and format specifiers, see the Windows DDK
+    ///                documentation.
+    ///    cbFormat = The size in bytes of the buffer that contains the format specifier.
+    ///    pbSupported = Pointer to a <b>BOOL</b> variable into which the method writes a value to indicate whether the format is
+    ///                  supported. The method writes <b>TRUE</b> if the device supports the format and <b>FALSE</b> if the device
+    ///                  does not support the format.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Pointer <i>pKsFormat</i> or
+    ///    <i>pbSupported</i> is <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl>
+    ///    </td> <td width="60%"> The format specifier is not valid. </td> </tr> </table>
+    ///    
     HRESULT IsFormatSupported(KSDATAFORMAT* pKsFormat, uint cbFormat, int* pbSupported);
+    ///The <b>GetDevicePreferredFormat</b> method gets the preferred audio stream format for the connection.
+    ///Params:
+    ///    ppKsFormat = Pointer to a pointer variable into which the method writes the address of a buffer that contains the format
+    ///                 specifier for the preferred format. The specifier begins with a <b>KSDATAFORMAT</b> structure that might be
+    ///                 followed by additional format information. The method allocates the storage for the format specifier. The
+    ///                 caller is responsible for freeing the storage, when it is no longer needed, by calling the
+    ///                 <b>CoTaskMemFree</b> function. If the method fails, <i>*ppKsFormat</i> is <b>NULL</b>. For more information
+    ///                 about <b>KSDATAFORMAT</b>, format specifiers, and <b>CoTaskMemFree</b>, see the Windows DDK documentation.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Pointer <i>ppKsFormat</i> is
+    ///    <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td
+    ///    width="60%"> Out of memory. </td> </tr> </table>
+    ///    
     HRESULT GetDevicePreferredFormat(KSDATAFORMAT** ppKsFormat);
 }
 
+///The <b>IKsJackDescription</b> interface provides information about the jacks or internal connectors that provide a
+///physical connection between a device on an audio adapter and an external or internal endpoint device (for example, a
+///microphone or CD player). The client obtains a reference to the <b>IKsJackDescription</b> interface of a part by
+///calling the IPart::Activate method with parameter <i>refiid</i> set to <b>REFIID</b> IID_IKsJackDescription. The call
+///to <b>IPart::Activate</b> succeeds only if the part supports the <b>IKsJackDescription</b> interface. Only a part
+///object that represents a connector with a Physical_External or Physical_Internal connection type will support this
+///interface. Most Windows audio adapter drivers support the Windows Driver Model (WDM) and use kernel-streaming (KS)
+///properties to represent the hardware description parameters in connectors (referred to as KS pins). The
+///<b>IKsJackDescription</b> interface provides convenient access to the KSPROPERTY_JACK_DESCRIPTION property of a
+///connector to an endpoint device. For more information about KS properties and KS pins, see the Windows DDK
+///documentation.
 @GUID("4509F757-2D46-4637-8E62-CE7DB944F57B")
 interface IKsJackDescription : IUnknown
 {
+    ///The <b>GetJackCount</b> method gets the number of jacks required to connect to an audio endpoint device.
+    ///Params:
+    ///    pcJacks = Pointer to a <b>UINT</b> variable into which the method writes the number of jacks associated with the
+    ///              connector.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Pointer <i>pcJacks</i> is
+    ///    <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetJackCount(uint* pcJacks);
+    ///The <b>GetJackDescription</b> method gets a description of an audio jack.
+    ///Params:
+    ///    nJack = The jack index. If the connection consists of <i>n</i> jacks, the jacks are numbered from 0 to <i>n</i>– 1.
+    ///            To get the number of jacks, call the IKsJackDescription::GetJackCount method.
+    ///    pDescription = Pointer to a caller-allocated buffer into which the method writes a structure of type KSJACK_DESCRIPTION that
+    ///                   contains information about the jack. The buffer size must be at least sizeof(KSJACK_DESCRIPTION).
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> Parameter <i>nJack</i> is not
+    ///    a valid jack index. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td
+    ///    width="60%"> Pointer <i>pDescription</i> is <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetJackDescription(uint nJack, KSJACK_DESCRIPTION* pDescription);
 }
 
+///The <b>IKsJackDescription2</b> interface provides information about the jacks or internal connectors that provide a
+///physical connection between a device on an audio adapter and an external or internal endpoint device (for example, a
+///microphone or CD player). In addition to getting jack information such as type of connection, the IKsJackDescription
+///is primarily used to report whether the jack was connected to the device. In Windows 7, if the connected device
+///driver supports <b>IKsJackDescription2</b>, the audio stack or an application can use this interface to get
+///information additional jack information. This includes the jack's detection capability and if the format of the
+///device has changed dynamically. Most Windows audio adapter drivers support the Windows Driver Model (WDM) and use
+///kernel-streaming (KS) properties to represent the hardware description parameters in connectors (referred to as KS
+///pins). The <b>IKsJackDescription2</b> interface provides convenient access to the <b>KSPROPERTY_JACK_DESCRIPTION2</b>
+///property of a connector to an endpoint device. For more information about KS properties and KS pins, see the Windows
+///DDK documentation. An application obtains a reference to the <b>IKsJackDescription2</b> interface of a part by
+///calling the IPart::Activate method with parameter <i>refiid</i> set to <b>REFIID</b><b>IID_IKsJackDescription2</b>.
+///The call to <b>IPart::Activate</b> succeeds only if the part supports the <b>IKsJackDescription2</b> interface. Only
+///a part object that represents a bridge pin connector on a KS filter device topology object supports this interface.
+///For a code example, see IKsJackDescription.
 @GUID("478F3A9B-E0C9-4827-9228-6F5505FFE76A")
 interface IKsJackDescription2 : IUnknown
 {
+    ///The <b>GetJackCount</b> method gets the number of jacks on the connector, which are required to connect to an
+    ///endpoint device.
+    ///Params:
+    ///    pcJacks = Receives the number of audio jacks associated with the connector.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Pointer <i>pcJacks</i> is
+    ///    <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetJackCount(uint* pcJacks);
+    ///The <b>GetJackDescription2</b> method gets the description of a specified audio jack.
+    ///Params:
+    ///    nJack = The index of the jack to get a description for. If the connection consists of <i>n</i> jacks, the jacks are
+    ///            numbered from 0 to <i>n</i>– 1. To get the number of jacks, call the IKsJackDescription::GetJackCount
+    ///            method.
+    ///    pDescription2 = Pointer to a caller-allocated buffer into which the method writes a structure of type KSJACK_DESCRIPTION2
+    ///                    that contains information about the jack. The buffer size must be at least
+    ///                    <code>sizeof(KSJACK_DESCRIPTION2)</code>.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> Parameter <i>nJack</i> is not
+    ///    a valid jack index. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td
+    ///    width="60%"> Pointer <i>pDescription</i> is <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetJackDescription2(uint nJack, KSJACK_DESCRIPTION2* pDescription2);
 }
 
+///The <b>IKsJackSinkInformation</b> interface provides access to jack sink information if the jack is supported by the
+///hardware. The client obtains a reference to the <b>IKsJackSinkInformation</b> interface by activating it on the IPart
+///interface of a bridge pin connector on a KS filter device topology object. To activate the object, call the
+///IPart::Activate method with parameter refiid set to REFIID <b>IID_IKsJackSinkInformation</b>. Most Windows audio
+///adapter drivers support the Windows Driver Model (WDM) and use kernel-streaming (KS) properties to represent the
+///hardware description parameters in connectors (referred to as KS pins). The <b>IKsJackSinkInformation</b> interface
+///provides convenient access to the <b>KSPROPERTY_JACK_SINK_INFO</b> property of a connector to an endpoint device. For
+///more information about KS properties and KS pins, see the Windows DDK documentation.
 @GUID("D9BD72ED-290F-4581-9FF3-61027A8FE532")
 interface IKsJackSinkInformation : IUnknown
 {
+    ///The <b>GetJackSinkInformation</b> method retrieves the sink information for the specified jack.
+    ///Params:
+    ///    pJackSinkInformation = Pointer to a caller-allocated buffer that receives the sink information of the jack in a
+    ///                           KSJACK_SINK_INFORMATION structure. The buffer size must be at least
+    ///                           <code>sizeof(KSJACK_SINK_INFORMATION)</code>.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> Parameter <i>nJack</i> is not
+    ///    a valid jack index. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td
+    ///    width="60%"> Pointer <i>pDescription</i> is <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetJackSinkInformation(KSJACK_SINK_INFORMATION* pJackSinkInformation);
 }
 
@@ -7316,269 +10355,2193 @@ interface IKsJackContainerId : IUnknown
     HRESULT GetJackContainerId(GUID* pJackContainerId);
 }
 
+///The <b>IPartsList</b> interface represents a list of parts, each of which is an object with an IPart interface that
+///represents a connector or subunit. A client obtains a reference to an <b>IPartsList</b> interface by calling the
+///IPart::EnumPartsIncoming, IPart::EnumPartsOutgoing, or IDeviceTopology::GetSignalPath method. For a code example that
+///uses the <b>IPartsList</b> interface, see the implementation of the SelectCaptureDevice function in Device
+///Topologies.
 @GUID("6DAA848C-5EB0-45CC-AEA5-998A2CDA1FFB")
 interface IPartsList : IUnknown
 {
+    ///The <b>GetCount</b> method gets the number of parts in the parts list.
+    ///Params:
+    ///    pCount = Pointer to a <b>UINT</b> variable into which the method writes the parts count (the number of parts in the
+    ///             parts list).
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Pointer <i>pCount</i> is
+    ///    <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetCount(uint* pCount);
+    ///The <b>GetPart</b> method gets a part from the parts list.
+    ///Params:
+    ///    nIndex = The part number of the part to retrieve. If the parts list contains <i>n</i> parts, the parts are numbered 0
+    ///             to <i>n</i>– 1. Call the IPartsList::GetCount method to get the number of parts in the list.
+    ///    ppPart = Pointer to a pointer variable into which the method writes the address of the IPart interface of the part
+    ///             object. Through this method, the caller obtains a counted reference to the <b>IPart</b> interface. The caller
+    ///             is responsible for releasing the interface, when it is no longer needed, by calling the interface's
+    ///             <b>Release</b> method. If the <b>GetPart</b> call fails, <i>*ppPart</i> is <b>NULL</b>.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> Parameter <i>nIndex</i> is
+    ///    out of range. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%">
+    ///    Pointer <i>ppPart</i> is <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetPart(uint nIndex, IPart* ppPart);
 }
 
+///The <b>IPart</b> interface represents a part (connector or subunit) of a device topology. A client obtains a
+///reference to an <b>IPart</b> interface by calling the IDeviceTopology::GetPartById or IPartsList::GetPart method, or
+///by calling the <b>QueryInterface</b> method of the IConnector or ISubunit interface on a part object and setting the
+///method's <i>iid</i> parameter to <b>REFIID</b> IID_IPart. An object with an <b>IPart</b> interface can encapsulate
+///one of the following device topology parts: <ul> <li><b>Connector.</b> This is a part that connects to another device
+///to form a data path for transmitting an audio stream between devices.</li> <li><b>Subunit.</b> This is a part that
+///processes an audio stream (for example, volume control).</li> </ul> The <b>IPart</b> interface of a connector or
+///subunit object represents the generic functions that are common to all parts, and the object's <b>IConnector</b> or
+///<b>ISubunit</b> interface represents the functions that are specific to a connector or subunit. In addition, a part
+///might support one or more control interfaces for controlling or monitoring the function of the part. For example, the
+///client controls a volume-control subunit through its IAudioVolumeLevel interface. The <b>IPart</b> interface provides
+///methods for getting the name, local ID, global ID, and part type of a connector or subunit. In addition, <b>IPart</b>
+///can activate a control interface on a connector or subunit. For code examples that use the <b>IPart</b> interface,
+///see the implementations of the GetHardwareDeviceTopology and SelectCaptureDevice functions in Device Topologies.
 @GUID("AE2DE0E4-5BCA-4F2D-AA46-5D13F8FDB3A9")
 interface IPart : IUnknown
 {
+    ///The <b>GetName</b> method gets the friendly name of this part.
+    ///Params:
+    ///    ppwstrName = Pointer to a pointer variable into which the method writes the address of a null-terminated, wide-character
+    ///                 string that contains the friendly name of this part. The method allocates the storage for the string. The
+    ///                 caller is responsible for freeing the storage, when it is no longer needed, by calling the
+    ///                 <b>CoTaskMemFree</b> function. If the <b>GetName</b> call fails, <i>*ppwstrName</i> is <b>NULL</b>. For
+    ///                 information about <b>CoTaskMemFree</b>, see the Windows SDK documentation.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Pointer <i>ppwstrName</i> is
+    ///    <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetName(ushort** ppwstrName);
+    ///The <b>GetLocalId</b> method gets the local ID of this part.
+    ///Params:
+    ///    pnId = Pointer to a <b>UINT</b> variable into which the method writes the local ID of this part.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Pointer <i>pnId</i> is
+    ///    <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetLocalId(uint* pnId);
+    ///The <b>GetGlobalId</b> method gets the global ID of this part.
+    ///Params:
+    ///    ppwstrGlobalId = Pointer to a pointer variable into which the method writes the address of a null-terminated, wide-character
+    ///                     string that contains the global ID. The method allocates the storage for the string. The caller is
+    ///                     responsible for freeing the storage, when it is no longer needed, by calling the <b>CoTaskMemFree</b>
+    ///                     function. If the <b>GetGlobalId</b> call fails, <i>*ppwstrGlobalId</i> is <b>NULL</b>. For information about
+    ///                     <b>CoTaskMemFree</b>, see the Windows SDK documentation.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Pointer <i>ppwstrGlobalId</i> is
+    ///    <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td
+    ///    width="60%"> Out of memory. </td> </tr> </table>
+    ///    
     HRESULT GetGlobalId(ushort** ppwstrGlobalId);
+    ///The <b>GetPartType</b> method gets the part type of this part.
+    ///Params:
+    ///    pPartType = Pointer to a PartType variable into which the method writes the part type. The part type is one of the
+    ///                following <b>PartType</b> enumeration values, which indicate whether the part is a connector or subunit:
+    ///                Connector Subunit
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Pointer <i>pPartType</i> is
+    ///    <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetPartType(PartType* pPartType);
+    ///The <b>GetSubType</b> method gets the part subtype of this part.
+    ///Params:
+    ///    pSubType = Pointer to a GUID variable into which the method writes the subtype GUID for this part.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Pointer <i>pSubType</i> is
+    ///    <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetSubType(GUID* pSubType);
+    ///The <b>GetControlInterfaceCount</b> method gets the number of control interfaces that this part supports.
+    ///Params:
+    ///    pCount = Pointer to a <b>UINT</b> variable into which the method writes the number of control interfaces on this part.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Pointer <i>pCount</i> is
+    ///    <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetControlInterfaceCount(uint* pCount);
+    ///The <b>GetControlInterface</b> method gets a reference to the specified control interface, if this part supports
+    ///it.
+    ///Params:
+    ///    nIndex = The control interface number. If a part supports <i>n</i> control interfaces, the control interfaces are
+    ///             numbered from 0 to <i>n</i>– 1.
+    ///    ppInterfaceDesc = Pointer to a pointer variable into which the method writes the address of the IControlInterface interface of
+    ///                      the specified audio function. Through this method, the caller obtains a counted reference to the interface.
+    ///                      The caller is responsible for releasing the interface, when it is no longer needed, by calling the
+    ///                      interface's <b>Release</b> method. If the <b>GetControlInterface</b> call fails, <i>*ppFunction</i> is
+    ///                      <b>NULL</b>.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Pointer <i>ppFunction</i> is
+    ///    <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%">
+    ///    Parameter <i>nIndex</i> is out of range. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_NOTFOUND</b></dt>
+    ///    </dl> </td> <td width="60%"> The part does not have a control interface. </td> </tr> </table>
+    ///    
     HRESULT GetControlInterface(uint nIndex, IControlInterface* ppInterfaceDesc);
+    ///The <b>EnumPartsIncoming</b> method gets a list of all the incoming parts—that is, the parts that reside on
+    ///data paths that are upstream from this part.
+    ///Params:
+    ///    ppParts = Pointer to a pointer variable into which the method writes the address of an IPartsList interface that
+    ///              encapsulates the list of parts that are immediately upstream from this part. Through this method, the caller
+    ///              obtains a counted reference to the interface. The caller is responsible for releasing the interface, when it
+    ///              is no longer needed, by calling the interface's <b>Release</b> method. If the <b>EnumPartsIncoming</b> call
+    ///              fails, <i>*ppParts</i> is <b>NULL</b>.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Pointer <i>ppParts</i> is
+    ///    <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_NOTFOUND</b></dt> </dl> </td> <td width="60%">
+    ///    This part has no links to upstream parts. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Out of memory. </td> </tr> </table>
+    ///    
     HRESULT EnumPartsIncoming(IPartsList* ppParts);
+    ///The <b>EnumPartsOutgoing</b> method retrieves a list of all the outgoing parts—that is, the parts that reside
+    ///on data paths that are downstream from this part.
+    ///Params:
+    ///    ppParts = Pointer to a pointer variable into which the method writes the address of an IPartsList interface that
+    ///              encapsulates the list of parts that are immediately downstream from this part. Through this method, the
+    ///              caller obtains a counted reference to the interface. The caller is responsible for releasing the interface,
+    ///              when it is no longer needed, by calling the interface's <b>Release</b> method. If the
+    ///              <b>EnumPartsOutgoing</b> call fails, <i>*ppParts</i> is <b>NULL</b>.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Pointer <i>ppParts</i> is
+    ///    <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_NOTFOUND</b></dt> </dl> </td> <td width="60%">
+    ///    This part has no links to downstream parts. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Out of memory. </td> </tr> </table>
+    ///    
     HRESULT EnumPartsOutgoing(IPartsList* ppParts);
+    ///The <b>GetTopologyObject</b> method gets a reference to the IDeviceTopology interface of the device-topology
+    ///object that contains this part.
+    ///Params:
+    ///    ppTopology = Pointer to a pointer variable into which the method writes the address of the <b>IDeviceTopology</b>
+    ///                 interface of the device-topology object. The caller obtains a counted reference to the interface from this
+    ///                 method. Through this method, the caller obtains a counted reference to the interface. The caller is
+    ///                 responsible for releasing the interface, when it is no longer needed, by calling the interface's
+    ///                 <b>Release</b> method. If the <b>GetTopologyObject</b> call fails, <i>*ppTopology</i> is <b>NULL</b>.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Pointer <i>ppTopology</i> is
+    ///    <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetTopologyObject(IDeviceTopology* ppTopology);
+    ///The <b>Activate</b> method activates a function-specific interface on a connector or subunit.
+    ///Params:
+    ///    dwClsContext = The execution context in which the code that manages the newly created object will run. The caller can
+    ///                   restrict the context by setting this parameter to the bitwise <b>OR</b> of one or more <b>CLSCTX</b>
+    ///                   enumeration values. The client can avoid imposing any context restrictions by specifying CLSCTX_ALL. For more
+    ///                   information about <b>CLSCTX</b>, see the Windows SDK documentation.
+    ///    refiid = The interface ID for the requested control function. The client should set this parameter to one of the
+    ///             following <b>REFIID</b> values: IID_IAudioAutoGainControl IID_IAudioBass IID_IAudioChannelConfig
+    ///             IID_IAudioInputSelector IID_IAudioLoudness IID_IAudioMidrange IID_IAudioMute IID_IAudioOutputSelector
+    ///             IID_IAudioPeakMeter IID_IAudioTreble IID_IAudioVolumeLevel IID_IDeviceSpecificProperty IID_IKsFormatSupport
+    ///             IID_IKsJackDescription For more information, see Remarks.
+    ///    ppvObject = Pointer to a pointer variable into which the method writes the address of the interface that is specified by
+    ///                parameter <i>refiid</i>. Through this method, the caller obtains a counted reference to the interface. The
+    ///                caller is responsible for releasing the interface, when it is no longer needed, by calling the interface's
+    ///                <b>Release</b> method. If the <b>Activate</b> call fails, <i>*ppObject</i> is <b>NULL</b>.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> The CLSCTX_INPROC_SERVER bit
+    ///    in <i>dwClsContext</i> is zero. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td>
+    ///    <td width="60%"> Pointer <i>ppvObject</i> is <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>E_NOINTERFACE</b></dt> </dl> </td> <td width="60%"> The part object does not support the requested
+    ///    interface. </td> </tr> </table>
+    ///    
     HRESULT Activate(uint dwClsContext, const(GUID)* refiid, void** ppvObject);
+    ///The <b>RegisterControlChangeCallback</b> method registers the IControlChangeNotify interface, which the client
+    ///implements to receive notifications of status changes in this part.
+    ///Params:
+    ///    riid = The function-specific control interface that is to be monitored for control changes. For more information,
+    ///           see Remarks.
+    ///    pNotify = Pointer to the client's IControlChangeNotify interface. If the method succeeds, it calls the AddRef method on
+    ///              the client's <b>IControlChangeNotify</b> interface.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> Parameter <i>riid</i> is not
+    ///    a valid control-interface identifier. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl>
+    ///    </td> <td width="60%"> Pointer <i>pNotify</i> is <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT RegisterControlChangeCallback(const(GUID)* riid, IControlChangeNotify pNotify);
+    ///The <b>UnregisterControlChangeCallback</b> method removes the registration of an IControlChangeNotify interface
+    ///that the client previously registered by a call to the IPart::RegisterControlChangeCallback method.
+    ///Params:
+    ///    pNotify = Pointer to the <b>IControlChangeNotify</b> interface whose registration is to be deleted. The client passed
+    ///              this same interface pointer to the part object in a previous call to the
+    ///              <b>IPart::RegisterControlChangeCallback</b> method. If the <b>UnregisterControlChangeCallback</b> method
+    ///              succeeds, it calls the <b>Release</b> method on the client's <b>IControlChangeNotify</b> interface.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> Pointer <i>pNotify</i> is
+    ///    <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_NOTFOUND</b></dt> </dl> </td> <td width="60%">
+    ///    Interface instance <i>*pNotify</i> is not currently registered. </td> </tr> </table>
+    ///    
     HRESULT UnregisterControlChangeCallback(IControlChangeNotify pNotify);
 }
 
+///The <b>IConnector</b> interface represents a point of connection between components. The client obtains a reference
+///to an <b>IConnector</b> interface by calling the IDeviceTopology::GetConnector or IConnector::GetConnectedTo method,
+///or by calling the <b>IPart::QueryInterface</b> method with parameter <i>iid</i> set to <b>REFIID</b> IID_IConnector.
+///An <b>IConnector</b> interface instance can represent: <ul> <li>An audio jack on a piece of hardware</li> <li>An
+///internal connection to an integrated endpoint device (for example, a built-in microphone in a laptop computer)</li>
+///<li>A software connection implemented through DMA transfers</li> </ul> The methods in the <b>IConnector</b> interface
+///can describe various kinds of connectors. A connector has a type (a ConnectorType enumeration constant) and a subtype
+///(a GUID obtained from the IPart::GetSubType method). A part in a device topology can be either a connector or a
+///subunit. The IPart interface provides methods that are common to connectors and subunits. For code examples that use
+///the <b>IConnector</b> interface, see the implementations of the GetHardwareDeviceTopology and SelectCaptureDevice
+///functions in Device Topologies.
 @GUID("9C2C4058-23F5-41DE-877A-DF3AF236A09E")
 interface IConnector : IUnknown
 {
+    ///The <b>GetType</b> method gets the type of this connector.
+    ///Params:
+    ///    pType = Pointer to a variable into which the method writes the connector type. The connector type is one of the
+    ///            following ConnectorType enumeration constants: Unknown_Connector Physical_Internal Physical_External
+    ///            Software_IO Software_Fixed Network
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Pointer <i>pType</i> is
+    ///    <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetType(ConnectorType* pType);
+    ///The <b>GetDataFlow</b> method gets the direction of data flow through this connector.
+    ///Params:
+    ///    pFlow = Pointer to a variable into which the method writes the data-flow direction. The direction is one of the
+    ///            following DataFlow enumeration values: In Out If data flows into the device through the connector, the
+    ///            data-flow direction is In. Otherwise, the data-flow direction is Out.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Pointer <i>pFlow</i> is
+    ///    <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetDataFlow(DataFlow* pFlow);
+    ///The <b>ConnectTo</b> method connects this connector to a connector in another device-topology object.
+    ///Params:
+    ///    pConnectTo = The other connector. This parameter points to the IConnector interface of the connector object that
+    ///                 represents the connector in the other device topology. The caller is responsible for releasing its counted
+    ///                 reference to the <b>IConnector</b> interface when it is no longer needed. The <b>ConnectTo</b> method obtains
+    ///                 its own reference to this interface.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Pointer <i>pConnectTo</i> is
+    ///    <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%">
+    ///    The current connector and remote connector pointed to by <i>pConnectTo</i>, have the same direction of data
+    ///    flow. A connector with data-flow direction "In" must be connected to another connector with data-flow
+    ///    direction "Out" to create a valid connection in the topology. To determine the data flow of a connector, call
+    ///    IConnector::GetDataFlow. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_NOINTERFACE</b></dt> </dl> </td> <td
+    ///    width="60%"> The object pointed to by <i>pConnectTo</i> is not a valid connector object. </td> </tr> <tr> <td
+    ///    width="40%"> <dl> <dt><b>HRESULT_FROM_WIN32(ERROR_DEVICE_ALREADY_ATTACHED)</b></dt> </dl> </td> <td
+    ///    width="60%"> One of the two connectors is already attached to another connector. For information about this
+    ///    macro, see the Windows SDK documentation. </td> </tr> </table>
+    ///    
     HRESULT ConnectTo(IConnector pConnectTo);
+    ///The <b>Disconnect</b> method disconnects this connector from another connector.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_NOTFOUND</b></dt> </dl> </td> <td width="60%"> This connector is already
+    ///    disconnected. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>HRESULT_FROM_WIN32(ERROR_FILE_READ_ONLY)</b></dt>
+    ///    </dl> </td> <td width="60%"> A permanent connection cannot be disconnected. For information about this macro,
+    ///    see the Windows SDK documentation. </td> </tr> </table>
+    ///    
     HRESULT Disconnect();
+    ///The <b>IsConnected</b> method indicates whether this connector is connected to another connector.
+    ///Params:
+    ///    pbConnected = Pointer to a <b>BOOL</b> variable into which the method writes the connection state. If the state is
+    ///                  <b>TRUE</b>, this connector is connected to another connector. If <b>FALSE</b>, this connector is
+    ///                  unconnected.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Pointer <i>pbConnected</i> is
+    ///    <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT IsConnected(int* pbConnected);
+    ///The <b>GetConnectedTo</b> method gets the connector to which this connector is connected.
+    ///Params:
+    ///    ppConTo = Pointer to a pointer variable into which the method writes the address of the IConnector interface of the
+    ///              other connector object. Through this method, the caller obtains a counted reference to the interface. The
+    ///              caller is responsible for releasing the interface, when it is no longer needed, by calling the interface's
+    ///              <b>Release</b> method. If the <b>GetConnectedTo</b> call fails, <i>*ppConTo</i> is <b>NULL</b>.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Pointer <i>ppConTo</i> is
+    ///    <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_NOTFOUND</b></dt> </dl> </td> <td width="60%">
+    ///    This connector is not connected, or the other side of the connection is not another device topology (for
+    ///    example, a Software_IO connection). </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>HRESULT_FROM_WIN32(ERROR_PATH_NOT_FOUND)</b></dt> </dl> </td> <td width="60%"> The device topology on
+    ///    the other side of the connection is not active (that is, the device state is not DEVICE_STATE_ACTIVE). </td>
+    ///    </tr> </table>
+    ///    
     HRESULT GetConnectedTo(IConnector* ppConTo);
+    ///The <b>GetConnectorIdConnectedTo</b> method gets the global ID of the connector, if any, that this connector is
+    ///connected to.
+    ///Params:
+    ///    ppwstrConnectorId = Pointer to a string pointer into which the method writes the address of a null-terminated, wide-character
+    ///                        string that contains the other connector's global ID. The method allocates the storage for the string. The
+    ///                        caller is responsible for freeing the storage, when it is no longer needed, by calling the
+    ///                        <b>CoTaskMemFree</b> function. If the <b>GetConnectorIdConnectedTo</b> call fails, <i>*ppwstrConnectorId</i>
+    ///                        is <b>NULL</b>. For information about <b>CoTaskMemFree</b>, see the Windows SDK documentation.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_NOTFOUND</b></dt> </dl> </td> <td width="60%"> This connector is not
+    ///    connected, or the other side of the connection is not another device topology (for example, a Software_IO
+    ///    connection). </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%">
+    ///    Parameter <i>ppwstrConnectorId</i> is <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Out of memory. </td> </tr> </table>
+    ///    
     HRESULT GetConnectorIdConnectedTo(ushort** ppwstrConnectorId);
+    ///The <b>GetDeviceIdConnectedTo</b> method gets the device identifier of the audio device, if any, that this
+    ///connector is connected to.
+    ///Params:
+    ///    ppwstrDeviceId = Pointer to a string pointer into which the method writes the address of a null-terminated, wide-character
+    ///                     string that contains the device identifier of the connected device. The method allocates the storage for the
+    ///                     string. The caller is responsible for freeing the storage, when it is no longer needed, by calling the
+    ///                     <b>CoTaskMemFree</b> function. If the <b>GetDeviceIdConnectedTo</b> call fails, <i>*ppwstrDeviceId</i> is
+    ///                     <b>NULL</b>. For information about <b>CoTaskMemFree</b>, see the Windows SDK documentation.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Pointer <i>ppwstrDeviceId</i> is
+    ///    <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_NOTFOUND</b></dt> </dl> </td> <td width="60%">
+    ///    This connector is not connected, or the other side of the connection is not another device topology (for
+    ///    example, a Software_IO connection). </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_MEMORY</b></dt> </dl>
+    ///    </td> <td width="60%"> Out of memory. </td> </tr> </table>
+    ///    
     HRESULT GetDeviceIdConnectedTo(ushort** ppwstrDeviceId);
 }
 
+///The <b>ISubunit</b> interface represents a hardware subunit (for example, a volume control) that lies in the data
+///path between a client and an audio endpoint device. The client obtains a reference to an <b>ISubunit</b> interface by
+///calling the IDeviceTopology::GetSubunit method, or by calling the <b>IPart::QueryInterface</b> method with parameter
+///<i>iid</i> set to <b>REFIID</b> IID_ISubunit.
 @GUID("82149A85-DBA6-4487-86BB-EA8F7FEFCC71")
 interface ISubunit : IUnknown
 {
 }
 
+///The <b>IControlInterface</b> interface represents a control interface on a part (connector or subunit) in a device
+///topology. The client obtains a reference to a part's <b>IControlInterface</b> interface by calling the
+///IPart::GetControlInterface method.
 @GUID("45D37C3F-5140-444A-AE24-400789F3CBF3")
 interface IControlInterface : IUnknown
 {
+    ///The <b>GetName</b> method gets the friendly name for the audio function that the control interface encapsulates.
+    ///Params:
+    ///    ppwstrName = Pointer to a string pointer into which the method writes the address of a null-terminated, wide-character
+    ///                 string that contains the friendly name. The method allocates the storage for the string. The caller is
+    ///                 responsible for freeing the storage, when it is no longer needed, by calling the <b>CoTaskMemFree</b>
+    ///                 function. If the <b>GetName</b> call fails, <i>*ppwstrName</i> is <b>NULL</b>. For information about
+    ///                 <b>CoTaskMemFree</b>, see the Windows SDK documentation.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Pointer <i>ppwstrName</i> is
+    ///    <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td
+    ///    width="60%"> Out of memory. </td> </tr> </table>
+    ///    
     HRESULT GetName(ushort** ppwstrName);
+    ///The <b>GetIID</b> method gets the interface ID of the function-specific control interface of the part.
+    ///Params:
+    ///    pIID = Pointer to a GUID variable into which the method writes the interface ID of the function-specific control
+    ///           interface of the part. For more information, see Remarks.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Pointer <i>pIID</i> is
+    ///    <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetIID(GUID* pIID);
 }
 
+///The <b>IControlChangeNotify</b> interface provides notifications when the status of a part (connector or subunit)
+///changes. Unlike the other interfaces in this section, which are implemented by the DeviceTopology API, the
+///<b>IControlChangeNotify</b> interface must be implemented by a client. To receive notifications, the client passes a
+///pointer to its <b>IControlChangeNotify</b> interface instance as a parameter to the
+///IPart::RegisterControlChangeCallback method. After registering its <b>IControlChangeNotify</b> interface, the client
+///receives event notifications in the form of callbacks through the <b>OnNotify</b> method in the interface. In
+///implementing the <b>IControlChangeNotify</b> interface, the client should observe these rules to avoid deadlocks and
+///undefined behavior: <ul> <li>The methods in the interface must be nonblocking. The client should never wait on a
+///synchronization object during an event callback.</li> <li>The client should never call the
+///IPart::UnregisterControlChangeCallback method during an event callback.</li> <li>The client should never release the
+///final reference on an MMDevice API object during an event callback.</li> </ul>
 @GUID("A09513ED-C709-4D21-BD7B-5F34C47F3947")
 interface IControlChangeNotify : IUnknown
 {
+    ///The <b>OnNotify</b> method notifies the client when the status of a connector or subunit changes.
+    ///Params:
+    ///    dwSenderProcessId = The process ID of the client that changed the state of the control. If a notification is generated by a
+    ///                        hardware event, this process ID will differ from the client's process ID. For more information, see Remarks.
+    ///    pguidEventContext = A pointer to the context GUID for the control-change event. The client that initiates the control change
+    ///                        supplies this GUID. For more information, see Remarks.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, it returns an error code.
+    ///    
     HRESULT OnNotify(uint dwSenderProcessId, GUID* pguidEventContext);
 }
 
+///The <b>IDeviceTopology</b> interface provides access to the topology of an audio device. The topology of an audio
+///<i>adapter</i> device consists of the data paths that lead to and from audio endpoint devices and the control points
+///that lie along the paths. An audio <i>endpoint</i> device also has a topology, but it is trivial, as explained in
+///Device Topologies. A client obtains a reference to the <b>IDeviceTopology</b> interface for an audio endpoint device
+///by following these steps: <ol> <li>By using one of the techniques described in IMMDevice Interface, obtain a
+///reference to the <b>IMMDevice</b> interface for an audio endpoint device.</li> <li>Call the IMMDevice::Activate
+///method with parameter <i>refiid</i> set to <b>REFIID</b> IID_IDeviceTopology.</li> </ol> After obtaining the
+///<b>IDeviceTopology</b> interface for an audio endpoint device, an application can explore the topologies of the audio
+///adapter devices to which the endpoint device is connected. For code examples that use the <b>IDeviceTopology</b>
+///interface, see the implementations of the GetHardwareDeviceTopology and SelectCaptureDevice functions in Device
+///Topologies.
 @GUID("2A07407E-6497-4A18-9787-32F79BD0D98F")
 interface IDeviceTopology : IUnknown
 {
+    ///The <b>GetConnectorCount</b> method gets the number of connectors in the device-topology object.
+    ///Params:
+    ///    pCount = Pointer to a <b>UINT</b> pointer variable into which the method writes the connector count (the number of
+    ///             connectors in the device topology).
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Pointer <i>pCount</i> is
+    ///    <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetConnectorCount(uint* pCount);
+    ///The <b>GetConnector</b> method gets the connector that is specified by a connector number.
+    ///Params:
+    ///    nIndex = The connector number. If a device topology contains n connectors, the connectors are numbered 0 to n – 1.
+    ///             To get the number of connectors in the device topology, call the IDeviceTopology::GetConnectorCount method.
+    ///    ppConnector = Pointer to a pointer variable into which the method writes the address of the IConnector interface of the
+    ///                  connector object. Through this method, the caller obtains a counted reference to the interface. The caller is
+    ///                  responsible for releasing the interface, when it is no longer needed, by calling the interface's
+    ///                  <b>Release</b> method. If the <b>GetConnector</b> call fails, <i>*ppConnector</i> is <b>NULL</b>.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> Parameter <i>nIndex</i> is
+    ///    out of range. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%">
+    ///    Pointer <i>ppConnector</i> is <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetConnector(uint nIndex, IConnector* ppConnector);
+    ///The <b>GetSubunitCount</b> method gets the number of subunits in the device topology.
+    ///Params:
+    ///    pCount = Pointer to a <b>UINT</b> variable into which the method writes the subunit count (the number of subunits in
+    ///             the device topology).
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Pointer <i>pCount</i> is
+    ///    <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetSubunitCount(uint* pCount);
+    ///The <b>GetSubunit</b> method gets the subunit that is specified by a subunit number.
+    ///Params:
+    ///    nIndex = The subunit number. If a device topology contains <i>n</i> subunits, the subunits are numbered from 0 to
+    ///             <i>n</i>– 1. To get the number of subunits in the device topology, call the
+    ///             IDeviceTopology::GetSubunitCount method.
+    ///    ppSubunit = Pointer to a pointer variable into which the method writes the address of the ISubunit interface of the
+    ///                subunit object. Through this method, the caller obtains a counted reference to the interface. The caller is
+    ///                responsible for releasing the interface, when it is no longer needed, by calling the interface's
+    ///                <b>Release</b> method. If the <b>GetSubunit</b> call fails, <i>*ppSubunit</i> is <b>NULL</b>.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> Parameter <i>nIndex</i> is
+    ///    out of range. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%">
+    ///    Pointer <i>ppSubunit</i> is <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetSubunit(uint nIndex, ISubunit* ppSubunit);
+    ///The <b>GetPartById</b> method gets a part that is identified by its local ID.
+    ///Params:
+    ///    nId = The part to get. This parameter is the local ID of the part. For more information, see Remarks.
+    ///    ppPart = Pointer to a pointer variable into which the method writes the address of the IPart interface of the part
+    ///             object that is identified by <i>nId</i>. Through this method, the caller obtains a counted reference to the
+    ///             interface. The caller is responsible for releasing the interface, when it is no longer needed, by calling the
+    ///             interface's <b>Release</b> method. If the <b>GetPartById</b> call fails, <i>*ppPart</i> is <b>NULL</b>.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> Parameter <i>nId</i> is not a
+    ///    valid local ID. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%">
+    ///    Pointer <i>ppPart</i> is <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetPartById(uint nId, IPart* ppPart);
+    ///The <b>GetDeviceId</b> method gets the device identifier of the device that is represented by the device-topology
+    ///object.
+    ///Params:
+    ///    ppwstrDeviceId = Pointer to a pointer variable into which the method writes the address of a null-terminated, wide-character
+    ///                     string that contains the device identifier. The method allocates the storage for the string. The caller is
+    ///                     responsible for freeing the storage, when it is no longer needed, by calling the <b>CoTaskMemFree</b>
+    ///                     function. If the <b>GetDeviceId</b> call fails, <i>*ppwstrDeviceId</i> is <b>NULL</b>. For information about
+    ///                     <b>CoTaskMemFree</b>, see the Windows SDK documentation.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>D_POINTER</b></dt> </dl> </td> <td width="60%"> Pointer <i>ppwstrDeviceId</i> is
+    ///    <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td
+    ///    width="60%"> Out of memory. </td> </tr> </table>
+    ///    
     HRESULT GetDeviceId(ushort** ppwstrDeviceId);
+    ///The <b>GetSignalPath</b> method gets a list of parts in the signal path that links two parts, if the path exists.
+    ///Params:
+    ///    pIPartFrom = Pointer to the "from" part. This parameter is a pointer to the IPart interface of the part at the beginning
+    ///                 of the signal path.
+    ///    pIPartTo = Pointer to the "to" part. This parameter is a pointer to the <b>IPart</b> interface of the part at the end of
+    ///               the signal path.
+    ///    bRejectMixedPaths = Specifies whether to reject paths that contain mixed data. If <i>bRejectMixedPaths</i> is <b>TRUE</b>
+    ///                        (nonzero), the method ignores any data path that contains a mixer (that is, a processing node that sums
+    ///                        together two or more input signals). If <b>FALSE</b>, the method will try to find a path that connects the
+    ///                        "from" and "to" parts regardless of whether the path contains a mixer.
+    ///    ppParts = Pointer to a pointer variable into which the method writes the address of an IPartsList interface instance.
+    ///              This interface encapsulates the list of parts in the signal path that connects the "from" part to the "to"
+    ///              part. Through this method, the caller obtains a counted reference to the interface. The caller is responsible
+    ///              for releasing the interface, when it is no longer needed, by calling the interface's <b>Release</b> method.
+    ///              If the <b>GetSignalPath</b> call fails, <i>*ppParts</i> is <b>NULL</b>.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>pIPartFrom</i>,
+    ///    <i>pIPartTo</i>, or <i>ppParts</i> is <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>E_NOTFOUND</b></dt> </dl> </td> <td width="60%"> No path linking the two parts was found. </td> </tr>
+    ///    <tr> <td width="40%"> <dl> <dt><b>E_NOINTERFACE</b></dt> </dl> </td> <td width="60%"> Parameter
+    ///    <i>pIPartFrom</i> or <i>pIPartTo</i> does not point to a valid <b>IPart</b> interface. </td> </tr> <tr> <td
+    ///    width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Out of memory. </td> </tr>
+    ///    </table>
+    ///    
     HRESULT GetSignalPath(IPart pIPartFrom, IPart pIPartTo, BOOL bRejectMixedPaths, IPartsList* ppParts);
 }
 
+///The <b>IAudioEndpointVolumeCallback</b> interface provides notifications of changes in the volume level and muting
+///state of an audio endpoint device. Unlike the other interfaces in this section, which are implemented by the WASAPI
+///system component, an EndpointVolume API client implements the <b>IAudioEndpointVolumeCallback</b> interface. To
+///receive event notifications, the client passes a pointer to its <b>IAudioEndpointVolumeCallback</b> interface to the
+///IAudioEndpointVolume::RegisterControlChangeNotify method. After registering its <b>IAudioEndpointVolumeCallback</b>
+///interface, the client receives event notifications in the form of callbacks through the <b>OnNotify</b> method in the
+///interface. These event notifications occur when one of the following methods causes a change in the volume level or
+///muting state of an endpoint device: <ul> <li> IAudioEndpointVolume::SetChannelVolumeLevel </li> <li>
+///IAudioEndpointVolume::SetChannelVolumeLevelScalar </li> <li> IAudioEndpointVolume::SetMasterVolumeLevel </li> <li>
+///IAudioEndpointVolume::SetMasterVolumeLevelScalar </li> <li> IAudioEndpointVolume::SetMute </li> <li>
+///IAudioEndpointVolume::VolumeStepDown </li> <li> IAudioEndpointVolume::VolumeStepUp </li> </ul> If an audio endpoint
+///device implements hardware volume and mute controls, the <b>IAudioEndpointVolume</b> interface uses the hardware
+///controls to manage the device's volume. Otherwise, the <b>IAudioEndpointVolume</b> interface implements volume and
+///mute controls in software, transparently to the client. If a device has hardware volume and mute controls, changes
+///made to the volume and mute settings through the methods in the preceding list affect the device's volume in both
+///shared mode and exclusive mode. If a device lacks hardware volume and mute controls, changes made to the software
+///volume and mute controls through these methods affect the device's volume in shared mode, but not in exclusive mode.
+///In exclusive mode, the client and the device exchange audio data directly, bypassing the software controls. However,
+///changes made to the software controls through these methods generate event notifications regardless of whether the
+///device is operating in shared mode or in exclusive mode. Changes made to the software volume and mute controls while
+///the device operates in exclusive mode take effect when the device switches to shared mode. To determine whether a
+///device has hardware volume and mute controls, call the IAudioEndpointVolume::QueryHardwareSupport method. In
+///implementing the <b>IAudioEndpointVolumeCallback</b> interface, the client should observe these rules to avoid
+///deadlocks: <ul> <li>The methods in the interface must be nonblocking. The client should never wait on a
+///synchronization object during an event callback.</li> <li>The client should never call the
+///IAudioEndpointVolume::UnregisterControlChangeNotify method during an event callback.</li> <li>The client should never
+///release the final reference on an EndpointVolume API object during an event callback.</li> </ul> For a code example
+///that implements the <b>IAudioEndpointVolumeCallback</b> interface, see Endpoint Volume Controls.
 @GUID("657804FA-D6AD-4496-8A60-352752AF4F89")
 interface IAudioEndpointVolumeCallback : IUnknown
 {
+    ///The <b>OnNotify</b> method notifies the client that the volume level or muting state of the audio endpoint device
+    ///has changed.
+    ///Params:
+    ///    pNotify = Pointer to the volume-notification data. This parameter points to a structure of type
+    ///              AUDIO_VOLUME_NOTIFICATION_DATA.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, it returns an error code.
+    ///    
     HRESULT OnNotify(AUDIO_VOLUME_NOTIFICATION_DATA* pNotify);
 }
 
+///The <b>IAudioEndpointVolume</b> interface represents the volume controls on the audio stream to or from an audio
+///endpoint device. A client obtains a reference to the <b>IAudioEndpointVolume</b> interface of an endpoint device by
+///calling the IMMDevice::Activate method with parameter <i>iid</i> set to REFIID IID_IAudioEndpointVolume. Audio
+///applications that use the MMDevice API and WASAPI typically use the ISimpleAudioVolume interface to manage stream
+///volume levels on a per-session basis. In rare cases, a specialized audio application might require the use of the
+///<b>IAudioEndpointVolume</b> interface to control the master volume level of an audio endpoint device. A client of
+///<b>IAudioEndpointVolume</b> must take care to avoid the potentially disruptive effects on other audio applications of
+///altering the master volume levels of audio endpoint devices. Typically, the user has exclusive control over the
+///master volume levels through the Windows volume-control program, Sndvol.exe. If the adapter device that streams audio
+///data to or from the endpoint device has hardware volume and mute controls, the <b>IAudioEndpointVolume</b> interface
+///uses those controls to manage the volume and mute settings of the audio stream. If the audio device lacks a hardware
+///volume control for the stream, the audio engine automatically implements volume and mute controls in software. For
+///applications that manage shared-mode streams to and from endpoint devices, the behavior of the
+///<b>IAudioEndpointVolume</b> is different for rendering streams and capture streams. For a shared-mode rendering
+///stream, the endpoint volume control that the client accesses through the <b>IAudioEndpointVolume</b> interface
+///operates independently of the per-session volume controls that the <b>ISimpleAudioVolume</b> and IChannelAudioVolume
+///interfaces implement. Thus, the volume level of the rendering stream results from the combined effects of the
+///endpoint volume control and per-session controls. For a shared-mode capture stream, the per-session volume controls
+///that the <b>ISimpleAudioVolume</b> and <b>IChannelAudioVolume</b> interfaces implement are tied directly to the
+///endpoint volume control implemented by the <b>IAudioEndpointVolume</b> interface. Changing the per-session volume
+///control through the methods in the <b>ISimpleAudioVolume</b> and <b>IChannelAudioVolume</b> interfaces changes the
+///setting of the <b>IAudioEndpointVolume</b> interface's volume control, and the reverse is also true. The volume
+///levels represented by each of the interfaces correspond to each other as follows:<ul> <li> For each channel in a
+///stream, <b>IAudioEndpointVolume</b> provides audio-tapered volume levels expressed in decibels (dB), that are mapped
+///to normalized values in the range from 0.0 (minimum volume) to 1.0 (maximum volume). The possible range is dependent
+///on the audio driver. See IAudioEndpointVolume::GetVolumeRange for details.</li> <li>The session volume represented by
+///ISimpleAudioVolume::GetMasterVolume is the scalar value ranging from 0.0 to 1.0 that corresponds to the highest
+///volume setting across the various channels. So, for example, if the left channel is set to 0.8, and the right channel
+///is set to 0.4, then <b>ISimpleAudioVolume::GetMasterVolume</b> will return 0.8. </li> <li>When the per-channel volume
+///level is controlled through the methods in the IChannelAudioVolume interface, the scalar indicating volume is always
+///relative to the session volume. This means that the channel or channels with the highest volume has a volume of 1.0.
+///Given the example of two channels, set to volumes of 0.8 and 0.4 by
+///IAudioEndpointVolume::SetChannelVolumeLevelScalar, IChannelAudioVolume::GetChannelVolume will indicate volumes of 1.0
+///and 0.5. </li> </ul> <div class="alert"><b>Note</b> Clients of the <b>EndpointVolume</b> API should not rely on the
+///preceding behavior because it might change in future releases.</div> <div> </div> If a device has hardware volume and
+///mute controls, changes made to the device's volume and mute settings through the <b>IAudioEndpointVolume</b>
+///interface affect the volume level in both shared mode and exclusive mode. If a device lacks hardware volume and mute
+///controls, changes made to the software volume and mute controls through the <b>IAudioEndpointVolume</b> interface
+///affect the volume level in shared mode, but not in exclusive mode. In exclusive mode, the client and the device
+///exchange audio data directly, bypassing the software controls. However, the software controls are persistent, and
+///volume changes made while the device operates in exclusive mode take effect when the device switches to shared-mode
+///operation. To determine whether a device has hardware volume and mute controls, call the
+///IAudioEndpointVolume::QueryHardwareSupport method. The methods of the <b>IAudioEndpointVolume</b> interface enable
+///the client to express volume levels either in decibels or as normalized, audio-tapered values. In the latter case, a
+///volume level is expressed as a floating-point value in the normalized range from 0.0 (minimum volume) to 1.0 (maximum
+///volume). Within this range, the relationship of the normalized volume level to the attenuation of signal amplitude is
+///described by a nonlinear, audio-tapered curve. For more information about audio-tapered curves, see Audio-Tapered
+///Volume Controls. In addition, to conveniently support volume sliders in user interfaces, the
+///<b>IAudioEndpointVolume</b> interface enables clients to set and get volume levels that are expressed as discrete
+///values or "steps". The steps are uniformly distributed over a nonlinear, audio-tapered curve. If the range contains
+///<i>n</i> steps, the steps are numbered from 0 to <i>n</i>– 1, where step 0 represents the minimum volume level and
+///step <i>n</i>– 1 represents the maximum. For a code example that uses the <b>IAudioEndpointVolume</b> interface,
+///see Endpoint Volume Controls.
 @GUID("5CDF2C82-841E-4546-9722-0CF74078229A")
 interface IAudioEndpointVolume : IUnknown
 {
+    ///The <b>RegisterControlChangeNotify</b> method registers a client's notification callback interface.
+    ///Params:
+    ///    pNotify = Pointer to the IAudioEndpointVolumeCallback interface that the client is registering for notification
+    ///              callbacks. If the <b>RegisterControlChangeNotify</b> method succeeds, it calls the AddRef method on the
+    ///              client's <b>IAudioEndpointVolumeCallback</b> interface.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>pNotify</i> is
+    ///    <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT RegisterControlChangeNotify(IAudioEndpointVolumeCallback pNotify);
+    ///The <b>UnregisterControlChangeNotify</b> method deletes the registration of a client's notification callback
+    ///interface that the client registered in a previous call to the IAudioEndpointVolume::RegisterControlChangeNotify
+    ///method.
+    ///Params:
+    ///    pNotify = Pointer to the client's IAudioEndpointVolumeCallback interface. The client passed this same interface pointer
+    ///              to the endpoint volume object in a previous call to the IAudioEndpointVolume::RegisterControlChangeNotify
+    ///              method. If the <b>UnregisterControlChangeNotify</b> method succeeds, it calls the Release method on the
+    ///              client's <b>IAudioEndpointVolumeCallback</b> interface.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>pNotify</i> is
+    ///    <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT UnregisterControlChangeNotify(IAudioEndpointVolumeCallback pNotify);
+    ///The <b>GetChannelCount</b> method gets a count of the channels in the audio stream that enters or leaves the
+    ///audio endpoint device.
+    ///Params:
+    ///    pnChannelCount = Pointer to a <b>UINT</b> variable into which the method writes the channel count.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>pnChannelCount</i>
+    ///    is <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetChannelCount(uint* pnChannelCount);
+    ///The <b>SetMasterVolumeLevel</b> method sets the master volume level, in decibels, of the audio stream that enters
+    ///or leaves the audio endpoint device.
+    ///Params:
+    ///    fLevelDB = The new master volume level in decibels. To obtain the range and granularity of the volume levels that can be
+    ///               set by this method, call the IAudioEndpointVolume::GetVolumeRange method.
+    ///    pguidEventContext = Context value for the IAudioEndpointVolumeCallback::OnNotify method. This parameter points to an
+    ///                        event-context GUID. If the <b>SetMasterVolumeLevel</b> call changes the volume level of the endpoint, all
+    ///                        clients that have registered IAudioEndpointVolumeCallback interfaces with that endpoint will receive
+    ///                        notifications. In its implementation of the <b>OnNotify</b> method, a client can inspect the event-context
+    ///                        GUID to discover whether it or another client is the source of the volume-change event. If the caller
+    ///                        supplies a <b>NULL</b> pointer for this parameter, the notification routine receives the context GUID value
+    ///                        GUID_NULL.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> Parameter <i>fLevelDB</i>
+    ///    lies outside of the volume range supported by the device. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Out of memory. </td> </tr> </table>
+    ///    
     HRESULT SetMasterVolumeLevel(float fLevelDB, GUID* pguidEventContext);
+    ///The <b>SetMasterVolumeLevelScalar</b> method sets the master volume level of the audio stream that enters or
+    ///leaves the audio endpoint device. The volume level is expressed as a normalized, audio-tapered value in the range
+    ///from 0.0 to 1.0.
+    ///Params:
+    ///    fLevel = The new master volume level. The level is expressed as a normalized value in the range from 0.0 to 1.0.
+    ///    pguidEventContext = Context value for the IAudioEndpointVolumeCallback::OnNotify method. This parameter points to an
+    ///                        event-context GUID. If the <b>SetMasterVolumeLevelScalar</b> call changes the volume level of the endpoint,
+    ///                        all clients that have registered IAudioEndpointVolumeCallback interfaces with that endpoint will receive
+    ///                        notifications. In its implementation of the <b>OnNotify</b> method, a client can inspect the event-context
+    ///                        GUID to discover whether it or another client is the source of the volume-change event. If the caller
+    ///                        supplies a <b>NULL</b> pointer for this parameter, the notification routine receives the context GUID value
+    ///                        GUID_NULL.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> Parameter <i>fLevel</i> is
+    ///    outside the range from 0.0 to 1.0. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl>
+    ///    </td> <td width="60%"> Out of memory. </td> </tr> </table>
+    ///    
     HRESULT SetMasterVolumeLevelScalar(float fLevel, GUID* pguidEventContext);
+    ///The <b>GetMasterVolumeLevel</b> method gets the master volume level, in decibels, of the audio stream that enters
+    ///or leaves the audio endpoint device.
+    ///Params:
+    ///    pfLevelDB = Pointer to the master volume level. This parameter points to a <b>float</b> variable into which the method
+    ///                writes the volume level in decibels. To get the range of volume levels obtained from this method, call the
+    ///                IAudioEndpointVolume::GetVolumeRange method.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>pfLevelDB</i> is
+    ///    <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetMasterVolumeLevel(float* pfLevelDB);
+    ///The <b>GetMasterVolumeLevelScalar</b> method gets the master volume level of the audio stream that enters or
+    ///leaves the audio endpoint device. The volume level is expressed as a normalized, audio-tapered value in the range
+    ///from 0.0 to 1.0.
+    ///Params:
+    ///    pfLevel = Pointer to the master volume level. This parameter points to a <b>float</b> variable into which the method
+    ///              writes the volume level. The level is expressed as a normalized value in the range from 0.0 to 1.0.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>pfLevel</i> is
+    ///    <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetMasterVolumeLevelScalar(float* pfLevel);
+    ///The <b>SetChannelVolumeLevel</b> method sets the volume level, in decibels, of the specified channel of the audio
+    ///stream that enters or leaves the audio endpoint device.
+    ///Params:
+    ///    nChannel = The channel number. If the audio stream contains <i>n</i> channels, the channels are numbered from 0 to
+    ///               <i>n</i>– 1. To obtain the number of channels, call the IAudioEndpointVolume::GetChannelCount method.
+    ///    fLevelDB = The new volume level in decibels. To obtain the range and granularity of the volume levels that can be set by
+    ///               this method, call the IAudioEndpointVolume::GetVolumeRange method.
+    ///    pguidEventContext = Context value for the IAudioEndpointVolumeCallback::OnNotify method. This parameter points to an
+    ///                        event-context GUID. If the <b>SetChannelVolumeLevel</b> call changes the volume level of the endpoint, all
+    ///                        clients that have registered IAudioEndpointVolumeCallback interfaces with that endpoint will receive
+    ///                        notifications. In its implementation of the <b>OnNotify</b> method, a client can inspect the event-context
+    ///                        GUID to discover whether it or another client is the source of the volume-change event. If the caller
+    ///                        supplies a <b>NULL</b> pointer for this parameter, the notification routine receives the context GUID value
+    ///                        GUID_NULL.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If the method fails, possible return codes include, but are not
+    ///    limited to, the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th>
+    ///    </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> Parameter
+    ///    <i>nChannel</i> is greater than or equal to the number of channels in the stream; or parameter
+    ///    <i>fLevelDB</i> lies outside of the volume range supported by the device. </td> </tr> <tr> <td width="40%">
+    ///    <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Out of memory. </td> </tr> </table>
+    ///    
     HRESULT SetChannelVolumeLevel(uint nChannel, float fLevelDB, GUID* pguidEventContext);
+    ///The <b>SetChannelVolumeLevelScalar</b> method sets the normalized, audio-tapered volume level of the specified
+    ///channel in the audio stream that enters or leaves the audio endpoint device.
+    ///Params:
+    ///    nChannel = The channel number. If the audio stream contains <i>n</i> channels, the channels are numbered from 0 to
+    ///               <i>n</i>– 1. To obtain the number of channels, call the IAudioEndpointVolume::GetChannelCount method.
+    ///    fLevel = The volume level. The volume level is expressed as a normalized value in the range from 0.0 to 1.0.
+    ///    pguidEventContext = Context value for the IAudioEndpointVolumeCallback::OnNotify method. This parameter points to an
+    ///                        event-context GUID. If the <b>SetChannelVolumeLevelScalar</b> call changes the volume level of the endpoint,
+    ///                        all clients that have registered IAudioEndpointVolumeCallback interfaces with that endpoint will receive
+    ///                        notifications. In its implementation of the <b>OnNotify</b> method, a client can inspect the event-context
+    ///                        GUID to discover whether it or another client is the source of the volume-change event. If the caller
+    ///                        supplies a <b>NULL</b> pointer for this parameter, the notification routine receives the context GUID value
+    ///                        GUID_NULL.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If the method fails, possible return codes include, but are not
+    ///    limited to, the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th>
+    ///    </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> Parameter
+    ///    <i>nChannel</i> is greater than or equal to the number of channels in the stream; or parameter <i>fLevel</i>
+    ///    is outside the range from 0.0 to 1.0. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt>
+    ///    </dl> </td> <td width="60%"> Out of memory. </td> </tr> </table>
+    ///    
     HRESULT SetChannelVolumeLevelScalar(uint nChannel, float fLevel, GUID* pguidEventContext);
+    ///The <b>GetChannelVolumeLevel</b> method gets the volume level, in decibels, of the specified channel in the audio
+    ///stream that enters or leaves the audio endpoint device.
+    ///Params:
+    ///    nChannel = The channel number. If the audio stream has <i>n</i> channels, the channels are numbered from 0 to
+    ///               <i>n</i>– 1. To obtain the number of channels in the stream, call the IAudioEndpointVolume::GetChannelCount
+    ///               method.
+    ///    pfLevelDB = Pointer to a <b>float</b> variable into which the method writes the volume level in decibels. To get the
+    ///                range of volume levels obtained from this method, call the IAudioEndpointVolume::GetVolumeRange method.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> Parameter <i>nChannel</i> is
+    ///    greater than or equal to the number of channels in the stream. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>pfLevelDB</i> is <b>NULL</b>. </td> </tr>
+    ///    </table>
+    ///    
     HRESULT GetChannelVolumeLevel(uint nChannel, float* pfLevelDB);
+    ///The <b>GetChannelVolumeLevelScalar</b> method gets the normalized, audio-tapered volume level of the specified
+    ///channel of the audio stream that enters or leaves the audio endpoint device.
+    ///Params:
+    ///    nChannel = The channel number. If the audio stream contains <i>n</i> channels, the channels are numbered from 0 to
+    ///               <i>n</i>– 1. To obtain the number of channels, call the IAudioEndpointVolume::GetChannelCount method.
+    ///    pfLevel = Pointer to a <b>float</b> variable into which the method writes the volume level. The level is expressed as a
+    ///              normalized value in the range from 0.0 to 1.0.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> Parameter <i>nChannel</i> is
+    ///    greater than or equal to the number of channels in the stream. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>pfLevel</i> is <b>NULL</b>. </td> </tr>
+    ///    </table>
+    ///    
     HRESULT GetChannelVolumeLevelScalar(uint nChannel, float* pfLevel);
+    ///The <b>SetMute</b> method sets the muting state of the audio stream that enters or leaves the audio endpoint
+    ///device.
+    ///Params:
+    ///    bMute = The new muting state. If <i>bMute</i> is <b>TRUE</b>, the method mutes the stream. If <b>FALSE</b>, the
+    ///            method turns off muting.
+    ///    pguidEventContext = Context value for the IAudioEndpointVolumeCallback::OnNotify method. This parameter points to an
+    ///                        event-context GUID. If the <b>SetMute</b> call changes the muting state of the endpoint, all clients that
+    ///                        have registered IAudioEndpointVolumeCallback interfaces with that endpoint will receive notifications. In its
+    ///                        implementation of the <b>OnNotify</b> method, a client can inspect the event-context GUID to discover whether
+    ///                        it or another client is the source of the control-change event. If the caller supplies a <b>NULL</b> pointer
+    ///                        for this parameter, the notification routine receives the context GUID value GUID_NULL.
+    ///Returns:
+    ///    If the method succeeds and the muting state changes, the method returns S_OK. If the method succeeds and the
+    ///    new muting state is the same as the previous muting state, the method returns S_FALSE. If the method fails,
+    ///    possible return codes include, but are not limited to, the values shown in the following table. <table> <tr>
+    ///    <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt>
+    ///    </dl> </td> <td width="60%"> Out of memory. </td> </tr> </table>
+    ///    
     HRESULT SetMute(BOOL bMute, GUID* pguidEventContext);
+    ///The <b>GetMute</b> method gets the muting state of the audio stream that enters or leaves the audio endpoint
+    ///device.
+    ///Params:
+    ///    pbMute = Pointer to a <b>BOOL</b> variable into which the method writes the muting state. If <i>*pbMute</i> is
+    ///             <b>TRUE</b>, the stream is muted. If <b>FALSE</b>, the stream is not muted.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>pbMute</i> is
+    ///    <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetMute(int* pbMute);
+    ///The <b>GetVolumeStepInfo</b> method gets information about the current step in the volume range.
+    ///Params:
+    ///    pnStep = Pointer to a <b>UINT</b> variable into which the method writes the current step index. This index is a value
+    ///             in the range from 0 to <i>*pStepCount</i>– 1, where 0 represents the minimum volume level and
+    ///             <i>*pStepCount</i>– 1 represents the maximum level.
+    ///    pnStepCount = Pointer to a <b>UINT</b> variable into which the method writes the number of steps in the volume range. This
+    ///                  number remains constant for the lifetime of the IAudioEndpointVolume interface instance.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>pnStep</i> and
+    ///    <i>pnStepCount</i> are both <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetVolumeStepInfo(uint* pnStep, uint* pnStepCount);
+    ///The <b>VolumeStepUp</b> method increments, by one step, the volume level of the audio stream that enters or
+    ///leaves the audio endpoint device.
+    ///Params:
+    ///    pguidEventContext = Context value for the IAudioEndpointVolumeCallback::OnNotify method. This parameter points to an
+    ///                        event-context GUID. If the <b>VolumeStepUp</b> call changes the volume level of the endpoint, all clients
+    ///                        that have registered IAudioEndpointVolumeCallback interfaces with that endpoint will receive notifications.
+    ///                        In its implementation of the <b>OnNotify</b> method, a client can inspect the event-context GUID to discover
+    ///                        whether it or another client is the source of the volume-change event. If the caller supplies a <b>NULL</b>
+    ///                        pointer for this parameter, the client's notification method receives a <b>NULL</b> context pointer.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Out of memory. </td> </tr>
+    ///    </table>
+    ///    
     HRESULT VolumeStepUp(GUID* pguidEventContext);
+    ///The <b>VolumeStepDown</b> method decrements, by one step, the volume level of the audio stream that enters or
+    ///leaves the audio endpoint device.
+    ///Params:
+    ///    pguidEventContext = Context value for the IAudioEndpointVolumeCallback::OnNotify method. This parameter points to an
+    ///                        event-context GUID. If the <b>VolumeStepDown</b> call changes the volume level of the endpoint, all clients
+    ///                        that have registered IAudioEndpointVolumeCallback interfaces with that endpoint will receive notifications.
+    ///                        In its implementation of the <b>OnNotify</b> method, a client can inspect the event-context GUID to discover
+    ///                        whether it or another client is the source of the volume-change event. If the caller supplies a <b>NULL</b>
+    ///                        pointer for this parameter, the client's notification method receives a <b>NULL</b> context pointer.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Out of memory. </td> </tr>
+    ///    </table>
+    ///    
     HRESULT VolumeStepDown(GUID* pguidEventContext);
+    ///The <i>QueryHardwareSupport</i> method queries the audio endpoint device for its hardware-supported functions.
+    ///Params:
+    ///    pdwHardwareSupportMask = Pointer to a <b>DWORD</b> variable into which the method writes a hardware support mask that indicates the
+    ///                             hardware capabilities of the audio endpoint device. The method can set the mask to 0 or to the bitwise-OR
+    ///                             combination of one or more ENDPOINT_HARDWARE_SUPPORT_XXX constants.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter
+    ///    <i>pdwHardwareSupportMask</i> is <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT QueryHardwareSupport(uint* pdwHardwareSupportMask);
+    ///The <b>GetVolumeRange</b> method gets the volume range, in decibels, of the audio stream that enters or leaves
+    ///the audio endpoint device.
+    ///Params:
+    ///    pflVolumeMindB = Pointer to the minimum volume level. This parameter points to a <b>float</b> variable into which the method
+    ///                     writes the minimum volume level in decibels. This value remains constant for the lifetime of the
+    ///                     IAudioEndpointVolume interface instance.
+    ///    pflVolumeMaxdB = Pointer to the maximum volume level. This parameter points to a <b>float</b> variable into which the method
+    ///                     writes the maximum volume level in decibels. This value remains constant for the lifetime of the
+    ///                     <b>IAudioEndpointVolume</b> interface instance.
+    ///    pflVolumeIncrementdB = Pointer to the volume increment. This parameter points to a <b>float</b> variable into which the method
+    ///                           writes the volume increment in decibels. This increment remains constant for the lifetime of the
+    ///                           <b>IAudioEndpointVolume</b> interface instance.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>pfLevelMinDB</i>,
+    ///    <i>pfLevelMaxDB</i>, or <i>pfVolumeIncrementDB</i> is <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetVolumeRange(float* pflVolumeMindB, float* pflVolumeMaxdB, float* pflVolumeIncrementdB);
 }
 
+///The <b>IAudioEndpointVolumeEx</b> interface provides volume controls on the audio stream to or from a device
+///endpoint. A client obtains a reference to the <b>IAudioEndpointVolumeEx</b> interface of an endpoint device by
+///calling the IMMDevice::Activate method with parameter <i>iid</i> set to REFIID IID_IAudioEndpointVolumeEx.
 @GUID("66E11784-F695-4F28-A505-A7080081A78F")
 interface IAudioEndpointVolumeEx : IAudioEndpointVolume
 {
+    ///The <b>GetVolumeRangeChannel</b> method gets the volume range for a specified channel.
+    ///Params:
+    ///    iChannel = The channel number for which to get the volume range. If the audio stream has <i>n</i> channels, the channels
+    ///               are numbered from 0 to <i>n</i>– 1. To obtain the number of channels in the stream, call the
+    ///               IAudioEndpointVolume::GetChannelCount method.
+    ///    pflVolumeMindB = Receives the minimum volume level for the channel, in decibels.
+    ///    pflVolumeMaxdB = Receives the maximum volume level for the channel, in decibels.
+    ///    pflVolumeIncrementdB = Receives the volume increment for the channel, in decibels.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>pfLevelMinDB</i>,
+    ///    <i>pfLevelMaxDB</i>, or <i>pfVolumeIncrementDB</i> is <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetVolumeRangeChannel(uint iChannel, float* pflVolumeMindB, float* pflVolumeMaxdB, 
                                   float* pflVolumeIncrementdB);
 }
 
+///The <b>IAudioMeterInformation</b> interface represents a peak meter on an audio stream to or from an audio endpoint
+///device. The client obtains a reference to the <b>IAudioMeterInformation</b> interface on an endpoint object by
+///calling the IMMDevice::Activate method with parameter <i>iid</i> set to REFIID IID_IAudioMeterInformation. If the
+///adapter device that streams audio data to or from the endpoint device implements a hardware peak meter, the
+///<b>IAudioMeterInformation</b> interface uses that meter to monitor the peak levels in the audio stream. If the audio
+///device lacks a hardware peak meter, the audio engine automatically implements the peak meter in software,
+///transparently to the client. If a device has a hardware peak meter, a client can use the methods in the
+///<b>IAudioMeterInformation</b> interface to monitor the device's peak levels in both shared mode and exclusive mode.
+///If a device lacks a hardware peak meter, a client can use those methods to monitor the device's peak levels in shared
+///mode, but not in exclusive mode. In exclusive mode, the client and the device exchange audio data directly, bypassing
+///the software peak meter. In exclusive mode, a software peak meter always reports a peak value of 0.0. To determine
+///whether a device has a hardware peak meter, call the IAudioMeterInformation::QueryHardwareSupport method. For a
+///rendering endpoint device, the <b>IAudioMeterInformation</b> interface monitors the peak levels in the output stream
+///before the stream is attenuated by the endpoint volume controls. Similarly, for a capture endpoint device, the
+///interface monitors the peak levels in the input stream before the stream is attenuated by the endpoint volume
+///controls. The peak values reported by the methods in the <b>IAudioMeterInformation</b> interface are normalized to
+///the range from 0.0 to 1.0. For example, if a PCM stream contains 16-bit samples, and the peak sample value during a
+///particular metering period is –8914, then the absolute value recorded by the peak meter is 8914, and the normalized
+///peak value reported by the <b>IAudioMeterInformation</b> interface is 8914/32768 = 0.272. For a code example that
+///uses the <b>IAudioMeterInformation</b> interface, see Peak Meters.
 @GUID("C02216F6-8C67-4B5B-9D00-D008E73E0064")
 interface IAudioMeterInformation : IUnknown
 {
+    ///The <b>GetPeakValue</b> method gets the peak sample value for the channels in the audio stream.
+    ///Params:
+    ///    pfPeak = Pointer to a <b>float</b> variable into which the method writes the peak sample value for the audio stream.
+    ///             The peak value is a number in the normalized range from 0.0 to 1.0.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>pfPeak</i> is
+    ///    <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetPeakValue(float* pfPeak);
+    ///The <b>GetMeteringChannelCount</b> method gets the number of channels in the audio stream that are monitored by
+    ///peak meters.
+    ///Params:
+    ///    pnChannelCount = Pointer to a <b>UINT</b> variable into which the method writes the number of channels.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>pnChannelCount</i>
+    ///    is <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetMeteringChannelCount(uint* pnChannelCount);
+    ///The <b>GetChannelsPeakValues</b> method gets the peak sample values for all the channels in the audio stream.
+    ///Params:
+    ///    u32ChannelCount = The channel count. This parameter also specifies the number of elements in the <i>afPeakValues</i> array. If
+    ///                      the specified count does not match the number of channels in the stream, the method returns error code
+    ///                      E_INVALIDARG.
+    ///    afPeakValues = Pointer to an array of peak sample values. The method writes the peak values for the channels into the array.
+    ///                   The array contains one element for each channel in the stream. The peak values are numbers in the normalized
+    ///                   range from 0.0 to 1.0.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> Parameter
+    ///    <i>u32ChannelCount</i> does not equal the number of channels in the audio stream. </td> </tr> <tr> <td
+    ///    width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>afPeakValues</i> is
+    ///    <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT GetChannelsPeakValues(uint u32ChannelCount, float* afPeakValues);
+    ///The <b>QueryHardwareSupport</b> method queries the audio endpoint device for its hardware-supported functions.
+    ///Params:
+    ///    pdwHardwareSupportMask = Pointer to a <b>DWORD</b> variable into which the method writes a hardware support mask that indicates the
+    ///                             hardware capabilities of the audio endpoint device. The method can set the mask to 0 or to the bitwise-OR
+    ///                             combination of one or more ENDPOINT_HARDWARE_SUPPORT_XXX constants.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter
+    ///    <i>pdwHardwareSupportMask</i> is <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT QueryHardwareSupport(uint* pdwHardwareSupportMask);
 }
 
+///The <b>IAudioSessionEvents</b> interface provides notifications of session-related events such as changes in the
+///volume level, display name, and session state. Unlike the other interfaces in this section, which are implemented by
+///the WASAPI system component, a WASAPI client implements the <b>IAudioSessionEvents</b> interface. To receive event
+///notifications, the client passes a pointer to its <b>IAudioSessionEvents</b> interface to the
+///IAudioSessionControl::RegisterAudioSessionNotification method. After registering its <b>IAudioClientSessionEvents</b>
+///interface, the client receives event notifications in the form of callbacks through the methods in the interface. In
+///implementing the <b>IAudioSessionEvents</b> interface, the client should observe these rules to avoid deadlocks and
+///undefined behavior: <ul> <li>The methods in the interface must be nonblocking. The client should never wait on a
+///synchronization object during an event callback.</li> <li>The client should never call the
+///IAudioSessionControl::UnregisterAudioSessionNotification method during an event callback.</li> <li>The client should
+///never release the final reference on a WASAPI object during an event callback.</li> </ul> For a code example that
+///implements an <b>IAudioSessionEvents</b> interface, see Audio Session Events. For a code example that registers a
+///client's <b>IAudioSessionEvents</b> interface to receive notifications, see Audio Events for Legacy Audio
+///Applications.
 @GUID("24918ACC-64B3-37C1-8CA9-74A66E9957A8")
 interface IAudioSessionEvents : IUnknown
 {
+    ///The <b>OnDisplayNameChanged</b> method notifies the client that the display name for the session has changed.
+    ///Params:
+    ///    NewDisplayName = The new display name for the session. This parameter points to a null-terminated, wide-character string
+    ///                     containing the new display name. The string remains valid for the duration of the call.
+    ///    EventContext = The event context value. This is the same value that the caller passed to
+    ///                   IAudioSessionControl::SetDisplayName in the call that changed the display name for the session. For more
+    ///                   information, see Remarks.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, it returns an error code.
+    ///    
     HRESULT OnDisplayNameChanged(const(wchar)* NewDisplayName, GUID* EventContext);
+    ///The <b>OnIconPathChanged</b> method notifies the client that the display icon for the session has changed.
+    ///Params:
+    ///    NewIconPath = The path for the new display icon for the session. This parameter points to a string that contains the path
+    ///                  for the new icon. The string pointer remains valid only for the duration of the call.
+    ///    EventContext = The event context value. This is the same value that the caller passed to IAudioSessionControl::SetIconPath
+    ///                   in the call that changed the display icon for the session. For more information, see Remarks.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, it returns an error code.
+    ///    
     HRESULT OnIconPathChanged(const(wchar)* NewIconPath, GUID* EventContext);
+    ///The <b>OnSimpleVolumeChanged</b> method notifies the client that the volume level or muting state of the audio
+    ///session has changed.
+    ///Params:
+    ///    NewVolume = The new volume level for the audio session. This parameter is a value in the range 0.0 to 1.0, where 0.0 is
+    ///                silence and 1.0 is full volume (no attenuation).
+    ///    NewMute = The new muting state. If <b>TRUE</b>, muting is enabled. If <b>FALSE</b>, muting is disabled.
+    ///    EventContext = The event context value. This is the same value that the caller passed to ISimpleAudioVolume::SetMasterVolume
+    ///                   or ISimpleAudioVolume::SetMute in the call that changed the volume level or muting state of the session. For
+    ///                   more information, see Remarks.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, it returns an error code.
+    ///    
     HRESULT OnSimpleVolumeChanged(float NewVolume, BOOL NewMute, GUID* EventContext);
+    ///The <b>OnChannelVolumeChanged</b> method notifies the client that the volume level of an audio channel in the
+    ///session submix has changed.
+    ///Params:
+    ///    ChannelCount = The channel count. This parameter specifies the number of audio channels in the session submix.
+    ///    NewChannelVolumeArray = Pointer to an array of volume levels. Each element is a value of type <b>float</b> that specifies the volume
+    ///                            level for a particular channel. Each volume level is a value in the range 0.0 to 1.0, where 0.0 is silence
+    ///                            and 1.0 is full volume (no attenuation). The number of elements in the array is specified by the
+    ///                            <i>ChannelCount</i> parameter. If an audio stream contains <i>n</i> channels, the channels are numbered from
+    ///                            0 to <i>n</i>– 1. The array element whose index matches the channel number, contains the volume level for
+    ///                            that channel. Assume that the array remains valid only for the duration of the call.
+    ///    ChangedChannel = The number of the channel whose volume level changed. Use this value as an index into the
+    ///                     <i>NewChannelVolumeArray</i> array. If the session submix contains <i>n</i> channels, the channels are
+    ///                     numbered from 0 to <i>n</i>– 1. If more than one channel might have changed (for example, as a result of a
+    ///                     call to the IChannelAudioVolume::SetAllVolumes method), the value of <i>ChangedChannel</i> is
+    ///                     (<b>DWORD</b>)(–1).
+    ///    EventContext = The event context value. This is the same value that the caller passed to the
+    ///                   IChannelAudioVolume::SetChannelVolume or <b>IChannelAudioVolume::SetAllVolumes</b> method in the call that
+    ///                   initiated the change in volume level of the channel. For more information, see Remarks.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, it returns an error code.
+    ///    
     HRESULT OnChannelVolumeChanged(uint ChannelCount, char* NewChannelVolumeArray, uint ChangedChannel, 
                                    GUID* EventContext);
+    ///The <b>OnGroupingParamChanged</b> method notifies the client that the grouping parameter for the session has
+    ///changed.
+    ///Params:
+    ///    NewGroupingParam = The new grouping parameter for the session. This parameter points to a grouping-parameter GUID.
+    ///    EventContext = The event context value. This is the same value that the caller passed to
+    ///                   IAudioSessionControl::SetGroupingParam in the call that changed the grouping parameter for the session. For
+    ///                   more information, see Remarks.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, it returns an error code.
+    ///    
     HRESULT OnGroupingParamChanged(GUID* NewGroupingParam, GUID* EventContext);
+    ///The <b>OnStateChanged</b> method notifies the client that the stream-activity state of the session has changed.
+    ///Params:
+    ///    NewState = The new session state. The value of this parameter is one of the following AudioSessionState enumeration
+    ///               values: AudioSessionStateActive AudioSessionStateInactive AudioSessionStateExpired
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, it returns an error code.
+    ///    
     HRESULT OnStateChanged(AudioSessionState NewState);
+    ///The <b>OnSessionDisconnected</b> method notifies the client that the audio session has been disconnected.
+    ///Params:
+    ///    DisconnectReason = The reason that the audio session was disconnected. The caller sets this parameter to one of the
+    ///                       <b>AudioSessionDisconnectReason</b> enumeration values shown in the following table. <table> <tr> <th>Value
+    ///                       </th> <th>Description </th> </tr> <tr> <td>DisconnectReasonDeviceRemoval</td> <td>The user removed the audio
+    ///                       endpoint device.</td> </tr> <tr> <td>DisconnectReasonServerShutdown</td> <td>The Windows audio service has
+    ///                       stopped.</td> </tr> <tr> <td>DisconnectReasonFormatChanged</td> <td>The stream format changed for the device
+    ///                       that the audio session is connected to.</td> </tr> <tr> <td>DisconnectReasonSessionLogoff</td> <td>The user
+    ///                       logged off the Windows Terminal Services (WTS) session that the audio session was running in.</td> </tr> <tr>
+    ///                       <td>DisconnectReasonSessionDisconnected</td> <td>The WTS session that the audio session was running in was
+    ///                       disconnected.</td> </tr> <tr> <td>DisconnectReasonExclusiveModeOverride</td> <td>The (shared-mode) audio
+    ///                       session was disconnected to make the audio endpoint device available for an exclusive-mode connection.</td>
+    ///                       </tr> </table> For more information about WTS sessions, see the Windows SDK documentation.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, it returns an error code.
+    ///    
     HRESULT OnSessionDisconnected(AudioSessionDisconnectReason DisconnectReason);
 }
 
+///The <b>IAudioSessionControl</b> interface enables a client to configure the control parameters for an audio session
+///and to monitor events in the session. The IAudioClient::Initialize method initializes a stream object and assigns the
+///stream to an audio session. The client obtains a reference to the <b>IAudioSessionControl</b> interface on a stream
+///object by calling the IAudioClient::GetService method with parameter <i>riid</i> set to <b>REFIID</b>
+///IID_IAudioSessionControl. Alternatively, a client can obtain the <b>IAudioSessionControl</b> interface of an existing
+///session without having to first create a stream object and add the stream to the session. Instead, the client calls
+///the IAudioSessionManager::GetAudioSessionControl method with parameter <i>AudioSessionGuid</i> set to the session
+///GUID. The client can register to receive notification from the session manager when clients change session parameters
+///through the methods in the <b>IAudioSessionControl</b> interface. When releasing an <b>IAudioSessionControl</b>
+///interface instance, the client must call the interface's <b>Release</b> method from the same thread as the call to
+///<b>IAudioClient::GetService</b> that created the object. The <b>IAudioSessionControl</b> interface controls an audio
+///session. An audio session is a collection of shared-mode streams. This interface does not work with exclusive-mode
+///streams. For a code example that uses the <b>IAudioSessionControl</b> interface, see Audio Events for Legacy Audio
+///Applications.
 @GUID("F4B1A599-7266-4319-A8CA-E70ACB11E8CD")
 interface IAudioSessionControl : IUnknown
 {
+    ///The <b>GetState</b> method retrieves the current state of the audio session.
+    ///Params:
+    ///    pRetVal = Pointer to a variable into which the method writes the current session state. The state must be one of the
+    ///              following AudioSessionState enumeration values: AudioSessionStateActive AudioSessionStateInactive
+    ///              AudioSessionStateExpired These values indicate that the session state is active, inactive, or expired,
+    ///              respectively. For more information, see Remarks.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>pRetVal</i> is
+    ///    <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td>
+    ///    <td width="60%"> The audio endpoint device has been unplugged, or the audio hardware or associated hardware
+    ///    resources have been reconfigured, disabled, removed, or otherwise made unavailable for use. </td> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows
+    ///    audio service is not running. </td> </tr> </table>
+    ///    
     HRESULT GetState(AudioSessionState* pRetVal);
+    ///The <b>GetDisplayName</b> method retrieves the display name for the audio session.
+    ///Params:
+    ///    pRetVal = Pointer to a pointer variable into which the method writes the address of a null-terminated, wide-character
+    ///              string that contains the display name. The method allocates the storage for the string. The caller is
+    ///              responsible for freeing the storage, when it is no longer needed, by calling the CoTaskMemFree function. For
+    ///              information about <b>CoTaskMemFree</b>, see the Windows SDK documentation.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>pRetVal</i> is
+    ///    <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td
+    ///    width="60%"> Out of memory. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td> <td width="60%"> The audio endpoint device has been
+    ///    unplugged, or the audio hardware or associated hardware resources have been reconfigured, disabled, removed,
+    ///    or otherwise made unavailable for use. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows audio service is not
+    ///    running. </td> </tr> </table>
+    ///    
     HRESULT GetDisplayName(ushort** pRetVal);
+    ///The <b>SetDisplayName</b> method assigns a display name to the current session.
+    ///Params:
+    ///    Value = Pointer to a null-terminated, wide-character string that contains the display name for the session.
+    ///    EventContext = Pointer to the event-context GUID. If a call to this method generates a name-change event, the session
+    ///                   manager sends notifications to all clients that have registered IAudioSessionEvents interfaces with the
+    ///                   session manager. The session manager includes the <i>EventContext</i> pointer value with each notification.
+    ///                   Upon receiving a notification, a client can determine whether it or another client is the source of the event
+    ///                   by inspecting the <i>EventContext</i> value. This scheme depends on the client selecting a value for this
+    ///                   parameter that is unique among all clients in the session. If the caller supplies a <b>NULL</b> pointer for
+    ///                   this parameter, the client's notification method receives a <b>NULL</b> context pointer.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>Value</i> is
+    ///    <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td>
+    ///    <td width="60%"> The audio endpoint device has been unplugged, or the audio hardware or associated hardware
+    ///    resources have been reconfigured, disabled, removed, or otherwise made unavailable for use. </td> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows
+    ///    audio service is not running. </td> </tr> </table>
+    ///    
     HRESULT SetDisplayName(const(wchar)* Value, GUID* EventContext);
+    ///The <b>GetIconPath</b> method retrieves the path for the display icon for the audio session.
+    ///Params:
+    ///    pRetVal = Pointer to a pointer variable into which the method writes the address of a null-terminated, wide-character
+    ///              string that specifies the fully qualified path of an .ico, .dll, or .exe file that contains the icon. The
+    ///              method allocates the storage for the string. The caller is responsible for freeing the storage, when it is no
+    ///              longer needed, by calling the CoTaskMemFree function. For information about icon paths and
+    ///              <b>CoTaskMemFree</b>, see the Windows SDK documentation.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>pRetVal</i> is
+    ///    <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td
+    ///    width="60%"> Out of memory. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td> <td width="60%"> The audio endpoint device has been
+    ///    unplugged, or the audio hardware or associated hardware resources have been reconfigured, disabled, removed,
+    ///    or otherwise made unavailable for use. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows audio service is not
+    ///    running. </td> </tr> </table>
+    ///    
     HRESULT GetIconPath(ushort** pRetVal);
+    ///The <b>SetIconPath</b> method assigns a display icon to the current session.
+    ///Params:
+    ///    Value = Pointer to a null-terminated, wide-character string that specifies the path and file name of an .ico, .dll,
+    ///            or .exe file that contains the icon. For information about icon paths, see the Windows SDK documentation.
+    ///    EventContext = Pointer to the event-context GUID. If a call to this method generates an icon-change event, the session
+    ///                   manager sends notifications to all clients that have registered IAudioSessionEvents interfaces with the
+    ///                   session manager. The session manager includes the <i>EventContext</i> pointer value with each notification.
+    ///                   Upon receiving a notification, a client can determine whether it or another client is the source of the event
+    ///                   by inspecting the <i>EventContext</i> value. This scheme depends on the client selecting a value for this
+    ///                   parameter that is unique among all clients in the session. If the caller supplies a <b>NULL</b> pointer for
+    ///                   this parameter, the client's notification method receives a <b>NULL</b> context pointer.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>Value</i> is
+    ///    <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td>
+    ///    <td width="60%"> The audio endpoint device has been unplugged, or the audio hardware or associated hardware
+    ///    resources have been reconfigured, disabled, removed, or otherwise made unavailable for use. </td> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows
+    ///    audio service is not running. </td> </tr> </table>
+    ///    
     HRESULT SetIconPath(const(wchar)* Value, GUID* EventContext);
+    ///The <b>GetGroupingParam</b> method retrieves the grouping parameter of the audio session.
+    ///Params:
+    ///    pRetVal = Output pointer for the grouping-parameter GUID. This parameter must be a valid, non-<b>NULL</b> pointer to a
+    ///              caller-allocated GUID variable. The method writes the grouping parameter into this variable.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>pRetVal</i> is
+    ///    <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td>
+    ///    <td width="60%"> The audio endpoint device has been unplugged, or the audio hardware or associated hardware
+    ///    resources have been reconfigured, disabled, removed, or otherwise made unavailable for use. </td> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows
+    ///    audio service is not running. </td> </tr> </table>
+    ///    
     HRESULT GetGroupingParam(GUID* pRetVal);
+    ///The <b>SetGroupingParam</b> method assigns a session to a grouping of sessions.
+    ///Params:
+    ///    Override = The new grouping parameter. This parameter must be a valid, non-<b>NULL</b> pointer to a grouping-parameter
+    ///               GUID. For more information, see Remarks.
+    ///    EventContext = Pointer to the event-context GUID. If a call to this method generates a grouping-change event, the session
+    ///                   manager sends notifications to all clients that have registered IAudioSessionEvents interfaces with the
+    ///                   session manager. The session manager includes the <i>EventContext</i> pointer value with each notification.
+    ///                   Upon receiving a notification, a client can determine whether it or another client is the source of the event
+    ///                   by inspecting the <i>EventContext</i> value. This scheme depends on the client selecting a value for this
+    ///                   parameter that is unique among all clients in the session. If the caller supplies a <b>NULL</b> pointer for
+    ///                   this parameter, the client's notification method receives a <b>NULL</b> context pointer.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>Grouping</i> is
+    ///    <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td>
+    ///    <td width="60%"> The audio endpoint device has been unplugged, or the audio hardware or associated hardware
+    ///    resources have been reconfigured, disabled, removed, or otherwise made unavailable for use. </td> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows
+    ///    audio service is not running. </td> </tr> </table>
+    ///    
     HRESULT SetGroupingParam(GUID* Override, GUID* EventContext);
+    ///The <b>RegisterAudioSessionNotification</b> method registers the client to receive notifications of session
+    ///events, including changes in the stream state.
+    ///Params:
+    ///    NewNotifications = Pointer to a client-implemented IAudioSessionEvents interface. If the method succeeds, it calls the AddRef
+    ///                       method on the client's <b>IAudioSessionEvents</b> interface.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter
+    ///    <i>NewNotifications</i> is <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td> <td width="60%"> The audio endpoint device has been
+    ///    unplugged, or the audio hardware or associated hardware resources have been reconfigured, disabled, removed,
+    ///    or otherwise made unavailable for use. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows audio service is not
+    ///    running. </td> </tr> </table>
+    ///    
     HRESULT RegisterAudioSessionNotification(IAudioSessionEvents NewNotifications);
+    ///The <b>UnregisterAudioSessionNotification</b> method deletes a previous registration by the client to receive
+    ///notifications.
+    ///Params:
+    ///    NewNotifications = Pointer to a client-implemented IAudioSessionEvents interface. The client passed this same interface pointer
+    ///                       to the session manager in a previous call to the IAudioSessionControl::RegisterAudioSessionNotification
+    ///                       method. If the <b>UnregisterAudioSessionNotification</b> method succeeds, it calls the Release method on the
+    ///                       client's <b>IAudioSessionEvents</b> interface.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter
+    ///    <i>NewNotifications</i> is <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_NOTFOUND</b></dt>
+    ///    </dl> </td> <td width="60%"> The specified interface was not previously registered by the client or has
+    ///    already been removed. </td> </tr> </table>
+    ///    
     HRESULT UnregisterAudioSessionNotification(IAudioSessionEvents NewNotifications);
 }
 
+///The <b>IAudioSessionControl2</b> interface can be used by a client to get information about the audio session. To get
+///a reference to the <b>IAudioSessionControl2</b> interface, the application must call
+///<b>IAudioSessionControl::QueryInterface</b> to request the interface pointer from the stream object's
+///IAudioSessionControl interface. There are two ways an application can get a pointer to the
+///<b>IAudioSessionControl</b> interface: <ul> <li> By calling IAudioClient::GetService on the audio client after
+///opening a stream on the device. The audio client opens a stream for rendering or capturing, and associates it with an
+///audio session by calling IAudioClient::Initialize. </li> <li> By calling IAudioSessionManager::GetAudioSessionControl
+///for an existing audio session without opening the stream. </li> </ul>When the application wants to release the
+///<b>IAudioSessionControl2</b> interface instance, the application must call the interface's <b>Release</b> method from
+///the same thread as the call to IAudioClient::GetService that created the object. The application thread that uses
+///this interface must be initialized for COM. For more information about COM initialization, see the description of the
+///<b>CoInitializeEx</b> function in the Windows SDK documentation.
 @GUID("BFB7FF88-7239-4FC9-8FA2-07C950BE9C6D")
 interface IAudioSessionControl2 : IAudioSessionControl
 {
+    ///The <b>GetSessionIdentifier</b> method retrieves the audio session identifier.
+    ///Params:
+    ///    pRetVal = Pointer to the address of a null-terminated, wide-character string that receives the audio session
+    ///              identifier. The string is allocated by this method and must be released by the caller by calling
+    ///              <b>CoTaskMemFree</b>. For information about <b>CoTaskMemFree</b>, see the Windows SDK documentation.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return value</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt>E_POINTER</dt> </dl> </td> <td width="60%"> <i>pRetVal</i> is <b>NULL</b>. </td>
+    ///    </tr> <tr> <td width="40%"> <dl> <dt>AUDCLNT_E_DEVICE_INVALIDATED</dt> </dl> </td> <td width="60%"> The audio
+    ///    session is disconnected on the default audio device. </td> </tr> </table>
+    ///    
     HRESULT GetSessionIdentifier(ushort** pRetVal);
+    ///The <b>GetSessionInstanceIdentifier</b> method retrieves the identifier of the audio session instance.
+    ///Params:
+    ///    pRetVal = Pointer to the address of a null-terminated, wide-character string that receives the identifier of a
+    ///              particular instance of the audio session. The string is allocated by this method and must be released by the
+    ///              caller by calling <b>CoTaskMemFree</b>. For information about <b>CoTaskMemFree</b>, see the Windows SDK
+    ///              documentation.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return value</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt>E_POINTER</dt> </dl> </td> <td width="60%"> <i>pRetVal</i> is <b>NULL</b>. </td>
+    ///    </tr> <tr> <td width="40%"> <dl> <dt>AUDCLNT_E_DEVICE_INVALIDATED</dt> </dl> </td> <td width="60%"> The audio
+    ///    session is disconnected on the default audio device. </td> </tr> </table>
+    ///    
     HRESULT GetSessionInstanceIdentifier(ushort** pRetVal);
+    ///The <b>GetProcessId</b> method retrieves the process identifier of the audio session.
+    ///Params:
+    ///    pRetVal = Pointer to a <b>DWORD</b> variable that receives the process identifier of the audio session.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return value</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt>E_POINTER</dt> </dl> </td> <td width="60%"> <i>pRetVal</i> is <b>NULL</b>. </td>
+    ///    </tr> <tr> <td width="40%"> <dl> <dt>AUDCLNT_S_NO_SINGLE_PROCESS</dt> </dl> </td> <td width="60%"> The
+    ///    session spans more than one process. In this case, <i>pRetVal</i> receives the initial identifier of the
+    ///    process that created the session. To use this value , include the following definition: <code>#define
+    ///    AUDCLNT_S_NO_SINGLE_PROCESS AUDCLNT_SUCCESS (0x00d)</code> </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt>AUDCLNT_E_DEVICE_INVALIDATED</dt> </dl> </td> <td width="60%"> The audio session is disconnected on the
+    ///    default audio device. </td> </tr> </table>
+    ///    
     HRESULT GetProcessId(uint* pRetVal);
+    ///The <b>IsSystemSoundsSession</b> method indicates whether the session is a system sounds session.
+    ///Returns:
+    ///    The possible return codes include, but are not limited to, the values shown in the following table. <table>
+    ///    <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl>
+    ///    </td> <td width="60%"> The session is a system sounds session. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>S_FALSE</b></dt> </dl> </td> <td width="60%"> The session is not a system sounds session. </td> </tr>
+    ///    </table>
+    ///    
     HRESULT IsSystemSoundsSession();
+    ///The <b>SetDuckingPreference</b> method enables or disables the default stream attenuation experience
+    ///(auto-ducking) provided by the system.
+    ///Params:
+    ///    optOut = A <b>BOOL</b> variable that enables or disables system auto-ducking.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return value</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt>AUDCLNT_E_DEVICE_INVALIDATED</dt> </dl> </td> <td width="60%"> The audio session is
+    ///    disconnected on the default audio device. </td> </tr> </table>
+    ///    
     HRESULT SetDuckingPreference(BOOL optOut);
 }
 
+///The <b>IAudioSessionManager</b> interface enables a client to access the session controls and volume controls for
+///both cross-process and process-specific audio sessions. The client obtains a reference to an
+///<b>IAudioSessionManager</b> interface by calling the IMMDevice::Activate method with parameter <i>iid</i> set to
+///<b>REFIID</b> IID_IAudioSessionManager. This interface enables clients to access the controls for an existing session
+///without first opening a stream. This capability is useful for clients of higher-level APIs that are built on top of
+///WASAPI and use session controls internally but do not give their clients access to session controls. In Windows
+///Vista, the higher-level APIs that use WASAPI include Media Foundation, DirectSound, the Windows multimedia
+///<b>waveInXxx</b>, <b>waveOutXxx</b>, and <b>mciXxx</b> functions, and third-party APIs. When a client creates an
+///audio stream through a higher-level API, that API typically adds the stream to the default audio session for the
+///client's process (the session that is identified by the session GUID value, GUID_NULL), but the same API might not
+///provide a means for the client to access the controls for that session. In that case, the client can access the
+///controls through the <b>IAudioSessionManager</b> interface. For a code example that uses the
+///<b>IAudioSessionManager</b> interface, see Audio Events for Legacy Audio Applications.
 @GUID("BFA971F1-4D5E-40BB-935E-967039BFBEE4")
 interface IAudioSessionManager : IUnknown
 {
+    ///The <b>GetAudioSessionControl</b> method retrieves an audio session control.
+    ///Params:
+    ///    AudioSessionGuid = Pointer to a session GUID. If the GUID does not identify a session that has been previously opened, the call
+    ///                       opens a new but empty session. The Sndvol program does not display a volume-level control for a session
+    ///                       unless it contains one or more active streams. If this parameter is <b>NULL</b> or points to the value
+    ///                       GUID_NULL, the method assigns the stream to the default session.
+    ///    StreamFlags = Specifies the status of the flags for the audio stream.
+    ///    SessionControl = Pointer to a pointer variable into which the method writes a pointer to the IAudioSessionControl interface of
+    ///                     the audio session control object. The caller is responsible for releasing the interface, when it is no longer
+    ///                     needed, by calling the interface's <b>Release</b> method. If the call fails, <i>*SessionControl</i> is
+    ///                     <b>NULL</b>.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>AUDCLNT_E_NOT_INITIALIZED</b></dt> </dl> </td> <td width="60%"> The audio stream
+    ///    has not been successfully initialized. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td> <td width="60%"> The audio endpoint device has been
+    ///    unplugged, or the audio hardware or associated hardware resources have been reconfigured, disabled, removed,
+    ///    or otherwise made unavailable for use. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows audio service is not
+    ///    running. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%">
+    ///    Parameter <i>SessionControl</i> is <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>E_MEMORY</b></dt> </dl> </td> <td width="60%"> Out of memory. </td> </tr> </table>
+    ///    
     HRESULT GetAudioSessionControl(GUID* AudioSessionGuid, uint StreamFlags, IAudioSessionControl* SessionControl);
+    ///The <b>GetSimpleAudioVolume</b> method retrieves a simple audio volume control.
+    ///Params:
+    ///    AudioSessionGuid = Pointer to a session GUID. If the GUID does not identify a session that has been previously opened, the call
+    ///                       opens a new but empty session. The Sndvol program does not display a volume-level control for a session
+    ///                       unless it contains one or more active streams. If this parameter is <b>NULL</b> or points to the value
+    ///                       GUID_NULL, the method assigns the stream to the default session.
+    ///    StreamFlags = Specifies whether the request is for a cross-process session. Set to <b>TRUE</b> if the session is
+    ///                  cross-process. Set to <b>FALSE</b> if the session is not cross-process.
+    ///    AudioVolume = Pointer to a pointer variable into which the method writes a pointer to the ISimpleAudioVolume interface of
+    ///                  the audio volume control object. This interface represents the simple audio volume control for the current
+    ///                  process. The caller is responsible for releasing the interface, when it is no longer needed, by calling the
+    ///                  interface's <b>Release</b> method. If the <b>Activate</b> call fails, <i>*AudioVolume</i> is <b>NULL</b>.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>AUDCLNT_E_NOT_INITIALIZED</b></dt> </dl> </td> <td width="60%"> The audio stream
+    ///    has not been successfully initialized. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td> <td width="60%"> The audio endpoint device has been
+    ///    unplugged, or the audio hardware or associated hardware resources have been reconfigured, disabled, removed,
+    ///    or otherwise made unavailable for use. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows audio service is not
+    ///    running. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%">
+    ///    Parameter <i>AudioVolume</i> is <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_MEMORY</b></dt>
+    ///    </dl> </td> <td width="60%"> Out of memory. </td> </tr> </table>
+    ///    
     HRESULT GetSimpleAudioVolume(GUID* AudioSessionGuid, uint StreamFlags, ISimpleAudioVolume* AudioVolume);
 }
 
+///The <b>IAudioVolumeDuckNotification</b> interface is used to by the system to send notifications about stream
+///attenuation changes.Stream Attenuation, or ducking, is a feature introduced in Windows 7, where the system adjusts
+///the volume of a non-communication stream when a new communication stream is opened. For more information about this
+///feature, see Default Ducking Experience.
 @GUID("C3B284D4-6D39-4359-B3CF-B56DDB3BB39C")
 interface IAudioVolumeDuckNotification : IUnknown
 {
+    ///The <b>OnVolumeDuckNotification</b> method sends a notification about a pending system ducking event. For more
+    ///information, see Implementation considerations for ducking notifications.
+    ///Params:
+    ///    sessionID = A string containing the session instance identifier of the communications session that raises the the
+    ///                auto-ducking event. To get the session instance identifier, call
+    ///                IAudioSessionControl2::GetSessionInstanceIdentifier.
+    ///    countCommunicationSessions = The number of active communications sessions. If there are n sessions, the sessions are numbered from 0 to
+    ///                                 –1.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK.
+    ///    
     HRESULT OnVolumeDuckNotification(const(wchar)* sessionID, uint countCommunicationSessions);
+    ///The <b>OnVolumeUnduckNotification</b> method sends a notification about a pending system unducking event. For
+    ///more information, see Implementation Considerations for Ducking Notifications.
+    ///Params:
+    ///    sessionID = A string containing the session instance identifier of the terminating communications session that intiated
+    ///                the ducking. To get the session instance identifier, call
+    ///                IAudioSessionControl2::GetSessionInstanceIdentifier.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK.
+    ///    
     HRESULT OnVolumeUnduckNotification(const(wchar)* sessionID);
 }
 
+///The <b>IAudioSessionNotification</b> interface provides notification when an audio session is created.
 @GUID("641DD20B-4D41-49CC-ABA3-174B9477BB08")
 interface IAudioSessionNotification : IUnknown
 {
+    ///The <b>OnSessionCreated</b> method notifies the registered processes that the audio session has been created.
+    ///Params:
+    ///    NewSession = Pointer to the IAudioSessionControl interface of the audio session that was created.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK.
+    ///    
     HRESULT OnSessionCreated(IAudioSessionControl NewSession);
 }
 
+///The <b>IAudioSessionEnumerator</b> interface enumerates audio sessions on an audio device. To get a reference to the
+///<b>IAudioSessionEnumerator</b> interface of the session enumerator object, the application must call
+///IAudioSessionManager2::GetSessionEnumerator.
 @GUID("E2F5BB11-0570-40CA-ACDD-3AA01277DEE8")
 interface IAudioSessionEnumerator : IUnknown
 {
+    ///The <b>GetCount</b> method gets the total number of audio sessions that are open on the audio device.
+    ///Params:
+    ///    SessionCount = Receives the total number of audio sessions.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK.
+    ///    
     HRESULT GetCount(int* SessionCount);
+    ///The <b>GetSession</b> method gets the audio session specified by an audio session number.
+    ///Params:
+    ///    SessionCount = The session number. If there are <i>n</i> sessions, the sessions are numbered from 0 to <i>n</i> – 1. To
+    ///                   get the number of sessions, call the IAudioSessionEnumerator::GetCount method.
+    ///    Session = Receives a pointer to the IAudioSessionControl interface of the session object in the collection that is
+    ///              maintained by the session enumerator. The caller must release the interface pointer.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK.
+    ///    
     HRESULT GetSession(int SessionCount, IAudioSessionControl* Session);
 }
 
+///The <b>IAudioSessionManager2</b> interface enables an application to manage submixes for the audio device. To a get a
+///reference to an <b>IAudioSessionManager2</b> interface, the application must activate it on the audio device by
+///following these steps:<ol> <li>Use one of the techniques described on the IMMDevice interface page to obtain a
+///reference to the <b>IMMDevice</b> interface for an audio endpoint device. </li> <li>Call the IMMDevice::Activate
+///method with parameter <i>iid</i> set to IID_IAudioSessionManager2. </li> </ol> When the application wants to release
+///the <b>IAudioSessionManager2</b> interface instance, the application must call the interface's <b>Release</b> method.
+///The application thread that uses this interface must be initialized for COM. For more information about COM
+///initialization, see the description of the <b>CoInitializeEx</b> function in the Windows SDK documentation.
 @GUID("77AA99A0-1BD6-484F-8BC7-2C654C9A9B6F")
 interface IAudioSessionManager2 : IAudioSessionManager
 {
+    ///The <b>GetSessionEnumerator</b> method gets a pointer to the audio session enumerator object.
+    ///Params:
+    ///    SessionEnum = Receives a pointer to the IAudioSessionEnumerator interface of the session enumerator object that the client
+    ///                  can use to enumerate audio sessions on the audio device. Through this method, the caller obtains a counted
+    ///                  reference to the interface. The caller is responsible for releasing the interface, when it is no longer
+    ///                  needed, by calling the interface's <b>Release</b> method.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK.
+    ///    
     HRESULT GetSessionEnumerator(IAudioSessionEnumerator* SessionEnum);
+    ///The <b>RegisterSessionNotification</b> method registers the application to receive a notification when a session
+    ///is created.
+    ///Params:
+    ///    SessionNotification = A pointer to the application's implementation of the IAudioSessionNotification interface. If the method call
+    ///                          succeeds, it calls the <b>AddRef</b> method on the application's <b>IAudioSessionNotification</b> interface.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return value</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt>E_POINTER</dt> </dl> </td> <td width="60%"> <i>SessionNotification</i> is
+    ///    <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt>E_OUTOFMEMORY</dt> </dl> </td> <td width="60%">
+    ///    Internal object could not be created due to insufficient memory. </td> </tr> </table>
+    ///    
     HRESULT RegisterSessionNotification(IAudioSessionNotification SessionNotification);
+    ///The <b>UnregisterSessionNotification</b> method deletes the registration to receive a notification when a session
+    ///is created.
+    ///Params:
+    ///    SessionNotification = A pointer to the application's implementation of the IAudioSessionNotification interface. Pass the same
+    ///                          interface pointer that was specified to the session manager in a previous call to
+    ///                          IAudioSessionManager2::RegisterSessionNotification to register for notification. If the
+    ///                          <b>UnregisterSessionNotification</b> method succeeds, it calls the <b>Release</b> method on the application's
+    ///                          IAudioSessionNotification interface.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return value</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt>E_POINTER</dt> </dl> </td> <td width="60%"> <i>SessionNotification</i> is
+    ///    <b>NULL</b>. </td> </tr> </table>
+    ///    
     HRESULT UnregisterSessionNotification(IAudioSessionNotification SessionNotification);
+    ///The <b>RegisterDuckNotification</b> method registers the application with the session manager to receive ducking
+    ///notifications.
+    ///Params:
+    ///    sessionID = Pointer to a null-terminated string that contains a session instance identifier. Applications that are
+    ///                playing a media stream and want to provide custom stream attenuation or ducking behavior, pass their own
+    ///                session instance identifier. For more information, see Remarks. Other applications that do not want to alter
+    ///                their streams but want to get all the ducking notifications must pass <b>NULL</b>.
+    ///    duckNotification = Pointer to the application's implementation of the IAudioVolumeDuckNotification interface. The implementation
+    ///                       is called when ducking events are raised by the audio system and notifications are sent to the registered
+    ///                       applications.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return value</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt>E_POINTER</dt> </dl> </td> <td width="60%"> <i>duckNotification</i> is <b>NULL</b>.
+    ///    </td> </tr> <tr> <td width="40%"> <dl> <dt>E_OUTOFMEMORY</dt> </dl> </td> <td width="60%"> Internal object
+    ///    could not be created due to insufficient memory. </td> </tr> </table>
+    ///    
     HRESULT RegisterDuckNotification(const(wchar)* sessionID, IAudioVolumeDuckNotification duckNotification);
+    ///The <b>UnregisterDuckNotification</b> method deletes a previous registration by the application to receive
+    ///notifications.
+    ///Params:
+    ///    duckNotification = Pointer to the IAudioVolumeDuckNotification interface that is implemented by the application. Pass the same
+    ///                       interface pointer that was specified to the session manager in a previous call to the
+    ///                       IAudioSessionManager2::RegisterDuckNotification method. If the <b>UnregisterDuckNotification</b> method
+    ///                       succeeds, it calls the <b>Release</b> method on the application's <b>IAudioVolumeDuckNotification</b>
+    ///                       interface.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return value</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt>E_POINTER</dt> </dl> </td> <td width="60%"> <i>duckNotification</i> is <b>NULL</b>.
+    ///    </td> </tr> </table>
+    ///    
     HRESULT UnregisterDuckNotification(IAudioVolumeDuckNotification duckNotification);
 }
 
+///Represents a buffer of spatial audio metadata items. Metadata commands and values can be written to, read from, and
+///copied between ISpatialAudioMetadataItems using the ISpatialAudioMetadataWriter, ISpatialAudioMetadataReader, and
+///ISpatialAudioMetadataCopier interfaces. Use caller-allocated memory to store metadata items by creating an
+///ISpatialAudioMetadataItemsBuffer. This interface is a part of Windows Sonic, Microsoft’s audio platform for more
+///immersive audio which includes integrated spatial sound on Xbox and Windows.
 @GUID("BCD7C78F-3098-4F22-B547-A2F25A381269")
 interface ISpatialAudioMetadataItems : IUnknown
 {
+    ///Gets the total frame count of the ISpatialAudioMetadataItems, which defines valid item offsets.
+    ///Params:
+    ///    frameCount = The total frame count.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK.
+    ///    
     HRESULT GetFrameCount(ushort* frameCount);
+    ///The current number of items stored by the ISpatialAudioMetadataItems.
+    ///Params:
+    ///    itemCount = The current number of stored items.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK.
+    ///    
     HRESULT GetItemCount(ushort* itemCount);
+    ///The maximum number of items allowed by the ISpatialAudioMetadataItems, defined when the object is created.
+    ///Params:
+    ///    maxItemCount = The maximum number of items allowed.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK.
+    ///    
     HRESULT GetMaxItemCount(ushort* maxItemCount);
+    ///The size of the largest command value defined by the metadata format for the ISpatialAudioMetadataItems.
+    ///Params:
+    ///    maxValueBufferLength = The size of the largest command value defined by the metadata format.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK.
+    ///    
     HRESULT GetMaxValueBufferLength(uint* maxValueBufferLength);
+    ///Gets the total frame count for the ISpatialAudioMetadataItems, which defines valid item offsets.
+    ///Params:
+    ///    info = The total frame count, which defines valid item offsets.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK.
+    ///    
     HRESULT GetInfo(SpatialAudioMetadataItemsInfo* info);
 }
 
+///Provides methods for storing spatial audio metadata items positioned within a range of corresponding audio frames.
+///Each metadata item has a zero-based offset position within the specified frame. Each item can contain one or more
+///commands specific to the metadata format ID provided in the SpatialAudioObjectRenderStreamForMetadataActivationParams
+///when the ISpatialAudioMetadataClient was created. This object does not allocate storage for the metadata it is
+///provided, the caller is expected to manage the allocation of memory used to store the packed data. Multiple metadata
+///items can be placed in the ISpatialAudioMetadataItems object. For each item, call WriteNextItem followed by a call to
+///WriteNextItemCommand. This interface is a part of Windows Sonic, Microsoft’s audio platform for more immersive
+///audio which includes integrated spatial sound on Xbox and Windows.
 @GUID("1B17CA01-2955-444D-A430-537DC589A844")
 interface ISpatialAudioMetadataWriter : IUnknown
 {
+    ///Opens an ISpatialAudioMetadataItems object for writing.
+    ///Params:
+    ///    metadataItems = A pointer to an ISpatialAudioMetadataItems object to be opened for writing.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>SPTLAUD_MD_CLNT_E_ITEMS_ALREADY_OPEN</b></dt> </dl> </td> <td width="60%">
+    ///    <b>Open</b> has already been called on the supplied ISpatialAudioMetadataItems since the object was created
+    ///    or since the last call to Close. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl>
+    ///    </td> <td width="60%"> The provided pointer is not valid. </td> </tr> </table>
+    ///    
     HRESULT Open(ISpatialAudioMetadataItems metadataItems);
+    ///Starts a new metadata item at the specified offset.
+    ///Params:
+    ///    frameOffset = The frame offset of the item within the range specified with the <i>frameCount</i> parameter to
+    ///                  ActivateSpatialAudioMetadataItems.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>SPTLAUD_MD_CLNT_E_NO_ITEMS_OPEN</b></dt> </dl> </td> <td width="60%"> The
+    ///    ISpatialAudioMetadataItems has not been opened for writing with a call to Open or the object has been closed
+    ///    for writing with a call to Close. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>SPTLAUD_MD_CLNT_E_FRAMEOFFSET_OUT_OF_RANGE</b></dt> </dl> </td> <td width="60%"> The number of items
+    ///    written in the writing session is greater than the value supplied in the <b>MaxMetadataItemCount</b> field in
+    ///    the SpatialAudioObjectRenderStreamForMetadataActivationParam passed into
+    ///    ISpatialAudioClient::ActivateSpatialAudioStream. The <i>frameCount</i> value is greater than the value of the
+    ///    <i>frameCount</i> parameter to ActivateSpatialAudioMetadataItems and the overflow mode was set to
+    ///    <b>SpatialAudioMetadataWriterOverflow_Fail</b>. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> The value of <i>frameOffset</i> is not greater than
+    ///    the value provided in the previous call to WriteNextItem within the same writing session. </td> </tr>
+    ///    </table>
+    ///    
     HRESULT WriteNextItem(ushort frameOffset);
+    ///Writes metadata commands and value data to the current item.
+    ///Params:
+    ///    commandID = A command supported by the metadata format of the object. The call will fail if the command not defined by
+    ///                metadata format. Each command can only be written once per item.
+    ///    valueBuffer = A pointer to a buffer which stores data specific to the command as specified by the metadata format
+    ///                  definition.
+    ///    valueBufferLength = The size, in bytes, of the command data supplied in the <i>valueBuffer</i> parameter. The size must match
+    ///                        command definition specified by the metadata format or the call will fail.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>SPTLAUD_MD_CLNT_E_NO_ITEMS_OPEN</b></dt> </dl> </td> <td width="60%"> The
+    ///    ISpatialAudioMetadataItems has not been opened for writing with a call to Open or the object has been closed
+    ///    for writing with a call to Close. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>SPTLAUD_MD_CLNT_E_NO_ITEMOFFSET_WRITTEN</b></dt> </dl> </td> <td width="60%"> WriteNextItem was not
+    ///    called after Open was called and before the call to <b>WriteNextItemCommand</b>. </td> </tr> </table>
+    ///    
     HRESULT WriteNextItemCommand(ubyte commandID, char* valueBuffer, uint valueBufferLength);
+    ///Completes any needed operations on the metadata buffer and releases the specified ISpatialAudioMetadataItems
+    ///object.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>SPTLAUD_MD_CLNT_E_NO_ITEMS_OPEN</b></dt> </dl> </td> <td width="60%"> The
+    ///    supplied ISpatialAudioMetadataItems has not been opened with a call to Open. </td> </tr> <tr> <td
+    ///    width="40%"> <dl> <dt><b>SPTLAUD_MD_CLNT_E_NO_ITEMS_WRITTEN</b></dt> </dl> </td> <td width="60%"> No metadata
+    ///    items have been written to the supplied ISpatialAudioMetadataItems. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>SPTLAUD_MD_CLNT_E_ITEM_MUST_HAVE_COMMANDS</b></dt> </dl> </td> <td width="60%"> No metadata commands
+    ///    have been written to the supplied ISpatialAudioMetadataItems. </td> </tr> </table>
+    ///    
     HRESULT Close();
 }
 
+///Provides methods for extracting spatial audio metadata items and item command value pairs from an
+///ISpatialAudioMetadataItems object. The <b>SpatialAudioMetadataItems</b> object, which is populated using an
+///ISpatialAudioMetadataWriter or ISpatialAudioMetadataCopier, has a frame count, specified with the <i>frameCount</i>
+///parameter to ActivateSpatialAudioMetadataItems, that represents the valid range of metadata item offsets.
+///<b>ISpatialAudioMetadataReader</b> enables reading back groups of items within a subrange of the total frame count.
+///The object maintains an internal read position, which is advanced by the number of frames specified when read
+///operation is performed. This interface is a part of Windows Sonic, Microsoft’s audio platform for more immersive
+///audio which includes integrated spatial sound on Xbox and Windows.
 @GUID("B78E86A2-31D9-4C32-94D2-7DF40FC7EBEC")
 interface ISpatialAudioMetadataReader : IUnknown
 {
+    ///Opens an ISpatialAudioMetadataItems object for reading.
+    ///Params:
+    ///    metadataItems = A pointer to an ISpatialAudioMetadataItems object to be opened for reading
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>SPTLAUD_MD_CLNT_E_ITEMS_ALREADY_OPEN</b></dt> </dl> </td> <td width="60%">
+    ///    <b>Open</b> has already been called on the supplied ISpatialAudioMetadataItems since the object was created
+    ///    or since the last call to Close. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl>
+    ///    </td> <td width="60%"> The provided pointer is not valid. </td> </tr> </table>
+    ///    
     HRESULT Open(ISpatialAudioMetadataItems metadataItems);
+    ///Gets the number of commands and the sample offset for the metadata item being read.
+    ///Params:
+    ///    commandCount = Receives the number of command/value pairs in the metadata item being read.
+    ///    frameOffset = Gets the frame offset associated with the metadata item being read.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>SPTLAUD_MD_CLNT_E_NO_ITEMS_OPEN</b></dt> </dl> </td> <td width="60%"> The
+    ///    ISpatialAudioMetadataItems has not been opened for reading with a call to Open or the object has been closed
+    ///    for writing with a call to Close. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>SPTLAUD_MD_CLNT_E_NO_MORE_ITEMS</b></dt> </dl> </td> <td width="60%"> There are no more metadata items
+    ///    in the frame range specified in the call to ReadItemCountInFrames. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> One of the provided pointers is not valid. </td>
+    ///    </tr> </table>
+    ///    
     HRESULT ReadNextItem(ubyte* commandCount, ushort* frameOffset);
+    ///Reads metadata commands and value data for the current item.
+    ///Params:
+    ///    commandID = Receives the command ID for the current command.
+    ///    valueBuffer = A pointer to a buffer which receives data specific to the command as specified by the metadata format
+    ///                  definition. The buffer must be at least <i>maxValueBufferLength</i> to ensure all commands can be
+    ///                  successfully retrieved.
+    ///    maxValueBufferLength = The maximum size of a command value.
+    ///    valueBufferLength = The size, in bytes, of the data written to the <i>valueBuffer</i> parameter.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>SPTLAUD_MD_CLNT_E_NO_ITEMS_OPEN</b></dt> </dl> </td> <td width="60%"> The
+    ///    ISpatialAudioMetadataItems has not been opened for reading with a call to Open or the object has been closed
+    ///    for writing with a call to Close. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl>
+    ///    </td> <td width="60%"> One of the provided pointers is not valid. </td> </tr> </table>
+    ///    
     HRESULT ReadNextItemCommand(ubyte* commandID, char* valueBuffer, uint maxValueBufferLength, 
                                 uint* valueBufferLength);
+    ///Completes any necessary operations on the SpatialAudioMetadataItems object and releases the object.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>SPTLAUD_MD_CLNT_E_NO_ITEMS_OPEN</b></dt> </dl> </td> <td width="60%"> The
+    ///    ISpatialAudioMetadataItems has not been opened for reading with a call to Open or the object has been closed
+    ///    for writing with a call to Close. </td> </tr> </table>
+    ///    
     HRESULT Close();
 }
 
+///Provides methods for copying all or subsets of metadata items from a source SpatialAudioMetadataItems into a
+///destination <b>SpatialAudioMetadataItems</b>. The <b>SpatialAudioMetadataItems</b> object, which is populated using
+///an ISpatialAudioMetadataWriter or <b>ISpatialAudioMetadataCopier</b>, has a frame count, specified with the
+///<i>frameCount</i> parameter to ActivateSpatialAudioMetadataItems, that represents the valid range of metadata item
+///offsets. <b>ISpatialAudioMetadataReader</b> enables copying groups of items within a subrange of the total frame
+///count. The object maintains an internal read position, which is advanced by the number of frames specified when a
+///copy operation is performed. This interface is a part of Windows Sonic, Microsoft’s audio platform for more
+///immersive audio which includes integrated spatial sound on Xbox and Windows.
 @GUID("D224B233-E251-4FD0-9CA2-D5ECF9A68404")
 interface ISpatialAudioMetadataCopier : IUnknown
 {
+    ///Opens an ISpatialAudioMetadataItems object for copying.
+    ///Params:
+    ///    metadataItems = A pointer to an ISpatialAudioMetadataItems object to be opened for copying
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>SPTLAUD_MD_CLNT_E_ITEMS_ALREADY_OPEN</b></dt> </dl> </td> <td width="60%">
+    ///    <b>Open</b> has already been called on the supplied ISpatialAudioMetadataItems since the object was created
+    ///    or since the last call to Close. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl>
+    ///    </td> <td width="60%"> The provided pointer is not valid. </td> </tr> </table>
+    ///    
     HRESULT Open(ISpatialAudioMetadataItems metadataItems);
+    ///Copies metadata items from the source ISpatialAudioMetadataItems, provided to the Open method, object to the
+    ///destination <b>ISpatialAudioMetadataItems</b> object, specified with the <i>dstMetadataItems</i> parameter. Each
+    ///call advances the internal copy position by the number of frames in the <i>copyFrameCount</i> parameter.
+    ///Params:
+    ///    copyFrameCount = The number of frames from the current copy position for which metadata items are copied. After the copy, the
+    ///                     internal copy position within the source <b>SpatialAudioMetadataItems</b> is advanced the value specified in
+    ///                     this parameter. Set this value to 0 to copy the entire frame range contained in the source
+    ///                     <b>SpatialAudioMetadataItems</b>.
+    ///    copyMode = A value that specifies the copy mode for the operation.
+    ///    dstMetadataItems = A pointer to the destination <b>SpatialAudioMetadataItems</b> for the copy operation.
+    ///    itemsCopied = Receives number of metadata items copied in the operation.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>SPTLAUD_MD_CLNT_E_NO_ITEMS_OPEN</b></dt> </dl> </td> <td width="60%"> The
+    ///    ISpatialAudioMetadataItems has not been opened for copying with a call to Open or the object has been closed
+    ///    for writing with a call to Close. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl>
+    ///    </td> <td width="60%"> One of the provided pointers is not valid. </td> </tr> </table>
+    ///    
     HRESULT CopyMetadataForFrames(ushort copyFrameCount, SpatialAudioMetadataCopyMode copyMode, 
                                   ISpatialAudioMetadataItems dstMetadataItems, ushort* itemsCopied);
+    ///Completes any necessary operations on the SpatialAudioMetadataItems object and releases the object.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>SPTLAUD_MD_CLNT_E_NO_ITEMS_OPEN</b></dt> </dl> </td> <td width="60%"> The
+    ///    ISpatialAudioMetadataItems has not been opened for reading with a call to Open or the object has been closed
+    ///    for writing with a call to Close. </td> </tr> </table>
+    ///    
     HRESULT Close();
 }
 
+///Provides methods for attaching buffers to SpatialAudioMetadataItems for in-place storage of data. Get an instance of
+///this object by passing a pointer to the interface into ActivateSpatialAudioMetadataItems. The buffer will be
+///associated with the returned <b>SpatialAudioMetadataItems</b>. This interface allows you to attach a buffer and reset
+///its contents to the empty set of metadata items or attach a previously-populated buffer and retain the data stored in
+///the buffer. This interface is a part of Windows Sonic, Microsoft’s audio platform for more immersive audio which
+///includes integrated spatial sound on Xbox and Windows.
 @GUID("42640A16-E1BD-42D9-9FF6-031AB71A2DBA")
 interface ISpatialAudioMetadataItemsBuffer : IUnknown
 {
+    ///Attaches caller-provided memory for storage of ISpatialAudioMetadataItems objects.
+    ///Params:
+    ///    buffer = A pointer to memory to use for storage.
+    ///    bufferLength = The length of the supplied buffer. This size must match the length required for the metadata format and
+    ///                   maximum metadata item count.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>SPTLAUD_MD_CLNT_E_NO_ITEMS_OPEN</b></dt> </dl> </td> <td width="60%"> The
+    ///    ISpatialAudioMetadataItems has not been opened for copying with a call to Open or the object has been closed
+    ///    for writing with a call to Close. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>SPTLAUD_MD_CLNT_E_ATTACH_FAILED_INTERNAL_BUFFER</b></dt> </dl> </td> <td width="60%"> The
+    ///    ISpatialAudioMetadataItems was created to use a media pipeline internal buffer, so an external buffer can't
+    ///    be attached. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>SPTLAUD_MD_CLNT_E_BUFFER_ALREADY_ATTACHED</b></dt>
+    ///    </dl> </td> <td width="60%"> The supplied buffer has already been attached. </td> </tr> <tr> <td width="40%">
+    ///    <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> One of the provided pointers is not valid. The
+    ///    supplied buffer is not large enough to hold the maximum number of metadata items. </td> </tr> </table>
+    ///    
     HRESULT AttachToBuffer(char* buffer, uint bufferLength);
+    ///Attaches a previously populated buffer for storage of ISpatialAudioMetadataItems objects. The metadata items
+    ///already in the buffer are retained.
+    ///Params:
+    ///    buffer = A pointer to memory to use for storage.
+    ///    bufferLength = The length of the supplied buffer. This size must match the length required for the metadata format and
+    ///                   maximum metadata item count.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>SPTLAUD_MD_CLNT_E_NO_ITEMS_OPEN</b></dt> </dl> </td> <td width="60%"> The
+    ///    ISpatialAudioMetadataItems has not been opened for copying with a call to Open or the object has been closed
+    ///    for writing with a call to Close. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>SPTLAUD_MD_CLNT_E_BUFFER_ALREADY_ATTACHED</b></dt> </dl> </td> <td width="60%"> The supplied buffer
+    ///    has already been attached. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>SPTLAUD_MD_CLNT_E_ATTACH_FAILED_INTERNAL_BUFFER</b></dt> </dl> </td> <td width="60%"> The
+    ///    ISpatialAudioMetadataItems was created to use a media pipeline internal buffer, so an external buffer can't
+    ///    be attached. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>SPTLAUD_MD_CLNT_E_FORMAT_MISMATCH</b></dt> </dl>
+    ///    </td> <td width="60%"> The supplied populated buffer uses a format that is different from the current format.
+    ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> One of the
+    ///    provided pointers is not valid. The supplied buffer is not large enough to hold the maximum number of
+    ///    metadata items. Call GetSpatialAudioMetadataItemsBufferLength to determine the required buffer size. </td>
+    ///    </tr> </table>
+    ///    
     HRESULT AttachToPopulatedBuffer(char* buffer, uint bufferLength);
+    ///Detaches the buffer. Memory can only be attached to a single metadata item at a time.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>SPTLAUD_MD_CLNT_E_NO_ITEMS_OPEN</b></dt> </dl> </td> <td width="60%"> The
+    ///    ISpatialAudioMetadataItems has not been opened for copying with a call to Open or the object has been closed
+    ///    for writing with a call to Close. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>SPTLAUD_MD_CLNT_E_ATTACH_FAILED_INTERNAL_BUFFER</b></dt> </dl> </td> <td width="60%"> The
+    ///    ISpatialAudioMetadataItems was created to use a media pipeline internal buffer which can't be detached. </td>
+    ///    </tr> <tr> <td width="40%"> <dl> <dt><b>SPTLAUD_MD_CLNT_E_BUFFER_NOT_ATTACHED</b></dt> </dl> </td> <td
+    ///    width="60%"> The supplied buffer is not attached. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> One of the provided pointers is not valid. The
+    ///    supplied buffer is not large enough to hold the maximum number of metadata items. </td> </tr> </table>
+    ///    
     HRESULT DetachBuffer();
 }
 
+///Provides a class factory for creating ISpatialAudioMetadataItems, ISpatialAudioMetadataWriter,
+///ISpatialAudioMetadataReader, and ISpatialAudioMetadataCopier objects. When an <b>ISpatialAudioMetadataItems</b> is
+///activated, a metadata format ID is specified, which defines the metadata format enforced for all objects created from
+///this factory. If the specified format is not supported by the current audio render endpoint, the class factory will
+///not successfully activate the interface and will return an error. This interface is a part of Windows Sonic,
+///Microsoft’s audio platform for more immersive audio which includes integrated spatial sound on Xbox and Windows.
 @GUID("777D4A3B-F6FF-4A26-85DC-68D7CDEDA1D4")
 interface ISpatialAudioMetadataClient : IUnknown
 {
+    ///Creates an ISpatialAudioMetadataItems object for storing spatial audio metadata items.
+    ///Params:
+    ///    maxItemCount = The maximum number of metadata items that can be stored in the returned ISpatialAudioMetadataItems.
+    ///    frameCount = The valid range of frame offset positions for metadata items stored in the returned
+    ///                 ISpatialAudioMetadataItems.
+    ///    metadataItemsBuffer = If a pointer is supplied, returns an ISpatialAudioMetadataItemsBuffer interface which provides methods for
+    ///                          attaching caller-provided memory for storage of metadata items. If this parameter is NULL, the object will
+    ///                          allocate internal storage for the items. This interface cannot be obtained via QueryInterface.
+    ///    metadataItems = Receives an instance ISpatialAudioMetadataItems object which can be populated with metadata items using an by
+    ///                    ISpatialAudioMetadataWriter or ISpatialAudioMetadataCopier and can be read with an
+    ///                    ISpatialAudioMetadataReader.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> The pointer provided in the
+    ///    <i>metadataItems</i> parameter is not valid. The value of <i>maxItemCount</i> or <i>frameCount</i> is 0.
+    ///    </td> </tr> </table>
+    ///    
     HRESULT ActivateSpatialAudioMetadataItems(ushort maxItemCount, ushort frameCount, 
                                               ISpatialAudioMetadataItemsBuffer* metadataItemsBuffer, 
                                               ISpatialAudioMetadataItems* metadataItems);
+    ///Gets the length of the buffer required to store the specified number of spatial audio metadata items. Use this
+    ///method to determine the correct buffer size to use when attaching caller-provided memory through the
+    ///ISpatialAudioMetadataItemsBuffer interface.
+    ///Params:
+    ///    maxItemCount = The maximum number of metadata items to be stored in an ISpatialAudioMetadataItems object.
+    ///    bufferLength = The length of the buffer required to store the number of spatial audio metadata items specified in the
+    ///                   <i>maxItemCount</i> parameter.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> The provided pointer is not
+    ///    valid. The value of <i>maxItemCount</i> or <i>frameCount</i> is 0. </td> </tr> </table>
+    ///    
     HRESULT GetSpatialAudioMetadataItemsBufferLength(ushort maxItemCount, uint* bufferLength);
+    ///Creates an ISpatialAudioMetadataWriter object for writing spatial audio metadata items to an
+    ///ISpatialAudioMetadataItems object.
+    ///Params:
+    ///    overflowMode = A value that specifies the behavior when attempting to write more metadata items to the
+    ///                   ISpatialAudioMetadataItems than the maximum number of items specified when calling
+    ///                   ActivateSpatialAudioMetadataItems.
+    ///    metadataWriter = Receives a pointer to an instance of ISpatialAudioMetadataWriter.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> The provided pointer is not
+    ///    valid. </td> </tr> </table>
+    ///    
     HRESULT ActivateSpatialAudioMetadataWriter(SpatialAudioMetadataWriterOverflowMode overflowMode, 
                                                ISpatialAudioMetadataWriter* metadataWriter);
+    ///Creates an ISpatialAudioMetadataWriter object for copying spatial audio metadata items from one
+    ///ISpatialAudioMetadataItems object to another.
+    ///Params:
+    ///    metadataCopier = Receives a pointer to an instance of ISpatialAudioMetadataWriter.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> The provided pointer is not
+    ///    valid. </td> </tr> </table>
+    ///    
     HRESULT ActivateSpatialAudioMetadataCopier(ISpatialAudioMetadataCopier* metadataCopier);
+    ///Creates an ISpatialAudioMetadataWriter object for reading spatial audio metadata items from an
+    ///ISpatialAudioMetadataItems object.
+    ///Params:
+    ///    metadataReader = Receives a pointer to an instance of ISpatialAudioMetadataReader.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> The provided pointer is not
+    ///    valid. </td> </tr> </table>
+    ///    
     HRESULT ActivateSpatialAudioMetadataReader(ISpatialAudioMetadataReader* metadataReader);
 }
 
+///Used to write metadata commands for spatial audio. Valid commands and value lengths are defined by the metadata
+///format specified in the SpatialAudioObjectRenderStreamForMetadataActivationParams when the
+///ISpatialAudioObjectRenderStreamForMetadata was created. This interface is a part of Windows Sonic, Microsoft’s
+///audio platform for more immersive audio which includes integrated spatial sound on Xbox and Windows.
 @GUID("0DF2C94B-F5F9-472D-AF6B-C46E0AC9CD05")
 interface ISpatialAudioObjectForMetadataCommands : ISpatialAudioObjectBase
 {
+    ///Writes a metadata command to the spatial audio object, each command may only be added once per object per
+    ///processing cycle. Valid commands and value lengths are defined by the metadata format specified in the
+    ///SpatialAudioObjectRenderStreamForMetadataActivationParams when the ISpatialAudioObjectRenderStreamForMetadata was
+    ///created.
+    ///Params:
+    ///    commandID = The ID of the metadata command.
+    ///    valueBuffer = The buffer containing the value data for the metadata command.
+    ///    valueBufferLength = The length of the <i>valueBuffer</i>.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK.
+    ///    
     HRESULT WriteNextMetadataCommand(ubyte commandID, char* valueBuffer, uint valueBufferLength);
 }
 
+///Used to write spatial audio metadata for applications that require multiple metadata items per buffer with
+///frame-accurate placement. The data written via this interface must adhere to the format defined by the metadata
+///format specified in the SpatialAudioObjectRenderStreamForMetadataActivationParams when the
+///ISpatialAudioObjectRenderStreamForMetadata was created. This interface is a part of Windows Sonic, Microsoft’s
+///audio platform for more immersive audio which includes integrated spatial sound on Xbox and Windows.
 @GUID("DDEA49FF-3BC0-4377-8AAD-9FBCFD808566")
 interface ISpatialAudioObjectForMetadataItems : ISpatialAudioObjectBase
 {
+    ///Gets a pointer to the ISpatialAudioMetadataItems object which stores metadata items for the
+    ///ISpatialAudioObjectForMetadataItems.
+    ///Params:
+    ///    metadataItems = Receives a pointer to the ISpatialAudioMetadataItems associated with the ISpatialAudioObjectForMetadataItems.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> The supplied pointer is invalid.
+    ///    </td> </tr> </table>
+    ///    
     HRESULT GetSpatialAudioMetadataItems(ISpatialAudioMetadataItems* metadataItems);
 }
 
+///Provides methods for controlling a spatial audio object render stream for metadata, including starting, stopping, and
+///resetting the stream. Also provides methods for activating new ISpatialAudioObjectForMetadataCommands and
+///ISpatialAudioObjectForMetadataItems instances and notifying the system when you are beginning and ending the process
+///of updating activated spatial audio objects and data. This interface is a part of Windows Sonic, Microsoft’s audio
+///platform for more immersive audio which includes integrated spatial sound on Xbox and Windows.
 @GUID("BBC9C907-48D5-4A2E-A0C7-F7F0D67C1FB1")
 interface ISpatialAudioObjectRenderStreamForMetadata : ISpatialAudioObjectRenderStreamBase
 {
+    ///Activate an ISpatialAudioObjectForMetadataCommands for rendering.
+    ///Params:
+    ///    type = The type of audio object to activate. For dynamic audio objects, this value must be
+    ///           <b>AudioObjectType_Dynamic</b>. For static audio objects, specify one of the static audio channel values from
+    ///           the enumeration. Specifying <b>AudioObjectType_None</b> will produce an audio object that is not spatialized.
+    ///    audioObject = Receives a pointer to the activated interface.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>SPTLAUDCLNT_E_NO_MORE_OBJECTS</b></dt> </dl> </td> <td width="60%"> The maximum
+    ///    number of simultaneous spatial audio objects has been exceeded. Call Release on unused audio objects before
+    ///    attempting to activate additional objects. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>SPTLAUDCLNT_E_STATIC_OBJECT_NOT_AVAILABLE</b></dt> </dl> </td> <td width="60%"> The static channel
+    ///    specified in the <i>type</i> parameter was not included in the <b>StaticObjectTypeMask</b> field of the
+    ///    SpatialAudioObjectRenderStreamForMetadataActivationParams passed into
+    ///    ISpatialAudioClient::ActivateSpatialAudioStream. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>SPTLAUDCLNT_E_OBJECT_ALREADY_ACTIVE</b></dt> </dl> </td> <td width="60%"> A spatial audio object has
+    ///    already been activated for the static channel specified in the <i>type</i> parameter. </td> </tr> <tr> <td
+    ///    width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> The supplied pointer is invalid.
+    ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> The value
+    ///    specified in the <i>type</i> parameter is not one of the values defined by the AudioObjectType enumeration.
+    ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>SPTLAUDCLNT_E_DESTROYED</b></dt> </dl> </td> <td width="60%">
+    ///    The ISpatialAudioClient associated with the spatial audio stream has been destroyed. </td> </tr> <tr> <td
+    ///    width="40%"> <dl> <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td> <td width="60%"> The audio
+    ///    endpoint device has been unplugged, or the audio hardware or associated hardware resources have been
+    ///    reconfigured, disabled, removed, or otherwise made unavailable for use. </td> </tr> <tr> <td width="40%">
+    ///    <dl> <dt><b>SPTLAUDCLNT_E_INTERNAL</b></dt> </dl> </td> <td width="60%"> An internal error has occurred.
+    ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_E_UNSUPPORTED_FORMAT</b></dt> </dl> </td> <td
+    ///    width="60%"> The media associated with the spatial audio stream uses an unsupported format. </td> </tr>
+    ///    </table>
+    ///    
     HRESULT ActivateSpatialAudioObjectForMetadataCommands(AudioObjectType type, 
                                                           ISpatialAudioObjectForMetadataCommands* audioObject);
+    ///Activate an ISpatialAudioObjectForMetadataItems for rendering.
+    ///Params:
+    ///    type = The type of audio object to activate. For dynamic audio objects, this value must be
+    ///           <b>AudioObjectType_Dynamic</b>. For static audio objects, specify one of the static audio channel values from
+    ///           the enumeration. Specifying <b>AudioObjectType_None</b> will produce an audio object that is not spatialized.
+    ///    audioObject = Receives a pointer to the activated interface.
+    ///Returns:
+    ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
+    ///    the values shown in the following table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>SPTLAUDCLNT_E_NO_MORE_OBJECTS</b></dt> </dl> </td> <td width="60%"> The maximum
+    ///    number of simultaneous spatial audio objects has been exceeded. Call Release on unused audio objects before
+    ///    attempting to activate additional objects. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>SPTLAUDCLNT_E_STATIC_OBJECT_NOT_AVAILABLE</b></dt> </dl> </td> <td width="60%"> The static channel
+    ///    specified in the <i>type</i> parameter was not included in the <b>StaticObjectTypeMask</b> field of the
+    ///    SpatialAudioObjectRenderStreamForMetadataActivationParams passed into
+    ///    ISpatialAudioClient::ActivateSpatialAudioStream. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>SPTLAUDCLNT_E_OBJECT_ALREADY_ACTIVE</b></dt> </dl> </td> <td width="60%"> A spatial audio object has
+    ///    already been activated for the static channel specified in the <i>type</i> parameter. </td> </tr> <tr> <td
+    ///    width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> The supplied pointer is invalid.
+    ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> The value
+    ///    specified in the <i>type</i> parameter is not one of the values defined by the AudioObjectType enumeration.
+    ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>SPTLAUDCLNT_E_DESTROYED</b></dt> </dl> </td> <td width="60%">
+    ///    The ISpatialAudioClient associated with the spatial audio stream has been destroyed. </td> </tr> <tr> <td
+    ///    width="40%"> <dl> <dt><b>AUDCLNT_E_DEVICE_INVALIDATED</b></dt> </dl> </td> <td width="60%"> The audio
+    ///    endpoint device has been unplugged, or the audio hardware or associated hardware resources have been
+    ///    reconfigured, disabled, removed, or otherwise made unavailable for use. </td> </tr> <tr> <td width="40%">
+    ///    <dl> <dt><b>SPTLAUDCLNT_E_INTERNAL</b></dt> </dl> </td> <td width="60%"> An internal error has occurred.
+    ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>AUDCLNT_E_UNSUPPORTED_FORMAT</b></dt> </dl> </td> <td
+    ///    width="60%"> The media associated with the spatial audio stream uses an unsupported format. </td> </tr>
+    ///    </table>
+    ///    
     HRESULT ActivateSpatialAudioObjectForMetadataItems(AudioObjectType type, 
                                                        ISpatialAudioObjectForMetadataItems* audioObject);
 }

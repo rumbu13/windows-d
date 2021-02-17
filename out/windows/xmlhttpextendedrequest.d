@@ -1,10 +1,13 @@
+// Written in the D programming language.
+
 module windows.xmlhttpextendedrequest;
 
 public import windows.core;
 public import windows.automation : BSTR, IDispatch, VARIANT;
 public import windows.com : HRESULT, IUnknown;
 public import windows.structuredstorage : ISequentialStream;
-public import windows.windowsprogramming : DOMNodeType, FILETIME, IXMLDOMDocument, IXMLDOMNode, IXMLDOMNodeList,
+public import windows.windowsprogramming : DOMNodeType, FILETIME, IXMLDOMDocument,
+                                           IXMLDOMNode, IXMLDOMNodeList,
                                            IXMLDOMParseError;
 
 extern(Windows):
@@ -13,6 +16,7 @@ extern(Windows):
 // Enums
 
 
+alias SERVERXMLHTTP_OPTION = int;
 enum : int
 {
     SXH_OPTION_URL                                = 0xffffffff,
@@ -21,8 +25,8 @@ enum : int
     SXH_OPTION_IGNORE_SERVER_SSL_CERT_ERROR_FLAGS = 0x00000002,
     SXH_OPTION_SELECT_CLIENT_SSL_CERT             = 0x00000003,
 }
-alias SERVERXMLHTTP_OPTION = int;
 
+alias SXH_SERVER_CERT_OPTION = int;
 enum : int
 {
     SXH_SERVER_CERT_IGNORE_UNKNOWN_CA        = 0x00000100,
@@ -31,8 +35,8 @@ enum : int
     SXH_SERVER_CERT_IGNORE_CERT_DATE_INVALID = 0x00002000,
     SXH_SERVER_CERT_IGNORE_ALL_SERVER_ERRORS = 0x00003300,
 }
-alias SXH_SERVER_CERT_OPTION = int;
 
+alias SXH_PROXY_SETTING = int;
 enum : int
 {
     SXH_PROXY_SET_DEFAULT   = 0x00000000,
@@ -40,8 +44,8 @@ enum : int
     SXH_PROXY_SET_DIRECT    = 0x00000001,
     SXH_PROXY_SET_PROXY     = 0x00000002,
 }
-alias SXH_PROXY_SETTING = int;
 
+alias SOMITEMTYPE = int;
 enum : int
 {
     SOMITEM_SCHEMA                      = 0x00001000,
@@ -118,16 +122,16 @@ enum : int
     SOMITEM_NULL_ANYATTRIBUTE           = 0x00004802,
     SOMITEM_NULL_ELEMENT                = 0x00004803,
 }
-alias SOMITEMTYPE = int;
 
+alias SCHEMAUSE = int;
 enum : int
 {
     SCHEMAUSE_OPTIONAL   = 0x00000000,
     SCHEMAUSE_PROHIBITED = 0x00000001,
     SCHEMAUSE_REQUIRED   = 0x00000002,
 }
-alias SCHEMAUSE = int;
 
+alias SCHEMADERIVATIONMETHOD = int;
 enum : int
 {
     SCHEMADERIVATIONMETHOD_EMPTY        = 0x00000000,
@@ -139,8 +143,8 @@ enum : int
     SCHEMADERIVATIONMETHOD_ALL          = 0x000000ff,
     SCHEMADERIVATIONMETHOD_NONE         = 0x00000100,
 }
-alias SCHEMADERIVATIONMETHOD = int;
 
+alias SCHEMACONTENTTYPE = int;
 enum : int
 {
     SCHEMACONTENTTYPE_EMPTY       = 0x00000000,
@@ -148,8 +152,8 @@ enum : int
     SCHEMACONTENTTYPE_ELEMENTONLY = 0x00000002,
     SCHEMACONTENTTYPE_MIXED       = 0x00000003,
 }
-alias SCHEMACONTENTTYPE = int;
 
+alias SCHEMAPROCESSCONTENTS = int;
 enum : int
 {
     SCHEMAPROCESSCONTENTS_NONE   = 0x00000000,
@@ -157,8 +161,8 @@ enum : int
     SCHEMAPROCESSCONTENTS_LAX    = 0x00000002,
     SCHEMAPROCESSCONTENTS_STRICT = 0x00000003,
 }
-alias SCHEMAPROCESSCONTENTS = int;
 
+alias SCHEMAWHITESPACE = int;
 enum : int
 {
     SCHEMAWHITESPACE_NONE     = 0xffffffff,
@@ -166,8 +170,8 @@ enum : int
     SCHEMAWHITESPACE_REPLACE  = 0x00000001,
     SCHEMAWHITESPACE_COLLAPSE = 0x00000002,
 }
-alias SCHEMAWHITESPACE = int;
 
+alias SCHEMATYPEVARIETY = int;
 enum : int
 {
     SCHEMATYPEVARIETY_NONE   = 0xffffffff,
@@ -175,88 +179,151 @@ enum : int
     SCHEMATYPEVARIETY_LIST   = 0x00000001,
     SCHEMATYPEVARIETY_UNION  = 0x00000002,
 }
-alias SCHEMATYPEVARIETY = int;
 
+///Specifies the state of the cookie.
+alias XHR_COOKIE_STATE = int;
 enum : int
 {
+    ///The state of the cookie is unknown.
     XHR_COOKIE_STATE_UNKNOWN   = 0x00000000,
+    ///The cookie has been accepted by the client.
     XHR_COOKIE_STATE_ACCEPT    = 0x00000001,
+    ///The user is being prompted to accept the cookie form the server.
     XHR_COOKIE_STATE_PROMPT    = 0x00000002,
     XHR_COOKIE_STATE_LEASH     = 0x00000003,
     XHR_COOKIE_STATE_DOWNGRADE = 0x00000004,
+    ///The cookie has been rejected.
     XHR_COOKIE_STATE_REJECT    = 0x00000005,
 }
-alias XHR_COOKIE_STATE = int;
 
+///Defines a set of flags that you can assign to a cookie in the HTTP cookie jar by calling the SetCookie method or
+///query from the HTTP cookie jar by calling the GetCookie method.
+alias XHR_COOKIE_FLAG = int;
 enum : int
 {
+    ///The cookie is secure. When this flag is set, the client is only to return the cookie in subsequent requests if
+    ///those requests use HTTPS.
     XHR_COOKIE_IS_SECURE       = 0x00000001,
+    ///The cookie is only usable in the current HTTP session and is not persisted or saved.
     XHR_COOKIE_IS_SESSION      = 0x00000002,
+    ///The cookie being set is a third-party cookie.
     XHR_COOKIE_THIRD_PARTY     = 0x00000010,
+    ///A prompt to the user is required to accept the cookie from the server.
     XHR_COOKIE_PROMPT_REQUIRED = 0x00000020,
+    ///The cookie has a Platform-for-Privacy-Protection (P3P) header.
     XHR_COOKIE_EVALUATE_P3P    = 0x00000040,
+    ///A cookie with a Platform-for-Privacy-Protection (P3P) header has been applied.
     XHR_COOKIE_APPLY_P3P       = 0x00000080,
+    ///A cookie with a Platform-for-Privacy-Protection (P3P) header has been enabled.
     XHR_COOKIE_P3P_ENABLED     = 0x00000100,
+    ///The cookie being set is associated with an untrusted site.
     XHR_COOKIE_IS_RESTRICTED   = 0x00000200,
     XHR_COOKIE_IE6             = 0x00000400,
     XHR_COOKIE_IS_LEGACY       = 0x00000800,
+    ///Does not allow a script or other active content to access this cookie.
     XHR_COOKIE_NON_SCRIPT      = 0x00001000,
+    ///Enables the retrieval of cookies that are marked as "HTTPOnly". Do not use this flag if you expose a scriptable
+    ///interface, because this has security implications. If you expose a scriptable interface, you can become an attack
+    ///vector for cross-site scripting attacks. It is imperative that you use this flag only if they can guarantee that
+    ///you will never permit third-party code to set a cookie using this flag by way of an extensibility mechanism you
+    ///provide.
     XHR_COOKIE_HTTPONLY        = 0x00002000,
 }
-alias XHR_COOKIE_FLAG = int;
 
+///Specifies whether to allow credential prompts to the user for authentication.
+alias XHR_CRED_PROMPT = int;
 enum : int
 {
+    ///Allow all credential prompts for authentication. This setting allows credential prompts in response to requests
+    ///from the proxy or the server.
     XHR_CRED_PROMPT_ALL   = 0x00000000,
+    ///Disable all credential prompts for authentication. This setting disables any credential prompts in response to
+    ///requests from the proxy or the server.
     XHR_CRED_PROMPT_NONE  = 0x00000001,
+    ///Allow credential prompts for authentication only in response to requests from the proxy. This setting disables
+    ///any credential prompts in response to requests from the server.
     XHR_CRED_PROMPT_PROXY = 0x00000002,
 }
-alias XHR_CRED_PROMPT = int;
 
+///Specifies whether to allow authentication to be used to connect to a proxy or to connect to the HTTP server.
+alias XHR_AUTH = int;
 enum : int
 {
+    ///Allow authentication to both proxy and server.
     XHR_AUTH_ALL   = 0x00000000,
+    ///Disable authentication to both the proxy and server.
     XHR_AUTH_NONE  = 0x00000001,
+    ///Enable authentication to the proxy and disable auth to the server.
     XHR_AUTH_PROXY = 0x00000002,
 }
-alias XHR_AUTH = int;
 
+///Defines properties that you can assign to an outgoing HTTP request by calling the SetProperty method.
+alias XHR_PROPERTY = int;
 enum : int
 {
+    ///Sets a flag in the HTTP request that suppresses automatic prompts for credentials.
     XHR_PROP_NO_CRED_PROMPT         = 0x00000000,
+    ///Sets a flag in the HTTP request that configures the HTTP request that disables authentication for the request.
     XHR_PROP_NO_AUTH                = 0x00000001,
+    ///Sets the connect, send, and receive timeouts for HTTP socket operations. <div class="alert"><b>Note</b> This
+    ///value will not affect the timeout behavior of the entire request process.</div> <div> </div>
     XHR_PROP_TIMEOUT                = 0x00000002,
+    ///Suppresses adding default headers to the HTTP request.
     XHR_PROP_NO_DEFAULT_HEADERS     = 0x00000003,
+    ///Causes the HTTP stack to call the OnHeadersAvailable callback method with an interim redirecting status code. The
+    ///<b>OnHeadersAvailable</b> will be called again for additional redirects and the final destination status code.
     XHR_PROP_REPORT_REDIRECT_STATUS = 0x00000004,
+    ///Suppresses cache reads and writes for the HTTP request.
     XHR_PROP_NO_CACHE               = 0x00000005,
+    ///Causes the HTTP stack to provide <b>HRESULTS</b> with the underlying Win32 error code to the OnError callback
+    ///method in case of failure.
     XHR_PROP_EXTENDED_ERROR         = 0x00000006,
+    ///Causes the query string to be encoded in UTF8 instead of ACP for HTTP request.
     XHR_PROP_QUERY_STRING_UTF8      = 0x00000007,
+    ///Suppresses certain certificate errors.
     XHR_PROP_IGNORE_CERT_ERRORS     = 0x00000008,
     XHR_PROP_ONDATA_THRESHOLD       = 0x00000009,
     XHR_PROP_SET_ENTERPRISEID       = 0x0000000a,
     XHR_PROP_MAX_CONNECTIONS        = 0x0000000b,
 }
-alias XHR_PROPERTY = int;
 
+///Defines flags that you can assign to an outgoing HTTP request to ignore certain certificate errors by calling the
+///SetProperty method on the IXMLHTTPRequest3 interface.
+alias XHR_CERT_IGNORE_FLAG = uint;
 enum : uint
 {
+    ///Ignore certificate revocation errors.
     XHR_CERT_IGNORE_REVOCATION_FAILED = 0x00000080,
+    ///Ignore a certificate error for an unknown or invalid certificate authority.
     XHR_CERT_IGNORE_UNKNOWN_CA        = 0x00000100,
+    ///Ignore a certificate error caused by an invalid common name. This allows an invalid common name in a certificate
+    ///where the server name specified by the app for the requested URL does not match the common name in the server
+    ///certificate.
     XHR_CERT_IGNORE_CERT_CN_INVALID   = 0x00001000,
+    ///Ignore a certificate error caused by an invalid date in the certificate. This allows certificates that are
+    ///expired or not yet effective.
     XHR_CERT_IGNORE_CERT_DATE_INVALID = 0x00002000,
+    ///Ignore all server certificate errors.
     XHR_CERT_IGNORE_ALL_SERVER_ERRORS = 0x00003180,
 }
-alias XHR_CERT_IGNORE_FLAG = uint;
 
+///Defines flags that indicate server certificate errors during SSL negotiation with the server by handling the
+///OnServerCertificateReceived method on the IXMLHTTPRequest3Callback interface.
+alias XHR_CERT_ERROR_FLAG = uint;
 enum : uint
 {
+    ///The certificate received from the server has an invalid certificate revocation.
     XHR_CERT_ERROR_REVOCATION_FAILED = 0x00800000,
+    ///The certificate received from the server has an unknown or invalid certificate authority.
     XHR_CERT_ERROR_UNKNOWN_CA        = 0x01000000,
+    ///The certificate received from the server has an invalid common name.
     XHR_CERT_ERROR_CERT_CN_INVALID   = 0x02000000,
+    ///The certificate received from the server has an invalid certificate date.
     XHR_CERT_ERROR_CERT_DATE_INVALID = 0x04000000,
+    ///The certificate received from the server has an invalid certificate revocation, and unknown or invalid
+    ///certificate authority, an invalid common name, and an invalid certificate date.
     XHR_CERT_ERROR_ALL_SERVER_ERRORS = 0x07800000,
 }
-alias XHR_CERT_ERROR_FLAG = uint;
 
 // Structs
 
@@ -287,19 +354,62 @@ struct __msxml6_ReferenceRemainingTypes__
     SCHEMATYPEVARIETY    __schemaTypeVariety__;
 }
 
+///Defines a cookie that you can add to the HTTP cookie jar by calling the SetCookie method or retrieve from the HTTP
+///cookie jar by calling the GetCookie method.
 struct XHR_COOKIE
 {
+    ///A null-terminated string that specifies the URL in the cookie.
     ushort*  pwszUrl;
+    ///A null-terminated string that specifies the name in the cookie.
     ushort*  pwszName;
+    ///A null-terminated string that specifies the value in the cookie.
     ushort*  pwszValue;
+    ///A null-terminated string that specifies the user policy in the cookie.
     ushort*  pwszP3PPolicy;
+    ///A null-terminated string that specifies the date and time at which the cookie expires.
     FILETIME ftExpires;
+    ///A set of bit flags that specifies properties of the cookie. This member can be one of the values from the
+    ///<b>XHR_COOKIE_FLAG</b> enumeration type defined in the <i>Msxml6.h</i> header file. <table> <tr> <th>Value</th>
+    ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="XHR_COOKIE_IS_SECURE"></a><a
+    ///id="xhr_cookie_is_secure"></a><dl> <dt><b>XHR_COOKIE_IS_SECURE</b></dt> <dt>0x1</dt> </dl> </td> <td
+    ///width="60%"></td> </tr> <tr> <td width="40%"><a id="XHR_COOKIE_IS_SESSION"></a><a
+    ///id="xhr_cookie_is_session"></a><dl> <dt><b>XHR_COOKIE_IS_SESSION</b></dt> <dt>0x2</dt> </dl> </td> <td
+    ///width="60%"> The cookie is a session cookie and not a persistent cookie. </td> </tr> <tr> <td width="40%"><a
+    ///id="XHR_COOKIE_THIRD_PARTY"></a><a id="xhr_cookie_third_party"></a><dl> <dt><b>XHR_COOKIE_THIRD_PARTY</b></dt>
+    ///<dt>0x10</dt> </dl> </td> <td width="60%"> Indicates that the cookie being set is a third-party cookie. </td>
+    ///</tr> <tr> <td width="40%"><a id="XHR_COOKIE_PROMPT_REQUIRED"></a><a id="xhr_cookie_prompt_required"></a><dl>
+    ///<dt><b>XHR_COOKIE_PROMPT_REQUIRED</b></dt> <dt>0x20</dt> </dl> </td> <td width="60%"></td> </tr> <tr> <td
+    ///width="40%"><a id="XHR_COOKIE_EVALUATE_P3P"></a><a id="xhr_cookie_evaluate_p3p"></a><dl>
+    ///<dt><b>XHR_COOKIE_EVALUATE_P3P</b></dt> <dt>0x40</dt> </dl> </td> <td width="60%"> If this flag is set, the
+    ///<b>pwszP3PPolicy</b> member points to a Platform-for-Privacy-Protection (P3P) header for the cookie in question.
+    ///</td> </tr> <tr> <td width="40%"><a id="XHR_COOKIE_APPLY_P3P"></a><a id="xhr_cookie_apply_p3p"></a><dl>
+    ///<dt><b>XHR_COOKIE_APPLY_P3P</b></dt> <dt>0x80</dt> </dl> </td> <td width="60%"></td> </tr> <tr> <td
+    ///width="40%"><a id="XHR_COOKIE_APPLY_P3P"></a><a id="xhr_cookie_apply_p3p"></a><dl>
+    ///<dt><b>XHR_COOKIE_APPLY_P3P</b></dt> <dt>0x100</dt> </dl> </td> <td width="60%"></td> </tr> <tr> <td
+    ///width="40%"><a id="XHR_COOKIE_IS_RESTRICTED"></a><a id="xhr_cookie_is_restricted"></a><dl>
+    ///<dt><b>XHR_COOKIE_IS_RESTRICTED</b></dt> <dt>0x200</dt> </dl> </td> <td width="60%"> Indicates that the cookie
+    ///being set is associated with an untrusted site. </td> </tr> <tr> <td width="40%"><a id="XHR_COOKIE_IE6"></a><a
+    ///id="xhr_cookie_ie6"></a><dl> <dt><b>XHR_COOKIE_IE6</b></dt> <dt>0x400</dt> </dl> </td> <td width="60%"></td>
+    ///</tr> <tr> <td width="40%"><a id="XHR_COOKIE_IS_LEGACY"></a><a id="xhr_cookie_is_legacy"></a><dl>
+    ///<dt><b>XHR_COOKIE_IS_LEGACY</b></dt> <dt>0x800</dt> </dl> </td> <td width="60%"></td> </tr> <tr> <td
+    ///width="40%"><a id="XHR_COOKIE_NON_SCRIPT"></a><a id="xhr_cookie_non_script"></a><dl>
+    ///<dt><b>XHR_COOKIE_NON_SCRIPT</b></dt> <dt>0x1000</dt> </dl> </td> <td width="60%"></td> </tr> <tr> <td
+    ///width="40%"><a id="XHR_COOKIE_HTTPONLY"></a><a id="xhr_cookie_httponly"></a><dl>
+    ///<dt><b>XHR_COOKIE_HTTPONLY</b></dt> <dt>0x2000</dt> </dl> </td> <td width="60%"> Enables the retrieval of cookies
+    ///that are marked as "HTTPOnly". Do not use this flag if you expose a scriptable interface, because this has
+    ///security implications. If you expose a scriptable interface, you can become an attack vector for cross-site
+    ///scripting attacks. It is imperative that you use this flag only if they can guarantee that you will never permit
+    ///third-party code to set a cookie using this flag by way of an extensibility mechanism you provide. </td> </tr>
+    ///</table>
     uint     dwFlags;
 }
 
+///Defines a buffer that points to an encoded certificate.
 struct XHR_CERT
 {
+    ///The size, in bytes, of the encoded certificate.
     uint   cbCert;
+    ///A pointer to the buffer that contains the encoded certificate.
     ubyte* pbCert;
 }
 
@@ -976,45 +1086,295 @@ interface ISchemaNotation : ISchemaItem
     HRESULT get_publicIdentifier(BSTR* uri);
 }
 
+///Defines callbacks that notify an application with an outstanding IXMLHTTPRequest2 request of events that affect HTTP
+///request and response processing. <div class="alert"><b>Note</b> This interface is supported on Windows Phone 8.1.
+///</div> <div> </div>
 @GUID("A44A9299-E321-40DE-8866-341B41669162")
 interface IXMLHTTPRequest2Callback : IUnknown
 {
+    ///Occurs when a client sends an HTTP request that the server redirects to a new URL.
+    ///Params:
+    ///    pXHR = The HTTP request object being redirected.
+    ///    pwszRedirectUrl = The new URL for the HTTP request.
+    ///Returns:
+    ///    Returns <b>S_OK</b> on success. <div class="alert"><b>Note</b> This callback function must not throw
+    ///    exceptions.</div> <div> </div>
+    ///    
     HRESULT OnRedirect(IXMLHTTPRequest2 pXHR, const(wchar)* pwszRedirectUrl);
+    ///Occurs after an HTTP request has been sent to the server and the server has responded with response headers.
+    ///Params:
+    ///    pXHR = The initial HTTP request object that returns the headers.
+    ///    dwStatus = The status code for the request. <div class="alert"><b>Note</b> Possible values for this parameter also
+    ///               include the <b>HTTP_STATUS_*</b> values defined by <b>winhttp.h</b> for desktop apps.</div> <div> </div>
+    ///    pwszStatus = The status code for the request appearing in human-readable form as a null-terminated string.
+    ///Returns:
+    ///    Returns <b>S_OK</b> on success. <div class="alert"><b>Note</b> This callback function must not throw
+    ///    exceptions.</div> <div> </div>
+    ///    
     HRESULT OnHeadersAvailable(IXMLHTTPRequest2 pXHR, uint dwStatus, const(wchar)* pwszStatus);
+    ///Occurs when a client receives part of the HTTP response data from the server.
+    ///Params:
+    ///    pXHR = The initial HTTP request.
+    ///    pResponseStream = The response stream being received. The client can call ISequentialStream::Read to begin processing the data,
+    ///                      or it can wait until it has received the complete response. This response stream is wrapped in a stream
+    ///                      synchronization object that prevents concurrent read and write operations, so the application does not need
+    ///                      to implement custom synchronization.
+    ///Returns:
+    ///    Returns <b>S_OK</b> on success. <div class="alert"><b>Note</b> This callback function must not throw
+    ///    exceptions.</div> <div> </div>
+    ///    
     HRESULT OnDataAvailable(IXMLHTTPRequest2 pXHR, ISequentialStream pResponseStream);
+    ///Occurs when a client has received a complete response from the server.
+    ///Params:
+    ///    pXHR = The initial HTTP request object
+    ///    pResponseStream = The response stream being received. The client can call ISequentialStream::Read to begin processing the data,
+    ///                      or it can store a reference to <i>pResponseStream</i> for later processing. This response stream is wrapped
+    ///                      in a stream synchronization object that prevents concurrent read and write operations, so the application
+    ///                      does not need to implement custom synchronization.
+    ///Returns:
+    ///    Returns <b>S_OK</b> on success. <div class="alert"><b>Note</b> This callback function must not throw
+    ///    exceptions.</div> <div> </div>
+    ///    
     HRESULT OnResponseReceived(IXMLHTTPRequest2 pXHR, ISequentialStream pResponseStream);
+    ///Occurs when an error is encountered or the request has been aborted.
+    ///Params:
+    ///    pXHR = The initial HTTP request.
+    ///    hrError = A code representing the error that occurred on the HTTP request.
+    ///Returns:
+    ///    Returns<b> S_OK</b> on success. <div class="alert"><b>Note</b> This callback function must not throw
+    ///    exceptions.</div> <div> </div>
+    ///    
     HRESULT OnError(IXMLHTTPRequest2 pXHR, HRESULT hrError);
 }
 
+///Provides the methods and properties needed to configure and send HTTP requests and use callbacks to receive
+///notifications during HTTP response processing. <div class="alert"><b>Note</b> This interface is supported on Windows
+///Phone 8.1. </div> <div> </div>
 @GUID("E5D37DC0-552A-4D52-9CC0-A14D546FBD04")
 interface IXMLHTTPRequest2 : IUnknown
 {
+    ///Initializes an IXMLHTTPRequest2 request and specifies the method, URL, and authentication information for the
+    ///request. After calling this method, you must call the Send method to send the request and data, if any, to the
+    ///server.
+    ///Params:
+    ///    pwszMethod = The HTTP method used to open the connection, such as <b>GET</b> or <b>POST</b>. For XMLHTTP, this parameter
+    ///                 is not case-sensitive.
+    ///    pwszUrl = The requested URL. This must be an absolute URL, such as "http://Myserver/Mypath/Myfile.asp".
+    ///    pStatusCallback = A callback interface implemented by the app that is to receive callback events. When the Send Method is
+    ///                      successful, the methods on this interface are called to process the response or other events.
+    ///    pwszUserName = The name of the user for authentication. If this parameter is a Null and the site requires authentication,
+    ///                   credentials will be managed by Windows, including displaying a logon UI, unless disabled by SetProperty.
+    ///    pwszPassword = The password for authentication. This parameter is ignored if the <i>pwszUserName</i> parameter is Null or
+    ///                   missing.
+    ///    pwszProxyUserName = The name of the user for authentication on the proxy server. If this parameter is a Null or empty string and
+    ///                        the site requires authentication, credentials will be managed by Windows, including displaying a logon UI,
+    ///                        unless disabled by SetProperty.
+    ///    pwszProxyPassword = The password for authentication on the proxy server. This parameter is ignored if the
+    ///                        <i>pwszProxyUserName</i> parameter is Null or missing.
+    ///Returns:
+    ///    Returns <b>S_OK</b> on success.
+    ///    
     HRESULT Open(const(wchar)* pwszMethod, const(wchar)* pwszUrl, IXMLHTTPRequest2Callback pStatusCallback, 
                  const(wchar)* pwszUserName, const(wchar)* pwszPassword, const(wchar)* pwszProxyUserName, 
                  const(wchar)* pwszProxyPassword);
+    ///Sends an HTTP request to the server asynchronously. On success, methods on the IXMLHTTPRequest2Callback interface
+    ///implemented by the app are called to process the response.
+    ///Params:
+    ///    pBody = The body of the message being sent with the request. This stream is read in order to upload data for
+    ///            non-<b>GET</b> requests. For requests that do not require uploading, set this parameter to NULL.
+    ///    cbBody = The length, in bytes, of the message being sent with the request. For requests that do not require uploading,
+    ///             set this parameter to 0.
+    ///Returns:
+    ///    Returns <b>S_OK</b> on success.
+    ///    
     HRESULT Send(ISequentialStream pBody, ulong cbBody);
+    ///Cancels the current HTTP request.
+    ///Returns:
+    ///    Returns <b>S_OK</b> on success.
+    ///    
     HRESULT Abort();
+    ///Sets a cookie associated with the specified URL in the HTTP cookie jar.
+    ///Params:
+    ///    pCookie = A pointer to an XHR_COOKIE structure that specifies the cookie and properties of the cookie to be associated
+    ///              with the specified URL.
+    ///    pdwCookieState = A pointer to a value that indicates the cookie state if the call completes successfully. This parameter can
+    ///                     be one of the values from the XHR_COOKIE_STATE enumeration type defined in the <i>Msxml6.h</i> header file.
+    ///                     <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
+    ///                     id="XHR_COOKIE_STATE_UNKNOWN"></a><a id="xhr_cookie_state_unknown"></a><dl>
+    ///                     <dt><b>XHR_COOKIE_STATE_UNKNOWN</b></dt> <dt>0</dt> </dl> </td> <td width="60%"> Reserved. </td> </tr> <tr>
+    ///                     <td width="40%"><a id="XHR_COOKIE_STATE_ACCEPT"></a><a id="xhr_cookie_state_accept"></a><dl>
+    ///                     <dt><b>XHR_COOKIE_STATE_ACCEPT</b></dt> <dt>1</dt> </dl> </td> <td width="60%"> The cookie was accepted.
+    ///                     </td> </tr> <tr> <td width="40%"><a id="XHR_COOKIE_STATE_PROMPT"></a><a id="xhr_cookie_state_prompt"></a><dl>
+    ///                     <dt><b>XHR_COOKIE_STATE_PROMPT</b></dt> <dt>2</dt> </dl> </td> <td width="60%"> The user is prompted to
+    ///                     accept or refuse the cookie. </td> </tr> <tr> <td width="40%"><a id="XHR_COOKIE_STATE_LEASH"></a><a
+    ///                     id="xhr_cookie_state_leash"></a><dl> <dt><b>XHR_COOKIE_STATE_LEASH</b></dt> <dt>3</dt> </dl> </td> <td
+    ///                     width="60%"> The cookie is accepted only in the first-party context. </td> </tr> <tr> <td width="40%"><a
+    ///                     id="XHR_COOKIE_STATE_DOWNGRADE"></a><a id="xhr_cookie_state_downgrade"></a><dl>
+    ///                     <dt><b>XHR_COOKIE_STATE_DOWNGRADE</b></dt> <dt>4</dt> </dl> </td> <td width="60%"> The cookie was accepted
+    ///                     and became session cookie. </td> </tr> <tr> <td width="40%"><a id="XHR_COOKIE_STATE_REJECT"></a><a
+    ///                     id="xhr_cookie_state_reject"></a><dl> <dt><b>XHR_COOKIE_STATE_REJECT</b></dt> <dt>5</dt> </dl> </td> <td
+    ///                     width="60%"> The cookie was rejected. </td> </tr> </table>
+    ///Returns:
+    ///    Returns <b>S_OK</b> on success.
+    ///    
     HRESULT SetCookie(const(XHR_COOKIE)* pCookie, uint* pdwCookieState);
+    ///Provides a custom stream to replace the standard stream for receiving an HTTP response.
+    ///Params:
+    ///    pSequentialStream = Custom stream that will receive the HTTP response. ISequentialStream
+    ///Returns:
+    ///    Returns <b>S_OK</b> on success.
+    ///    
     HRESULT SetCustomResponseStream(ISequentialStream pSequentialStream);
+    ///Sets a property on an outgoing HTTP request.
+    ///Params:
+    ///    eProperty = The following values are valid: <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
+    ///                id="XHR_PROP_NO_CRED_PROMPT"></a><a id="xhr_prop_no_cred_prompt"></a><dl>
+    ///                <dt><b>XHR_PROP_NO_CRED_PROMPT</b></dt> </dl> </td> <td width="60%"> Suppresses automatic prompts for user
+    ///                credentials </td> </tr> <tr> <td width="40%"><a id="XHR_PROP_NO_AUTH"></a><a id="xhr_prop_no_auth"></a><dl>
+    ///                <dt><b>XHR_PROP_NO_AUTH</b></dt> </dl> </td> <td width="60%"> Suppresses authentication that the HTTP stack
+    ///                performs on behalf of the application </td> </tr> <tr> <td width="40%"><a id="XHR_PROP_TIMEOUT"></a><a
+    ///                id="xhr_prop_timeout"></a><dl> <dt><b>XHR_PROP_TIMEOUT</b></dt> </dl> </td> <td width="60%"> Sets all timeout
+    ///                values to the value given by <i>ullValue</i>, in milliseconds. </td> </tr> <tr> <td width="40%"><a
+    ///                id="XHR_PROP_NO_DEFAULT_HEADERS"></a><a id="xhr_prop_no_default_headers"></a><dl>
+    ///                <dt><b>XHR_PROP_NO_DEFAULT_HEADERS</b></dt> </dl> </td> <td width="60%"> Suppresses adding default headers to
+    ///                the HTTP request. </td> </tr> <tr> <td width="40%"><a id="XHR_PROP_REPORT_REDIRECT_STATUS"></a><a
+    ///                id="xhr_prop_report_redirect_status"></a><dl> <dt><b>XHR_PROP_REPORT_REDIRECT_STATUS</b></dt> </dl> </td> <td
+    ///                width="60%"> Causes the HTTP stack to call the OnHeadersAvailable method with an interim redirecting status
+    ///                code. The <b>OnHeadersAvailable</b> method will be called again for additional redirects and the final
+    ///                destination status code. </td> </tr> <tr> <td width="40%"><a id="XHR_PROP_NO_CACHE"></a><a
+    ///                id="xhr_prop_no_cache"></a><dl> <dt><b>XHR_PROP_NO_CACHE</b></dt> </dl> </td> <td width="60%"> Suppresses
+    ///                cache reads and writes for the HTTP request. This property is supported by the IXMLHTTPRequest3 interface.
+    ///                </td> </tr> <tr> <td width="40%"><a id="XHR_PROP_EXTENDED_ERROR"></a><a id="xhr_prop_extended_error"></a><dl>
+    ///                <dt><b>XHR_PROP_EXTENDED_ERROR</b></dt> </dl> </td> <td width="60%"> Causes the HTTP stack to provide
+    ///                HRESULTS with the underlying Win32 error code to the OnError method in case of failure. This property is
+    ///                supported by the IXMLHTTPRequest3 interface. </td> </tr> <tr> <td width="40%"><a
+    ///                id="XHR_PROP_QUERY_STRING_UTF8_"></a><a id="xhr_prop_query_string_utf8_"></a><dl>
+    ///                <dt><b>XHR_PROP_QUERY_STRING_UTF8 </b></dt> </dl> </td> <td width="60%"> Causes the query string to be
+    ///                encoded in UTF-8 instead of ACP for the HTTP request. This property is supported by the IXMLHTTPRequest3
+    ///                interface. </td> </tr> <tr> <td width="40%"><a id="XHR_PROP_IGNORE_CERT_ERRORS"></a><a
+    ///                id="xhr_prop_ignore_cert_errors"></a><dl> <dt><b>XHR_PROP_IGNORE_CERT_ERRORS</b></dt> </dl> </td> <td
+    ///                width="60%"> Suppresses certain certificate errors. This property is supported by the IXMLHTTPRequest3
+    ///                interface. </td> </tr> </table>
+    ///    ullValue = Specifies the number of milliseconds that the application waits before timing out. <table> <tr>
+    ///               <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="XHR_PROP_NO_CRED_PROMPT"></a><a
+    ///               id="xhr_prop_no_cred_prompt"></a><dl> <dt><b>XHR_PROP_NO_CRED_PROMPT</b></dt> </dl> </td> <td width="60%">
+    ///               This parameter can be one of the values from the XHR_CRED_PROMPT enumeration type defined in the
+    ///               <i>Msxml6.h</i> header file. <ul> <li><b>XHR_CRED_PROMPT_ALL</b> if credential prompting should be enabled
+    ///               <b>(default)</b>.</li> <li><b>XHR_CRED_PROMPT_NONE</b> if credential prompting should be disabled.</li>
+    ///               <li><b>XHR_CRED_PROMPT_PROXY</b> if credential prompting should only be enabled for proxy
+    ///               authentication.</li> </ul> </td> </tr> <tr> <td width="40%"><a id="XHR_PROP_NO_AUTH"></a><a
+    ///               id="xhr_prop_no_auth"></a><dl> <dt><b>XHR_PROP_NO_AUTH</b></dt> </dl> </td> <td width="60%"> This parameter
+    ///               can be one of the values from the XHR_AUTH enumeration type defined in the <i>Msxml6.h</i> header file. <ul>
+    ///               <li><b>XHR_AUTH_ALL</b> if authentication is enabled <b>(default)</b>. </li> <li><b>XHR_AUTH_NONE</b> if
+    ///               authentication is disabled. </li> <li><b>XHR_AUTH_PROXY</b> if authentication should only be enabled for
+    ///               proxy authentication.</li> </ul> </td> </tr> <tr> <td width="40%"><a id="XHR_PROP_TIMEOUT_"></a><a
+    ///               id="xhr_prop_timeout_"></a><dl> <dt><b>XHR_PROP_TIMEOUT </b></dt> </dl> </td> <td width="60%"> The number of
+    ///               milliseconds, up to 0xFFFFFFFF, that the app waits before timing out. </td> </tr> <tr> <td width="40%"><a
+    ///               id="XHR_PROP_NO_DEFAULT_HEADERS"></a><a id="xhr_prop_no_default_headers"></a><dl>
+    ///               <dt><b>XHR_PROP_NO_DEFAULT_HEADERS</b></dt> </dl> </td> <td width="60%"> <ul> <li>FALSE(0x0) to enable adding
+    ///               default headers <b>(default)</b>. </li> <li>TRUE(0x1) to disable adding default headers. </li> </ul> </td>
+    ///               </tr> <tr> <td width="40%"><a id="XHR_PROP_REPORT_REDIRECT_STATUS"></a><a
+    ///               id="xhr_prop_report_redirect_status"></a><dl> <dt><b>XHR_PROP_REPORT_REDIRECT_STATUS</b></dt> </dl> </td> <td
+    ///               width="60%"> <ul> <li>FALSE(0x0) to not report redirect status <b>(default)</b>. </li> <li>TRUE(0x1) to
+    ///               report redirect status. </li> </ul> </td> </tr> <tr> <td width="40%"><a id="XHR_PROP_NO_CACHE"></a><a
+    ///               id="xhr_prop_no_cache"></a><dl> <dt><b>XHR_PROP_NO_CACHE</b></dt> </dl> </td> <td width="60%"> <ul>
+    ///               <li>FALSE(0x0) to enable caching <b>(default)</b>. </li> <li>TRUE(0x1) to disable caching. </li> </ul> </td>
+    ///               </tr> <tr> <td width="40%"><a id="XHR_PROP_EXTENDED_ERROR"></a><a id="xhr_prop_extended_error"></a><dl>
+    ///               <dt><b>XHR_PROP_EXTENDED_ERROR</b></dt> </dl> </td> <td width="60%"> <ul> <li>FALSE(0x0) to not provide
+    ///               extended errors <b>(default)</b>. </li> <li>TRUE(0x1) to provide extended errors . </li> </ul> </td> </tr>
+    ///               <tr> <td width="40%"><a id="XHR_PROP_QUERY_STRING_UTF8"></a><a id="xhr_prop_query_string_utf8"></a><dl>
+    ///               <dt><b>XHR_PROP_QUERY_STRING_UTF8</b></dt> </dl> </td> <td width="60%"> <ul> <li>FALSE(0x0) to not encode the
+    ///               query string in UTF-8 <b>(default)</b>. </li> <li>TRUE(0x1) to encode the query string in UTF-8. </li> </ul>
+    ///               </td> </tr> <tr> <td width="40%"><a id="XHR_PROP_IGNORE_CERT_ERRORS_"></a><a
+    ///               id="xhr_prop_ignore_cert_errors_"></a><dl> <dt><b>XHR_PROP_IGNORE_CERT_ERRORS </b></dt> </dl> </td> <td
+    ///               width="60%"> <ul> <li>FALSE(0x0) to not ignore certificate errors <b>(default)</b>. </li> <li>TRUE(0x1) to
+    ///               ignore certificate errors. </li> </ul> </td> </tr> </table>
+    ///Returns:
+    ///    Returns <b>S_OK</b> on success.
+    ///    
     HRESULT SetProperty(XHR_PROPERTY eProperty, ulong ullValue);
+    ///Specifies the name of an HTTP header to be sent to the server along with the default request headers.
+    ///Params:
+    ///    pwszHeader = A case-insensitive header name.
+    ///    pwszValue = Value of the specified header.
+    ///Returns:
+    ///    Returns <b>S_OK</b> on success.
+    ///    
     HRESULT SetRequestHeader(const(wchar)* pwszHeader, const(wchar)* pwszValue);
+    ///Retrieves the values of all the HTTP response headers.
+    ///Params:
+    ///    ppwszHeaders = The returned header information. Free the memory used for this parameter using the CoTaskMemFree method.
+    ///Returns:
+    ///    Returns <b>S_OK</b> on success.
+    ///    
     HRESULT GetAllResponseHeaders(ushort** ppwszHeaders);
+    ///Gets a cookie associated with the specified URL from the HTTP cookie jar.
+    ///Params:
+    ///    pwszUrl = A null-terminated string that specifies the URL in the cookie.
+    ///    pwszName = A null-terminated string that specifies the name in the cookie.
+    ///    dwFlags = A set of bit flags that specifies how this method retrieves the cookies. This parameter can be a set values
+    ///              from the XHR_COOKIE_FLAG enumeration type defined in the <i>Msxml6.h</i> header file.
+    ///    pcCookies = A count of cookies pointed to by the <i>ppCookies</i> if the call is successful.
+    ///    ppCookies = A pointer to the cookies associated with the specified <i>pwszUrl</i> and <i>pwszName</i>.
+    ///Returns:
+    ///    Returns <b>S_OK</b> on success; <b>E_FAIL</b> indicates an error.
+    ///    
     HRESULT GetCookie(const(wchar)* pwszUrl, const(wchar)* pwszName, uint dwFlags, uint* pcCookies, 
                       char* ppCookies);
+    ///Retrieves the value of an HTTP header from the response headers.
+    ///Params:
+    ///    pwszHeader = A case-insensitive header name.
+    ///    ppwszValue = The resulting header information. You should free the memory for this parameter by calling the CoTaskMemFree
+    ///                 function.
+    ///Returns:
+    ///    Returns <b>S_OK</b> on success.
+    ///    
     HRESULT GetResponseHeader(const(wchar)* pwszHeader, ushort** ppwszValue);
 }
 
+///Defines callbacks that notify an application with an outstanding IXMLHTTPRequest3 request of events that affect HTTP
+///request and response processing. Derives from the IXMLHTTPRequest2Callback interface. <div class="alert"><b>Note</b>
+///This interface is supported on Windows Phone 8.1. </div> <div> </div>
 @GUID("B9E57830-8C6C-4A6F-9C13-47772BB047BB")
 interface IXMLHTTPRequest3Callback : IXMLHTTPRequest2Callback
 {
+    ///Occurs when a client receives certificate errors or a server certificate chain during SSL negotiation with the
+    ///server.
+    ///Params:
+    ///    pXHR = The initial HTTP request.
+    ///    dwCertificateErrors = The certificate errors encountered in the HTTPS connection (see XHR_CERT_ERROR_FLAG).
+    ///    cServerCertificateChain = The number of elements in the <i>rgServerCertChain</i> parameter.
+    ///    rgServerCertificateChain = An array of XHR_CERT structures that represent the server certificate chain.
+    ///Returns:
+    ///    Returns <b>S_OK</b> on success.
+    ///    
     HRESULT OnServerCertificateReceived(IXMLHTTPRequest3 pXHR, uint dwCertificateErrors, 
                                         uint cServerCertificateChain, char* rgServerCertificateChain);
+    ///Occurs when a client receives a request for a client certificate during SSL negotiation with the server.
+    ///Params:
+    ///    pXHR = The initial HTTP request.
+    ///    cIssuerList = The number of strings in the <i>rgpwszIssuerList</i> parameter.
+    ///    rgpwszIssuerList = An array of strings that represent the issuer list.
+    ///Returns:
+    ///    Returns <b>S_OK</b> on success.
+    ///    
     HRESULT OnClientCertificateRequested(IXMLHTTPRequest3 pXHR, uint cIssuerList, char* rgpwszIssuerList);
 }
 
+///Provides the methods and properties needed to configure and send HTTP requests and use callbacks to receive
+///notifications during HTTP response processing. Derives from the IXMLHTTPRequest2 interface. <div
+///class="alert"><b>Note</b> This interface is supported on Windows Phone 8.1. </div> <div> </div>
 @GUID("A1C9FEEE-0617-4F23-9D58-8961EA43567C")
 interface IXMLHTTPRequest3 : IXMLHTTPRequest2
 {
+    ///Sets a client certificate to be used to authenticate against the URL specified in the Open method.
+    ///Params:
+    ///    cbClientCertificateHash = The number of bytes of <i>pbClientCertHash</i> parameter.
+    ///    pbClientCertificateHash = The thumbprint or hash completed over the complete client certificate being set on the HTTPS request.
+    ///    pwszPin = This parameter is reserved.
+    ///Returns:
+    ///    Returns S_OK on success.
+    ///    
     HRESULT SetClientCertificate(uint cbClientCertificateHash, char* pbClientCertificateHash, 
                                  const(wchar)* pwszPin);
 }

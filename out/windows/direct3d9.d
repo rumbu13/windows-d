@@ -1,9 +1,12 @@
+// Written in the D programming language.
+
 module windows.direct3d9;
 
 public import windows.core;
 public import windows.com : HRESULT;
 public import windows.dxgi : DXGI_RGBA;
-public import windows.systemservices : BOOL, D3DLIGHTTYPE, D3DVECTOR, HANDLE, LARGE_INTEGER;
+public import windows.systemservices : BOOL, D3DLIGHTTYPE, D3DVECTOR, HANDLE,
+                                       LARGE_INTEGER;
 public import windows.windowsandmessaging : HWND;
 
 extern(Windows):
@@ -12,6 +15,7 @@ extern(Windows):
 // Enums
 
 
+alias D3DBLENDOP = uint;
 enum : uint
 {
     D3DBLENDOP_ADD         = 0x00000001,
@@ -21,8 +25,8 @@ enum : uint
     D3DBLENDOP_MAX         = 0x00000005,
     D3DBLENDOP_FORCE_DWORD = 0x7fffffff,
 }
-alias D3DBLENDOP = uint;
 
+alias D3DSAMPLERSTATETYPE = int;
 enum : int
 {
     D3DSAMP_ADDRESSU      = 0x00000001,
@@ -40,8 +44,8 @@ enum : int
     D3DSAMP_DMAPOFFSET    = 0x0000000d,
     D3DSAMP_FORCE_DWORD   = 0x7fffffff,
 }
-alias D3DSAMPLERSTATETYPE = int;
 
+alias D3DTEXTUREFILTERTYPE = int;
 enum : int
 {
     D3DTEXF_NONE            = 0x00000000,
@@ -53,8 +57,8 @@ enum : int
     D3DTEXF_CONVOLUTIONMONO = 0x00000008,
     D3DTEXF_FORCE_DWORD     = 0x7fffffff,
 }
-alias D3DTEXTUREFILTERTYPE = int;
 
+alias D3DDECLUSAGE = int;
 enum : int
 {
     D3DDECLUSAGE_POSITION     = 0x00000000,
@@ -72,8 +76,8 @@ enum : int
     D3DDECLUSAGE_DEPTH        = 0x0000000c,
     D3DDECLUSAGE_SAMPLE       = 0x0000000d,
 }
-alias D3DDECLUSAGE = int;
 
+alias D3DDECLMETHOD = int;
 enum : int
 {
     D3DDECLMETHOD_DEFAULT          = 0x00000000,
@@ -84,8 +88,8 @@ enum : int
     D3DDECLMETHOD_LOOKUP           = 0x00000005,
     D3DDECLMETHOD_LOOKUPPRESAMPLED = 0x00000006,
 }
-alias D3DDECLMETHOD = int;
 
+alias D3DDECLTYPE = int;
 enum : int
 {
     D3DDECLTYPE_FLOAT1    = 0x00000000,
@@ -107,8 +111,8 @@ enum : int
     D3DDECLTYPE_FLOAT16_4 = 0x00000010,
     D3DDECLTYPE_UNUSED    = 0x00000011,
 }
-alias D3DDECLTYPE = int;
 
+alias D3DSHADER_INSTRUCTION_OPCODE_TYPE = int;
 enum : int
 {
     D3DSIO_NOP          = 0x00000000,
@@ -198,8 +202,8 @@ enum : int
     D3DSIO_END          = 0x0000ffff,
     D3DSIO_FORCE_DWORD  = 0x7fffffff,
 }
-alias D3DSHADER_INSTRUCTION_OPCODE_TYPE = int;
 
+alias D3DSHADER_COMPARISON = int;
 enum : int
 {
     D3DSPC_RESERVED0 = 0x00000000,
@@ -211,8 +215,8 @@ enum : int
     D3DSPC_LE        = 0x00000006,
     D3DSPC_RESERVED1 = 0x00000007,
 }
-alias D3DSHADER_COMPARISON = int;
 
+alias D3DSAMPLER_TEXTURE_TYPE = int;
 enum : int
 {
     D3DSTT_UNKNOWN     = 0x00000000,
@@ -221,8 +225,8 @@ enum : int
     D3DSTT_VOLUME      = 0x20000000,
     D3DSTT_FORCE_DWORD = 0x7fffffff,
 }
-alias D3DSAMPLER_TEXTURE_TYPE = int;
 
+alias D3DSHADER_PARAM_REGISTER_TYPE = int;
 enum : int
 {
     D3DSPR_TEMP        = 0x00000000,
@@ -249,15 +253,15 @@ enum : int
     D3DSPR_PREDICATE   = 0x00000013,
     D3DSPR_FORCE_DWORD = 0x7fffffff,
 }
-alias D3DSHADER_PARAM_REGISTER_TYPE = int;
 
+alias D3DSHADER_MISCTYPE_OFFSETS = int;
 enum : int
 {
     D3DSMO_POSITION = 0x00000000,
     D3DSMO_FACE     = 0x00000001,
 }
-alias D3DSHADER_MISCTYPE_OFFSETS = int;
 
+alias D3DVS_RASTOUT_OFFSETS = int;
 enum : int
 {
     D3DSRO_POSITION    = 0x00000000,
@@ -265,24 +269,24 @@ enum : int
     D3DSRO_POINT_SIZE  = 0x00000002,
     D3DSRO_FORCE_DWORD = 0x7fffffff,
 }
-alias D3DVS_RASTOUT_OFFSETS = int;
 
+alias D3DVS_ADDRESSMODE_TYPE = int;
 enum : int
 {
     D3DVS_ADDRMODE_ABSOLUTE    = 0x00000000,
     D3DVS_ADDRMODE_RELATIVE    = 0x00002000,
     D3DVS_ADDRMODE_FORCE_DWORD = 0x7fffffff,
 }
-alias D3DVS_ADDRESSMODE_TYPE = int;
 
+alias D3DSHADER_ADDRESSMODE_TYPE = int;
 enum : int
 {
     D3DSHADER_ADDRMODE_ABSOLUTE    = 0x00000000,
     D3DSHADER_ADDRMODE_RELATIVE    = 0x00002000,
     D3DSHADER_ADDRMODE_FORCE_DWORD = 0x7fffffff,
 }
-alias D3DSHADER_ADDRESSMODE_TYPE = int;
 
+alias D3DSHADER_PARAM_SRCMOD_TYPE = int;
 enum : int
 {
     D3DSPSM_NONE        = 0x00000000,
@@ -301,16 +305,16 @@ enum : int
     D3DSPSM_NOT         = 0x0d000000,
     D3DSPSM_FORCE_DWORD = 0x7fffffff,
 }
-alias D3DSHADER_PARAM_SRCMOD_TYPE = int;
 
+alias D3DSHADER_MIN_PRECISION = int;
 enum : int
 {
     D3DMP_DEFAULT = 0x00000000,
     D3DMP_16      = 0x00000001,
     D3DMP_2_8     = 0x00000002,
 }
-alias D3DSHADER_MIN_PRECISION = int;
 
+alias D3DBASISTYPE = int;
 enum : int
 {
     D3DBASIS_BEZIER      = 0x00000000,
@@ -318,8 +322,8 @@ enum : int
     D3DBASIS_CATMULL_ROM = 0x00000002,
     D3DBASIS_FORCE_DWORD = 0x7fffffff,
 }
-alias D3DBASISTYPE = int;
 
+alias D3DDEGREETYPE = int;
 enum : int
 {
     D3DDEGREE_LINEAR      = 0x00000001,
@@ -328,16 +332,16 @@ enum : int
     D3DDEGREE_QUINTIC     = 0x00000005,
     D3DDEGREE_FORCE_DWORD = 0x7fffffff,
 }
-alias D3DDEGREETYPE = int;
 
+alias D3DPATCHEDGESTYLE = int;
 enum : int
 {
     D3DPATCHEDGE_DISCRETE    = 0x00000000,
     D3DPATCHEDGE_CONTINUOUS  = 0x00000001,
     D3DPATCHEDGE_FORCE_DWORD = 0x7fffffff,
 }
-alias D3DPATCHEDGESTYLE = int;
 
+alias D3DDEVTYPE = uint;
 enum : uint
 {
     D3DDEVTYPE_HAL         = 0x00000001,
@@ -346,8 +350,8 @@ enum : uint
     D3DDEVTYPE_NULLREF     = 0x00000004,
     D3DDEVTYPE_FORCE_DWORD = 0x7fffffff,
 }
-alias D3DDEVTYPE = uint;
 
+alias D3DMULTISAMPLE_TYPE = int;
 enum : int
 {
     D3DMULTISAMPLE_NONE        = 0x00000000,
@@ -369,8 +373,8 @@ enum : int
     D3DMULTISAMPLE_16_SAMPLES  = 0x00000010,
     D3DMULTISAMPLE_FORCE_DWORD = 0x7fffffff,
 }
-alias D3DMULTISAMPLE_TYPE = int;
 
+alias D3DFORMAT = uint;
 enum : uint
 {
     D3DFMT_UNKNOWN             = 0x00000000,
@@ -440,8 +444,8 @@ enum : uint
     D3DFMT_BINARYBUFFER        = 0x000000c7,
     D3DFMT_FORCE_DWORD         = 0x7fffffff,
 }
-alias D3DFORMAT = uint;
 
+alias D3DSWAPEFFECT = uint;
 enum : uint
 {
     D3DSWAPEFFECT_DISCARD     = 0x00000001,
@@ -451,8 +455,8 @@ enum : uint
     D3DSWAPEFFECT_FLIPEX      = 0x00000005,
     D3DSWAPEFFECT_FORCE_DWORD = 0x7fffffff,
 }
-alias D3DSWAPEFFECT = uint;
 
+alias D3DPOOL = uint;
 enum : uint
 {
     D3DPOOL_DEFAULT     = 0x00000000,
@@ -461,8 +465,8 @@ enum : uint
     D3DPOOL_SCRATCH     = 0x00000003,
     D3DPOOL_FORCE_DWORD = 0x7fffffff,
 }
-alias D3DPOOL = uint;
 
+alias D3DBACKBUFFER_TYPE = uint;
 enum : uint
 {
     D3DBACKBUFFER_TYPE_MONO        = 0x00000000,
@@ -470,8 +474,8 @@ enum : uint
     D3DBACKBUFFER_TYPE_RIGHT       = 0x00000002,
     D3DBACKBUFFER_TYPE_FORCE_DWORD = 0x7fffffff,
 }
-alias D3DBACKBUFFER_TYPE = uint;
 
+alias D3DRESOURCETYPE = int;
 enum : int
 {
     D3DRTYPE_SURFACE       = 0x00000001,
@@ -483,8 +487,8 @@ enum : int
     D3DRTYPE_INDEXBUFFER   = 0x00000007,
     D3DRTYPE_FORCE_DWORD   = 0x7fffffff,
 }
-alias D3DRESOURCETYPE = int;
 
+alias D3DCUBEMAP_FACES = int;
 enum : int
 {
     D3DCUBEMAP_FACE_POSITIVE_X  = 0x00000000,
@@ -495,16 +499,16 @@ enum : int
     D3DCUBEMAP_FACE_NEGATIVE_Z  = 0x00000005,
     D3DCUBEMAP_FACE_FORCE_DWORD = 0x7fffffff,
 }
-alias D3DCUBEMAP_FACES = int;
 
+alias D3DDEBUGMONITORTOKENS = int;
 enum : int
 {
     D3DDMT_ENABLE      = 0x00000000,
     D3DDMT_DISABLE     = 0x00000001,
     D3DDMT_FORCE_DWORD = 0x7fffffff,
 }
-alias D3DDEBUGMONITORTOKENS = int;
 
+alias D3DQUERYTYPE = int;
 enum : int
 {
     D3DQUERYTYPE_VCACHE            = 0x00000004,
@@ -523,8 +527,8 @@ enum : int
     D3DQUERYTYPE_CACHEUTILIZATION  = 0x00000012,
     D3DQUERYTYPE_MEMORYPRESSURE    = 0x00000013,
 }
-alias D3DQUERYTYPE = int;
 
+alias D3DCOMPOSERECTSOP = int;
 enum : int
 {
     D3DCOMPOSERECTS_COPY        = 0x00000001,
@@ -533,16 +537,16 @@ enum : int
     D3DCOMPOSERECTS_NEG         = 0x00000004,
     D3DCOMPOSERECTS_FORCE_DWORD = 0x7fffffff,
 }
-alias D3DCOMPOSERECTSOP = int;
 
+alias D3DSCANLINEORDERING = int;
 enum : int
 {
     D3DSCANLINEORDERING_UNKNOWN     = 0x00000000,
     D3DSCANLINEORDERING_PROGRESSIVE = 0x00000001,
     D3DSCANLINEORDERING_INTERLACED  = 0x00000002,
 }
-alias D3DSCANLINEORDERING = int;
 
+alias D3DDISPLAYROTATION = int;
 enum : int
 {
     D3DDISPLAYROTATION_IDENTITY = 0x00000001,
@@ -550,24 +554,24 @@ enum : int
     D3DDISPLAYROTATION_180      = 0x00000003,
     D3DDISPLAYROTATION_270      = 0x00000004,
 }
-alias D3DDISPLAYROTATION = int;
 
+alias D3DAUTHENTICATEDCHANNELTYPE = int;
 enum : int
 {
     D3DAUTHENTICATEDCHANNEL_D3D9            = 0x00000001,
     D3DAUTHENTICATEDCHANNEL_DRIVER_SOFTWARE = 0x00000002,
     D3DAUTHENTICATEDCHANNEL_DRIVER_HARDWARE = 0x00000003,
 }
-alias D3DAUTHENTICATEDCHANNELTYPE = int;
 
+alias D3DAUTHENTICATEDCHANNEL_PROCESSIDENTIFIERTYPE = int;
 enum : int
 {
     PROCESSIDTYPE_UNKNOWN = 0x00000000,
     PROCESSIDTYPE_DWM     = 0x00000001,
     PROCESSIDTYPE_HANDLE  = 0x00000002,
 }
-alias D3DAUTHENTICATEDCHANNEL_PROCESSIDENTIFIERTYPE = int;
 
+alias D3DBUSTYPE = int;
 enum : int
 {
     D3DBUSTYPE_OTHER                                            = 0x00000000,
@@ -582,7 +586,6 @@ enum : int
     D3DBUSIMPL_MODIFIER_DAUGHTER_BOARD_CONNECTOR_INSIDE_OF_NUAE = 0x00050000,
     D3DBUSIMPL_MODIFIER_NON_STANDARD                            = 0x80000000,
 }
-alias D3DBUSTYPE = int;
 
 // Structs
 

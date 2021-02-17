@@ -1,12 +1,16 @@
+// Written in the D programming language.
+
 module windows.mbn;
 
 public import windows.core;
 public import windows.automation : BSTR, IDispatch;
 public import windows.com : HRESULT, IUnknown;
-public import windows.mobilebroadband : MBN_BAND_CLASS, MBN_CONTEXT_CONSTANTS, MBN_CTRL_CAPS, MBN_DATA_CLASS,
-                                        MBN_INTERFACE_CAPS_CONSTANTS, MBN_PIN_CONSTANTS, MBN_PROVIDER_CONSTANTS,
-                                        MBN_PROVIDER_STATE, MBN_REGISTRATION_CONSTANTS, MBN_SIGNAL_CONSTANTS,
-                                        MBN_SMS_CAPS, MBN_SMS_STATUS_FLAG, WWAEXT_SMS_CONSTANTS;
+public import windows.mobilebroadband : MBN_BAND_CLASS, MBN_CONTEXT_CONSTANTS, MBN_CTRL_CAPS,
+                                        MBN_DATA_CLASS, MBN_INTERFACE_CAPS_CONSTANTS,
+                                        MBN_PIN_CONSTANTS, MBN_PROVIDER_CONSTANTS,
+                                        MBN_PROVIDER_STATE, MBN_REGISTRATION_CONSTANTS,
+                                        MBN_SIGNAL_CONSTANTS, MBN_SMS_CAPS,
+                                        MBN_SMS_STATUS_FLAG, WWAEXT_SMS_CONSTANTS;
 
 extern(Windows):
 
@@ -14,11 +18,11 @@ extern(Windows):
 // Enums
 
 
+alias MBN_DEVICE_SERVICE_SESSIONS_STATE = int;
 enum : int
 {
     MBN_DEVICE_SERVICE_SESSIONS_RESTORED = 0x00000000,
 }
-alias MBN_DEVICE_SERVICE_SESSIONS_STATE = int;
 
 // Structs
 

@@ -1,3 +1,5 @@
+// Written in the D programming language.
+
 module windows.alljoyn;
 
 public import windows.core;
@@ -9,12 +11,12 @@ extern(Windows):
 // Enums
 
 
+alias alljoyn_about_announceflag = int;
 enum : int
 {
     UNANNOUNCED = 0x00000000,
     ANNOUNCED   = 0x00000001,
 }
-alias alljoyn_about_announceflag = int;
 
 enum QStatus : int
 {
@@ -415,6 +417,7 @@ enum QStatus : int
     ER_BUS_DESCRIPTION_ALREADY_EXISTS                                   = 0x00009144,
 }
 
+alias alljoyn_typeid = int;
 enum : int
 {
     ALLJOYN_INVALID          = 0x00000000,
@@ -450,8 +453,8 @@ enum : int
     ALLJOYN_BYTE_ARRAY       = 0x00007961,
     ALLJOYN_WILDCARD         = 0x0000002a,
 }
-alias alljoyn_typeid = int;
 
+alias alljoyn_applicationstate = int;
 enum : int
 {
     NOT_CLAIMABLE = 0x00000000,
@@ -459,23 +462,23 @@ enum : int
     CLAIMED       = 0x00000002,
     NEED_UPDATE   = 0x00000003,
 }
-alias alljoyn_applicationstate = int;
 
+alias alljoyn_claimcapability_masks = int;
 enum : int
 {
     CAPABLE_ECDHE_NULL  = 0x00000001,
     CAPABLE_ECDHE_ECDSA = 0x00000004,
     CAPABLE_ECDHE_SPEKE = 0x00000008,
 }
-alias alljoyn_claimcapability_masks = int;
 
+alias alljoyn_claimcapabilityadditionalinfo_masks = int;
 enum : int
 {
     PASSWORD_GENERATED_BY_SECURITY_MANAGER = 0x00000001,
     PASSWORD_GENERATED_BY_APPLICATION      = 0x00000002,
 }
-alias alljoyn_claimcapabilityadditionalinfo_masks = int;
 
+alias alljoyn_messagetype = int;
 enum : int
 {
     ALLJOYN_MESSAGE_INVALID     = 0x00000000,
@@ -484,16 +487,16 @@ enum : int
     ALLJOYN_MESSAGE_ERROR       = 0x00000003,
     ALLJOYN_MESSAGE_SIGNAL      = 0x00000004,
 }
-alias alljoyn_messagetype = int;
 
+alias alljoyn_interfacedescription_securitypolicy = int;
 enum : int
 {
     AJ_IFC_SECURITY_INHERIT  = 0x00000000,
     AJ_IFC_SECURITY_REQUIRED = 0x00000001,
     AJ_IFC_SECURITY_OFF      = 0x00000002,
 }
-alias alljoyn_interfacedescription_securitypolicy = int;
 
+alias alljoyn_sessionlostreason = int;
 enum : int
 {
     ALLJOYN_SESSIONLOST_INVALID                    = 0x00000000,
@@ -503,7 +506,6 @@ enum : int
     ALLJOYN_SESSIONLOST_LINK_TIMEOUT               = 0x00000004,
     ALLJOYN_SESSIONLOST_REASON_OTHER               = 0x00000005,
 }
-alias alljoyn_sessionlostreason = int;
 
 // Constants
 
@@ -925,23 +927,56 @@ struct _alljoyn_securityapplicationproxy_handle
 
 // Functions
 
+///Opens the AllJoyn Router Node Service named pipe, and sets it to <b>PIPE_NOWAIT</b>.
+///Params:
+///    connectionSpec = Optional parameter to pass connection spec for future use.
 @DllImport("MSAJApi")
 HANDLE AllJoynConnectToBus(const(wchar)* connectionSpec);
 
+///Closes the Named Pipe handle.
+///Params:
+///    busHandle = The bus handle.
 @DllImport("MSAJApi")
 BOOL AllJoynCloseBusHandle(HANDLE busHandle);
 
+///Sends data to the bus via named pipe. The caller of this API is responsible to check if the <i>bytesTransferred</i>
+///is less than the requested bytes and call this API again to resend the rest of the data. When the named pipe
+///<i>outBufferSize</i> is less than the <i>bytesToWrite</i>, writing to named pipe is returning TRUE and
+///<i>bytesTransferred == 0</i>, rather than returning TRUE and transferring as much as possible.
+///Params:
+///    connectedBusHandle = Pipe handle.
+///    buffer = Input data buffer.
+///    bytesToWrite = Number of bytes to send.
+///    bytesTransferred = Number of bytes written.
+///    reserved = May be used in a future version as OVERLAPPED address. Currently must be NULL.
 @DllImport("MSAJApi")
 BOOL AllJoynSendToBus(HANDLE connectedBusHandle, char* buffer, uint bytesToWrite, uint* bytesTransferred, 
                       void* reserved);
 
+///Receives data from the bus via named pipe.
+///Params:
+///    connectedBusHandle = Pipe handle.
+///    buffer = Output data buffer.
+///    bytesToRead = Number of bytes to receive.
+///    bytesTransferred = Number of bytes read.
+///    reserved = May be used in a future version as OVERLAPPED address. Currently must be NULL.
 @DllImport("MSAJApi")
 BOOL AllJoynReceiveFromBus(HANDLE connectedBusHandle, char* buffer, uint bytesToRead, uint* bytesTransferred, 
                            void* reserved);
 
+///Provides AllJoyn transport functionality similar to the TCP socket WSAEventSelect functionality.
+///Params:
+///    connectedBusHandle = Pipe handle.
+///    eventHandle = Handle to the event to be set when any of the events in bit mask happens.
+///    eventTypes = Bit mask of events to select.
 @DllImport("MSAJApi")
 BOOL AllJoynEventSelect(HANDLE connectedBusHandle, HANDLE eventHandle, uint eventTypes);
 
+///Provides AllJoyn transport functionality similar to the TCP socket WSAEnumNetworkEvents functionality.
+///Params:
+///    connectedBusHandle = Pipe handle.
+///    eventToReset = Optional handle to the event to be reset after completion of this call.
+///    eventTypes = Output for bitmask of events being set.
 @DllImport("MSAJApi")
 BOOL AllJoynEnumEvents(HANDLE connectedBusHandle, HANDLE eventToReset, uint* eventTypes);
 
