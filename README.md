@@ -31,13 +31,15 @@ Build and run were tested on Windows, but the generator code is not platform dep
 
 ## Features
 
-- Documentation
+### Documentation
 
 All functions, interfaces, enums and user defined types have descriptions extracted from the official Windows SDK documentation.
 
 ![Demo image](https://github.com/rumbu13/windows-d/blob/master/ext/docs.JPG)
 
-- Code formatting. Lines have a maximum length of 120 characters. You can override this setting by changing the constant ```maxLineWidth = 120```. Function declarations are aligned to the width of the result type having a hard limit set in the constant ```maxReturnTypeAlignment = 8```. Struct members are also aligned to the width of the type having a hard limit that you can set in the constant ```maxFieldAlignment = 20```. Function parameters are also aligned to open paranthesis starting the parameter list.
+### Code formatting
+
+Lines have a maximum length of 120 characters. You can override this setting by changing the constant ```maxLineWidth = 120```. Function declarations are aligned to the width of the result type having a hard limit set in the constant ```maxReturnTypeAlignment = 8```. Struct members are also aligned to the width of the type having a hard limit that you can set in the constant ```maxFieldAlignment = 20```. Function parameters are also aligned to open paranthesis starting the parameter list.
 
 ```
 struct CQPAGE
@@ -62,7 +64,10 @@ interface IServerSecurity : IUnknown
 }
 
 ```
-- Selective imports. Based on the dependency graph, imports between modules are limited to the types which are really used. All imports are public since there is no implementation of functions, only declarations.
+
+### Selective imports
+
+Based on the dependency graph, imports between modules are limited to the types which are really used. All imports are public since there is no implementation of functions, only declarations.
 
 ```
 module windows.componentservices;
@@ -76,7 +81,9 @@ public import windows.windowsprogramming : FILETIME;
 
 ```
 
-- Constant grouping. In the metadata files, constants are listed globally, the application tries to find a common pattern and group them accordingly. You can control this behaviour using the constant ```minSetTreshold = 0.4``` representing the proportion of common characters.
+### Constant grouping
+
+In the metadata files, constants are listed globally, the application tries to find a common pattern and group them accordingly. You can control this behaviour using the constant ```minSetTreshold = 0.4``` representing the proportion of common characters.
 
 ```
 enum : int
@@ -122,7 +129,7 @@ auto bitmap = CreateBitmap(128, 128, 1, 32, null).autoFree;
 //no need to call DeleteObject, it is called automatically when ```bitmap``` will go out of scope
 ```
 
-### GUID decorating.
+### GUID decorating
 
 Interfaces and several structs are decorated with GUID attributes. The old ```IID_``` constants from Windows headers are missing, therefore the generator will create them based on the name of each decorated item. The template doing this mapping (```GUIDOF```) can be found in the file ```core.d```. Conventionally, every COM interface has an associated ```IID_``` guid, any other type having an associated ```CLSID_``` guid.
 ```
@@ -163,7 +170,7 @@ Not all attributes found in the metadata have a direct translation in D language
 - ```NativeTypedef``` is used to decide where ```struct``` is in facta a strong typed handles.
 - ```UnmanagedFunctionPointer``` is used to decide what calling convention is used for callback functions.  
 - ```Const``` attribute is translated as a ```const``` qualifier for all fields or all parameters. 
-The following attributes are ignored: ```NativeArrayInfo```, ```ComOutPtr```, ```RetVal```, ```NullNullTerminated```, ```NotNullTerminated```. Any suggestion about how to take advantage of them is appreciated. 
+- The following attributes are ignored: ```NativeArrayInfo```, ```ComOutPtr```, ```RetVal```, ```NullNullTerminated```, ```NotNullTerminated```. Any suggestion about how to take advantage of them is appreciated. 
 ```
 enum : int
 {
